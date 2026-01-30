@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
     <head>
-        <meta charset="UTF-8">
-        <title>Agencia de viajes</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="../css/styles.css">
     </head>
     <body>
-        <header>
-            <nav>
-                <a href="login.html">Iniciar Sesión</a>
-                <a href="buscar.html">Buscar Viajes</a>
-            </nav>
-        </header>
-        <main>
-            <section>
-                <h2>Planifica tu próximos viaje</h2>
-                <p>Encuentra vuelos y hoteles desde un solo lugar.</p>
-                <a class="btn" href="buscar.html">Comenzar búsqueda</a>"
+        <nav class="navbar navbar-expand-lg bg white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="index.html">TravelNow</a>
+                <div>
+                    <a class="btn btn-outline-primary me-2" href="login.html">Iniciar Sesión</a>
+                    <a class="btn btn-primary" href="buscar.html">Buscar Viajes</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-5">
+            <section class="hero text-centar">
+                <h1>Planifica tu próximo viaje</h1>
+                <p class="lead">Vuelos y hoteles desde un solo lugar</p>
+                <a href="buscar.html" class="btn btn-primary btn-lg mt-3">Comenzar Búsqueda</a>
             </section>
-        </main>
+        </div>
+
         <footer>
-            <p>2023 Agencia de Viajes. Todos los derechos reservados.</p>
+            <p>© 2026 TravelNow – Proyecto académico</p>
         </footer>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>      
     </body>
 </html>
