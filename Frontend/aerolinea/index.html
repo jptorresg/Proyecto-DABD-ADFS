@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aerolíneas Halcón - Inicio</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/css/index.aerolinea.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo y Nombre -->
+            <div class="logo-section">
+                <div class="logo-circle">
+                    <i class="fas fa-plane-departure"></i>
+                </div>
+                <span class="brand-name">Aerolíneas Halcón</span>
+            </div>
+
+            <!-- Barra de Búsqueda -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar vuelos, destinos...">
+                    <button class="filter-btn" title="Filtros">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sección de Usuario - Visitante Anónimo -->
+            <div class="user-section" id="guestSection">
+                <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+                <button class="btn btn-primary" id="registerBtn">Registrarse</button>
+            </div>
+
+            <!-- Sección de Usuario - Usuario Registrado (oculto por defecto) -->
+            <div class="user-section user-logged" id="loggedSection" style="display: none;">
+                <div class="user-profile" id="profileDropdown">
+                    <div class="profile-circle">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="username">Usuario</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+                <button class="btn btn-outline" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Modal de Login (simple para demostración) -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <button class="close-modal" id="closeLoginModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Correo Electrónico</label>
+                        <input type="email" id="loginEmail" class="form-input" placeholder="correo@ejemplo.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Contraseña</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Vuela más alto con Aerolíneas Halcón</h1>
+            <p class="hero-subtitle">Conectamos tus sueños con el mundo. Descubre destinos increíbles con la mejor experiencia de vuelo.</p>
+            <button class="btn btn-hero" id="exploreFlightsBtn">
+                <i class="fas fa-plane"></i> Explorar Vuelos
+            </button>
+        </div>
+    </section>
+
+    <!-- Info Cards Section -->
+    <section class="info-cards-section">
+        <div class="container">
+            <!-- Primera fila de tarjetas -->
+            <div class="info-cards-grid">
+                <!-- Card 1: Viajes a todo el mundo -->
+                <div class="info-card card-destinations">
+                    <div class="card-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h3 class="card-title">Viajes a Todo el Mundo</h3>
+                    <p class="card-description">Conectamos más de 150 destinos en 6 continentes. Tu próxima aventura está a un clic de distancia.</p>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">150+</span>
+                            <span class="stat-label">Destinos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">50+</span>
+                            <span class="stat-label">Países</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: El mejor servicio -->
+                <div class="info-card card-service">
+                    <div class="card-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="card-title">El Mejor Servicio</h3>
+                    <p class="card-description">Reconocidos internacionalmente por nuestra excelencia. Atención personalizada en cada etapa de tu viaje.</p>
+                    <div class="card-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="rating-text">5.0 de satisfacción del cliente</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Asientos premium -->
+                <div class="info-card card-comfort">
+                    <div class="card-icon">
+                        <i class="fas fa-chair"></i>
+                    </div>
+                    <h3 class="card-title">Comodidad Premium</h3>
+                    <p class="card-description">Asientos espaciosos en clase turista y business. Disfruta del viaje tanto como del destino.</p>
+                    <ul class="card-features">
+                        <li><i class="fas fa-check-circle"></i> Espacio extra para piernas</li>
+                        <li><i class="fas fa-check-circle"></i> Entretenimiento a bordo</li>
+                        <li><i class="fas fa-check-circle"></i> Wi-Fi en vuelos selectos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Segunda fila de tarjetas (Partners) -->
+            <div class="partner-cards-grid">
+                <!-- Card 4: Hoteles aliados -->
+                <div class="partner-card card-hotels">
+                    <div class="partner-card-content">
+                        <div class="partner-icon">
+                            <i class="fas fa-hotel"></i>
+                        </div>
+                        <div class="partner-text">
+                            <h3 class="partner-title">Conoce Nuestros Hoteles Aliados</h3>
+                            <p class="partner-description">Completa tu experiencia con hospedaje de primera clase. Obtén descuentos especiales al reservar vuelo + hotel.</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-partner" id="hotelsBtn">
+                        <i class="fas fa-building"></i> Ver Hoteles
+                    </button>
+                </div>
+
+                <!-- Card 5: Agencia aliada -->
+                <div class="partner-card card-agency">
+                    <div class="partner-card-content">
+                        <div class="partner-icon">
+                            <i class="fas fa-suitcase-rolling"></i>
+                        </div>
+                        <div class="partner-text">
+                            <h3 class="partner-title">Conoce Nuestra Agencia Aliada</h3>
+                            <p class="partner-description">Paquetes completos de viaje con todo incluido. Deja que los expertos planifiquen tu aventura perfecta.</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-partner" id="agencyBtn">
+                        <i class="fas fa-briefcase"></i> Ver Paquetes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="py-5">
+                <div class="row">
+                    <!-- Logo y Descripción -->
+                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                        <div class="footer-brand">
+                            <div class="footer-logo-section">
+                                <div class="footer-logo-circle">
+                                    <i class="fas fa-plane-departure"></i>
+                                </div>
+                                <span class="footer-brand-name">Aerolíneas Halcón</span>
+                            </div>
+                            <p class="footer-description mt-3">
+                                Conectando tus sueños con el mundo desde 1995. Vuela con confianza, vuela con excelencia.
+                            </p>
+                            <!-- Redes Sociales -->
+                            <div class="social-links mt-4">
+                                <a href="#" class="social-link" aria-label="Facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                                <a href="#" class="social-link" aria-label="Instagram">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="#" class="social-link" aria-label="Twitter">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-link" aria-label="LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Servicios -->
+                    <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Servicios</h5>
+                        <ul class="nav flex-column footer-links">
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Reservar Vuelos
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Check-in Online
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Estado de Vuelos
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Mis Reservaciones
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Equipaje
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Información -->
+                    <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Información</h5>
+                        <ul class="nav flex-column footer-links">
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Sobre Nosotros
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Destinos
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Nuestros Hoteles
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Agencia Aliada
+                                </a>
+                            </li>
+                            <li class="nav-item mb-2">
+                                <a href="#" class="nav-link p-0">
+                                    <i class="fas fa-chevron-right"></i> Preguntas Frecuentes
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Contacto</h5>
+                        <ul class="contact-info">
+                            <li class="contact-item">
+                                <i class="fas fa-phone-alt"></i>
+                                <div>
+                                    <strong>Servicio al Cliente</strong>
+                                    <p>+502 2345-6789</p>
+                                </div>
+                            </li>
+                            <li class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <strong>Email</strong>
+                                    <p>info@aerolineashalcon.com</p>
+                                </div>
+                            </li>
+                            <li class="contact-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <strong>Dirección</strong>
+                                    <p>Aeropuerto Internacional La Aurora<br>
+                                    Guatemala City, Guatemala</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Footer Bottom -->
+                <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center py-4 mt-4 border-top">
+                    <div class="footer-copyright mb-3 mb-sm-0">
+                        <p class="mb-0">© 2026 Aerolíneas Halcón. Todos los derechos reservados.</p>
+                    </div>
+                    <ul class="list-unstyled d-flex footer-legal mb-0">
+                        <li><a href="#" class="footer-legal-link">Términos y Condiciones</a></li>
+                        <li class="ms-3"><a href="#" class="footer-legal-link">Política de Privacidad</a></li>
+                        <li class="ms-3"><a href="#" class="footer-legal-link">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Frontend/scripts/frontend.aerolinea.js"></script>
+</body>
+</html>
