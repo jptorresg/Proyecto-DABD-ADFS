@@ -1,43 +1,822 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="../agencia/styles.css">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <h2 class="mb-4">Búsqueda de vuelos y hoteles</h2>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda Avanzada - TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a4d2e;
+            --secondary-color: #d4a574;
+            --accent-color: #ff6b35;
+            --dark-bg: #0f1419;
+            --light-bg: #faf8f5;
+            --text-dark: #2c2c2c;
+            --text-light: #6b6b6b;
+            --border-color: #e0ddd8;
+        }
 
-          <form class="card p-4 shadow">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Destino</label>
-                    <input type="text" class="form-control">
-                </div>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-                <div class="col-md-3">
-                    <label class="form-label">Salida</label>
-                    <input type="date" class="form-control">
-                </div>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--light-bg);
+        }
 
-                <div class="col-md-3">
-                    <label class="form-label">Regreso</label>
-                    <input type="date" class="form-control">
-                </div>
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
 
-                <div class="col-md-6">
-                    <label class="form-label">Rango de precio</label>
-                    <select class="form-select">
-                        <option>Bajo</option>
-                        <option>Medio</option>
-                        <option>Alto</option>
-                    </select>
-                </div>
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .btn-login {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-login:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #52b788 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 3rem;
+        }
+
+        /* Quick Filters Sidebar */
+        .quick-filters {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .quick-filters h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .filter-group {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-group:last-child {
+            border-bottom: none;
+        }
+
+        .filter-group h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+        }
+
+        .filter-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Search Forms */
+        .search-forms {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .search-tab {
+            padding: 1rem 2.5rem;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .search-tab.active {
+            color: var(--primary-color);
+        }
+
+        .search-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .search-form {
+            display: none;
+        }
+
+        .search-form.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .form-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        .btn-search {
+            background: var(--accent-color);
+            color: white;
+            padding: 1.2rem 3rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .btn-search:hover {
+            background: #e65a2a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 0.5rem;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--text-dark);
+            color: var(--text-dark);
+        }
+
+        /* Price Range Slider */
+        .price-range {
+            margin-top: 1rem;
+        }
+
+        .price-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        /* Popular Destinations */
+        .popular-destinations {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+
+        .popular-destinations h4 {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .destinations-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .destination-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .destination-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .destination-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .destination-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 1024px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-filters {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-tabs {
+                flex-wrap: wrap;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Travel<span>Hub</span></a>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="buscar.html">Buscar</a>
+                <a href="#destinos">Destinos</a>
             </div>
+            <div class="nav-icons">
+                <a href="login.html" class="btn-login">Iniciar Sesión</a>
+            </div>
+        </nav>
+    </header>
 
-            <button class="btn btn-primary mt-4">Buscar</button>
-          </form>  
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Búsqueda Avanzada</h1>
+        <p>Encuentra el viaje perfecto con nuestros filtros personalizados</p>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="search-grid">
+            <!-- Quick Filters Sidebar -->
+            <aside class="quick-filters">
+                <h3>Filtros Rápidos</h3>
+
+                <div class="filter-group">
+                    <h4>Proveedores</h4>
+                    <div class="filter-option">
+                        <input type="checkbox" id="all-providers" checked>
+                        <label for="all-providers">Todos los proveedores</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="airlines">
+                        <label for="airlines">Solo aerolíneas</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="hotels">
+                        <label for="hotels">Solo hoteles</label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h4>Rango de Precio</h4>
+                    <div class="price-range">
+                        <div class="price-display">
+                            <span>$0</span>
+                            <span>$5000</span>
+                        </div>
+                        <input type="range" min="0" max="5000" value="2500">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h4>Calificación Mínima</h4>
+                    <div class="filter-option">
+                        <input type="checkbox" id="rating5">
+                        <label for="rating5">⭐⭐⭐⭐⭐</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="rating4">
+                        <label for="rating4">⭐⭐⭐⭐</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="rating3">
+                        <label for="rating3">⭐⭐⭐</label>
+                    </div>
+                </div>
+
+                <div class="popular-destinations">
+                    <h4>Destinos Populares</h4>
+                    <div class="destinations-grid">
+                        <div class="destination-card">
+                            <div class="destination-icon">🗽</div>
+                            <div class="destination-name">Nueva York</div>
+                        </div>
+                        <div class="destination-card">
+                            <div class="destination-icon">🌴</div>
+                            <div class="destination-name">Cancún</div>
+                        </div>
+                        <div class="destination-card">
+                            <div class="destination-icon">🗼</div>
+                            <div class="destination-name">París</div>
+                        </div>
+                        <div class="destination-card">
+                            <div class="destination-icon">🏖️</div>
+                            <div class="destination-name">Miami</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Search Forms -->
+            <div class="search-forms">
+                <div class="search-tabs">
+                    <button class="search-tab active" data-tab="vuelos">✈️ Vuelos</button>
+                    <button class="search-tab" data-tab="hoteles">🏨 Hoteles</button>
+                    <button class="search-tab" data-tab="paquetes">🎒 Paquetes</button>
+                </div>
+
+                <!-- Vuelos Form -->
+                <form class="search-form active" id="vuelos">
+                    <div class="form-section">
+                        <h3>Información del Vuelo</h3>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="trip-type" value="round-trip" checked>
+                                Ida y vuelta
+                            </label>
+                            <label>
+                                <input type="radio" name="trip-type" value="one-way">
+                                Solo ida
+                            </label>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>País/Ciudad de Origen</label>
+                                <input type="text" placeholder="Ej: Guatemala City">
+                            </div>
+                            <div class="form-group">
+                                <label>País/Ciudad de Destino</label>
+                                <input type="text" placeholder="Ej: Miami">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Ida</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Vuelta</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Número de Pasajeros</label>
+                                <select>
+                                    <option>1 Pasajero</option>
+                                    <option>2 Pasajeros</option>
+                                    <option>3 Pasajeros</option>
+                                    <option>4 Pasajeros</option>
+                                    <option>5+ Pasajeros</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Clase</label>
+                                <select>
+                                    <option>Turista</option>
+                                    <option>Business</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Preferencias Adicionales</h3>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox">
+                                Solo vuelos directos
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Equipaje incluido
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                WiFi a bordo
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Comidas incluidas
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-search" onclick="event.preventDefault(); window.location.href='resultados.html'">Buscar Vuelos</button>
+                    <button type="reset" class="btn-reset">Limpiar Filtros</button>
+                </form>
+
+                <!-- Hoteles Form -->
+                <form class="search-form" id="hoteles">
+                    <div class="form-section">
+                        <h3>Información del Hotel</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Destino (Ciudad)</label>
+                                <input type="text" placeholder="Ej: Miami Beach">
+                            </div>
+                            <div class="form-group">
+                                <label>Número de Huéspedes</label>
+                                <select>
+                                    <option>1 Huésped</option>
+                                    <option>2 Huéspedes</option>
+                                    <option>3 Huéspedes</option>
+                                    <option>4 Huéspedes</option>
+                                    <option>5+ Huéspedes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Check-in</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Check-out</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tipo de Habitación</label>
+                                <select>
+                                    <option>Cualquiera</option>
+                                    <option>Doble</option>
+                                    <option>Junior Suite</option>
+                                    <option>Suite</option>
+                                    <option>Gran Suite</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Amenidades Deseadas</h3>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox">
+                                Piscina
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Gimnasio
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Spa
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Desayuno incluido
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                WiFi gratuito
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Estacionamiento
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-search" onclick="event.preventDefault(); window.location.href='resultados.html'">Buscar Hoteles</button>
+                    <button type="reset" class="btn-reset">Limpiar Filtros</button>
+                </form>
+
+                <!-- Paquetes Form -->
+                <form class="search-form" id="paquetes">
+                    <div class="form-section">
+                        <h3>Información del Paquete</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>País de Origen</label>
+                                <input type="text" placeholder="Ej: Guatemala">
+                            </div>
+                            <div class="form-group">
+                                <label>País de Destino</label>
+                                <input type="text" placeholder="Ej: Estados Unidos">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fecha de Ida</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de Vuelta</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Número de Pasajeros</label>
+                                <select>
+                                    <option>1 Pasajero</option>
+                                    <option>2 Pasajeros</option>
+                                    <option>3 Pasajeros</option>
+                                    <option>4 Pasajeros</option>
+                                    <option>5+ Pasajeros</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Clase de Vuelo</label>
+                                <select>
+                                    <option>Turista</option>
+                                    <option>Business</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Preferencias del Paquete</h3>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox">
+                                Todo incluido
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Tours incluidos
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Seguro de viaje
+                            </label>
+                            <label>
+                                <input type="checkbox">
+                                Transporte aeropuerto-hotel
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-search" onclick="event.preventDefault(); window.location.href='resultados.html'">Buscar Paquetes</button>
+                    <button type="reset" class="btn-reset">Limpiar Filtros</button>
+                </form>
+            </div>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('.search-tab');
+        const forms = document.querySelectorAll('.search-form');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                forms.forEach(f => f.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Popular destinations click
+        const destinationCards = document.querySelectorAll('.destination-card');
+        destinationCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const destinationName = card.querySelector('.destination-name').textContent;
+                const activeForm = document.querySelector('.search-form.active');
+                const destInput = activeForm.querySelector('input[type="text"]');
+                if (destInput) {
+                    destInput.value = destinationName;
+                }
+            });
+        });
+    </script>
+</body>
 </html>
