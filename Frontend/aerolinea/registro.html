@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Aerolíneas Halcón</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Frontend/css/registro.aerolinea.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Simplificado -->
+    <header class="header-simple">
+        <div class="header-simple-container">
+            <a href="index.html" class="logo-link">
+                <div class="logo-section">
+                    <div class="logo-circle">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
+                    <span class="brand-name">Aerolíneas Halcón</span>
+                </div>
+            </a>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Volver al inicio
+            </a>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="registration-main">
+        <div class="container">
+            <div class="registration-container">
+                <!-- Cabecera del formulario -->
+                <div class="form-header">
+                    <h1 class="form-title">Crear Cuenta</h1>
+                    <p class="form-subtitle">Únete a Aerolíneas Halcón y comienza tu próxima aventura</p>
+                </div>
+
+                <!-- Formulario de Registro -->
+                <form id="registrationForm" class="registration-form" novalidate>
+                    
+                    <!-- Información de Cuenta -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user-circle"></i>
+                            Información de Cuenta
+                        </h3>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">
+                                        Correo Electrónico <span class="required">*</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope input-icon"></i>
+                                        <input 
+                                            type="email" 
+                                            class="form-control" 
+                                            id="email" 
+                                            name="email"
+                                            placeholder="ejemplo@correo.com"
+                                            required
+                                        >
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese un correo electrónico válido.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password" class="form-label">
+                                        Contraseña <span class="required">*</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input 
+                                            type="password" 
+                                            class="form-control" 
+                                            id="password" 
+                                            name="password"
+                                            placeholder="Mínimo 8 caracteres"
+                                            required
+                                            minlength="8"
+                                        >
+                                        <button type="button" class="toggle-password" data-target="password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength" id="passwordStrength"></div>
+                                    <div class="invalid-feedback">
+                                        La contraseña debe tener al menos 8 caracteres.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="confirmPassword" class="form-label">
+                                        Confirmar Contraseña <span class="required">*</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock input-icon"></i>
+                                        <input 
+                                            type="password" 
+                                            class="form-control" 
+                                            id="confirmPassword" 
+                                            name="confirmPassword"
+                                            placeholder="Repita su contraseña"
+                                            required
+                                        >
+                                        <button type="button" class="toggle-password" data-target="confirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Las contraseñas no coinciden.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Personal -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-id-card"></i>
+                            Información Personal
+                        </h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="firstName" class="form-label">
+                                        Nombres <span class="required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="firstName" 
+                                        name="firstName"
+                                        placeholder="Ingrese sus nombres"
+                                        required
+                                    >
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese sus nombres.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="lastName" class="form-label">
+                                        Apellidos <span class="required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="lastName" 
+                                        name="lastName"
+                                        placeholder="Ingrese sus apellidos"
+                                        required
+                                    >
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese sus apellidos.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="age" class="form-label">
+                                        Edad <span class="required">*</span>
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="age" 
+                                        name="age"
+                                        placeholder="Ej: 25"
+                                        required
+                                        min="18"
+                                        max="120"
+                                    >
+                                    <div class="invalid-feedback">
+                                        Debe ser mayor de 18 años.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="country" class="form-label">
+                                        País de Origen <span class="required">*</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-globe input-icon"></i>
+                                        <select 
+                                            class="form-control" 
+                                            id="country" 
+                                            name="country"
+                                            required
+                                        >
+                                            <option value="">Seleccione un país</option>
+                                            <option value="GT">Guatemala</option>
+                                            <option value="MX">México</option>
+                                            <option value="US">Estados Unidos</option>
+                                            <option value="CA">Canadá</option>
+                                            <option value="SV">El Salvador</option>
+                                            <option value="HN">Honduras</option>
+                                            <option value="NI">Nicaragua</option>
+                                            <option value="CR">Costa Rica</option>
+                                            <option value="PA">Panamá</option>
+                                            <option value="ES">España</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="AR">Argentina</option>
+                                            <option value="BR">Brasil</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="PE">Perú</option>
+                                            <option value="OTHER">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione su país de origen.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="passport" class="form-label">
+                                        Número de Pasaporte <span class="required">*</span>
+                                    </label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-passport input-icon"></i>
+                                        <input 
+                                            type="text" 
+                                            class="form-control" 
+                                            id="passport" 
+                                            name="passport"
+                                            placeholder="Ej: A12345678"
+                                            required
+                                            pattern="[A-Za-z0-9]{6,15}"
+                                        >
+                                    </div>
+                                    <small class="form-text">Formato: 6-15 caracteres alfanuméricos</small>
+                                    <div class="invalid-feedback">
+                                        Por favor ingrese un número de pasaporte válido (6-15 caracteres).
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verificación de Seguridad -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Verificación de Seguridad
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                Verificación CAPTCHA <span class="required">*</span>
+                            </label>
+                            <div class="captcha-container">
+                                <div class="captcha-box">
+                                    <div class="captcha-question">
+                                        <span id="captchaQuestion">¿Cuánto es 5 + 3?</span>
+                                    </div>
+                                    <button type="button" class="captcha-refresh" id="refreshCaptcha" title="Generar nueva pregunta">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    class="form-control mt-3" 
+                                    id="captchaAnswer" 
+                                    name="captchaAnswer"
+                                    placeholder="Ingrese su respuesta"
+                                    required
+                                >
+                                <div class="invalid-feedback">
+                                    Por favor complete la verificación CAPTCHA correctamente.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Términos y Condiciones -->
+                    <div class="form-section">
+                        <div class="form-check">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                id="termsAccept" 
+                                name="termsAccept"
+                                required
+                            >
+                            <label class="form-check-label" for="termsAccept">
+                                Acepto los <a href="#" class="link-primary">Términos y Condiciones</a> 
+                                y la <a href="#" class="link-primary">Política de Privacidad</a> 
+                                de Aerolíneas Halcón <span class="required">*</span>
+                            </label>
+                            <div class="invalid-feedback">
+                                Debe aceptar los términos y condiciones.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-user-plus"></i>
+                            Crear Cuenta
+                        </button>
+                        <p class="login-link">
+                            ¿Ya tienes una cuenta? 
+                            <a href="index.html" class="link-primary">Inicia sesión aquí</a>
+                        </p>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Frontend/scripts/registro.aerolinea.js"></script>
+</body>
+</html>
