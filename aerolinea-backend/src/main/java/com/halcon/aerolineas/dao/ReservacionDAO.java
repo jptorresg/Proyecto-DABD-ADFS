@@ -1,11 +1,14 @@
 package com.halcon.aerolineas.dao;
 
-import com.halcon.aerolineas.config.DatabaseConfig;
-import com.halcon.aerolineas.models.Reservacion;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.halcon.aerolineas.config.DatabaseConfig;
+import com.halcon.aerolineas.models.Reservacion;
 
 public class ReservacionDAO {
     
@@ -69,7 +72,7 @@ public class ReservacionDAO {
                 try {
                     conn.rollback(); // Revertir en caso de error
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    throw new RuntimeException("Error en la operación de base de datos", e);
                 }
             }
             throw e;

@@ -1,11 +1,17 @@
 package com.halcon.aerolineas.controllers;
 
-import com.halcon.aerolineas.config.DatabaseConfig;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.*;
-import java.sql.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.halcon.aerolineas.config.DatabaseConfig;
 
 @WebServlet("/api/health")
 public class HealthController extends HttpServlet {

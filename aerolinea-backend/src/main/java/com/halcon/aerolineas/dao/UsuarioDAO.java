@@ -195,7 +195,7 @@ public class UsuarioDAO {
             
         } catch (SQLException e) {
             System.err.println("❌ Error: " + e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException("Error en la operación de base de datos", e);
         }
     }
 }

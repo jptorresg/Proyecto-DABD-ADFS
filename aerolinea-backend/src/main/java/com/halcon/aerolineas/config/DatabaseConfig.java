@@ -8,31 +8,30 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseConfig {
-    private static String URL;
-    private static String USERNAME;
-    private static String PASSWORD;
-    private static String DRIVER;
-    
+    private static final String URL;
+    private static final String USERNAME;
+    private static final String PASSWORD;
+    private static final String DRIVER;
+
     static {
         try {
             Properties props = new Properties();
-            InputStream input = DatabaseConfig.class.getClassLoader()
-                .getResourceAsStream("db.properties");
-            
-            if (input == null) {
-                throw new RuntimeException("No se encontró db.properties");
+            try (InputStream input = DatabaseConfig.class.getClassLoader()
+                    .getResourceAsStream("db.properties")) {
+                
+                if (input == null) throw new RuntimeException("No se encontró db.properties");
+                props.load(input);
             }
-            
-            props.load(input);
+
             URL = props.getProperty("db.url");
             USERNAME = props.getProperty("db.user");
             PASSWORD = props.getProperty("db.password");
             DRIVER = props.getProperty("db.driver");
-            
+
             Class.forName(DRIVER);
-            
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("Error al cargar configuración DB", e);
+            // Se usa un logger o se lanza una excepción de sistema
+            throw new ExceptionInInitializerError("Error crítico de configuración DB: " + e.getMessage());
         }
     }
     
@@ -46,7 +45,7 @@ public class DatabaseConfig {
             System.out.println("📊 Catálogo: " + conn.getCatalog());
         } catch (SQLException e) {
             System.err.println("❌ Error de conexión: " + e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException("Error en la operación de base de datos", e);
         }
     }
     
