@@ -6,7 +6,7 @@
     <title>Aerolíneas Halcón - Inicio</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Frontend/css/index.aerolinea.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/index.aerolinea.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -91,6 +91,10 @@
             </button>
         </div>
     </section>
+
+    <button onclick="probarBackend()" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 20px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;">
+        🔌 Probar Backend
+    </button>
 
     <!-- Info Cards Section -->
     <section class="info-cards-section">
@@ -323,6 +327,21 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/Frontend/scripts/index.aerolinea.js"></script>
+    <script src="/Frontend/aerolinea/js/index.aerolinea.js"></script>
+    <script>
+        async function probarBackend() {
+            try {
+                const response = await fetch('http://localhost:8080/aerolineas/api/health');
+                const data = await response.json();
+                
+                console.log('✅ Respuesta del backend:', data);
+                alert(`✅ Backend conectado!\n\nEstado: ${data.status}\nVuelos en DB: ${data.totalVuelos}`);
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('❌ No se pudo conectar al backend.\n\nAsegúrate de que Tomcat esté corriendo en el puerto 8080');
+            }
+        }
+    </script>
 </body>
 </html>
