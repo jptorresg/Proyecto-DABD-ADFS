@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>InnSync | Gestión de Vuelos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../../js/alpine-data.js"></script>
+    <link rel="stylesheet" href="../Frontend/aerolinea/css/perfil.css">
+</head>
+<body class="bg-slate-50" x-data="reservacionesData()">
+    <div class="profile-container">
+        <h1 class="text-3xl font-black mb-8">Mis Reservaciones</h1>
+        
+        <div class="grid gap-6">
+            <template x-for="res in lista" :key="res.id">
+                <div class="reservation-card">
+                    <div class="flex gap-6 items-center">
+                        <div class="text-center bg-slate-100 p-3 rounded-lg min-w-[80px]">
+                            <p class="text-2xl font-bold" x-text="res.dia">15</p>
+                            <p class="text-xs uppercase" x-text="res.mes">FEB</p>
+                        </div>
+                        <div>
+                            <span class="flight-badge" x-text="res.codigoVuelo"></span>
+                            <h2 class="text-xl font-bold mt-1" x-text="${res.origen} a ${res.destino}"></h2>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-black">Q<span x-text="res.total"></span></p>
+                        <button class="bg-slate-900 text-white px-4 py-2 rounded-lg mt-2 text-sm">Descargar Voucher</button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</body>
+</html>

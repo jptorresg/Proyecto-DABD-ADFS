@@ -613,6 +613,7 @@ function agenciasAdminData() {
 // ==================
 // 7. PERFIL DATA
 // ==================
+/*
 function perfilData() {
     return {
         usuario: {},
@@ -739,7 +740,7 @@ function perfilData() {
         }
     };
 }
-
+*/
 // ==================
 // 8. RESERVACIONES DATA
 // ==================

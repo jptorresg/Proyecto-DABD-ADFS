@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>InnSync | Gestión de Vuelos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../../js/alpine-data.js"></script>
+    <link rel="stylesheet" href="../Frontend/aerolinea/css/perfil.css">
+</head>
+<body class="bg-slate-50" x-data="perfilData()">
+    <div class="profile-container">
+        <div class="flex gap-8">
+            <nav class="w-1/4 flex flex-col gap-2">
+                <a href="#" class="p-3 bg-white rounded-lg shadow-sm font-bold">Datos Personales</a>
+                <a href="reservaciones.html" class="p-3 hover:bg-white rounded-lg transition">Mis Reservas</a>
+                <button @click="logout()" class="p-3 text-red-600 text-left">Cerrar Sesión</button>
+            </nav>
+
+            <div class="flex-1 bg-white p-8 rounded-2xl shadow-sm">
+                <h2 class="text-2xl font-bold mb-6">Información del Perfil</h2>
+                <form @submit.prevent="updateProfile" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Nombre</label>
+                        <input type="text" x-model="user.nombres" class="w-full border p-3 rounded-xl bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-500 mb-1">Correo Electrónico</label>
+                        <input type="email" x-model="user.email" disabled class="w-full border p-3 rounded-xl bg-slate-100 cursor-not-allowed">
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
