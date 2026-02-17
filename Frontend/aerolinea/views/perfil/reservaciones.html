@@ -2,36 +2,599 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>InnSync | Gestión de Vuelos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Mis Reservaciones</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/perfil.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="../../js/alpine-data.js"></script>
-    <link rel="stylesheet" href="../Frontend/aerolinea/css/perfil.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Tabs de filtro */
+        .reservaciones-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #E9ECEF;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: #6C757D;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            color: #4A5F7F;
+            background: rgba(74, 95, 127, 0.05);
+        }
+
+        .tab-btn.active {
+            color: #4A5F7F;
+            border-bottom-color: #4A5F7F;
+        }
+
+        /* Cards de Reservaciones */
+        .reservaciones-grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        .reservacion-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid #E9ECEF;
+            box-shadow: 0 2px 4px rgba(74, 95, 127, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .reservacion-card:hover {
+            box-shadow: 0 4px 12px rgba(74, 95, 127, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .reservacion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, rgba(74, 95, 127, 0.05), rgba(90, 114, 153, 0.03));
+            border-bottom: 1px solid #E9ECEF;
+        }
+
+        .reservacion-code {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #2C3E50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .reservacion-code i {
+            color: #4A5F7F;
+        }
+
+        .badge-status {
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .badge-confirmada {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .badge-pendiente {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .badge-cancelada {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .reservacion-body {
+            padding: 1.5rem;
+        }
+
+        .reservacion-route {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .route-city {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .route-iata {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2C3E50;
+            line-height: 1;
+        }
+
+        .route-name {
+            font-size: 0.85rem;
+            color: #6C757D;
+            margin-top: 0.3rem;
+        }
+
+        .route-arrow {
+            font-size: 1.5rem;
+            color: #4A5F7F;
+            flex-shrink: 0;
+        }
+
+        .reservacion-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .detail-item i {
+            color: #5B8CC6;
+            width: 20px;
+            text-align: center;
+        }
+
+        .reservacion-price {
+            display: flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: #F8F9FA;
+            border-top: 1px solid #E9ECEF;
+        }
+
+        .price-label {
+            font-size: 0.85rem;
+            color: #6C757D;
+            font-weight: 600;
+        }
+
+        .price-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4A5F7F;
+        }
+
+        .reservacion-footer {
+            padding: 1rem 1.5rem;
+            background: #FFFFFF;
+            border-top: 1px solid #E9ECEF;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-reservacion {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-ver {
+            background: rgba(74, 95, 127, 0.1);
+            color: #4A5F7F;
+        }
+
+        .btn-ver:hover {
+            background: rgba(74, 95, 127, 0.2);
+        }
+
+        .btn-descargar {
+            background: #4A5F7F;
+            color: #FFFFFF;
+            box-shadow: 0 2px 4px rgba(74, 95, 127, 0.2);
+        }
+
+        .btn-descargar:hover {
+            background: #3A4D63;
+            box-shadow: 0 4px 8px rgba(74, 95, 127, 0.3);
+        }
+
+        .btn-cancelar {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .btn-cancelar:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        /* Estado vacío */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6C757D;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #E9ECEF;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-explorar {
+            background: linear-gradient(135deg, #4A5F7F, #5B8CC6);
+            color: #FFFFFF;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(74, 95, 127, 0.2);
+        }
+
+        .btn-explorar:hover {
+            background: linear-gradient(135deg, #3A4D63, #4A5F7F);
+            box-shadow: 0 4px 8px rgba(74, 95, 127, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 3rem;
+            color: #6C757D;
+        }
+
+        .spinner {
+            border: 3px solid #E9ECEF;
+            border-top: 3px solid #4A5F7F;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .reservacion-route {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .route-arrow {
+                transform: rotate(90deg);
+            }
+
+            .reservacion-details {
+                grid-template-columns: 1fr;
+            }
+
+            .reservacion-footer {
+                flex-direction: column;
+            }
+
+            .btn-reservacion {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-50" x-data="reservacionesData()">
-    <div class="profile-container">
-        <h1 class="text-3xl font-black mb-8">Mis Reservaciones</h1>
-        
-        <div class="grid gap-6">
-            <template x-for="res in lista" :key="res.id">
-                <div class="reservation-card">
-                    <div class="flex gap-6 items-center">
-                        <div class="text-center bg-slate-100 p-3 rounded-lg min-w-[80px]">
-                            <p class="text-2xl font-bold" x-text="res.dia">15</p>
-                            <p class="text-xs uppercase" x-text="res.mes">FEB</p>
-                        </div>
-                        <div>
-                            <span class="flight-badge" x-text="res.codigoVuelo"></span>
-                            <h2 class="text-xl font-bold mt-1" x-text="${res.origen} a ${res.destino}"></h2>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-2xl font-black">Q<span x-text="res.total"></span></p>
-                        <button class="bg-slate-900 text-white px-4 py-2 rounded-lg mt-2 text-sm">Descargar Voucher</button>
-                    </div>
-                </div>
-            </template>
+<body x-data="reservacionesData()">
+    
+    <!-- Header (incluir partial) -->
+    <div id="header-placeholder"></div>
+
+    <!-- Breadcrumb -->
+    <div class="perfil-breadcrumb">
+        <div class="container">
+            <a href="../index.html">
+                <i class="fas fa-home"></i> Inicio
+            </a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="index.html">Mi Perfil</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Mis Reservaciones</span>
         </div>
     </div>
+
+    <!-- Contenido Principal -->
+    <main class="perfil-main">
+        <div class="container">
+            
+            <div class="perfil-layout">
+                
+                <!-- Sidebar -->
+                <aside class="perfil-sidebar">
+                    <!-- Avatar y Info -->
+                    <div class="perfil-avatar-section">
+                        <div class="perfil-avatar">
+                            <span x-text="getUserSession()?.nombres?.charAt(0) || 'U'"></span>
+                        </div>
+                        <h3 class="perfil-user-name" x-text="`${getUserSession()?.nombres || ''} ${getUserSession()?.apellidos || ''}`"></h3>
+                        <p class="perfil-user-email" x-text="getUserSession()?.email"></p>
+                        <span class="perfil-user-badge" x-text="getUserSession()?.tipoUsuario"></span>
+                    </div>
+
+                    <!-- Navegación -->
+                    <nav class="perfil-nav">
+                        <a href="index.html" class="perfil-nav-link">
+                            <i class="fas fa-user"></i>
+                            <span>Mi Perfil</span>
+                        </a>
+                        <a href="reservaciones.html" class="perfil-nav-link active">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Mis Reservaciones</span>
+                        </a>
+                        <a href="#" @click.prevent="logout()" class="perfil-nav-link perfil-nav-link-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </nav>
+                </aside>
+
+                <!-- Contenido Principal -->
+                <div class="perfil-content">
+                    
+                    <!-- Header -->
+                    <div class="perfil-card">
+                        <div class="perfil-card-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">
+                            <h2 class="perfil-card-title">
+                                <i class="fas fa-ticket-alt"></i>
+                                Mis Reservaciones
+                            </h2>
+                        </div>
+
+                        <!-- Tabs de Filtro -->
+                        <div class="reservaciones-tabs">
+                            <button @click="cambiarFiltro('todas')" 
+                                    class="tab-btn"
+                                    :class="{ 'active': filtroActivo === 'todas' }">
+                                <i class="fas fa-list"></i>
+                                Todas
+                            </button>
+                            <button @click="cambiarFiltro('confirmadas')" 
+                                    class="tab-btn"
+                                    :class="{ 'active': filtroActivo === 'confirmadas' }">
+                                <i class="fas fa-check-circle"></i>
+                                Confirmadas
+                            </button>
+                            <button @click="cambiarFiltro('pendientes')" 
+                                    class="tab-btn"
+                                    :class="{ 'active': filtroActivo === 'pendientes' }">
+                                <i class="fas fa-clock"></i>
+                                Pendientes
+                            </button>
+                            <button @click="cambiarFiltro('canceladas')" 
+                                    class="tab-btn"
+                                    :class="{ 'active': filtroActivo === 'canceladas' }">
+                                <i class="fas fa-times-circle"></i>
+                                Canceladas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div x-show="isLoading" x-cloak class="loading-container">
+                        <div class="spinner"></div>
+                        <p>Cargando tus reservaciones...</p>
+                    </div>
+
+                    <!-- Lista de Reservaciones -->
+                    <div x-show="!isLoading && filteredReservaciones.length > 0" x-cloak class="reservaciones-grid">
+                        <template x-for="reservacion in filteredReservaciones" :key="reservacion.id">
+                            <div class="reservacion-card">
+                                
+                                <!-- Header -->
+                                <div class="reservacion-header">
+                                    <div class="reservacion-code">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <span x-text="reservacion.codigoReservacion"></span>
+                                    </div>
+                                    <span class="badge-status"
+                                          :class="{
+                                              'badge-confirmada': reservacion.estado === 'CONFIRMADA',
+                                              'badge-pendiente': reservacion.estado === 'PENDIENTE',
+                                              'badge-cancelada': reservacion.estado === 'CANCELADA'
+                                          }"
+                                          x-text="reservacion.estado">
+                                    </span>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="reservacion-body">
+                                    
+                                    <!-- Ruta -->
+                                    <div class="reservacion-route">
+                                        <div class="route-city">
+                                            <div class="route-iata" x-text="reservacion.vuelo.codigoIataOrigen"></div>
+                                            <div class="route-name" x-text="reservacion.vuelo.origen"></div>
+                                        </div>
+                                        
+                                        <div class="route-arrow">
+                                            <i class="fas fa-plane"></i>
+                                        </div>
+                                        
+                                        <div class="route-city">
+                                            <div class="route-iata" x-text="reservacion.vuelo.codigoIataDestino"></div>
+                                            <div class="route-name" x-text="reservacion.vuelo.destino"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Detalles -->
+                                    <div class="reservacion-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span x-text="formatDate(reservacion.vuelo.fechaSalida)"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span x-text="formatTime(reservacion.vuelo.horaSalida)"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-users"></i>
+                                            <span x-text="`${reservacion.numeroPasajeros} pasajero(s)`"></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-chair"></i>
+                                            <span x-text="reservacion.vuelo.tipoAsiento"></span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Precio -->
+                                <div class="reservacion-price">
+                                    <span class="price-label">Precio Total:</span>
+                                    <span class="price-value" x-text="formatCurrency(reservacion.precioTotal)"></span>
+                                </div>
+
+                                <!-- Footer con acciones -->
+                                <div class="reservacion-footer">
+                                    <button @click="window.location.href = `../detalle.html?id=${reservacion.vuelo.id}`" 
+                                            class="btn-reservacion btn-ver">
+                                        <i class="fas fa-eye"></i>
+                                        Ver Detalles
+                                    </button>
+                                    <button @click="descargarPDF(reservacion.codigoReservacion)" 
+                                            class="btn-reservacion btn-descargar">
+                                        <i class="fas fa-download"></i>
+                                        Descargar Comprobante
+                                    </button>
+                                    <button x-show="puedeSerCancelada(reservacion)"
+                                            @click="cancelarReservacion(reservacion.id)" 
+                                            class="btn-reservacion btn-cancelar">
+                                        <i class="fas fa-ban"></i>
+                                        Cancelar Reservación
+                                    </button>
+                                </div>
+
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Estado Vacío -->
+                    <div x-show="!isLoading && filteredReservaciones.length === 0" x-cloak class="perfil-card">
+                        <div class="empty-state">
+                            <i class="fas fa-ticket-alt"></i>
+                            <h3>No tienes reservaciones</h3>
+                            <p x-text="filtroActivo === 'todas' ? 
+                                'Aún no has realizado ninguna reservación.' :
+                                `No tienes reservaciones ${filtroActivo}.`">
+                            </p>
+                            <button @click="window.location.href = '../index.html'" class="btn-explorar">
+                                <i class="fas fa-search"></i>
+                                Explorar Vuelos
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer (incluir partial) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Notification Toast (incluir partial) -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts para incluir partials -->
+    <script>
+        // Cargar header
+        fetch('../../partials/header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Cargar footer
+        fetch('../../partials/footer.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+
+        // Cargar notification toast
+        fetch('../../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('notification-toast').innerHTML = html;
+            });
+
+        // Función logout
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                clearUserSession();
+                window.location.href = '../login.html';
+            }
+        }
+    </script>
+
 </body>
 </html>

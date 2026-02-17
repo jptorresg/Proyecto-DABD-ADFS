@@ -2,36 +2,383 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>InnSync | Gestión de Vuelos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Mi Perfil</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/perfil.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="../../js/alpine-data.js"></script>
-    <link rel="stylesheet" href="../Frontend/aerolinea/css/perfil.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body class="bg-slate-50" x-data="perfilData()">
-    <div class="profile-container">
-        <div class="flex gap-8">
-            <nav class="w-1/4 flex flex-col gap-2">
-                <a href="#" class="p-3 bg-white rounded-lg shadow-sm font-bold">Datos Personales</a>
-                <a href="reservaciones.html" class="p-3 hover:bg-white rounded-lg transition">Mis Reservas</a>
-                <button @click="logout()" class="p-3 text-red-600 text-left">Cerrar Sesión</button>
-            </nav>
+<body x-data="perfilData()">
+    
+    <!-- Header (incluir partial) -->
+    <div id="header-placeholder"></div>
 
-            <div class="flex-1 bg-white p-8 rounded-2xl shadow-sm">
-                <h2 class="text-2xl font-bold mb-6">Información del Perfil</h2>
-                <form @submit.prevent="updateProfile" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-500 mb-1">Nombre</label>
-                        <input type="text" x-model="user.nombres" class="w-full border p-3 rounded-xl bg-slate-50">
+    <!-- Breadcrumb -->
+    <div class="perfil-breadcrumb">
+        <div class="container">
+            <a href="../index.html">
+                <i class="fas fa-home"></i> Inicio
+            </a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Mi Perfil</span>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="perfil-main">
+        <div class="container">
+            
+            <div class="perfil-layout">
+                
+                <!-- Sidebar -->
+                <aside class="perfil-sidebar">
+                    <!-- Avatar y Info -->
+                    <div class="perfil-avatar-section">
+                        <div class="perfil-avatar">
+                            <span x-text="usuario.nombres?.charAt(0) || 'U'"></span>
+                        </div>
+                        <h3 class="perfil-user-name" x-text="`${usuario.nombres || ''} ${usuario.apellidos || ''}`"></h3>
+                        <p class="perfil-user-email" x-text="usuario.email"></p>
+                        <span class="perfil-user-badge" x-text="usuario.tipoUsuario"></span>
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-500 mb-1">Correo Electrónico</label>
-                        <input type="email" x-model="user.email" disabled class="w-full border p-3 rounded-xl bg-slate-100 cursor-not-allowed">
+
+                    <!-- Navegación -->
+                    <nav class="perfil-nav">
+                        <a href="index.html" class="perfil-nav-link active">
+                            <i class="fas fa-user"></i>
+                            <span>Mi Perfil</span>
+                        </a>
+                        <a href="reservaciones.html" class="perfil-nav-link">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Mis Reservaciones</span>
+                        </a>
+                        <a href="#" @click.prevent="openPasswordModal()" class="perfil-nav-link">
+                            <i class="fas fa-lock"></i>
+                            <span>Cambiar Contraseña</span>
+                        </a>
+                        <a href="#" @click.prevent="logout()" class="perfil-nav-link perfil-nav-link-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </nav>
+                </aside>
+
+                <!-- Contenido Principal -->
+                <div class="perfil-content">
+                    
+                    <!-- Card: Información Personal -->
+                    <div class="perfil-card">
+                        <div class="perfil-card-header">
+                            <h2 class="perfil-card-title">
+                                <i class="fas fa-user-circle"></i>
+                                Información Personal
+                            </h2>
+                            
+                            <!-- Botones de edición -->
+                            <div x-show="!editMode">
+                                <button @click="toggleEditMode()" class="btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                    Editar
+                                </button>
+                            </div>
+                            <div x-show="editMode" x-cloak style="display: flex; gap: 0.5rem;">
+                                <button @click="toggleEditMode()" class="btn-cancel">
+                                    <i class="fas fa-times"></i>
+                                    Cancelar
+                                </button>
+                                <button @click="updateProfile()" class="btn-save">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulario -->
+                        <form class="perfil-form" @submit.prevent="updateProfile()">
+                            
+                            <!-- Email (no editable) -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-envelope"></i> Email
+                                </label>
+                                <input type="email" 
+                                       class="form-input form-input-readonly" 
+                                       x-model="usuario.email"
+                                       disabled>
+                                <small class="form-hint">El email no puede ser modificado</small>
+                            </div>
+
+                            <!-- Nombres -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-user"></i> Nombres
+                                </label>
+                                <input type="text" 
+                                       class="form-input" 
+                                       x-model="usuario.nombres"
+                                       :readonly="!editMode"
+                                       :class="{ 'form-input-readonly': !editMode }"
+                                       required>
+                            </div>
+
+                            <!-- Apellidos -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-user"></i> Apellidos
+                                </label>
+                                <input type="text" 
+                                       class="form-input" 
+                                       x-model="usuario.apellidos"
+                                       :readonly="!editMode"
+                                       :class="{ 'form-input-readonly': !editMode }"
+                                       required>
+                            </div>
+
+                            <!-- Edad -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-birthday-cake"></i> Edad
+                                </label>
+                                <input type="number" 
+                                       class="form-input" 
+                                       x-model="usuario.edad"
+                                       :readonly="!editMode"
+                                       :class="{ 'form-input-readonly': !editMode }"
+                                       min="18"
+                                       max="120">
+                            </div>
+
+                            <!-- País -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-globe"></i> País
+                                </label>
+                                <select class="form-input" 
+                                        x-model="usuario.pais"
+                                        :disabled="!editMode"
+                                        :class="{ 'form-input-readonly': !editMode }">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Guatemala">Guatemala</option>
+                                    <option value="México">México</option>
+                                    <option value="Estados Unidos">Estados Unidos</option>
+                                    <option value="El Salvador">El Salvador</option>
+                                    <option value="Honduras">Honduras</option>
+                                    <option value="Costa Rica">Costa Rica</option>
+                                    <option value="Panamá">Panamá</option>
+                                    <option value="Nicaragua">Nicaragua</option>
+                                    <option value="Belice">Belice</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <!-- Número de Pasaporte -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-passport"></i> Número de Pasaporte
+                                </label>
+                                <input type="text" 
+                                       class="form-input" 
+                                       x-model="usuario.numeroPasaporte"
+                                       :readonly="!editMode"
+                                       :class="{ 'form-input-readonly': !editMode }"
+                                       placeholder="Ej: A12345678">
+                            </div>
+
+                        </form>
                     </div>
-                    <button class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">Guardar Cambios</button>
+
+                    <!-- Card: Seguridad -->
+                    <div class="perfil-card">
+                        <div class="perfil-card-header">
+                            <h2 class="perfil-card-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Seguridad
+                            </h2>
+                        </div>
+
+                        <div class="perfil-security-info">
+                            <div class="security-item">
+                                <span class="security-item-label">
+                                    <i class="fas fa-clock"></i> Última conexión
+                                </span>
+                                <span class="security-item-value" x-text="formatDate(usuario.ultimaConexion) || 'N/A'"></span>
+                            </div>
+
+                            <div class="security-item">
+                                <span class="security-item-label">
+                                    <i class="fas fa-calendar-alt"></i> Miembro desde
+                                </span>
+                                <span class="security-item-value" x-text="formatDate(usuario.fechaRegistro)"></span>
+                            </div>
+
+                            <button @click="openPasswordModal()" class="btn-change-password" style="margin-top: 1rem;">
+                                <i class="fas fa-key"></i>
+                                Cambiar Contraseña
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer (incluir partial) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Modal: Cambiar Contraseña -->
+    <div x-show="showPasswordModal" 
+         x-cloak
+         @keydown.escape.window="closePasswordModal()"
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="modal-content"
+             @click.away="closePasswordModal()"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form @submit.prevent="changePassword()">
+                    
+                    <!-- Contraseña Actual -->
+                    <div class="form-group">
+                        <label class="form-label">Contraseña Actual *</label>
+                        <input type="password" 
+                               class="form-input" 
+                               x-model="passwordData.actual"
+                               placeholder="Ingresa tu contraseña actual"
+                               required>
+                    </div>
+
+                    <!-- Nueva Contraseña -->
+                    <div class="form-group">
+                        <label class="form-label">Nueva Contraseña *</label>
+                        <input type="password" 
+                               class="form-input" 
+                               x-model="passwordData.nueva"
+                               placeholder="Mínimo 8 caracteres"
+                               minlength="8"
+                               required>
+                        
+                        <!-- Medidor de Fortaleza -->
+                        <div class="password-strength" x-show="passwordData.nueva.length > 0">
+                            <div class="password-strength-bar"
+                                 :class="{
+                                     'password-strength-weak': passwordData.nueva.length < 8,
+                                     'password-strength-medium': passwordData.nueva.length >= 8 && passwordData.nueva.length < 12,
+                                     'password-strength-strong': passwordData.nueva.length >= 12
+                                 }">
+                            </div>
+                        </div>
+                        <small class="password-strength-label"
+                               :style="{ 
+                                   color: passwordData.nueva.length < 8 ? '#dc3545' : 
+                                          passwordData.nueva.length < 12 ? '#ffc107' : '#28a745' 
+                               }"
+                               x-show="passwordData.nueva.length > 0"
+                               x-text="passwordData.nueva.length < 8 ? 'Débil' : 
+                                       passwordData.nueva.length < 12 ? 'Media' : 'Fuerte'">
+                        </small>
+                    </div>
+
+                    <!-- Confirmar Contraseña -->
+                    <div class="form-group">
+                        <label class="form-label">Confirmar Nueva Contraseña *</label>
+                        <input type="password" 
+                               class="form-input" 
+                               x-model="passwordData.confirmar"
+                               placeholder="Repite la nueva contraseña"
+                               required>
+                        <small class="form-hint" 
+                               :style="{ color: passwordData.nueva === passwordData.confirmar && passwordData.confirmar ? '#28a745' : '#dc3545' }"
+                               x-show="passwordData.confirmar.length > 0"
+                               x-text="passwordData.nueva === passwordData.confirmar ? '✓ Las contraseñas coinciden' : '✗ Las contraseñas no coinciden'">
+                        </small>
+                    </div>
+
                 </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button @click="closePasswordModal()" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button @click="changePassword()" class="btn-save">
+                    <i class="fas fa-check"></i>
+                    Cambiar Contraseña
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- Notification Toast (incluir partial) -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts para incluir partials -->
+    <script>
+        // Cargar header
+        fetch('../../partials/header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Cargar footer
+        fetch('../../partials/footer.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+
+        // Cargar notification toast
+        fetch('../../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('notification-toast').innerHTML = html;
+            });
+
+        // Función logout
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                clearUserSession();
+                window.location.href = '../login.html';
+            }
+        }
+    </script>
+
 </body>
 </html>
