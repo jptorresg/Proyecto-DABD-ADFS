@@ -1,0 +1,42 @@
+<div class="w-full max-w-md p-8" x-data="{ isLogin: true }">
+    <div class="auth-card shadow-lg">
+        
+        <h2 class="text-3xl font-bold text-white text-center mb-4" 
+            x-text="isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'"></h2>
+
+        <form class="space-y-4">
+            <div x-show="!isLogin" x-cloak x-transition class="mb-3">
+                <label class="form-label small fw-bold text-secondary">NOMBRE COMPLETO</label>
+                <input type="text" class="form-control" placeholder="Tu nombre">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary">CORREO ELECTRÓNICO</label>
+                <input type="email" class="form-control" placeholder="correo@ejemplo.com" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-secondary">CONTRASEÑA</label>
+                <input type="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3 shadow-sm">
+                <span x-text="isLogin ? 'Ingresar' : 'Registrarse'"></span>
+            </button>
+        </form>
+
+        <div class="text-center my-3 text-secondary small">O TAMBIÉN</div>
+
+        <button class="btn btn-light w-100 fw-bold py-2 d-flex align-items-center justify-content-center gap-2 mb-4 shadow-sm">
+            <img src="https://www.svgrepo.com/show/355037/google.svg" width="20">
+            Ingresar con Google
+        </button>
+
+        <div class="text-center small">
+            <span class="text-secondary" x-text="isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'"></span>
+            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none ms-1" 
+               @click="isLogin = !isLogin" 
+               x-text="isLogin ? 'Regístrate aquí' : 'Inicia sesión'"></a>
+        </div>
+    </div>
+</div>
