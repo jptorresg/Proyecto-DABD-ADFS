@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test de Endpoints</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #fff; }
+        .test-section { background: #2d2d2d; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+        .result { background: #1a1a1a; padding: 10px; margin-top: 10px; border-left: 3px solid #28a745; overflow-x: auto; }
+        .error { border-left-color: #dc3545; }
+        h2 { color: #4fc3f7; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Endpoints - Backend Aerolíneas</h1>
+    
+    <div class="test-section">
+        <h2>1. AUTH - Login</h2>
+        <button onclick="testLogin()">POST /api/auth/login</button>
+        <div id="result-login" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. VUELOS - Buscar</h2>
+        <button onclick="testBuscarVuelos()">GET /api/vuelos?origen=GUA&destino=MEX</button>
+        <div id="result-vuelos" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. VUELOS - Obtener por ID</h2>
+        <button onclick="testObtenerVuelo()">GET /api/vuelos/1</button>
+        <div id="result-vuelo-id" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. RESERVACIONES - Mis reservaciones</h2>
+        <button onclick="testMisReservaciones()">GET /api/reservaciones</button>
+        <div id="result-reservaciones" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/aerolineas/api';
+        
+        async function testLogin() {
+            const result = document.getElementById('result-login');
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: 'admin@halcon.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await res.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = res.ok ? 'result' : 'result error';
+                
+            } catch (err) {
+                result.textContent = 'ERROR: ' + err.message;
+                result.className = 'result error';
+            }
+        }
+        
+        async function testBuscarVuelos() {
+            const result = document.getElementById('result-vuelos');
+            try {
+                const res = await fetch(`${API_BASE}/vuelos?origen=GUA&destino=MEX`);
+                const data = await res.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = res.ok ? 'result' : 'result error';
+            } catch (err) {
+                result.textContent = 'ERROR: ' + err.message;
+                result.className = 'result error';
+            }
+        }
+        
+        async function testObtenerVuelo() {
+            const result = document.getElementById('result-vuelo-id');
+            try {
+                const res = await fetch(`${API_BASE}/vuelos/1`);
+                const data = await res.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = res.ok ? 'result' : 'result error';
+            } catch (err) {
+                result.textContent = 'ERROR: ' + err.message;
+                result.className = 'result error';
+            }
+        }
+        
+        async function testMisReservaciones() {
+            const result = document.getElementById('result-reservaciones');
+            try {
+                const res = await fetch(`${API_BASE}/reservaciones`, {
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                result.className = res.ok ? 'result' : 'result error';
+            } catch (err) {
+                result.textContent = 'ERROR: ' + err.message;
+                result.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>
