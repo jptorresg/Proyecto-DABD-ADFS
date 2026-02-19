@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a4d2e;
+            --secondary-color: #d4a574;
+            --accent-color: #ff6b35;
+            --dark-bg: #0f1419;
+            --light-bg: #faf8f5;
+            --text-dark: #2c2c2c;
+            --text-light: #6b6b6b;
+            --border-color: #e0ddd8;
+            --success-color: #52b788;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--light-bg);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .secure-checkout {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        /* Progress Steps */
+        .progress-container {
+            background: white;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .progress-steps {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--border-color);
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 25px;
+            left: 0;
+            height: 3px;
+            background: var(--primary-color);
+            transition: width 0.5s ease;
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-section p {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .required {
+            color: var(--accent-color);
+        }
+
+        /* Payment Methods */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .payment-method {
+            padding: 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover {
+            border-color: var(--primary-color);
+            background: rgba(26, 77, 46, 0.05);
+        }
+
+        .payment-method.active {
+            border-color: var(--primary-color);
+            background: rgba(26, 77, 46, 0.1);
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Security Features */
+        .security-notice {
+            background: rgba(82, 183, 136, 0.1);
+            border-left: 4px solid var(--success-color);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+        }
+
+        .security-notice h4 {
+            color: var(--success-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .security-notice p {
+            color: var(--text-dark);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #e65a2a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Order Summary */
+        .order-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 100px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .order-summary h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .order-item {
+            padding: 1.5rem;
+            background: var(--light-bg);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .item-icon {
+            font-size: 2rem;
+        }
+
+        .item-details h4 {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-details p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .info-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 1.5rem 0;
+        }
+
+        .price-breakdown {
+            margin-top: 1.5rem;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .price-row.total {
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            border-top: 2px solid var(--border-color);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .promo-code {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .promo-code input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .btn-apply {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-apply:hover {
+            background: #2d6a4f;
+        }
+
+        /* Trust Badges */
+        .trust-section {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+        }
+
+        .trust-badge {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .trust-badge div:first-child {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .help-text {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+        }
+
+        .help-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: static;
+                order: -1;
+            }
+
+            .progress-steps {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .progress-steps::before {
+                display: none;
+            }
+
+            .progress-line {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Travel<span>Hub</span></a>
+            <div class="secure-checkout">
+                <span>🔒</span>
+                <span>Pago Seguro</span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Progress Steps -->
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="progress-line" style="width: 50%;"></div>
+            <div class="step completed">
+                <div class="step-circle">✓</div>
+                <span class="step-label">Carrito</span>
+            </div>
+            <div class="step active">
+                <div class="step-circle">2</div>
+                <span class="step-label">Información</span>
+            </div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <span class="step-label">Confirmación</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="checkout-grid">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h2>Información de Pago</h2>
+                <p>Complete los datos para finalizar su reservación</p>
+
+                <!-- Passenger Information -->
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.3rem; color: var(--primary-color);">
+                    👤 Información del Pasajero Principal
+                </h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombres <span class="required">*</span></label>
+                        <input type="text" placeholder="Ingrese sus nombres" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellidos <span class="required">*</span></label>
+                        <input type="text" placeholder="Ingrese sus apellidos" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha de Nacimiento <span class="required">*</span></label>
+                        <input type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nacionalidad <span class="required">*</span></label>
+                        <select required>
+                            <option value="">Seleccione un país</option>
+                            <option>Guatemala</option>
+                            <option>México</option>
+                            <option>Estados Unidos</option>
+                            <option>Colombia</option>
+                            <option>Argentina</option>
+                            <option>España</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Número de Pasaporte <span class="required">*</span></label>
+                    <input type="text" placeholder="Ej: A12345678" required>
+                </div>
+
+                <!-- Contact Information -->
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.3rem; color: var(--primary-color);">
+                    📧 Información de Contacto
+                </h3>
+
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono <span class="required">*</span></label>
+                    <input type="tel" placeholder="+502 1234-5678" required>
+                </div>
+
+                <!-- Payment Method -->
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.3rem; color: var(--primary-color);">
+                    💳 Método de Pago
+                </h3>
+
+                <div class="payment-methods">
+                    <div class="payment-method active">
+                        <div class="payment-icon">💳</div>
+                        <div class="payment-name">Tarjeta de Crédito</div>
+                    </div>
+                    <div class="payment-method">
+                        <div class="payment-icon">💵</div>
+                        <div class="payment-name">Tarjeta de Débito</div>
+                    </div>
+                    <div class="payment-method">
+                        <div class="payment-icon">🏦</div>
+                        <div class="payment-name">PayPal</div>
+                    </div>
+                </div>
+
+                <!-- Card Information -->
+                <div class="form-group">
+                    <label>Número de Tarjeta <span class="required">*</span></label>
+                    <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre en la Tarjeta <span class="required">*</span></label>
+                    <input type="text" placeholder="Como aparece en la tarjeta" required>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Fecha de Expiración <span class="required">*</span></label>
+                        <input type="text" placeholder="MM/AA" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV <span class="required">*</span></label>
+                        <input type="text" placeholder="123" maxlength="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ZIP <span class="required">*</span></label>
+                        <input type="text" placeholder="12345" required>
+                    </div>
+                </div>
+
+                <!-- Billing Address -->
+                <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.3rem; color: var(--primary-color);">
+                    📍 Dirección de Facturación
+                </h3>
+
+                <div class="form-group">
+                    <label>Dirección <span class="required">*</span></label>
+                    <input type="text" placeholder="Calle, número, colonia" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ciudad <span class="required">*</span></label>
+                        <input type="text" placeholder="Ciudad" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado/Provincia <span class="required">*</span></label>
+                        <input type="text" placeholder="Estado" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>País <span class="required">*</span></label>
+                        <select required>
+                            <option value="">Seleccione un país</option>
+                            <option selected>Guatemala</option>
+                            <option>México</option>
+                            <option>Estados Unidos</option>
+                            <option>El Salvador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Código Postal <span class="required">*</span></label>
+                        <input type="text" placeholder="01001" required>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="security-notice">
+                    <h4>🔒 Pago 100% Seguro</h4>
+                    <p>
+                        Tus datos están protegidos con encriptación SSL de 256 bits. 
+                        No almacenamos información de tarjetas de crédito en nuestros servidores.
+                    </p>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="window.location.href='detalle-vuelo.html'">← Regresar</button>
+                    <button class="btn btn-primary">Confirmar Pago →</button>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <aside class="order-summary">
+                <h3>Resumen de Reservación</h3>
+
+                <!-- Flight Item -->
+                <div class="order-item">
+                    <div class="item-header">
+                        <div class="item-icon">✈️</div>
+                        <div class="item-details">
+                            <h4>Vuelo Ida y Vuelta</h4>
+                            <p>AeroGuatemala Airlines</p>
+                        </div>
+                    </div>
+                    <div class="item-info">
+                        <div class="info-line">
+                            <span>📍</span>
+                            <span>GUA → MIA → GUA</span>
+                        </div>
+                        <div class="info-line">
+                            <span>📅</span>
+                            <span>15 Feb - 22 Feb 2026</span>
+                        </div>
+                        <div class="info-line">
+                            <span>👤</span>
+                            <span>2 Pasajeros, Turista</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Promo Code -->
+                <div class="promo-code">
+                    <input type="text" placeholder="Código promocional">
+                    <button class="btn-apply">Aplicar</button>
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Subtotal (2 pasajeros)</span>
+                        <span>$900.00</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Impuestos y tasas</span>
+                        <span>$100.00</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Cargo por servicio</span>
+                        <span>$25.00</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total a pagar</span>
+                        <span>$1,025.00</span>
+                    </div>
+                </div>
+
+                <!-- Trust Section -->
+                <div class="trust-section">
+                    <strong style="display: block; margin-bottom: 1rem; text-align: center;">
+                        Tu compra está protegida
+                    </strong>
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <div>🔒</div>
+                            <div>Pago<br>Seguro</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div>✓</div>
+                            <div>Garantía de<br>Mejor Precio</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div>📞</div>
+                            <div>Soporte<br>24/7</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Text -->
+                <p class="help-text">
+                    ¿Necesitas ayuda? <a href="#">Contáctanos</a>
+                </p>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Payment method selection
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        paymentMethods.forEach(method => {
+            method.addEventListener('click', function() {
+                paymentMethods.forEach(m => m.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Card number formatting
+        const cardInput = document.querySelector('input[placeholder="1234 5678 9012 3456"]');
+        cardInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Expiry date formatting
+        const expiryInput = document.querySelector('input[placeholder="MM/AA"]');
+        expiryInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // Form validation
+        const form = document.querySelector('.form-section');
+        const submitBtn = document.querySelector('.btn-primary');
+
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const requiredInputs = form.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+
+            requiredInputs.forEach(input => {
+                if (!input.value) {
+                    isValid = false;
+                    input.style.borderColor = 'var(--accent-color)';
+                } else {
+                    input.style.borderColor = 'var(--border-color)';
+                }
+            });
+
+            if (isValid) {
+                // Redirect to confirmation page
+                window.location.href = 'confirmacion.html';
+            } else {
+                alert('Por favor complete todos los campos requeridos');
+            }
+        });
+    </script>
+</body>
+</html>
