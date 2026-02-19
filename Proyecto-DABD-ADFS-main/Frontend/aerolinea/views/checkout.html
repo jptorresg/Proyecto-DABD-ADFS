@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra – Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/checkout.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="header">
+    <div class="header-container">
+        <div class="logo-section">
+            <a href="index.html" style="display:flex;align-items:center;gap:.875rem;text-decoration:none;">
+                <div class="logo-circle"><i class="fas fa-plane-departure"></i></div>
+                <span class="brand-name">Aerolíneas Halcón</span>
+            </a>
+        </div>
+        <div class="search-section">
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Buscar vuelos, destinos…">
+                <button class="filter-btn" title="Filtros"><i class="fas fa-sliders-h"></i></button>
+            </div>
+        </div>
+        <div class="user-section" id="guestSection">
+            <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+            <button class="btn btn-primary" id="registerBtn">Registrarse</button>
+        </div>
+        <div class="user-section user-logged" id="loggedSection" style="display:none;">
+            <div class="user-profile">
+                <div class="profile-circle"><i class="fas fa-user"></i></div>
+                <span class="username">Usuario</span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </div>
+            <button class="btn btn-outline" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </div>
+    </div>
+</header>
+
+<!-- ============================================================
+     BREADCRUMB
+     ============================================================ -->
+<nav class="chk-breadcrumb">
+    <div class="container">
+        <a href="index.html"><i class="fas fa-home"></i> Inicio</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="resultados.html">Resultados</a>
+        <i class="fas fa-chevron-right"></i>
+        <a href="detalle.html">Detalle</a>
+        <i class="fas fa-chevron-right"></i>
+        <span>Checkout</span>
+    </div>
+</nav>
+
+<!-- ============================================================
+     PROGRESS INDICATOR
+     ============================================================ -->
+<section class="chk-progress">
+    <div class="container">
+        <div class="chk-steps">
+            <div class="chk-step chk-step-done">
+                <div class="chk-step-circle"><i class="fas fa-check"></i></div>
+                <span class="chk-step-label">Selección</span>
+            </div>
+            <div class="chk-step chk-step-active">
+                <div class="chk-step-circle">2</div>
+                <span class="chk-step-label">Pago</span>
+            </div>
+            <div class="chk-step">
+                <div class="chk-step-circle">3</div>
+                <span class="chk-step-label">Confirmación</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     MAIN CONTENT (2 columnas)
+     ============================================================ -->
+<main class="chk-main">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- ═══ COLUMNA IZQUIERDA: Formularios ═══ -->
+            <div class="col-lg-8">
+
+                <!-- ── PASAJEROS ── -->
+                <div class="chk-card">
+                    <h2 class="chk-card-title">
+                        <i class="fas fa-users"></i> Información de Pasajeros
+                    </h2>
+                    
+                    <!-- Pasajero 1 -->
+                    <div class="chk-passenger-block">
+                        <div class="chk-passenger-header">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Pasajero 1 (Adulto)</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="chk-label">Nombre(s) <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p1nombre" placeholder="Juan Carlos" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Apellido(s) <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p1apellido" placeholder="Pérez González" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Fecha de Nacimiento <span class="chk-req">*</span></label>
+                                <input type="date" class="chk-input" id="p1fecha" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Género <span class="chk-req">*</span></label>
+                                <select class="chk-input" id="p1genero" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Pasaporte <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p1pasaporte" placeholder="A12345678" pattern="[A-Za-z0-9]{6,15}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Nacionalidad <span class="chk-req">*</span></label>
+                                <select class="chk-input" id="p1nacionalidad" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="GT">Guatemala</option>
+                                    <option value="MX">México</option>
+                                    <option value="US">Estados Unidos</option>
+                                    <option value="SV">El Salvador</option>
+                                    <option value="HN">Honduras</option>
+                                    <option value="NI">Nicaragua</option>
+                                    <option value="CR">Costa Rica</option>
+                                    <option value="PA">Panamá</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pasajero 2 -->
+                    <div class="chk-passenger-block">
+                        <div class="chk-passenger-header">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Pasajero 2 (Adulto)</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="chk-label">Nombre(s) <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p2nombre" placeholder="María Fernanda" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Apellido(s) <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p2apellido" placeholder="López Martínez" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Fecha de Nacimiento <span class="chk-req">*</span></label>
+                                <input type="date" class="chk-input" id="p2fecha" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Género <span class="chk-req">*</span></label>
+                                <select class="chk-input" id="p2genero" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Pasaporte <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="p2pasaporte" placeholder="B98765432" pattern="[A-Za-z0-9]{6,15}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">Nacionalidad <span class="chk-req">*</span></label>
+                                <select class="chk-input" id="p2nacionalidad" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="GT">Guatemala</option>
+                                    <option value="MX">México</option>
+                                    <option value="US">Estados Unidos</option>
+                                    <option value="SV">El Salvador</option>
+                                    <option value="HN">Honduras</option>
+                                    <option value="NI">Nicaragua</option>
+                                    <option value="CR">Costa Rica</option>
+                                    <option value="PA">Panamá</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- contacto emergencia -->
+                    <div class="chk-contact-block">
+                        <h5 class="chk-section-subtitle">
+                            <i class="fas fa-phone-alt"></i> Contacto de Emergencia
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="chk-label">Nombre Completo <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="emergenciaNombre" placeholder="Ana Patricia Ramírez" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">Teléfono <span class="chk-req">*</span></label>
+                                <input type="tel" class="chk-input" id="emergenciaTel" placeholder="+502 5555-1234" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── MÉTODO DE PAGO ── -->
+                <div class="chk-card">
+                    <h2 class="chk-card-title">
+                        <i class="fas fa-credit-card"></i> Método de Pago
+                    </h2>
+
+                    <!-- selector tipo pago -->
+                    <div class="chk-payment-methods">
+                        <label class="chk-payment-option chk-payment-active">
+                            <input type="radio" name="paymentType" value="card" checked>
+                            <div class="chk-pm-content">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Tarjeta de Crédito/Débito</span>
+                            </div>
+                        </label>
+                        <label class="chk-payment-option">
+                            <input type="radio" name="paymentType" value="paypal">
+                            <div class="chk-pm-content">
+                                <i class="fab fa-paypal"></i>
+                                <span>PayPal</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- formulario tarjeta -->
+                    <div class="chk-card-form" id="cardForm">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="chk-label">Número de Tarjeta <span class="chk-req">*</span></label>
+                                <div class="chk-input-icon-wrapper">
+                                    <i class="fas fa-credit-card chk-input-icon"></i>
+                                    <input type="text" 
+                                           class="chk-input chk-input-with-icon" 
+                                           id="cardNumber" 
+                                           placeholder="1234 5678 9012 3456" 
+                                           maxlength="19"
+                                           required>
+                                    <div class="chk-card-brand" id="cardBrand"></div>
+                                </div>
+                                <small class="chk-hint">Ingrese los 16 dígitos sin espacios</small>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="chk-label">Nombre en la Tarjeta <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" id="cardName" placeholder="JUAN CARLOS PEREZ" style="text-transform:uppercase" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="chk-label">CVV <span class="chk-req">*</span></label>
+                                <div class="chk-input-icon-wrapper">
+                                    <input type="text" class="chk-input" id="cardCVV" placeholder="123" maxlength="4" pattern="[0-9]{3,4}" required>
+                                    <i class="fas fa-question-circle chk-cvv-help" title="Código de 3 o 4 dígitos en el reverso"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">Fecha de Expiración <span class="chk-req">*</span></label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <select class="chk-input" id="cardMonth" required>
+                                            <option value="">Mes</option>
+                                            <option value="01">01 - Enero</option>
+                                            <option value="02">02 - Febrero</option>
+                                            <option value="03">03 - Marzo</option>
+                                            <option value="04">04 - Abril</option>
+                                            <option value="05">05 - Mayo</option>
+                                            <option value="06">06 - Junio</option>
+                                            <option value="07">07 - Julio</option>
+                                            <option value="08">08 - Agosto</option>
+                                            <option value="09">09 - Septiembre</option>
+                                            <option value="10">10 - Octubre</option>
+                                            <option value="11">11 - Noviembre</option>
+                                            <option value="12">12 - Diciembre</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <select class="chk-input" id="cardYear" required>
+                                            <option value="">Año</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2027">2027</option>
+                                            <option value="2028">2028</option>
+                                            <option value="2029">2029</option>
+                                            <option value="2030">2030</option>
+                                            <option value="2031">2031</option>
+                                            <option value="2032">2032</option>
+                                            <option value="2033">2033</option>
+                                            <option value="2034">2034</option>
+                                            <option value="2035">2035</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- formulario PayPal (oculto) -->
+                    <div class="chk-paypal-form" id="paypalForm" style="display:none;">
+                        <div class="chk-paypal-placeholder">
+                            <i class="fab fa-paypal"></i>
+                            <p>Serás redirigido a PayPal para completar el pago de forma segura.</p>
+                            <button type="button" class="chk-paypal-btn">
+                                <i class="fab fa-paypal"></i> Continuar con PayPal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── DIRECCIÓN DE COBRO ── -->
+                <div class="chk-card">
+                    <h2 class="chk-card-title">
+                        <i class="fas fa-map-marker-alt"></i> Dirección de Cobro
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="chk-label">Dirección <span class="chk-req">*</span></label>
+                            <input type="text" class="chk-input" id="billAddress" placeholder="Calle Principal 123, Zona 10" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="chk-label">Ciudad <span class="chk-req">*</span></label>
+                            <input type="text" class="chk-input" id="billCity" placeholder="Guatemala City" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="chk-label">Departamento/Estado <span class="chk-req">*</span></label>
+                            <input type="text" class="chk-input" id="billState" placeholder="Guatemala" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="chk-label">Código Postal <span class="chk-req">*</span></label>
+                            <input type="text" class="chk-input" id="billZip" placeholder="01010" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="chk-label">País <span class="chk-req">*</span></label>
+                            <select class="chk-input" id="billCountry" required>
+                                <option value="">Seleccionar</option>
+                                <option value="GT" selected>Guatemala</option>
+                                <option value="MX">México</option>
+                                <option value="US">Estados Unidos</option>
+                                <option value="SV">El Salvador</option>
+                                <option value="HN">Honduras</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── TÉRMINOS Y CONDICIONES ── -->
+                <div class="chk-card chk-card-terms">
+                    <label class="chk-checkbox-label">
+                        <input type="checkbox" id="acceptTerms" required>
+                        <span>Acepto los <a href="#" class="chk-link">Términos y Condiciones</a> y la <a href="#" class="chk-link">Política de Privacidad</a></span>
+                    </label>
+                    <label class="chk-checkbox-label">
+                        <input type="checkbox" id="acceptNewsletter">
+                        <span>Deseo recibir ofertas y promociones por correo electrónico</span>
+                    </label>
+                </div>
+
+            </div><!-- /col-lg-8 -->
+
+            <!-- ═══ COLUMNA DERECHA: Resumen + Hotel ═══ -->
+            <div class="col-lg-4">
+
+                <!-- ── RESUMEN PEDIDO ── -->
+                <div class="chk-summary-panel">
+                    <h3 class="chk-summary-title">Resumen del Pedido</h3>
+
+                    <!-- vuelo -->
+                    <div class="chk-summary-flight">
+                        <div class="chk-sf-header">
+                            <span class="chk-sf-code">HC-305</span>
+                            <span class="chk-sf-badge"><i class="fas fa-circle"></i> Con Escala</span>
+                        </div>
+                        <div class="chk-sf-route">
+                            <div class="chk-sf-city">
+                                <span class="chk-sf-time">09:15</span>
+                                <span class="chk-sf-airport">GUA</span>
+                            </div>
+                            <div class="chk-sf-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+                            <div class="chk-sf-city">
+                                <span class="chk-sf-time">13:40</span>
+                                <span class="chk-sf-airport">MEX</span>
+                            </div>
+                        </div>
+                        <div class="chk-sf-details">
+                            <span><i class="fas fa-calendar-alt"></i> 10 Feb 2026</span>
+                            <span><i class="fas fa-users"></i> 2 Pasajeros</span>
+                            <span><i class="fas fa-chair"></i> Turista</span>
+                        </div>
+                    </div>
+
+                    <div class="chk-summary-divider"></div>
+
+                    <!-- desglose precio -->
+                    <div class="chk-summary-breakdown">
+                        <div class="chk-sb-row">
+                            <span>Vuelo (2 × Q950)</span>
+                            <span>Q1,900</span>
+                        </div>
+                        <div class="chk-sb-row chk-sb-extra" id="extraBaggage" style="display:none;">
+                            <span>Equipaje facturado (2)</span>
+                            <span>+Q300</span>
+                        </div>
+                        <div class="chk-sb-row chk-sb-extra" id="extraSeat" style="display:none;">
+                            <span>Asiento preferencial (2)</span>
+                            <span>+Q160</span>
+                        </div>
+                        <div class="chk-sb-row chk-sb-extra" id="extraMeal" style="display:none;">
+                            <span>Paquete comida (2)</span>
+                            <span>+Q90</span>
+                        </div>
+                        <div class="chk-sb-row chk-sb-tax">
+                            <span>Impuestos y cargos</span>
+                            <span id="taxAmount">Q228</span>
+                        </div>
+                    </div>
+
+                    <div class="chk-summary-divider"></div>
+
+                    <div class="chk-summary-total">
+                        <span>Total a Pagar</span>
+                        <span class="chk-summary-total-price" id="summaryTotal">Q2,128</span>
+                    </div>
+
+                    <button class="chk-btn-confirm" id="btnConfirm">
+                        <i class="fas fa-lock"></i> Confirmar y Pagar
+                    </button>
+
+                    <p class="chk-summary-secure">
+                        <i class="fas fa-shield-alt"></i> Pago 100% seguro con encriptación SSL
+                    </p>
+                </div>
+
+                <!-- ── HOTEL ALIADO ── -->
+                <div class="chk-hotel-card">
+                    <div class="chk-hotel-badge">¡Oferta Especial!</div>
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop" 
+                         alt="Hotel" 
+                         class="chk-hotel-img">
+                    <div class="chk-hotel-content">
+                        <h4 class="chk-hotel-name">
+                            <i class="fas fa-hotel"></i> Hotel Marquis Reforma
+                        </h4>
+                        <div class="chk-hotel-location">
+                            <i class="fas fa-map-marker-alt"></i> Ciudad de México · A 5 km del aeropuerto
+                        </div>
+                        <div class="chk-hotel-rating">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <span>5.0 (284 reseñas)</span>
+                        </div>
+                        <div class="chk-hotel-features">
+                            <span><i class="fas fa-wifi"></i> Wi-Fi</span>
+                            <span><i class="fas fa-swimming-pool"></i> Piscina</span>
+                            <span><i class="fas fa-concierge-bell"></i> Room Service</span>
+                        </div>
+                        <div class="chk-hotel-price-row">
+                            <div>
+                                <span class="chk-hotel-label">Desde</span>
+                                <span class="chk-hotel-price">Q850<span class="chk-hotel-night">/noche</span></span>
+                            </div>
+                            <span class="chk-hotel-discount">-15% reserva conjunta</span>
+                        </div>
+                        <button class="chk-hotel-btn">
+                            <i class="fas fa-plus-circle"></i> Agregar Hotel
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- /col-lg-4 -->
+
+        </div>
+    </div>
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer-section">
+    <div class="container">
+        <div class="py-5">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <div class="footer-brand">
+                        <div class="footer-logo-section">
+                            <div class="footer-logo-circle"><i class="fas fa-plane-departure"></i></div>
+                            <span class="footer-brand-name">Aerolíneas Halcón</span>
+                        </div>
+                        <p class="footer-description mt-3">Conectando tus sueños con el mundo desde 1998. Vuela con confianza, vuela con excelencia.</p>
+                        <div class="social-links mt-4">
+                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                    <h5 class="footer-heading">Servicios</h5>
+                    <ul class="nav flex-column footer-links">
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Reservar Vuelos</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Check-in Online</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Mis Reservaciones</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                    <h5 class="footer-heading">Información</h5>
+                    <ul class="nav flex-column footer-links">
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Sobre Nosotros</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Destinos</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Nuestros Hoteles</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Agencia Aliada</a></li>
+                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="footer-heading">Contacto</h5>
+                    <ul class="contact-info">
+                        <li class="contact-item"><i class="fas fa-phone-alt"></i><div><strong>Servicio al Cliente</strong><p>+502 2345-6789</p></div></li>
+                        <li class="contact-item"><i class="fas fa-envelope"></i><div><strong>Email</strong><p>info@aerolineashalcon.com</p></div></li>
+                        <li class="contact-item"><i class="fas fa-map-marker-alt"></i><div><strong>Dirección</strong><p>Aeropuerto Internacional La Aurora<br>Guatemala City, Guatemala</p></div></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center py-4 mt-4 border-top">
+                <div class="footer-copyright mb-3 mb-sm-0"><p class="mb-0">© 2026 Aerolíneas Halcón. Todos los derechos reservados.</p></div>
+                <ul class="list-unstyled d-flex footer-legal mb-0">
+                    <li><a href="#" class="footer-legal-link">Términos y Condiciones</a></li>
+                    <li class="ms-3"><a href="#" class="footer-legal-link">Política de Privacidad</a></li>
+                    <li class="ms-3"><a href="#" class="footer-legal-link">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js"></script>
+<script src="/Frontend/aerolinea/js/checkout.aerolinea.js"></script>
+<script src="/Frontend/aerolinea/js/index.aerolinea.js"></script>
+</body>
+</html>

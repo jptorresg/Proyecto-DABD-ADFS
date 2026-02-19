@@ -1,0 +1,5 @@
+:root { --primary-color: #003580; }
+.hero-section { background-color: var(--primary-color); color: white; padding: 80px 0; }
+.card { transition: transform 0.3s; border: none; border-radius: 15px; overflow: hidden; }
+.card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+.btn-primary { background-color: var(--primary-color); border: none; }
