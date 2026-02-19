@@ -1,0 +1,40 @@
+# =====================
+# Java / Maven
+# =====================
+target/
+*.class
+*.log
+
+# =====================
+# IDEs
+# =====================
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+nbproject/
+
+# =====================
+# Configuración sensible
+# =====================
+db.properties
+application.properties
+
+# =====================
+# NO ignorar ejemplos
+# =====================
+!db.properties.example
+
+# =====================
+# Node / Frontend
+# =====================
+node_modules/
+dist/
+.cache/
+
+# =====================
+# Logs
+# =====================
+logs/
