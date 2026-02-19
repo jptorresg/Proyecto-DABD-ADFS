@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Vuelo - TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a4d2e;
+            --secondary-color: #d4a574;
+            --accent-color: #ff6b35;
+            --dark-bg: #0f1419;
+            --light-bg: #faf8f5;
+            --text-dark: #2c2c2c;
+            --text-light: #6b6b6b;
+            --border-color: #e0ddd8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            color: var(--text-dark);
+            background: var(--light-bg);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--primary-color);
+            padding: 0.8rem 2rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+        }
+
+        /* Flight Details */
+        .flight-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .airline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .airline-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .airline-code {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .rating-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .rating-stars {
+            font-size: 1.5rem;
+        }
+
+        .rating-score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .rating-count {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        /* Flight Route */
+        .flight-route-detail {
+            margin: 3rem 0;
+        }
+
+        .route-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .location-detail {
+            text-align: center;
+        }
+
+        .location-time {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-code {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-name {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .location-date {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        .route-middle {
+            text-align: center;
+            position: relative;
+        }
+
+        .duration-info {
+            margin-bottom: 1rem;
+        }
+
+        .duration-time {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .flight-type-badge {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .route-line {
+            height: 3px;
+            background: var(--border-color);
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .route-line::before {
+            content: '✈️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 0 1rem;
+            font-size: 2rem;
+        }
+
+        /* Flight Information */
+        .flight-info-section {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+        }
+
+        .flight-info-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+            min-width: 40px;
+        }
+
+        .info-content h4 {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-content p {
+            color: var(--text-light);
+        }
+
+        /* Baggage & Services */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--border-color);
+        }
+
+        .service-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-card h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .comments-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .comment-form {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .rating-input {
+            margin-bottom: 1.5rem;
+        }
+
+        .rating-input label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .star-rating {
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .star-rating span {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .star-rating span:hover,
+        .star-rating span.active {
+            color: #ffd700;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn-submit-comment {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-submit-comment:hover {
+            background: #2d6a4f;
+            transform: translateY(-2px);
+        }
+
+        .comment {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .comment-date {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .comment-rating {
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+
+        .comment-text {
+            color: var(--text-dark);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .comment-action {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .comment-action:hover {
+            color: var(--primary-color);
+        }
+
+        .comment-replies {
+            margin-top: 1.5rem;
+            margin-left: 4rem;
+        }
+
+        .reply {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .price-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 100px;
+        }
+
+        .price-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .price-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .price {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .price-note {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .quantity-selector {
+            margin: 2rem 0;
+        }
+
+        .quantity-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+
+        .quantity-selector select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .price-breakdown {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breakdown-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 2px solid var(--border-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .btn-add-cart {
+            background: var(--accent-color);
+            color: white;
+            width: 100%;
+            padding: 1.3rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-add-cart:hover {
+            background: #e65a2a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .trust-badge {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .trust-badge div:first-child {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        @media (max-width: 1024px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .price-card {
+                position: static;
+            }
+
+            .comment-replies {
+                margin-left: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .route-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .location-time {
+                font-size: 2rem;
+            }
+
+            .price {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Travel<span>Hub</span></a>
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="resultados.html" class="btn-back">← Volver a resultados</a>
+                <a href="login.html" style="color: var(--text-dark); text-decoration: none; font-weight: 500;">👤 Mi Cuenta</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="detail-grid">
+            <!-- Flight Details -->
+            <div>
+                <div class="flight-card">
+                    <div class="airline-header">
+                        <div class="airline-info">
+                            <h1>AeroGuatemala Airlines</h1>
+                            <p class="airline-code">Vuelo AG-2458 • Boeing 737-800</p>
+                        </div>
+                        <div class="rating-badge">
+                            <div>
+                                <div class="rating-stars">★★★★★</div>
+                                <div class="rating-count">328 reseñas</div>
+                            </div>
+                            <div class="rating-score">4.8</div>
+                        </div>
+                    </div>
+
+                    <!-- Flight Route -->
+                    <div class="flight-route-detail">
+                        <div class="route-container">
+                            <div class="location-detail">
+                                <div class="location-time">08:30</div>
+                                <div class="location-code">GUA</div>
+                                <div class="location-name">Aeropuerto La Aurora</div>
+                                <div class="location-name">Guatemala City, Guatemala</div>
+                                <div class="location-date">15 de Febrero, 2026</div>
+                            </div>
+
+                            <div class="route-middle">
+                                <div class="duration-info">
+                                    <div class="duration-time">3h 45m</div>
+                                    <div class="flight-type-badge">Vuelo Directo</div>
+                                </div>
+                                <div class="route-line"></div>
+                            </div>
+
+                            <div class="location-detail">
+                                <div class="location-time">12:15</div>
+                                <div class="location-code">MIA</div>
+                                <div class="location-name">Miami International Airport</div>
+                                <div class="location-name">Miami, Florida, USA</div>
+                                <div class="location-date">15 de Febrero, 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flight Information -->
+                    <div class="flight-info-section">
+                        <h3>Información del Vuelo</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-icon">💺</div>
+                                <div class="info-content">
+                                    <h4>Clase</h4>
+                                    <p>Turista - Asientos reclinables con espacio para las piernas</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">🧳</div>
+                                <div class="info-content">
+                                    <h4>Equipaje</h4>
+                                    <p>1 maleta de 23kg + equipaje de mano</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">🍽️</div>
+                                <div class="info-content">
+                                    <h4>Comidas</h4>
+                                    <p>Refrigerio ligero y bebidas incluidas</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon">📺</div>
+                                <div class="info-content">
+                                    <h4>Entretenimiento</h4>
+                                    <p>Sistema de entretenimiento personal con películas y música</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services -->
+                    <div class="flight-info-section">
+                        <h3>Servicios Incluidos</h3>
+                        <div class="services-grid">
+                            <div class="service-card">
+                                <div class="service-icon">📱</div>
+                                <h4>Check-in Online</h4>
+                                <p>Disponible 24h antes</p>
+                            </div>
+                            <div class="service-card">
+                                <div class="service-icon">🎧</div>
+                                <h4>WiFi a Bordo</h4>
+                                <p>Acceso gratuito</p>
+                            </div>
+                            <div class="service-card">
+                                <div class="service-icon">⚡</div>
+                                <h4>Carga USB</h4>
+                                <p>En cada asiento</p>
+                            </div>
+                            <div class="service-card">
+                                <div class="service-icon">🎁</div>
+                                <h4>Millas Viajero</h4>
+                                <p>Acumula puntos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3>Reseñas de Viajeros</h3>
+
+                    <!-- Comment Form -->
+                    <div class="comment-form">
+                        <div class="rating-input">
+                            <label>Tu calificación:</label>
+                            <div class="star-rating">
+                                <span data-rating="1">☆</span>
+                                <span data-rating="2">☆</span>
+                                <span data-rating="3">☆</span>
+                                <span data-rating="4">☆</span>
+                                <span data-rating="5">☆</span>
+                            </div>
+                        </div>
+                        <textarea placeholder="Comparte tu experiencia con este vuelo..."></textarea>
+                        <button class="btn-submit-comment">Publicar Reseña</button>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="author-avatar">MR</div>
+                                <div class="author-info">
+                                    <h4>María Rodríguez</h4>
+                                    <p class="comment-date">Hace 2 días</p>
+                                </div>
+                            </div>
+                            <div class="comment-rating">★★★★★</div>
+                        </div>
+                        <p class="comment-text">
+                            Excelente experiencia. El vuelo salió y llegó a tiempo, el personal de cabina fue muy amable y atento. Los asientos son cómodos y el entretenimiento a bordo es variado. Definitivamente volvería a volar con esta aerolínea.
+                        </p>
+                        <div class="comment-actions">
+                            <span class="comment-action">👍 Útil (24)</span>
+                            <span class="comment-action">💬 Responder</span>
+                        </div>
+
+                        <!-- Replies -->
+                        <div class="comment-replies">
+                            <div class="reply">
+                                <div class="comment-header">
+                                    <div class="comment-author">
+                                        <div class="author-avatar" style="width: 40px; height: 40px; font-size: 1rem;">AG</div>
+                                        <div class="author-info">
+                                            <h4>AeroGuatemala</h4>
+                                            <p class="comment-date">Hace 1 día</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="comment-text">
+                                    ¡Muchas gracias por tu reseña, María! Nos alegra mucho que hayas tenido una excelente experiencia. Esperamos verte pronto en otro vuelo. 🛫
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="author-avatar">JG</div>
+                                <div class="author-info">
+                                    <h4>Juan García</h4>
+                                    <p class="comment-date">Hace 1 semana</p>
+                                </div>
+                            </div>
+                            <div class="comment-rating">★★★★☆</div>
+                        </div>
+                        <p class="comment-text">
+                            Buen vuelo en general. El servicio fue bueno aunque la comida podría mejorar. El vuelo fue tranquilo y llegamos incluso unos minutos antes de lo programado. Recomendado.
+                        </p>
+                        <div class="comment-actions">
+                            <span class="comment-action">👍 Útil (12)</span>
+                            <span class="comment-action">💬 Responder</span>
+                        </div>
+                    </div>
+
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="author-avatar">AP</div>
+                                <div class="author-info">
+                                    <h4>Ana Pérez</h4>
+                                    <p class="comment-date">Hace 2 semanas</p>
+                                </div>
+                            </div>
+                            <div class="comment-rating">★★★★★</div>
+                        </div>
+                        <p class="comment-text">
+                            Mi vuelo favorito a Miami. La tripulación fue excepcional, muy profesionales y siempre con una sonrisa. El avión estaba limpio y el despegue/aterrizaje fueron suaves. El sistema de entretenimiento funciona perfectamente. ¡Cinco estrellas merecidas!
+                        </p>
+                        <div class="comment-actions">
+                            <span class="comment-action">👍 Útil (35)</span>
+                            <span class="comment-action">💬 Responder</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="price-card">
+                    <div class="price-header">
+                        <p class="price-label">Precio por persona</p>
+                        <div class="price">$450</div>
+                        <p class="price-note">Impuestos y tasas incluidos</p>
+                    </div>
+
+                    <div class="quantity-selector">
+                        <label>Número de pasajeros</label>
+                        <select>
+                            <option>1 Pasajero</option>
+                            <option selected>2 Pasajeros</option>
+                            <option>3 Pasajeros</option>
+                            <option>4 Pasajeros</option>
+                            <option>5 Pasajeros</option>
+                            <option>6+ Pasajeros</option>
+                        </select>
+                    </div>
+
+                    <div class="price-breakdown">
+                        <div class="breakdown-item">
+                            <span>Tarifa base (x2)</span>
+                            <span>$800.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Impuestos y tasas</span>
+                            <span>$100.00</span>
+                        </div>
+                        <div class="breakdown-total">
+                            <span>Total</span>
+                            <span>$900.00</span>
+                        </div>
+                    </div>
+
+                    <button class="btn-add-cart" onclick="window.location.href='checkout.html'">Agregar al Carrito</button>
+
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <div>🔒</div>
+                            <div>Pago seguro</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div>✓</div>
+                            <div>Garantía</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div>📞</div>
+                            <div>Soporte 24/7</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Star rating functionality
+        const stars = document.querySelectorAll('.star-rating span');
+        let selectedRating = 0;
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = this.dataset.rating;
+                updateStars();
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = this.dataset.rating;
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.textContent = '★';
+                        s.style.color = '#ffd700';
+                    } else {
+                        s.textContent = '☆';
+                        s.style.color = '#ddd';
+                    }
+                });
+            });
+        });
+
+        document.querySelector('.star-rating').addEventListener('mouseleave', updateStars);
+
+        function updateStars() {
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.textContent = '★';
+                    star.classList.add('active');
+                } else {
+                    star.textContent = '☆';
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        // Update price based on passengers
+        const passengerSelect = document.querySelector('.quantity-selector select');
+        passengerSelect.addEventListener('change', function() {
+            const passengers = parseInt(this.value);
+            const basePrice = 450;
+            const taxes = 50;
+            const total = (basePrice * passengers) + taxes;
+            
+            document.querySelector('.breakdown-item:first-child span:last-child').textContent = `$${(basePrice * passengers).toFixed(2)}`;
+            document.querySelector('.breakdown-total span:last-child').textContent = `$${total.toFixed(2)}`;
+        });
+    </script>
+</body>
+</html>

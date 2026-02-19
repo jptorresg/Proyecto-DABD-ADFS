@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sidebar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+</head>
+<body>
+    <!-- SIDEBAR ADMIN -->
+    <aside class="admin-sidebar" x-data="{ activeMenu: window.location.pathname.split('/').pop().replace('.html', '') || 'dashboard' }">
+        <!-- Logo / Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-plane-departure"></i>
+                <span>InnSync Admin</span>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" 
+               class="sidebar-link" 
+               :class="{ 'active': activeMenu === 'dashboard' }">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="vuelos.html" 
+               class="sidebar-link" 
+               :class="{ 'active': activeMenu === 'vuelos' }">
+                <i class="fas fa-plane"></i>
+                <span>Gestión de Vuelos</span>
+            </a>
+
+            <a href="usuarios.html" 
+               class="sidebar-link" 
+               :class="{ 'active': activeMenu === 'usuarios' }">
+                <i class="fas fa-users"></i>
+                <span>Gestión de Usuarios</span>
+            </a>
+
+            <a href="agencias.html" 
+               class="sidebar-link" 
+               :class="{ 'active': activeMenu === 'agencias' }">
+                <i class="fas fa-building"></i>
+                <span>Agencias B2B</span>
+            </a>
+
+            <div class="sidebar-divider"></div>
+
+            <a href="../index.html" class="sidebar-link sidebar-link-secondary">
+                <i class="fas fa-home"></i>
+                <span>Volver al Sitio</span>
+            </a>
+
+            <a href="../login.html" class="sidebar-link sidebar-link-danger" @click.prevent="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
+
+        <!-- Footer del Sidebar -->
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name" x-text="getUserSession()?.nombres || 'Admin'"></span>
+                    <span class="sidebar-user-role">Administrador</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <style>
+        .admin-sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #2C3E50 0%, #1a252f 100%);
+            color: #E8EAED;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.75rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.5rem;
+            color: #5B8CC6;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+            border-left-color: #5B8CC6;
+        }
+
+        .sidebar-link.active {
+            background: rgba(91, 140, 198, 0.15);
+            color: #FFFFFF;
+            border-left-color: #5B8CC6;
+            font-weight: 600;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.05rem;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 1rem 1.5rem;
+        }
+
+        .sidebar-link-secondary {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar-link-danger:hover {
+            background: rgba(220, 53, 69, 0.15);
+            border-left-color: #dc3545;
+            color: #ff6b6b;
+        }
+
+        .sidebar-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4A5F7F, #5B8CC6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .sidebar-user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .sidebar-user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Scrollbar personalizado */
+        .sidebar-nav::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+
+    <script>
+        function logout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                clearUserSession();
+                window.location.href = '../login.html';
+            }
+        }
+    </script>
+</body>
+</html>
