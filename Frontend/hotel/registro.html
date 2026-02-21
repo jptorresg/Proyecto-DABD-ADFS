@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+
+        .side-panel {
+            background-color: var(--primary-color);
+            min-height: calc(100vh - 60px);
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 3rem 2.5rem;
+            color: white;
+        }
+        .side-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; line-height: 1.2; }
+        .side-title span { color: #f5a623; }
+        .benefit-item { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; font-size: 0.95rem; opacity: 0.9; }
+        .benefit-icon { background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+        .form-panel { background: #fff; padding: 2.5rem; }
+        .form-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--primary-color); }
+        .form-label { font-size: 0.82rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-control, .form-select {
+            border: 1.5px solid #e5e7eb; border-radius: 10px;
+            padding: 0.65rem 0.9rem; font-size: 0.95rem; font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .form-control.is-invalid { border-color: #dc2626; }
+        .invalid-feedback { font-size: 0.78rem; }
+
+        .input-icon { position: relative; }
+        .input-icon .form-control { padding-left: 2.4rem; }
+        .input-icon i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.95rem; }
+
+        .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; padding: 0.75rem; font-weight: 600; font-size: 1rem; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
+        .btn-primary:disabled { opacity: 0.5; }
+
+        .password-strength { height: 4px; border-radius: 2px; transition: all 0.3s; }
+        .divider { display: flex; align-items: center; gap: 1rem; color: #9ca3af; font-size: 0.85rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+        .step-indicator { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .step { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; }
+        .step.active { background-color: var(--primary-color); color: #fff; }
+        .step.done { background: #16a34a; color: #fff; }
+        .step.pending { background: #e5e7eb; color: #9ca3af; }
+        .step-line { flex: 1; height: 2px; background: #e5e7eb; }
+        .step-line.done { background: #16a34a; }
+
+        @media (max-width: 768px) { .side-panel { display: none; } .form-panel { padding: 1.5rem; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar-bedly">
+        <div class="container">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+        </div>
+    </nav>
+
+    <div class="row g-0" x-data="registroApp()">
+        <!-- Panel lateral -->
+        <div class="col-lg-4 side-panel">
+            <p style="font-size:0.78rem; opacity:0.6; text-transform:uppercase; letter-spacing:0.1em;">Sistema Hotelero UNIS</p>
+            <h2 class="side-title mb-4">Únete a <span>Bedly</span> y reserva sin complicaciones.</h2>
+            <div class="benefit-item">
+                <div class="benefit-icon"><i class="bi bi-lightning-fill"></i></div>
+                <span>Confirmación instantánea de reservas</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                <span>Voucher PDF generado automáticamente</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon"><i class="bi bi-clock-history"></i></div>
+                <span>Historial completo de tus estancias</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon"><i class="bi bi-shield-check-fill"></i></div>
+                <span>Datos seguros y cifrados</span>
+            </div>
+            <div class="mt-4 pt-3 border-top border-white border-opacity-25">
+                <p class="mb-1" style="font-size:0.85rem; opacity:0.75;">¿Ya tienes cuenta?</p>
+                <a href="auth.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Iniciar Sesión</a>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="col-lg-8 form-panel">
+            <div class="max-w" style="max-width: 580px; margin: 0 auto;">
+                
+                <!-- Paso indicador -->
+                <div class="step-indicator">
+                    <div class="step" :class="paso >= 1 ? 'active' : 'pending'">
+                        <span x-show="paso > 1"><i class="bi bi-check"></i></span>
+                        <span x-show="paso <= 1">1</span>
+                    </div>
+                    <div class="step-line" :class="paso > 1 ? 'done' : ''"></div>
+                    <div class="step" :class="paso === 2 ? 'active' : (paso > 2 ? 'done' : 'pending')">2</div>
+                    <div class="step-line" :class="paso > 2 ? 'done' : ''"></div>
+                    <div class="step" :class="paso === 3 ? 'active' : 'pending'">3</div>
+                </div>
+
+                <!-- PASO 1: Datos personales -->
+                <div x-show="paso === 1" x-transition>
+                    <h2 class="form-title mb-1">Datos Personales</h2>
+                    <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 1 de 3 — Información básica de tu cuenta</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombres *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-person"></i>
+                                <input type="text" class="form-control" :class="errores.nombres ? 'is-invalid' : ''" x-model="form.nombres" placeholder="Ej: Juan Carlos">
+                                <div class="invalid-feedback" x-text="errores.nombres"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Apellidos *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-person"></i>
+                                <input type="text" class="form-control" :class="errores.apellidos ? 'is-invalid' : ''" x-model="form.apellidos" placeholder="Ej: Pérez García">
+                                <div class="invalid-feedback" x-text="errores.apellidos"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo Electrónico *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-envelope"></i>
+                                <input type="email" class="form-control" :class="errores.email ? 'is-invalid' : ''" x-model="form.email" placeholder="correo@ejemplo.com">
+                                <div class="invalid-feedback" x-text="errores.email"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-telephone"></i>
+                                <input type="tel" class="form-control" :class="errores.telefono ? 'is-invalid' : ''" x-model="form.telefono" placeholder="+502 1234-5678">
+                                <div class="invalid-feedback" x-text="errores.telefono"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" class="form-control" x-model="form.fechaNacimiento">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nacionalidad *</label>
+                            <select class="form-select" x-model="form.nacionalidad">
+                                <option value="">Seleccionar...</option>
+                                <option value="GT">Guatemala</option>
+                                <option value="MX">México</option>
+                                <option value="US">Estados Unidos</option>
+                                <option value="HN">Honduras</option>
+                                <option value="SV">El Salvador</option>
+                                <option value="CR">Costa Rica</option>
+                                <option value="OTHER">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary w-100" @click="siguientePaso(1)">
+                                Continuar <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: Documento e identificación -->
+                <div x-show="paso === 2" x-transition>
+                    <h2 class="form-title mb-1">Identificación</h2>
+                    <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 2 de 3 — Documento y datos de facturación</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Documento *</label>
+                            <select class="form-select" x-model="form.tipoDocumento">
+                                <option value="">Seleccionar...</option>
+                                <option value="DPI">DPI (Guatemala)</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                                <option value="CEDULA">Cédula</option>
+                                <option value="LICENCIA">Licencia de conducir</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Número de Documento *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-card-text"></i>
+                                <input type="text" class="form-control" :class="errores.numDocumento ? 'is-invalid' : ''" x-model="form.numDocumento" placeholder="Ej: 1234 56789 0101">
+                                <div class="invalid-feedback" x-text="errores.numDocumento"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">NIT (Opcional — para facturación empresarial)</label>
+                            <div class="input-icon">
+                                <i class="bi bi-receipt"></i>
+                                <input type="text" class="form-control" x-model="form.nit" placeholder="Ej: 1234567-8 o CF">
+                            </div>
+                            <small class="text-muted">Déjalo en blanco si no requieres factura empresarial.</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección (Opcional)</label>
+                            <input type="text" class="form-control" x-model="form.direccion" placeholder="Ej: 7a Av. 7-07 Zona 9, Guatemala City">
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <button class="btn btn-outline-secondary w-50" @click="paso = 1">
+                                <i class="bi bi-arrow-left me-2"></i> Atrás
+                            </button>
+                            <button class="btn btn-primary w-50" @click="siguientePaso(2)">
+                                Continuar <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: Seguridad -->
+                <div x-show="paso === 3" x-transition>
+                    <h2 class="form-title mb-1">Seguridad de la Cuenta</h2>
+                    <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 3 de 3 — Crea una contraseña segura</p>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Contraseña *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-lock"></i>
+                                <input :type="verPassword ? 'text' : 'password'" class="form-control pe-5" :class="errores.password ? 'is-invalid' : ''" x-model="form.password" placeholder="Mínimo 8 caracteres" @input="calcularFortaleza()">
+                                <div class="invalid-feedback" x-text="errores.password"></div>
+                            </div>
+                            <!-- Fortaleza -->
+                            <div class="mt-2" x-show="form.password.length > 0">
+                                <div class="d-flex gap-1 mb-1">
+                                    <div class="password-strength flex-fill" :style="'background:' + (fortaleza >= 1 ? colorFortaleza : '#e5e7eb')"></div>
+                                    <div class="password-strength flex-fill" :style="'background:' + (fortaleza >= 2 ? colorFortaleza : '#e5e7eb')"></div>
+                                    <div class="password-strength flex-fill" :style="'background:' + (fortaleza >= 3 ? colorFortaleza : '#e5e7eb')"></div>
+                                    <div class="password-strength flex-fill" :style="'background:' + (fortaleza >= 4 ? colorFortaleza : '#e5e7eb')"></div>
+                                </div>
+                                <small :style="'color:' + colorFortaleza" x-text="labelFortaleza"></small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Confirmar Contraseña *</label>
+                            <div class="input-icon">
+                                <i class="bi bi-lock-fill"></i>
+                                <input :type="verPassword ? 'text' : 'password'" class="form-control" :class="errores.confirmar ? 'is-invalid' : ''" x-model="form.confirmarPassword" placeholder="Repite tu contraseña">
+                                <div class="invalid-feedback" x-text="errores.confirmar"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" x-model="verPassword" id="verPass">
+                                <label class="form-check-label small text-muted" for="verPass">Mostrar contraseñas</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" x-model="form.terminos" :class="errores.terminos ? 'is-invalid' : ''" id="terminos">
+                                <label class="form-check-label small" for="terminos">
+                                    Acepto los <a href="#" class="text-primary">Términos y Condiciones</a> y la <a href="#" class="text-primary">Política de Privacidad</a>
+                                </label>
+                                <div class="invalid-feedback" x-text="errores.terminos"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <button class="btn btn-outline-secondary w-50" @click="paso = 2">
+                                <i class="bi bi-arrow-left me-2"></i> Atrás
+                            </button>
+                            <button class="btn btn-primary w-50" @click="registrar()" :disabled="cargando">
+                                <span x-show="!cargando"><i class="bi bi-check-circle me-2"></i>Crear Cuenta</span>
+                                <span x-show="cargando"><span class="spinner-border spinner-border-sm me-2"></span>Registrando...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider my-4">o</div>
+                <p class="text-center text-muted small">¿Ya tienes una cuenta? <a href="auth.html" class="text-primary fw-bold">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function registroApp() {
+        return {
+            paso: 1,
+            cargando: false,
+            verPassword: false,
+            fortaleza: 0,
+            colorFortaleza: '#e5e7eb',
+            labelFortaleza: '',
+            form: {
+                nombres: '', apellidos: '', email: '', telefono: '',
+                fechaNacimiento: '', nacionalidad: '',
+                tipoDocumento: '', numDocumento: '', nit: '', direccion: '',
+                password: '', confirmarPassword: '', terminos: false
+            },
+            errores: {},
+
+            calcularFortaleza() {
+                const p = this.form.password;
+                let score = 0;
+                if (p.length >= 8) score++;
+                if (/[A-Z]/.test(p)) score++;
+                if (/[0-9]/.test(p)) score++;
+                if (/[^A-Za-z0-9]/.test(p)) score++;
+                this.fortaleza = score;
+                const colores = ['', '#dc2626', '#f59e0b', '#3b82f6', '#16a34a'];
+                const labels = ['', 'Muy débil', 'Débil', 'Buena', 'Muy segura'];
+                this.colorFortaleza = colores[score] || '#e5e7eb';
+                this.labelFortaleza = labels[score] || '';
+            },
+
+            siguientePaso(paso) {
+                this.errores = {};
+                if (paso === 1) {
+                    if (!this.form.nombres) this.errores.nombres = 'El nombre es requerido';
+                    if (!this.form.apellidos) this.errores.apellidos = 'Los apellidos son requeridos';
+                    if (!this.form.email || !this.form.email.includes('@')) this.errores.email = 'Correo inválido';
+                    if (!this.form.telefono) this.errores.telefono = 'El teléfono es requerido';
+                }
+                if (paso === 2) {
+                    if (!this.form.numDocumento) this.errores.numDocumento = 'El número de documento es requerido';
+                }
+                if (Object.keys(this.errores).length === 0) this.paso++;
+            },
+
+            registrar() {
+                this.errores = {};
+                if (!this.form.password || this.form.password.length < 8) this.errores.password = 'Mínimo 8 caracteres';
+                if (this.form.password !== this.form.confirmarPassword) this.errores.confirmar = 'Las contraseñas no coinciden';
+                if (!this.form.terminos) this.errores.terminos = 'Debes aceptar los términos';
+                if (Object.keys(this.errores).length > 0) return;
+
+                this.cargando = true;
+                // TODO: fetch('/api/auth/registro', { method: 'POST', body: JSON.stringify(this.form) })
+                setTimeout(() => {
+                    this.cargando = false;
+                    window.location.href = 'auth.html';
+                }, 1500);
+            }
+        }
+    }
+    </script>
+</body>
+</html>

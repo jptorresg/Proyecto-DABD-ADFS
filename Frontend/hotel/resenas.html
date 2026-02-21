@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseñas - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+
+        .page-header { background-color: var(--primary-color); color: white; padding: 2.5rem 0; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+
+        .card { border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,53,128,0.10); transition: transform 0.3s; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        .score-hero { background-color: var(--primary-color); color: #fff; border-radius: 16px; padding: 1.5rem; text-align: center; }
+        .score-num { font-family: 'Playfair Display', serif; font-size: 4rem; font-weight: 900; color: #f5a623; line-height: 1; }
+        .score-label { font-size: 0.9rem; opacity: 0.85; }
+
+        .bar-item { margin-bottom: 0.5rem; }
+        .bar-label { font-size: 0.82rem; color: #6b7280; width: 100px; flex-shrink: 0; }
+        .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background-color: var(--primary-color); border-radius: 4px; }
+        .bar-num { font-size: 0.82rem; font-weight: 600; width: 30px; text-align: right; flex-shrink: 0; }
+
+        .resena-card { background: #fff; border-radius: 15px; padding: 1.2rem 1.4rem; box-shadow: 0 2px 12px rgba(0,53,128,0.07); margin-bottom: 1rem; transition: transform 0.3s; }
+        .resena-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .reviewer-avatar { width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary-color); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+        .reviewer-name { font-weight: 600; font-size: 0.95rem; }
+        .reviewer-date { font-size: 0.78rem; color: #9ca3af; }
+        .stars-display { color: #f5a623; font-size: 0.9rem; }
+        .resena-text { font-size: 0.92rem; color: #374151; line-height: 1.65; }
+
+        .form-label { font-size: 0.78rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-control { border: 1.5px solid #e5e7eb; border-radius: 10px; font-family: 'DM Sans', sans-serif; }
+        .form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; font-weight: 600; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
+
+        .star-selector { display: flex; gap: 6px; }
+        .star-btn { background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.15s, transform 0.15s; padding: 0; }
+        .star-btn.selected, .star-btn:hover { color: #f5a623; transform: scale(1.2); }
+
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary-color); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
+    </style>
+</head>
+<body x-data="resenasApp()">
+    <nav class="navbar-bedly">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <a href="detalle_habitacion.html" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">Reseñas — Suite Ejecutiva</h1>
+            <p style="opacity:0.8; font-size:0.95rem;">Hotel Grand UNIS · Zona 10, Guatemala City</p>
+        </div>
+    </div>
+
+    <main class="container my-4">
+        <div class="row g-4">
+            <!-- Panel de puntuación -->
+            <div class="col-lg-4">
+                <div class="card mb-3" style="border-radius:15px; overflow:hidden;">
+                    <div class="score-hero">
+                        <div class="score-num" x-text="promedioGeneral"></div>
+                        <div class="stars-display" x-html="'★'.repeat(Math.round(promedioGeneral)) + '☆'.repeat(5 - Math.round(promedioGeneral))"></div>
+                        <div class="score-label mt-1">Excepcional · <span x-text="resenas.length"></span> reseñas</div>
+                    </div>
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold mb-3" style="color:var(--primary-color)">Desglose por categoría</h6>
+                        <template x-for="cat in categorias" :key="cat.label">
+                            <div class="bar-item d-flex align-items-center gap-2">
+                                <span class="bar-label" x-text="cat.label"></span>
+                                <div class="bar-track">
+                                    <div class="bar-fill" :style="'width:' + (cat.valor / 10 * 100) + '%'"></div>
+                                </div>
+                                <span class="bar-num" x-text="cat.valor"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Formulario nueva reseña -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h5 class="section-title">Deja tu Reseña</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Tu calificación</label>
+                            <div class="star-selector">
+                                <template x-for="i in [1,2,3,4,5]" :key="i">
+                                    <button class="star-btn" :class="nuevaResena.rating >= i ? 'selected' : ''" @click="nuevaResena.rating = i">★</button>
+                                </template>
+                            </div>
+                            <small class="text-muted" x-text="ratingLabel"></small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tu comentario</label>
+                            <textarea class="form-control" rows="4" x-model="nuevaResena.texto" placeholder="Cuéntanos tu experiencia en la habitación..."></textarea>
+                        </div>
+                        <button class="btn btn-primary w-100" @click="publicar()" :disabled="nuevaResena.rating === 0 || !nuevaResena.texto">
+                            <i class="bi bi-send me-2"></i>Publicar Reseña
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de reseñas -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="section-title mb-0" style="border:none;">Opiniones de huéspedes</h5>
+                    <select class="form-select form-select-sm w-auto" x-model="orden">
+                        <option value="reciente">Más recientes</option>
+                        <option value="mayor">Mayor puntuación</option>
+                        <option value="menor">Menor puntuación</option>
+                    </select>
+                </div>
+
+                <template x-for="r in resenasFiltradas" :key="r.id">
+                    <div class="resena-card">
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="reviewer-avatar" x-text="r.nombre[0]"></div>
+                            <div class="flex-grow-1">
+                                <div class="reviewer-name" x-text="r.nombre"></div>
+                                <div class="reviewer-date" x-text="r.fecha + ' · ' + r.pais"></div>
+                            </div>
+                            <div>
+                                <div class="stars-display" x-html="'★'.repeat(r.rating) + '<span style=color:#d1d5db>★</span>'.repeat(5 - r.rating)"></div>
+                                <div style="font-size:0.78rem; font-weight:700; color:var(--primary-color); text-align:right;" x-text="r.rating + '.0'"></div>
+                            </div>
+                        </div>
+                        <p class="resena-text mb-0" x-text="r.texto"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    function resenasApp() {
+        return {
+            orden: 'reciente',
+            nuevaResena: { rating: 0, texto: '' },
+            categorias: [
+                { label: 'Limpieza', valor: 9.5 },
+                { label: 'Confort', valor: 9.2 },
+                { label: 'Ubicación', valor: 8.8 },
+                { label: 'Servicio', valor: 9.0 },
+                { label: 'Precio', valor: 8.4 },
+            ],
+            resenas: [
+                { id: 1, nombre: 'María González', pais: '🇬🇹 Guatemala', fecha: 'Enero 2026', rating: 5, texto: 'Una experiencia increíble. La habitación superó todas mis expectativas, el servicio fue impecable y la vista desde el piso 8 es espectacular. Definitivamente regresaré.' },
+                { id: 2, nombre: 'Carlos Mendoza', pais: '🇲🇽 México', fecha: 'Diciembre 2025', rating: 4, texto: 'Muy buena estancia. El desayuno incluido fue excelente y el personal muy amable. La única observación es que el jacuzzi tardó un poco en calentarse, pero en general todo perfecto.' },
+                { id: 3, nombre: 'Ana Fuentes', pais: '🇸🇻 El Salvador', fecha: 'Noviembre 2025', rating: 5, texto: 'El mejor hotel en el que me he hospedado en Guatemala. Las instalaciones están en perfectas condiciones y la ubicación es conveniente para todo.' },
+                { id: 4, nombre: 'Roberto Lima', pais: '🇭🇳 Honduras', fecha: 'Octubre 2025', rating: 4, texto: 'Relación calidad-precio excelente. La suite es amplia y muy bien equipada. El spa es un punto a favor enorme. Recomendado al 100%.' },
+            ],
+            get promedioGeneral() {
+                if (!this.resenas.length) return 0;
+                return (this.resenas.reduce((s, r) => s + r.rating, 0) / this.resenas.length).toFixed(1);
+            },
+            get ratingLabel() {
+                const labels = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
+                return labels[this.nuevaResena.rating] || 'Selecciona una calificación';
+            },
+            get resenasFiltradas() {
+                let r = [...this.resenas];
+                if (this.orden === 'mayor') r.sort((a, b) => b.rating - a.rating);
+                if (this.orden === 'menor') r.sort((a, b) => a.rating - b.rating);
+                return r;
+            },
+            publicar() {
+                if (!this.nuevaResena.rating || !this.nuevaResena.texto) return;
+                this.resenas.unshift({ id: Date.now(), nombre: 'Tú', pais: '🇬🇹 Guatemala', fecha: 'Hoy', rating: this.nuevaResena.rating, texto: this.nuevaResena.texto });
+                this.nuevaResena = { rating: 0, texto: '' };
+                // TODO: POST /api/comentarios
+            }
+        }
+    }
+    </script>
+</body>
+</html>

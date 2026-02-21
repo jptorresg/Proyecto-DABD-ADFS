@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Reservas - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+
+        .page-header { background-color: var(--primary-color); color: white; padding: 2.5rem 0; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+
+        .card { border: none; border-radius: 15px; overflow: hidden; transition: transform 0.3s; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        .reserva-card { display: flex; border-radius: 15px; border: none; overflow: hidden; box-shadow: 0 4px 24px rgba(0,53,128,0.08); background: #fff; transition: transform 0.3s; margin-bottom: 1rem; }
+        .reserva-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
+        .reserva-img { width: 160px; object-fit: cover; flex-shrink: 0; }
+        .reserva-body { padding: 1.2rem 1.4rem; flex: 1; }
+        .reserva-nombre { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--primary-color); }
+
+        .badge-estado { padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+        .badge-confirmada { background: #dcfce7; color: #16a34a; }
+        .badge-pendiente { background: #fef9c3; color: #b45309; }
+        .badge-cancelada { background: #fee2e2; color: #dc2626; }
+        .badge-completada { background: #e0e7ff; color: #4338ca; }
+
+        .tab-filter { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .tab-btn { border: 1.5px solid #e5e7eb; background: #fff; border-radius: 20px; padding: 0.4rem 1.1rem; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; color: #6b7280; }
+        .tab-btn.active { background-color: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+        .detail-label { font-size: 0.75rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .detail-value { font-size: 0.92rem; font-weight: 500; color: #1f2937; }
+        .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; font-weight: 600; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
+
+        @media (max-width: 768px) { .reserva-img { display: none; } }
+    </style>
+</head>
+<body x-data="historialApp()">
+    <nav class="navbar-bedly">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-person me-1"></i>Mi Perfil</a>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">Mis Reservas</h1>
+            <p style="opacity:0.8; font-size:0.95rem;" x-text="reservas.length + ' reservas en tu historial'"></p>
+        </div>
+    </div>
+
+    <main class="container my-4">
+        <div class="row g-4">
+            <!-- Filtros y lista -->
+            <div class="col-lg-8">
+                <div class="tab-filter">
+                    <button class="tab-btn" :class="filtro === 'todas' ? 'active' : ''" @click="filtro = 'todas'">Todas</button>
+                    <button class="tab-btn" :class="filtro === 'Confirmada' ? 'active' : ''" @click="filtro = 'Confirmada'">Confirmadas</button>
+                    <button class="tab-btn" :class="filtro === 'Pendiente' ? 'active' : ''" @click="filtro = 'Pendiente'">Pendientes</button>
+                    <button class="tab-btn" :class="filtro === 'Completada' ? 'active' : ''" @click="filtro = 'Completada'">Completadas</button>
+                    <button class="tab-btn" :class="filtro === 'Cancelada' ? 'active' : ''" @click="filtro = 'Cancelada'">Canceladas</button>
+                </div>
+
+                <template x-for="r in reservasFiltradas" :key="r.id">
+                    <div class="reserva-card">
+                        <img :src="r.img" :alt="r.habitacion" class="reserva-img">
+                        <div class="reserva-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="reserva-nombre" x-text="r.habitacion"></div>
+                                    <div style="font-size:0.85rem; color:#6b7280;"><i class="bi bi-building me-1"></i><span x-text="r.hotel"></span></div>
+                                </div>
+                                <span class="badge-estado" :class="'badge-' + r.estado.toLowerCase()" x-text="r.estado"></span>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-label">Check-in</div>
+                                    <div class="detail-value" x-text="r.checkIn"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-label">Check-out</div>
+                                    <div class="detail-value" x-text="r.checkOut"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-label">Huéspedes</div>
+                                    <div class="detail-value" x-text="r.huespedes + ' persona(s)'"></div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="detail-label">Total</div>
+                                    <div class="detail-value fw-bold text-success" x-text="'Q ' + r.total"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="detalle_reserva.html" class="btn btn-primary btn-sm px-3">
+                                    <i class="bi bi-eye me-1"></i>Ver Detalle
+                                </a>
+                                <button class="btn btn-outline-secondary btn-sm px-3" x-show="r.estado === 'Confirmada'">
+                                    <i class="bi bi-pencil me-1"></i>Modificar
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm px-3" x-show="r.estado === 'Confirmada' || r.estado === 'Pendiente'">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                </button>
+                                <a href="confirmacion.html" class="btn btn-outline-primary btn-sm px-3" x-show="r.estado === 'Confirmada'">
+                                    <i class="bi bi-download me-1"></i>Voucher PDF
+                                </a>
+                                <a href="resenas.html" class="btn btn-outline-warning btn-sm px-3" x-show="r.estado === 'Completada'">
+                                    <i class="bi bi-star me-1"></i>Dejar Reseña
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="reservasFiltradas.length === 0" class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x" style="font-size:3rem;"></i>
+                    <p class="mt-2 fw-bold">No hay reservas en esta categoría.</p>
+                    <a href="index.html" class="btn btn-primary rounded-pill px-4 mt-2">Buscar habitaciones</a>
+                </div>
+            </div>
+
+            <!-- Resumen lateral -->
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="card-body p-3" style="background-color: var(--primary-color); color:white; border-radius:15px;">
+                        <h6 class="fw-bold mb-3">Resumen de Actividad</h6>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span style="opacity:0.8;">Total reservas</span>
+                            <span class="fw-bold" x-text="reservas.length"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span style="opacity:0.8;">Noches totales</span>
+                            <span class="fw-bold">12</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span style="opacity:0.8;">Gasto total</span>
+                            <span class="fw-bold text-warning">Q 8,450</span>
+                        </div>
+                        <hr style="border-color:rgba(255,255,255,0.2);">
+                        <div class="d-flex justify-content-between small">
+                            <span style="opacity:0.8;">Próxima estancia</span>
+                            <span class="fw-bold">15 Mar 2026</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold mb-3" style="color: var(--primary-color);">Política de Cancelación</h6>
+                        <div class="small text-muted">
+                            <div class="d-flex gap-2 mb-2"><i class="bi bi-check-circle text-success mt-1"></i><span>Cancelación gratuita hasta 48h antes del check-in.</span></div>
+                            <div class="d-flex gap-2 mb-2"><i class="bi bi-exclamation-circle text-warning mt-1"></i><span>Cancelación entre 24-48h: reembolso del 50%.</span></div>
+                            <div class="d-flex gap-2"><i class="bi bi-x-circle text-danger mt-1"></i><span>Menos de 24h: sin reembolso.</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    function historialApp() {
+        return {
+            filtro: 'todas',
+            reservas: [
+                { id: 1, habitacion: 'Suite Ejecutiva', hotel: 'Hotel Grand UNIS', checkIn: '15/03/2026', checkOut: '18/03/2026', huespedes: 2, total: '3,600', estado: 'Confirmada', img: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=200&h=150&fit=crop' },
+                { id: 2, habitacion: 'Doble Estándar', hotel: 'UNIS Central Hotel', checkIn: '10/02/2026', checkOut: '12/02/2026', huespedes: 2, total: '1,300', estado: 'Completada', img: 'https://images.unsplash.com/photo-1560347876-aeef00ee58a1?w=200&h=150&fit=crop' },
+                { id: 3, habitacion: 'Habitación Sencilla', hotel: 'UNIS Central Hotel', checkIn: '05/01/2026', checkOut: '07/01/2026', huespedes: 1, total: '760', estado: 'Completada', img: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=200&h=150&fit=crop' },
+                { id: 4, habitacion: 'Suite Familiar Deluxe', hotel: 'Hotel Grand UNIS', checkIn: '20/12/2025', checkOut: '25/12/2025', huespedes: 4, total: '9,250', estado: 'Cancelada', img: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=200&h=150&fit=crop' },
+                { id: 5, habitacion: 'Doble Superior', hotel: 'UNIS Central Hotel', checkIn: '01/04/2026', checkOut: '03/04/2026', huespedes: 2, total: '1,800', estado: 'Pendiente', img: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=200&h=150&fit=crop' },
+            ],
+            get reservasFiltradas() {
+                if (this.filtro === 'todas') return this.reservas;
+                return this.reservas.filter(r => r.estado === this.filtro);
+            }
+        }
+    }
+    </script>
+</body>
+</html>
