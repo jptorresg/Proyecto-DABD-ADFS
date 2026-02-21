@@ -19,9 +19,14 @@ import com.halcon.aerolineas.utils.JsonResponse;
 
 @WebServlet("/api/auth/*")
 public class AuthController extends HttpServlet {
+    
     private AuthService authService;
 
     @Override
+    public void init() throws ServletException {
+        this.authService = new AuthService();
+    }
+    
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
@@ -85,8 +90,7 @@ public class AuthController extends HttpServlet {
             String codigoPais = json.get("codigoPais").getAsString();
             String numPasaporte = json.get("numPasaporte").getAsString();
             
-            Usuario usuario = authService.registrar(email, password, nombres, apellidos, 
-                                                    edad, codigoPais, numPasaporte);
+            Usuario usuario = authService.registrar(email, password, nombres, apellidos, edad, codigoPais, numPasaporte);
             
             response.setStatus(201);
             out.print(JsonResponse.success("Usuario registrado exitosamente", usuario));

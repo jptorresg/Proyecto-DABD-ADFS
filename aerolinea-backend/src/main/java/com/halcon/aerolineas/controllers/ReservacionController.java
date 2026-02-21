@@ -31,7 +31,9 @@ public class ReservacionController extends HttpServlet {
     public void init() throws ServletException {
         this.reservacionService = new ReservacionService();
     }
-    
+
+    //VERSIÓN DE PRODUCCION
+    /*
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -52,6 +54,38 @@ public class ReservacionController extends HttpServlet {
             List<Reservacion> reservaciones = reservacionService.obtenerReservacionesUsuario(usuarioId);
             out.print(JsonResponse.success(reservaciones));
             
+        } catch (Exception e) {
+            response.setStatus(500);
+            out.print(JsonResponse.error(e.getMessage()));
+        }
+    }
+    */
+
+    //VERSIÓN DE DESARROLLO
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+
+        // ⚠️ SOLO PARA DESARROLLO
+        HttpSession session = request.getSession(true);
+
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
+
+        if (usuarioId == null) {
+            usuarioId = 2L; // ID del admin en BD
+            session.setAttribute("usuarioId", usuarioId);
+        }
+
+        try {
+            List<Reservacion> reservaciones =
+                    reservacionService.obtenerReservacionesUsuario(usuarioId);
+
+            out.print(JsonResponse.success(reservaciones));
+
         } catch (Exception e) {
             response.setStatus(500);
             out.print(JsonResponse.error(e.getMessage()));
