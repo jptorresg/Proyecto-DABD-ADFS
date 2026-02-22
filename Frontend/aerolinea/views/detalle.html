@@ -4,329 +4,463 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vuelo HC-305 – Aerolíneas Halcón</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="/Frontend/aerolinea/css/detalle.css">
-    <link rel="stylesheet" href="/Frontend/aerolinea/css/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS -->
+    <link href="../css/global.css" rel="stylesheet">
+    <link href="../css/index.css" rel="stylesheet">
+    <link href="../css/detalle.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/detalle.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body>
+<body x-data="detalleData()">
+    
+    <!-- Header (incluir partial) -->
+    <div id="header-placeholder"></div>
 
-<!-- ============================================================
-     HEADER (global)
-     ============================================================ -->
-<header class="header">
-    <div class="header-container">
-        <div class="logo-section">
-            <a href="index.html" style="display:flex;align-items:center;gap:.875rem;text-decoration:none;">
-                <div class="logo-circle"><i class="fas fa-plane-departure"></i></div>
-                <span class="brand-name">Aerolíneas Halcón</span>
-            </a>
+    <!-- Breadcrumb -->
+    <nav class="det-breadcrumb">
+        <div class="container">
+            <a href="index.html"><i class="fas fa-home"></i> Inicio</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="resultados.html">Resultados</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Detalle · <span x-text="vuelo.codigo"></span></span>
         </div>
-        <div class="search-section">
-            <div class="search-bar">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Buscar vuelos, destinos…">
-                <button class="filter-btn" title="Filtros"><i class="fas fa-sliders-h"></i></button>
-            </div>
-        </div>
-        <div class="user-section" id="guestSection">
-            <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
-            <button class="btn btn-primary" id="registerBtn">Registrarse</button>
-        </div>
-        <div class="user-section user-logged" id="loggedSection" style="display:none;">
-            <div class="user-profile">
-                <div class="profile-circle"><i class="fas fa-user"></i></div>
-                <span class="username">Usuario</span>
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </div>
-            <button class="btn btn-outline" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
-        </div>
-    </div>
-</header>
+    </nav>
 
-<!-- ============================================================
-     BREADCRUMB
-     ============================================================ -->
-<nav class="det-breadcrumb">
-    <div class="container">
-        <a href="index.html"><i class="fas fa-home"></i> Inicio</a>
-        <i class="fas fa-chevron-right"></i>
-        <a href="resultados.html">Resultados</a>
-        <i class="fas fa-chevron-right"></i>
-        <span>Detalle · HC-305</span>
-    </div>
-</nav>
-
-<!-- ============================================================
-     HERO DEL VUELO  (código, ruta, rating rápido)
-     ============================================================ -->
-<section class="det-hero">
-    <div class="container">
-        <div class="det-hero-inner">
-            <div class="det-hero-left">
-                <div class="det-hero-code-row">
-                    <span class="det-code">HC-305</span>
-                    <span class="det-badge-escala"><i class="fas fa-circle"></i> Con Escala</span>
+    <!-- Hero del Vuelo -->
+    <section class="det-hero">
+        <div class="container">
+            <div class="det-hero-inner">
+                <div class="det-hero-left">
+                    <div class="det-hero-code-row">
+                        <span class="det-code" x-text="vuelo.codigo"></span>
+                        <span class="det-badge-escala" x-show="vuelo.tipoVuelo === 'escala'">
+                            <i class="fas fa-circle"></i> Con Escala
+                        </span>
+                    </div>
+                    <h1 class="det-hero-route">
+                        <span x-text="vuelo.origen"></span>
+                        <span class="det-hero-arrow"><i class="fas fa-long-arrow-alt-right"></i></span>
+                        <span x-text="vuelo.destino"></span>
+                    </h1>
+                    <p class="det-hero-sub">
+                        <i class="fas fa-clock"></i> Duración total: <span x-text="vuelo.duracion"></span>
+                        &nbsp;·&nbsp;
+                        <i class="fas fa-chair"></i> <span x-text="vuelo.tipoAsiento"></span>
+                    </p>
                 </div>
-                <h1 class="det-hero-route">
-                    <span>Guatemala</span>
-                    <span class="det-hero-arrow"><i class="fas fa-long-arrow-alt-right"></i></span>
-                    <span>Ciudad de México</span>
-                </h1>
-                <p class="det-hero-sub">
-                    <i class="fas fa-clock"></i> Duración total: 4h 25m
-                    &nbsp;·&nbsp;
-                    <i class="fas fa-chair"></i> Turista (Economy)
-                </p>
-            </div>
-            <!-- Rating rápido -->
-            <div class="det-hero-rating">
-                <span class="det-hero-num">4.5</span>
-                <div class="det-hero-stars" id="heroStars"></div>
-                <span class="det-hero-reviews">187 calificaciones</span>
+                
+                <!-- Rating rápido -->
+                <div class="det-hero-rating">
+                    <span class="det-hero-num" x-text="vuelo.rating"></span>
+                    <div class="det-hero-stars" id="heroStars"></div>
+                    <span class="det-hero-reviews" x-text="`${vuelo.totalComentarios} calificaciones`"></span>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- ============================================================
-     CONTENIDO PRINCIPAL (2 columnas)
-     ============================================================ -->
-<main class="det-main">
-    <div class="container">
-        <div class="row g-4">
+    <!-- Contenido Principal -->
+    <main class="det-main">
+        <div class="container">
+            <div class="row g-4">
 
-            <!-- ─── COLUMNA IZQUIERDA ─── -->
-            <div class="col-lg-8">
+                <!-- Columna Izquierda -->
+                <div class="col-lg-8">
 
-                <!-- 1 · ITINERARIO (timeline) -->
-                <div class="det-card">
-                    <h2 class="det-card-title"><i class="fas fa-map-marker-alt"></i> Itinerario</h2>
+                    <!-- 1. Itinerario -->
+                    <div class="det-card">
+                        <h2 class="det-card-title">
+                            <i class="fas fa-map-marker-alt"></i> Itinerario
+                        </h2>
 
-                    <div class="det-timeline">
-
-                        <!-- Origen -->
-                        <div class="det-tl-stop">
-                            <div class="det-tl-marker det-tl-marker-origin"><i class="fas fa-plane-departure"></i></div>
-                            <div class="det-tl-body">
-                                <div class="det-tl-time">09:15 <span class="det-tl-tz">GMT-6</span></div>
-                                <div class="det-tl-city">Guatemala City</div>
-                                <div class="det-tl-airport">Aeropuerto Int'l La Aurora · <strong>GUA</strong></div>
-                            </div>
-                        </div>
-
-                        <!-- conector segmento 1 -->
-                        <div class="det-tl-conn">
-                            <div class="det-tl-line"></div>
-                            <span class="det-tl-seg">Vuelo · 1h 45m</span>
-                        </div>
-
-                        <!-- Escala -->
-                        <div class="det-tl-stop det-tl-stop-layover">
-                            <div class="det-tl-marker det-tl-marker-layover"><i class="fas fa-clock"></i></div>
-                            <div class="det-tl-body">
-                                <div class="det-tl-time">
-                                    11:00 <span class="det-tl-tz">GMT-6</span>
-                                    <span class="det-tl-badge-escala">Escala · 1h 10m</span>
+                        <div class="det-timeline">
+                            <!-- Origen -->
+                            <div class="det-tl-stop">
+                                <div class="det-tl-marker det-tl-marker-origin">
+                                    <i class="fas fa-plane-departure"></i>
                                 </div>
-                                <div class="det-tl-city">Houston</div>
-                                <div class="det-tl-airport">George Bush Intercontinental · <strong>IAH</strong></div>
-                                <div class="det-tl-escala-horario">
-                                    <span><i class="fas fa-arrow-down"></i> Llegada 11:00</span>
-                                    <span class="det-tl-sep">|</span>
-                                    <span><i class="fas fa-arrow-up"></i> Salida 12:10</span>
+                                <div class="det-tl-body">
+                                    <div class="det-tl-time">
+                                        <span x-text="vuelo.horaSalida"></span>
+                                        <span class="det-tl-tz">GMT-6</span>
+                                    </div>
+                                    <div class="det-tl-city" x-text="vuelo.origen"></div>
+                                    <div class="det-tl-airport">
+                                        Aeropuerto · <strong x-text="vuelo.codigoIataOrigen"></strong>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- conector segmento 2 -->
-                        <div class="det-tl-conn">
-                            <div class="det-tl-line"></div>
-                            <span class="det-tl-seg">Vuelo · 1h 30m</span>
-                        </div>
+                            <!-- Escala (si aplica) -->
+                            <template x-if="vuelo.tipoVuelo === 'escala' && vuelo.escala">
+                                <div>
+                                    <div class="det-tl-conn">
+                                        <div class="det-tl-line"></div>
+                                        <span class="det-tl-seg">Vuelo · 1h 45m</span>
+                                    </div>
 
-                        <!-- Destino -->
-                        <div class="det-tl-stop">
-                            <div class="det-tl-marker det-tl-marker-dest"><i class="fas fa-plane-arrival"></i></div>
-                            <div class="det-tl-body">
-                                <div class="det-tl-time">13:40 <span class="det-tl-tz">GMT-6</span></div>
-                                <div class="det-tl-city">Ciudad de México</div>
-                                <div class="det-tl-airport">Aeropuerto Int'l Benito Juárez · <strong>MEX</strong></div>
+                                    <div class="det-tl-stop det-tl-stop-layover">
+                                        <div class="det-tl-marker det-tl-marker-layover">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="det-tl-body">
+                                            <div class="det-tl-time">
+                                                <span x-text="vuelo.escala.llegada"></span>
+                                                <span class="det-tl-tz">GMT-6</span>
+                                                <span class="det-tl-badge-escala">
+                                                    Escala · <span x-text="vuelo.escala.duracion"></span>
+                                                </span>
+                                            </div>
+                                            <div class="det-tl-city" x-text="vuelo.escala.ciudad"></div>
+                                            <div class="det-tl-airport">
+                                                Aeropuerto · <strong x-text="vuelo.escala.codigo"></strong>
+                                            </div>
+                                            <div class="det-tl-escala-horario">
+                                                <span>
+                                                    <i class="fas fa-arrow-down"></i> 
+                                                    Llegada <span x-text="vuelo.escala.llegada"></span>
+                                                </span>
+                                                <span class="det-tl-sep">|</span>
+                                                <span>
+                                                    <i class="fas fa-arrow-up"></i> 
+                                                    Salida <span x-text="vuelo.escala.salida"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="det-tl-conn">
+                                        <div class="det-tl-line"></div>
+                                        <span class="det-tl-seg">Vuelo · 1h 30m</span>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Destino -->
+                            <div class="det-tl-stop">
+                                <div class="det-tl-marker det-tl-marker-dest">
+                                    <i class="fas fa-plane-arrival"></i>
+                                </div>
+                                <div class="det-tl-body">
+                                    <div class="det-tl-time">
+                                        <span x-text="vuelo.horaLlegada"></span>
+                                        <span class="det-tl-tz">GMT-6</span>
+                                    </div>
+                                    <div class="det-tl-city" x-text="vuelo.destino"></div>
+                                    <div class="det-tl-airport">
+                                        Aeropuerto · <strong x-text="vuelo.codigoIataDestino"></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Detalles del Vuelo -->
+                    <div class="det-card">
+                        <h2 class="det-card-title">
+                            <i class="fas fa-info-circle"></i> Detalles del Vuelo
+                        </h2>
+                        <div class="det-details-grid">
+                            <div class="det-detail-item">
+                                <div class="det-di-icon"><i class="fas fa-chair"></i></div>
+                                <div>
+                                    <span class="det-di-label">Clase</span>
+                                    <span class="det-di-value" x-text="vuelo.tipoAsiento"></span>
+                                </div>
+                            </div>
+                            <div class="det-detail-item">
+                                <div class="det-di-icon"><i class="fas fa-exchange-alt"></i></div>
+                                <div>
+                                    <span class="det-di-label">Duración</span>
+                                    <span class="det-di-value" x-text="vuelo.duracion"></span>
+                                </div>
+                            </div>
+                            <div class="det-detail-item">
+                                <div class="det-di-icon"><i class="fas fa-wifi"></i></div>
+                                <div>
+                                    <span class="det-di-label">Wi-Fi</span>
+                                    <span class="det-di-value">Disponible</span>
+                                </div>
+                            </div>
+                            <div class="det-detail-item">
+                                <div class="det-di-icon"><i class="fas fa-utensils"></i></div>
+                                <div>
+                                    <span class="det-di-label">Comida</span>
+                                    <span class="det-di-value">Snack incluido</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Equipaje -->
+                    <div class="det-card">
+                        <h2 class="det-card-title">
+                            <i class="fas fa-briefcase"></i> Equipaje
+                        </h2>
+                        <div class="det-baggage-grid">
+                            <div class="det-bag-item included">
+                                <div class="det-bag-icon"><i class="fas fa-check-circle"></i></div>
+                                <div>
+                                    <span class="det-bag-title">Equipaje de cabina</span>
+                                    <span class="det-bag-desc">1 mochila pequeña (40×30×15 cm)</span>
+                                </div>
+                            </div>
+                            <div class="det-bag-item included">
+                                <div class="det-bag-icon"><i class="fas fa-check-circle"></i></div>
+                                <div>
+                                    <span class="det-bag-title">Artículo personal</span>
+                                    <span class="det-bag-desc">Bolso o monedero bajo el asiento</span>
+                                </div>
+                            </div>
+                            <div class="det-bag-item excluded">
+                                <div class="det-bag-icon"><i class="fas fa-times-circle"></i></div>
+                                <div>
+                                    <span class="det-bag-title">Equipaje facturado</span>
+                                    <span class="det-bag-desc">No incluido · +Q150 por maleta (23 kg)</span>
+                                </div>
+                            </div>
+                            <div class="det-bag-item excluded">
+                                <div class="det-bag-icon"><i class="fas fa-times-circle"></i></div>
+                                <div>
+                                    <span class="det-bag-title">Equipaje especial</span>
+                                    <span class="det-bag-desc">No incluido · Consulte políticas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Calificaciones y Comentarios -->
+                    <div class="det-card">
+                        <h2 class="det-card-title">
+                            <i class="fas fa-comments"></i> Calificaciones y Comentarios
+                        </h2>
+
+                        <!-- Resumen Rating -->
+                        <div class="det-rating-summary">
+                            <div class="det-rs-big">
+                                <span class="det-rs-num" x-text="vuelo.rating"></span>
+                                <div class="det-rs-stars" id="summaryStars"></div>
+                                <span class="det-rs-count" x-text="`${vuelo.totalComentarios} calificaciones`"></span>
+                            </div>
+                            <div class="det-rs-bars">
+                                <div class="det-rs-bar-row">
+                                    <span class="det-rs-bar-n">5</span>
+                                    <i class="fas fa-star det-rs-bar-star"></i>
+                                    <div class="det-rs-bar-track">
+                                        <div class="det-rs-bar-fill" style="width: 42%;"></div>
+                                    </div>
+                                    <span class="det-rs-bar-pct">42%</span>
+                                </div>
+                                <div class="det-rs-bar-row">
+                                    <span class="det-rs-bar-n">4</span>
+                                    <i class="fas fa-star det-rs-bar-star"></i>
+                                    <div class="det-rs-bar-track">
+                                        <div class="det-rs-bar-fill" style="width: 33%;"></div>
+                                    </div>
+                                    <span class="det-rs-bar-pct">33%</span>
+                                </div>
+                                <div class="det-rs-bar-row">
+                                    <span class="det-rs-bar-n">3</span>
+                                    <i class="fas fa-star det-rs-bar-star"></i>
+                                    <div class="det-rs-bar-track">
+                                        <div class="det-rs-bar-fill" style="width: 15%;"></div>
+                                    </div>
+                                    <span class="det-rs-bar-pct">15%</span>
+                                </div>
+                                <div class="det-rs-bar-row">
+                                    <span class="det-rs-bar-n">2</span>
+                                    <i class="fas fa-star det-rs-bar-star"></i>
+                                    <div class="det-rs-bar-track">
+                                        <div class="det-rs-bar-fill" style="width: 7%;"></div>
+                                    </div>
+                                    <span class="det-rs-bar-pct">7%</span>
+                                </div>
+                                <div class="det-rs-bar-row">
+                                    <span class="det-rs-bar-n">1</span>
+                                    <i class="fas fa-star det-rs-bar-star"></i>
+                                    <div class="det-rs-bar-track">
+                                        <div class="det-rs-bar-fill" style="width: 3%;"></div>
+                                    </div>
+                                    <span class="det-rs-bar-pct">3%</span>
+                                </div>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-
-                <!-- 2 · DETALLES DEL VUELO -->
-                <div class="det-card">
-                    <h2 class="det-card-title"><i class="fas fa-info-circle"></i> Detalles del Vuelo</h2>
-                    <div class="det-details-grid" id="detailsGrid"></div>
-                </div>
-
-                <!-- 3 · EQUIPAJE -->
-                <div class="det-card">
-                    <h2 class="det-card-title"><i class="fas fa-briefcase"></i> Equipaje</h2>
-                    <div class="det-baggage-grid" id="baggageGrid"></div>
-                </div>
-
-                <!-- 4 · CALIFICACIONES & COMENTARIOS -->
-                <div class="det-card">
-                    <h2 class="det-card-title"><i class="fas fa-comments"></i> Calificaciones y Comentarios</h2>
-
-                    <!-- resumen rating -->
-                    <div class="det-rating-summary">
-                        <div class="det-rs-big">
-                            <span class="det-rs-num">4.5</span>
-                            <div class="det-rs-stars" id="summaryStars"></div>
-                            <span class="det-rs-count">187 calificaciones</span>
-                        </div>
-                        <div class="det-rs-bars" id="ratingBars"></div>
-                    </div>
-
-                    <!-- nuevo comentario -->
-                    <div class="det-new-comment">
-                        <h5 class="det-nc-title">Comparte tu experiencia</h5>
-                        <div class="det-nc-stars-row">
-                            <span>Tu calificación:</span>
-                            <div class="det-nc-stars" id="ncStars">
-                                <i class="fas fa-star" data-val="1"></i>
-                                <i class="fas fa-star" data-val="2"></i>
-                                <i class="fas fa-star" data-val="3"></i>
-                                <i class="fas fa-star" data-val="4"></i>
-                                <i class="fas fa-star" data-val="5"></i>
+                        <!-- Nuevo Comentario -->
+                        <div class="det-new-comment">
+                            <h5 class="det-nc-title">Comparte tu experiencia</h5>
+                            <div class="det-nc-stars-row">
+                                <span>Tu calificación:</span>
+                                <div class="det-nc-stars">
+                                    <template x-for="star in [1,2,3,4,5]" :key="star">
+                                        <i class="fas fa-star"
+                                           :class="{ 'active': star <= selectedRating }"
+                                           @click="setRating(star)"></i>
+                                    </template>
+                                </div>
                             </div>
+                            <textarea class="det-nc-textarea" 
+                                      x-model="nuevoComentario"
+                                      placeholder="Cuéntanos cómo fue tu vuelo…"></textarea>
+                            <button class="det-nc-btn" @click="publicarComentario()">
+                                <i class="fas fa-paper-plane"></i> Publicar
+                            </button>
                         </div>
-                        <textarea class="det-nc-textarea" id="ncTextarea" placeholder="Cuéntanos cómo fue tu vuelo…"></textarea>
-                        <button class="det-nc-btn" id="ncPostBtn"><i class="fas fa-paper-plane"></i> Publicar</button>
+
+                        <!-- Toolbar de Ordenamiento -->
+                        <div class="det-comments-toolbar">
+                            <span>Ordenar:</span>
+                            <button class="det-sort-btn det-sort-active">Recientes</button>
+                            <button class="det-sort-btn">Más útiles</button>
+                            <button class="det-sort-btn">Mejor calificados</button>
+                        </div>
+
+                        <!-- Árbol de Comentarios -->
+                        <div class="det-comments-tree">
+                            <template x-for="comentario in comentarios" :key="comentario.id">
+                                <div class="det-comment">
+                                    <div class="det-comment-header">
+                                        <div class="det-comment-avatar" :style="`background: ${comentario.color}`">
+                                            <span x-text="comentario.avatar"></span>
+                                        </div>
+                                        <span class="det-comment-author" x-text="comentario.autor"></span>
+                                        <span class="det-comment-date" x-text="comentario.fecha"></span>
+                                        <span class="det-comment-stars" x-show="comentario.rating" x-html="renderStars(comentario.rating)"></span>
+                                    </div>
+                                    <p class="det-comment-text" x-text="comentario.texto"></p>
+                                    <div class="det-comment-actions">
+                                        <button class="det-comment-action" 
+                                                :class="{ 'liked': comentario.liked }"
+                                                @click="toggleLike(comentario)">
+                                            <i class="fas fa-thumbs-up"></i>
+                                            <span class="det-like-count" x-text="comentario.likes"></span>
+                                        </button>
+                                        <button class="det-comment-action">
+                                            <i class="fas fa-reply"></i> Responder
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
-                    <!-- toolbar ordenamiento -->
-                    <div class="det-comments-toolbar">
-                        <span>Ordenar:</span>
-                        <button class="det-sort-btn det-sort-active" data-sort="recent">Recientes</button>
-                        <button class="det-sort-btn" data-sort="top">Más útiles</button>
-                        <button class="det-sort-btn" data-sort="high">Mejor calificados</button>
-                        <button class="det-sort-btn" data-sort="low">Peor calificados</button>
-                    </div>
+                </div><!-- /col-lg-8 -->
 
-                    <!-- árbol comentarios -->
-                    <div class="det-comments-tree" id="commentsTree"></div>
+                <!-- Columna Derecha -->
+                <div class="col-lg-4">
+                    <div class="det-price-panel">
+                        <div class="det-pp-header">
+                            <span class="det-pp-code" x-text="vuelo.codigo"></span>
+                            <span class="det-pp-route" x-text="`${vuelo.origen} → ${vuelo.destino}`"></span>
+                        </div>
+
+                        <div class="det-pp-row">
+                            <span>Precio por persona</span>
+                            <span class="det-pp-muted" x-text="formatCurrency(vuelo.precioBase)"></span>
+                        </div>
+                        <div class="det-pp-row det-pp-row-passengers">
+                            <span>× 2 pasajeros</span>
+                            <span class="det-pp-muted" x-text="formatCurrency(vuelo.precioBase * 2)"></span>
+                        </div>
+
+                        <div class="det-pp-divider"></div>
+
+                        <h6 class="det-pp-subtitle">Incluido en el precio</h6>
+                        <ul class="det-pp-included">
+                            <li><i class="fas fa-check"></i> Equipaje de cabina</li>
+                            <li><i class="fas fa-check"></i> Artículo personal</li>
+                            <li><i class="fas fa-check"></i> Selección de asiento básica</li>
+                            <li><i class="fas fa-check"></i> Seguro de vuelo básico</li>
+                        </ul>
+
+                        <div class="det-pp-divider"></div>
+
+                        <h6 class="det-pp-subtitle">Servicios opcionales</h6>
+                        <div class="det-pp-extras">
+                            <label class="det-pp-extra">
+                                <input type="checkbox" x-model="extras.equipaje" @change="recalcularTotal()">
+                                <div class="det-pp-extra-info">
+                                    <span class="det-pp-extra-name">Equipaje facturado</span>
+                                    <span class="det-pp-extra-desc">23 kg por persona</span>
+                                </div>
+                                <span class="det-pp-extra-price">+Q300</span>
+                            </label>
+                            <label class="det-pp-extra">
+                                <input type="checkbox" x-model="extras.asiento" @change="recalcularTotal()">
+                                <div class="det-pp-extra-info">
+                                    <span class="det-pp-extra-name">Asiento preferencial</span>
+                                    <span class="det-pp-extra-desc">Más espacio para piernas</span>
+                                </div>
+                                <span class="det-pp-extra-price">+Q160</span>
+                            </label>
+                            <label class="det-pp-extra">
+                                <input type="checkbox" x-model="extras.comida" @change="recalcularTotal()">
+                                <div class="det-pp-extra-info">
+                                    <span class="det-pp-extra-name">Paquete de comida</span>
+                                    <span class="det-pp-extra-desc">Menú completo + bebida</span>
+                                </div>
+                                <span class="det-pp-extra-price">+Q90</span>
+                            </label>
+                        </div>
+
+                        <div class="det-pp-divider"></div>
+
+                        <div class="det-pp-total-row">
+                            <span>Total a pagar</span>
+                            <span class="det-pp-total-price" x-text="formatCurrency(precioTotal)"></span>
+                        </div>
+
+                        <button class="det-pp-checkout" @click="procederCompra()">
+                            <i class="fas fa-shopping-cart"></i> Proceder a Compra
+                        </button>
+                        <p class="det-pp-seguridad">
+                            <i class="fas fa-lock"></i> Pago seguro garantizado
+                        </p>
+                    </div>
                 </div>
 
-            </div><!-- /col-lg-8 -->
-
-            <!-- ─── COLUMNA DERECHA ─── -->
-            <div class="col-lg-4">
-                <div class="det-price-panel">
-                    <div class="det-pp-header">
-                        <span class="det-pp-code">HC-305</span>
-                        <span class="det-pp-route">Guatemala → Ciudad de México</span>
-                    </div>
-
-                    <div class="det-pp-row">
-                        <span>Precio por persona</span>
-                        <span class="det-pp-muted">Q950</span>
-                    </div>
-                    <div class="det-pp-row det-pp-row-passengers">
-                        <span>× 2 pasajeros</span>
-                        <span class="det-pp-muted">Q1,900</span>
-                    </div>
-
-                    <div class="det-pp-divider"></div>
-
-                    <h6 class="det-pp-subtitle">Incluido en el precio</h6>
-                    <ul class="det-pp-included" id="ppIncluded"></ul>
-
-                    <div class="det-pp-divider"></div>
-
-                    <h6 class="det-pp-subtitle">Servicios opcionales</h6>
-                    <div class="det-pp-extras" id="ppExtras"></div>
-
-                    <div class="det-pp-divider"></div>
-
-                    <div class="det-pp-total-row">
-                        <span>Total a pagar</span>
-                        <span class="det-pp-total-price" id="ppTotalPrice">Q1,900</span>
-                    </div>
-
-                    <button class="det-pp-checkout" id="ppCheckout">
-                        <i class="fas fa-shopping-cart"></i> Proceder a Compra
-                    </button>
-                    <p class="det-pp-seguridad"><i class="fas fa-lock"></i> Pago seguro garantizado</p>
-                </div>
             </div>
-
         </div>
-    </div>
-</main>
+    </main>
 
-<!-- ============================================================
-     FOOTER (global)
-     ============================================================ -->
-<footer class="footer-section">
-    <div class="container">
-        <div class="py-5">
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <div class="footer-brand">
-                        <div class="footer-logo-section">
-                            <div class="footer-logo-circle"><i class="fas fa-plane-departure"></i></div>
-                            <span class="footer-brand-name">Aerolíneas Halcón</span>
-                        </div>
-                        <p class="footer-description mt-3">Conectando tus sueños con el mundo desde 1998. Vuela con confianza, vuela con excelencia.</p>
-                        <div class="social-links mt-4">
-                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
-                    <h5 class="footer-heading">Servicios</h5>
-                    <ul class="nav flex-column footer-links">
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Reservar Vuelos</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Check-in Online</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Mis Reservaciones</a></li>                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
-                    <h5 class="footer-heading">Información</h5>
-                    <ul class="nav flex-column footer-links">
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Sobre Nosotros</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Destinos</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Nuestros Hoteles</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Agencia Aliada</a></li>
-                        <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Preguntas Frecuentes</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <h5 class="footer-heading">Contacto</h5>
-                    <ul class="contact-info">
-                        <li class="contact-item"><i class="fas fa-phone-alt"></i><div><strong>Servicio al Cliente</strong><p>+502 2345-6789</p></div></li>
-                        <li class="contact-item"><i class="fas fa-envelope"></i><div><strong>Email</strong><p>info@aerolineashalcon.com</p></div></li>
-                        <li class="contact-item"><i class="fas fa-map-marker-alt"></i><div><strong>Dirección</strong><p>Aeropuerto Internacional La Aurora<br>Guatemala City, Guatemala</p></div></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center py-4 mt-4 border-top">
-                <div class="footer-copyright mb-3 mb-sm-0"><p class="mb-0">© 2026 Aerolíneas Halcón. Todos los derechos reservados.</p></div>
-                <ul class="list-unstyled d-flex footer-legal mb-0">
-                    <li><a href="#" class="footer-legal-link">Términos y Condiciones</a></li>
-                    <li class="ms-3"><a href="#" class="footer-legal-link">Política de Privacidad</a></li>
-                    <li class="ms-3"><a href="#" class="footer-legal-link">Cookies</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</footer>
+    <!-- Footer (incluir partial) -->
+    <div id="footer-placeholder"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="script.js"></script>
-<script src="/Frontend/aerolinea/js/detalle.js"></script>
-<script src="/Frontend/aerolinea/js/index.js"></script>
+    <!-- Notification Toast -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts para incluir partials -->
+    <script>
+        fetch('../partials/header.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('header-placeholder').innerHTML = html);
+
+        fetch('../partials/footer.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('footer-placeholder').innerHTML = html);
+
+        fetch('../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('notification-toast').innerHTML = html);
+    </script>
+
 </body>
 </html>

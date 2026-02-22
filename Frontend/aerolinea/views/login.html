@@ -4,25 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión – Aerolíneas Halcón</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Frontend/aerolinea/css/login.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../css/login.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth-guard.js"></script>
+    <script src="../js/login.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body>
+<body x-data="loginData()">
 
 <div class="login-container">
 
-    <!-- ============================================================
-         LADO IZQUIERDO: Hero / Branding
-         ============================================================ -->
+    <!-- LADO IZQUIERDO: Hero / Branding -->
     <div class="login-hero">
-        <!-- overlay gradient -->
         <div class="login-hero-overlay"></div>
         
-        <!-- contenido -->
         <div class="login-hero-content">
-            <!-- logo -->
+            <!-- Logo -->
             <div class="login-hero-logo">
                 <div class="login-logo-circle">
                     <i class="fas fa-plane-departure"></i>
@@ -30,13 +41,13 @@
                 <span class="login-brand-name">Aerolíneas Halcón</span>
             </div>
 
-            <!-- texto hero -->
+            <!-- Texto hero -->
             <h1 class="login-hero-title">Vuela más alto con nosotros</h1>
             <p class="login-hero-subtitle">
                 Accede a tu cuenta y descubre destinos increíbles, ofertas exclusivas y una experiencia de vuelo inigualable.
             </p>
 
-            <!-- features list -->
+            <!-- Features list -->
             <div class="login-hero-features">
                 <div class="login-hero-feature">
                     <i class="fas fa-check-circle"></i>
@@ -52,29 +63,27 @@
                 </div>
             </div>
 
-            <!-- back to home link -->
+            <!-- Back to home link -->
             <a href="index.html" class="login-back-home">
                 <i class="fas fa-arrow-left"></i> Volver al inicio
             </a>
         </div>
     </div>
 
-    <!-- ============================================================
-         LADO DERECHO: Formulario de Login
-         ============================================================ -->
+    <!-- LADO DERECHO: Formulario de Login -->
     <div class="login-form-side">
         <div class="login-form-wrapper">
 
-            <!-- header -->
+            <!-- Header -->
             <div class="login-header">
-                <h2 class="login-title">Bienvenido de nuevo</h2>
+                <h2 class="login-title">Bienvenido de vuelta</h2>
                 <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
             </div>
 
-            <!-- formulario principal -->
-            <form class="login-form" id="loginForm">
+            <!-- Formulario principal -->
+            <form class="login-form" @submit.prevent="submitLogin()">
 
-                <!-- email -->
+                <!-- Email -->
                 <div class="login-form-group">
                     <label class="login-label" for="loginEmail">
                         Correo Electrónico
@@ -85,13 +94,14 @@
                             type="email" 
                             class="login-input" 
                             id="loginEmail" 
+                            x-model="email"
                             placeholder="tu@correo.com"
                             required
                             autocomplete="email">
                     </div>
                 </div>
 
-                <!-- password -->
+                <!-- Password -->
                 <div class="login-form-group">
                     <label class="login-label" for="loginPassword">
                         Contraseña
@@ -99,51 +109,62 @@
                     <div class="login-input-wrapper">
                         <i class="fas fa-lock login-input-icon"></i>
                         <input 
-                            type="password" 
+                            :type="showPassword ? 'text' : 'password'"
                             class="login-input" 
                             id="loginPassword" 
+                            x-model="password"
                             placeholder="••••••••"
                             required
                             autocomplete="current-password">
-                        <button type="button" class="login-toggle-password" id="togglePassword">
-                            <i class="fas fa-eye"></i>
+                        <button type="button" 
+                                class="login-toggle-password" 
+                                @click="showPassword = !showPassword">
+                            <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- remember me + forgot password -->
+                <!-- Remember me + forgot password -->
                 <div class="login-options">
                     <label class="login-checkbox">
-                        <input type="checkbox" id="rememberMe">
+                        <input type="checkbox" x-model="rememberMe">
                         <span class="login-checkbox-text">Recordarme</span>
                     </label>
-                    <a href="#" class="login-forgot" id="forgotPasswordLink">
+                    <a href="#" class="login-forgot" @click.prevent="showForgotModal = true">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>
 
-                <!-- submit button -->
-                <button type="submit" class="login-btn-submit">
-                    <span>Iniciar Sesión</span>
-                    <i class="fas fa-arrow-right"></i>
+                <!-- Submit button -->
+                <button type="submit" 
+                        class="login-btn-submit"
+                        :disabled="isLoading">
+                    <template x-if="!isLoading">
+                        <span><span>Iniciar Sesión</span> <i class="fas fa-arrow-right"></i></span>
+                    </template>
+                    <template x-if="isLoading">
+                        <span><i class="fas fa-spinner fa-spin"></i> <span>Iniciando sesión...</span></span>
+                    </template>
                 </button>
 
             </form>
 
-            <!-- divider -->
+            <!-- Divider -->
             <div class="login-divider">
                 <span>O continúa con</span>
             </div>
 
-            <!-- social login buttons -->
+            <!-- Social login buttons -->
             <div class="login-social-buttons">
-                <button type="button" class="login-social-btn login-google" id="loginGoogle">
+                <button type="button" 
+                        class="login-social-btn login-google" 
+                        @click="loginWithGoogle()">
                     <i class="fab fa-google"></i>
                     <span>Google</span>
                 </button>
             </div>
 
-            <!-- register CTA -->
+            <!-- Register CTA -->
             <div class="login-register-cta">
                 <span>¿No tienes cuenta?</span>
                 <a href="registro.html" class="login-register-link">Regístrate aquí</a>
@@ -154,23 +175,43 @@
 
 </div>
 
-<!-- ============================================================
-     MODAL: Recuperar Contraseña
-     ============================================================ -->
-<div class="login-modal" id="forgotPasswordModal">
-    <div class="login-modal-overlay" id="modalOverlay"></div>
-    <div class="login-modal-content">
+<!-- MODAL: Recuperar Contraseña -->
+<div x-show="showForgotModal" 
+     x-cloak
+     @keydown.escape.window="showForgotModal = false"
+     class="login-modal active"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0">
+    
+    <div class="login-modal-overlay" @click="showForgotModal = false"></div>
+    
+    <div class="login-modal-content"
+         @click.away="showForgotModal = false"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform scale-95"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 transform scale-100"
+         x-transition:leave-end="opacity-0 transform scale-95">
+        
         <div class="login-modal-header">
             <h3 class="login-modal-title">Recuperar Contraseña</h3>
-            <button type="button" class="login-modal-close" id="closeModal">
+            <button type="button" 
+                    class="login-modal-close" 
+                    @click="showForgotModal = false">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+        
         <div class="login-modal-body">
             <p class="login-modal-text">
                 Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
             </p>
-            <form id="forgotPasswordForm">
+            <form @submit.prevent="sendRecoveryEmail()">
                 <div class="login-form-group">
                     <label class="login-label" for="recoveryEmail">Correo Electrónico</label>
                     <div class="login-input-wrapper">
@@ -179,20 +220,36 @@
                             type="email" 
                             class="login-input" 
                             id="recoveryEmail" 
+                            x-model="recoveryEmail"
                             placeholder="tu@correo.com"
                             required>
                     </div>
                 </div>
-                <button type="submit" class="login-btn-submit">
-                    <span>Enviar Enlace</span>
-                    <i class="fas fa-paper-plane"></i>
+                <button type="submit" 
+                        class="login-btn-submit"
+                        :disabled="isSendingRecovery">
+                    <template x-if="!isSendingRecovery">
+                        <span><span>Enviar Enlace</span> <i class="fas fa-paper-plane"></i></span>
+                    </template>
+                    <template x-if="isSendingRecovery">
+                        <span><i class="fas fa-spinner fa-spin"></i> <span>Enviando...</span></span>
+                    </template>
                 </button>
             </form>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/Frontend/aerolinea/js/login.aerolinea.js"></script>
+<!-- Notification Toast -->
+<div id="notification-toast"></div>
+
+<!-- Scripts -->
+<script>
+    // Cargar notification toast
+    fetch('../partials/notification-toast.html')
+        .then(res => res.text())
+        .then(html => document.getElementById('notification-toast').innerHTML = html);
+</script>
+
 </body>
 </html>

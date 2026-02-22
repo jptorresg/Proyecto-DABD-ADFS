@@ -27,8 +27,16 @@ function headerData() {
                     this.userRole = userData.tipoUsuario || '';
                 } catch (e) {
                     console.error('Error parsing session:', e);
+                    localStorage.removeItem('userSession');
                 }
             }
+        },
+        
+        // Verificar si el usuario tiene acceso a una ruta
+        canAccess(requiredRole) {
+            if (!this.isLoggedIn && requiredRole) return false;
+            if (requiredRole === 'ADMIN' && this.userRole !== 'ADMIN') return false;
+            return true;
         },
         
         performSearch() {

@@ -4,15 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - Aerolíneas Halcón</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Frontend/aerolinea/css/registro.css">
+    
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../css/global.css" rel="stylesheet">
+    <link href="../css/registro.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth-guard.js"></script>
+    <script src="../js/registro.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body>
+<body x-data="registroData()">
+
     <!-- Header Simplificado -->
     <header class="header-simple">
         <div class="header-simple-container">
@@ -34,6 +48,7 @@
     <main class="registration-main">
         <div class="container">
             <div class="registration-container">
+                
                 <!-- Cabecera del formulario -->
                 <div class="form-header">
                     <h1 class="form-title">Crear Cuenta</h1>
@@ -41,7 +56,7 @@
                 </div>
 
                 <!-- Formulario de Registro -->
-                <form id="registrationForm" class="registration-form" novalidate>
+                <form class="registration-form" @submit.prevent="submitRegistro()">
                     
                     <!-- Información de Cuenta -->
                     <div class="form-section">
@@ -62,13 +77,9 @@
                                             type="email" 
                                             class="form-control" 
                                             id="email" 
-                                            name="email"
+                                            x-model="formData.email"
                                             placeholder="ejemplo@correo.com"
-                                            required
-                                        >
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Por favor ingrese un correo electrónico válido.
+                                            required>
                                     </div>
                                 </div>
                             </div>
@@ -81,21 +92,23 @@
                                     <div class="input-with-icon">
                                         <i class="fas fa-lock input-icon"></i>
                                         <input 
-                                            type="password" 
+                                            :type="showPassword ? 'text' : 'password'"
                                             class="form-control" 
                                             id="password" 
-                                            name="password"
+                                            x-model="formData.password"
                                             placeholder="Mínimo 8 caracteres"
                                             required
-                                            minlength="8"
-                                        >
-                                        <button type="button" class="toggle-password" data-target="password">
-                                            <i class="fas fa-eye"></i>
+                                            minlength="8">
+                                        <button type="button" 
+                                                class="toggle-password" 
+                                                @click="showPassword = !showPassword">
+                                            <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                                         </button>
                                     </div>
-                                    <div class="password-strength" id="passwordStrength"></div>
-                                    <div class="invalid-feedback">
-                                        La contraseña debe tener al menos 8 caracteres.
+                                    <div class="password-strength" 
+                                         x-show="formData.password.length > 0"
+                                         :class="passwordStrength">
+                                        <span x-text="passwordStrengthText"></span>
                                     </div>
                                 </div>
                             </div>
@@ -108,20 +121,22 @@
                                     <div class="input-with-icon">
                                         <i class="fas fa-lock input-icon"></i>
                                         <input 
-                                            type="password" 
+                                            :type="showConfirmPassword ? 'text' : 'password'"
                                             class="form-control" 
                                             id="confirmPassword" 
-                                            name="confirmPassword"
+                                            x-model="formData.confirmPassword"
                                             placeholder="Repita su contraseña"
-                                            required
-                                        >
-                                        <button type="button" class="toggle-password" data-target="confirmPassword">
-                                            <i class="fas fa-eye"></i>
+                                            required>
+                                        <button type="button" 
+                                                class="toggle-password" 
+                                                @click="showConfirmPassword = !showConfirmPassword">
+                                            <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                                         </button>
                                     </div>
-                                    <div class="invalid-feedback">
-                                        Las contraseñas no coinciden.
-                                    </div>
+                                    <small x-show="formData.confirmPassword.length > 0"
+                                           :style="{ color: passwordsMatch ? '#28a745' : '#dc3545' }"
+                                           x-text="passwordsMatch ? '✓ Las contraseñas coinciden' : '✗ Las contraseñas no coinciden'">
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -144,13 +159,9 @@
                                         type="text" 
                                         class="form-control" 
                                         id="firstName" 
-                                        name="firstName"
+                                        x-model="formData.nombres"
                                         placeholder="Ingrese sus nombres"
-                                        required
-                                    >
-                                    <div class="invalid-feedback">
-                                        Por favor ingrese sus nombres.
-                                    </div>
+                                        required>
                                 </div>
                             </div>
 
@@ -163,13 +174,9 @@
                                         type="text" 
                                         class="form-control" 
                                         id="lastName" 
-                                        name="lastName"
+                                        x-model="formData.apellidos"
                                         placeholder="Ingrese sus apellidos"
-                                        required
-                                    >
-                                    <div class="invalid-feedback">
-                                        Por favor ingrese sus apellidos.
-                                    </div>
+                                        required>
                                 </div>
                             </div>
 
@@ -182,15 +189,11 @@
                                         type="number" 
                                         class="form-control" 
                                         id="age" 
-                                        name="age"
+                                        x-model="formData.edad"
                                         placeholder="Ej: 25"
                                         required
                                         min="18"
-                                        max="120"
-                                    >
-                                    <div class="invalid-feedback">
-                                        Debe ser mayor de 18 años.
-                                    </div>
+                                        max="120">
                                 </div>
                             </div>
 
@@ -204,30 +207,18 @@
                                         <select 
                                             class="form-control" 
                                             id="country" 
-                                            name="country"
-                                            required
-                                        >
+                                            x-model="formData.codigoPais"
+                                            required>
                                             <option value="">Seleccione un país</option>
                                             <option value="GT">Guatemala</option>
                                             <option value="MX">México</option>
                                             <option value="US">Estados Unidos</option>
-                                            <option value="CA">Canadá</option>
                                             <option value="SV">El Salvador</option>
                                             <option value="HN">Honduras</option>
                                             <option value="NI">Nicaragua</option>
                                             <option value="CR">Costa Rica</option>
                                             <option value="PA">Panamá</option>
-                                            <option value="ES">España</option>
-                                            <option value="CO">Colombia</option>
-                                            <option value="AR">Argentina</option>
-                                            <option value="BR">Brasil</option>
-                                            <option value="CL">Chile</option>
-                                            <option value="PE">Perú</option>
-                                            <option value="OTHER">Otro</option>
                                         </select>
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Por favor seleccione su país de origen.
                                     </div>
                                 </div>
                             </div>
@@ -243,16 +234,12 @@
                                             type="text" 
                                             class="form-control" 
                                             id="passport" 
-                                            name="passport"
+                                            x-model="formData.numPasaporte"
                                             placeholder="Ej: A12345678"
                                             required
-                                            pattern="[A-Za-z0-9]{6,15}"
-                                        >
+                                            pattern="[A-Za-z0-9]{6,15}">
                                     </div>
                                     <small class="form-text">Formato: 6-15 caracteres alfanuméricos</small>
-                                    <div class="invalid-feedback">
-                                        Por favor ingrese un número de pasaporte válido (6-15 caracteres).
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -272,23 +259,21 @@
                             <div class="captcha-container">
                                 <div class="captcha-box">
                                     <div class="captcha-question">
-                                        <span id="captchaQuestion">¿Cuánto es 5 + 3?</span>
+                                        <span x-text="captchaQuestion"></span>
                                     </div>
-                                    <button type="button" class="captcha-refresh" id="refreshCaptcha" title="Generar nueva pregunta">
+                                    <button type="button" 
+                                            class="captcha-refresh" 
+                                            @click="generateCaptcha()"
+                                            title="Generar nueva pregunta">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
                                 <input 
                                     type="text" 
                                     class="form-control mt-3" 
-                                    id="captchaAnswer" 
-                                    name="captchaAnswer"
+                                    x-model="captcha.answer"
                                     placeholder="Ingrese su respuesta"
-                                    required
-                                >
-                                <div class="invalid-feedback">
-                                    Por favor complete la verificación CAPTCHA correctamente.
-                                </div>
+                                    required>
                             </div>
                         </div>
                     </div>
@@ -300,29 +285,31 @@
                                 class="form-check-input" 
                                 type="checkbox" 
                                 id="termsAccept" 
-                                name="termsAccept"
-                                required
-                            >
+                                x-model="termsAccepted"
+                                required>
                             <label class="form-check-label" for="termsAccept">
                                 Acepto los <a href="#" class="link-primary">Términos y Condiciones</a> 
                                 y la <a href="#" class="link-primary">Política de Privacidad</a> 
                                 de Aerolíneas Halcón <span class="required">*</span>
                             </label>
-                            <div class="invalid-feedback">
-                                Debe aceptar los términos y condiciones.
-                            </div>
                         </div>
                     </div>
 
                     <!-- Botones de Acción -->
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary btn-submit">
-                            <i class="fas fa-user-plus"></i>
-                            Crear Cuenta
+                        <button type="submit" 
+                                class="btn btn-primary btn-submit"
+                                :disabled="isLoading">
+                            <template x-if="!isLoading">
+                                <span><i class="fas fa-user-plus"></i> Crear Cuenta</span>
+                            </template>
+                            <template x-if="isLoading">
+                                <span><i class="fas fa-spinner fa-spin"></i> Creando cuenta...</span>
+                            </template>
                         </button>
                         <p class="login-link">
                             ¿Ya tienes una cuenta? 
-                            <a href="index.html" class="link-primary">Inicia sesión aquí</a>
+                            <a href="login.html" class="link-primary">Inicia sesión aquí</a>
                         </p>
                     </div>
 
@@ -331,8 +318,16 @@
         </div>
     </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/Frontend/aerolinea/js/registro.aerolinea.js"></script>
+    <!-- Notification Toast -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts -->
+    <script>
+        // Cargar notification toast
+        fetch('../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('notification-toast').innerHTML = html);
+    </script>
+
 </body>
 </html>

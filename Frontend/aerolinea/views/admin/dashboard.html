@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Dashboard Admin</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+    <link href="../../css/dashboard.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../../js/alpine-data.js"></script>
+
+</head>
+<body x-data="dashboardData()">
+    
+    <!-- Layout con Sidebar -->
+    <div class="admin-layout">
+        
+        <!-- Sidebar (incluir partial) -->
+        <div id="admin-sidebar"></div>
+
+        <!-- Contenido Principal -->
+        <main class="admin-main">
+            
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </h1>
+                <p class="page-subtitle">
+                    Bienvenido de vuelta, <strong x-text="getUserSession()?.nombres || 'Admin'"></strong>
+                </p>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="isLoading" x-cloak class="loading-container">
+                <div class="spinner"></div>
+                <p>Cargando estadísticas...</p>
+            </div>
+
+            <!-- Content -->
+            <div x-show="!isLoading" x-cloak>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    
+                    <!-- Vuelos Activos Hoy -->
+                    <div class="stat-card stat-blue">
+                        <div class="stat-header">
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-plane-departure"></i>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.vuelosActivos"></div>
+                        <div class="stat-label">Vuelos Activos Hoy</div>
+                    </div>
+
+                    <!-- Reservaciones del Mes -->
+                    <div class="stat-card stat-green">
+                        <div class="stat-header">
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>8%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.reservacionesMes"></div>
+                        <div class="stat-label">Reservaciones del Mes</div>
+                    </div>
+
+                    <!-- Usuarios Registrados -->
+                    <div class="stat-card stat-orange">
+                        <div class="stat-header">
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>15%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="stats.usuariosRegistrados"></div>
+                        <div class="stat-label">Usuarios Registrados</div>
+                    </div>
+
+                    <!-- Ingresos Estimados -->
+                    <div class="stat-card stat-purple">
+                        <div class="stat-header">
+                            <div class="stat-icon-wrapper">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-trend trend-up">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>22%</span>
+                            </div>
+                        </div>
+                        <div class="stat-value" x-text="formatCurrency(stats.ingresosEstimados)"></div>
+                        <div class="stat-label">Ingresos del Mes</div>
+                    </div>
+
+                </div>
+
+                <!-- Dashboard Grid -->
+                <div class="dashboard-grid">
+                    
+                    <!-- Column 1: Chart + Recent Reservations -->
+                    <div>
+                        
+                        <!-- Chart Card -->
+                        <div class="dashboard-card" style="margin-bottom: 1.5rem;">
+                            <div class="dashboard-card-header">
+                                <h3 class="dashboard-card-title">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Reservaciones - Últimos 7 Días
+                                </h3>
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>Gráfico de reservaciones</p>
+                                    <small style="display: block; margin-top: 0.5rem; color: #ADB5BD;">
+                                        (Integración con Chart.js pendiente)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Reservations -->
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <h3 class="dashboard-card-title">
+                                    <i class="fas fa-history"></i>
+                                    Reservaciones Recientes
+                                </h3>
+                            </div>
+                            <div class="dashboard-card-body" style="padding: 0;">
+                                <table class="recent-table" style="padding: 0 1.5rem;">
+                                    <tbody>
+                                        <template x-for="reservacion in recentReservations" :key="reservacion.id">
+                                            <tr>
+                                                <td>
+                                                    <div class="reservation-code" x-text="reservacion.codigoReservacion"></div>
+                                                    <div class="reservation-route">
+                                                        <span x-text="`${reservacion.vuelo?.origen || 'N/A'} → ${reservacion.vuelo?.destino || 'N/A'}`"></span>
+                                                        <small x-text="formatDate(reservacion.fechaCompra)"></small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge-status badge-confirmada" x-text="reservacion.estado"></span>
+                                                </td>
+                                                <td class="reservation-amount" x-text="formatCurrency(reservacion.precioTotal)"></td>
+                                            </tr>
+                                        </template>
+
+                                        <!-- Empty State -->
+                                        <tr x-show="recentReservations.length === 0">
+                                            <td colspan="3" style="text-align: center; padding: 2rem; color: #6C757D;">
+                                                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #E9ECEF;"></i>
+                                                No hay reservaciones recientes
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <a href="../views/admin/reservaciones.html" class="view-all-link">
+                                Ver Todas las Reservaciones
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- Column 2: Quick Actions -->
+                    <div>
+                        <div class="dashboard-card">
+                            <div class="dashboard-card-header">
+                                <h3 class="dashboard-card-title">
+                                    <i class="fas fa-bolt"></i>
+                                    Acciones Rápidas
+                                </h3>
+                            </div>
+                            <div class="dashboard-card-body">
+                                <div class="quick-actions-grid">
+                                    
+                                    <!-- Crear Vuelo -->
+                                    <a href="vuelos.html" class="quick-action-btn">
+                                        <div class="quick-action-icon">
+                                            <i class="fas fa-plane"></i>
+                                        </div>
+                                        <div class="quick-action-content">
+                                            <h4>Crear Nuevo Vuelo</h4>
+                                            <p>Agregar vuelo al sistema</p>
+                                        </div>
+                                    </a>
+
+                                    <!-- Gestionar Usuarios -->
+                                    <a href="usuarios.html" class="quick-action-btn">
+                                        <div class="quick-action-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="quick-action-content">
+                                            <h4>Gestionar Usuarios</h4>
+                                            <p>Ver y modificar usuarios</p>
+                                        </div>
+                                    </a>
+
+                                    <!-- Ver Agencias -->
+                                    <a href="agencias.html" class="quick-action-btn">
+                                        <div class="quick-action-icon">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="quick-action-content">
+                                            <h4>Agencias B2B</h4>
+                                            <p>Administrar agencias</p>
+                                        </div>
+                                    </a>
+
+                                    <!-- Ver Reportes -->
+                                    <button @click="alert('Funcionalidad de reportes próximamente')" class="quick-action-btn">
+                                        <div class="quick-action-icon">
+                                            <i class="fas fa-file-chart-line"></i>
+                                        </div>
+                                        <div class="quick-action-content">
+                                            <h4>Ver Reportes</h4>
+                                            <p>Análisis y estadísticas</p>
+                                        </div>
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Notification Toast (incluir partial) -->
+    <div id="notification-toast"></div>
+
+    <!-- Incluir partials -->
+    <script>
+        // Cargar sidebar
+        fetch('../../partials/admin-sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('admin-sidebar').innerHTML = html;
+            });
+
+        // Cargar notification toast
+        fetch('../../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('notification-toast').innerHTML = html;
+            });
+    </script>
+
+    <script>
+    // Verificar autenticación al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAuth()) {
+            // Ya redirige automáticamente en requireAuth()
+        }
+    });
+    </script>
+
+    <script>
+    // Verificar que sea admin al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAdmin()) {
+            // Ya redirige automáticamente en requireAdmin()
+        }
+    });
+    </script>
+
+</body>
+</html>

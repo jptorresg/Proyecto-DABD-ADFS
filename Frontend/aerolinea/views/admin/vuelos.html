@@ -2,65 +2,380 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InnSync | Gestión de Vuelos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+    <link href="../../css/vuelos.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="../../js/alpine-data.js"></script>
-    <link rel="stylesheet" href="../Frontend/aerolinea/css/admin.css">
+
 </head>
-<body x-data="vuelosAdminData()" class="bg-gray-100 flex">
-    <div id="sidebar-container"></div> 
+<body x-data="vuelosAdminData()">
+    
+    <!-- Layout con Sidebar -->
+    <div class="admin-layout">
+        
+        <!-- Sidebar (incluir partial) -->
+        <div id="admin-sidebar"></div>
 
-    <main class="flex-1 p-8">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">Administración de Vuelos</h1>
-            <button @click="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                + Nuevo Vuelo
-            </button>
-        </header>
+        <!-- Contenido Principal -->
+        <main class="admin-main">
+            
+            <!-- Header -->
+            <div class="page-header">
+                <div class="page-title-group">
+                    <h1>
+                        <i class="fas fa-plane"></i> Gestión de Vuelos
+                    </h1>
+                    <p>Administra todos los vuelos del sistema</p>
+                </div>
+                <button @click="openCreateModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Vuelo
+                </button>
+            </div>
 
-        <div class="bg-white rounded-xl shadow overflow-hidden">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b">
-                    <tr>
-                        <th class="p-4">Código</th>
-                        <th class="p-4">Origen/Destino</th>
-                        <th class="p-4">Precio</th>
-                        <th class="p-4">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template x-for="vuelo in vuelos" :key="vuelo.id">
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="p-4 font-mono" x-text="vuelo.codigo"></td>
-                            <td class="p-4" x-text="${vuelo.origen} ➔ ${vuelo.destino}"></td>
-                            <td class="p-4" x-text="'Q' + vuelo.precioBase"></td>
-                            <td class="p-4">
-                                <button @click="openEditModal(vuelo)" class="text-blue-600 mr-2">Editar</button>
-                                <button @click="deleteVuelo(vuelo.id)" class="text-red-600">Eliminar</button>
-                            </td>
-                        </tr>
-                    </template>
-                </tbody>
-            </table>
-        </div>
-
-        <div x-show="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl p-6 w-full max-w-md" @click.away="closeModal()">
-                <h2 class="text-xl font-bold mb-4" x-text="modalMode === 'create' ? 'Crear Vuelo' : 'Editar Vuelo'"></h2>
-                <form @submit.prevent="saveVuelo()">
-                    <div class="space-y-4">
-                        <input type="text" x-model="currentVuelo.origen" placeholder="Origen" class="w-full border p-2 rounded">
-                        <input type="text" x-model="currentVuelo.destino" placeholder="Destino" class="w-full border p-2 rounded">
-                        <input type="number" x-model="currentVuelo.precioBase" placeholder="Precio Base" class="w-full border p-2 rounded">
+            <!-- Filters Bar -->
+            <div class="filters-bar">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-search"></i> Buscar</label>
+                        <input type="text" 
+                               class="filter-input" 
+                               placeholder="Buscar por código, origen o destino..."
+                               x-model="filters.search"
+                               @input="applyFilters()">
                     </div>
-                    <div class="mt-6 flex justify-end gap-2">
-                        <button type="button" @click="closeModal()" class="px-4 py-2 border rounded">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Guardar</button>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-filter"></i> Estado</label>
+                        <select class="filter-input" x-model="filters.estado" @change="applyFilters()">
+                            <option value="TODOS">Todos</option>
+                            <option value="ACTIVO">Activos</option>
+                            <option value="CANCELADO">Cancelados</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <button class="btn-cancel" @click="filters = { estado: 'TODOS', search: '' }; applyFilters()">
+                            <i class="fas fa-redo"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="isLoading" x-cloak class="loading-container">
+                <div class="spinner"></div>
+                <p>Cargando vuelos...</p>
+            </div>
+
+            <!-- Table -->
+            <div x-show="!isLoading" x-cloak class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código Vuelo</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Fecha/Hora Salida</th>
+                            <th>Tipo Asiento</th>
+                            <th>Precio Base</th>
+                            <th>Asientos Disp/Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="vuelo in paginatedVuelos" :key="vuelo.id">
+                            <tr>
+                                <td>
+                                    <strong x-text="vuelo.codigo"></strong>
+                                </td>
+                                <td>
+                                    <span x-text="vuelo.origen"></span><br>
+                                    <small style="color: #6C757D;" x-text="`(${vuelo.codigoIataOrigen})`"></small>
+                                </td>
+                                <td>
+                                    <span x-text="vuelo.destino"></span><br>
+                                    <small style="color: #6C757D;" x-text="`(${vuelo.codigoIataDestino})`"></small>
+                                </td>
+                                <td>
+                                    <span x-text="formatDate(vuelo.fechaSalida)"></span><br>
+                                    <small style="color: #6C757D;" x-text="vuelo.horaSalida"></small>
+                                </td>
+                                <td x-text="vuelo.tipoAsiento"></td>
+                                <td>
+                                    <strong style="color: #4A5F7F;" x-text="formatCurrency(vuelo.precioBase)"></strong>
+                                </td>
+                                <td>
+                                    <span x-text="`${vuelo.asientosDisponibles}/${vuelo.asientosTotales}`"></span>
+                                </td>
+                                <td>
+                                    <span class="badge-status" 
+                                          :class="vuelo.estado === 'ACTIVO' ? 'badge-activo' : 'badge-cancelado'"
+                                          x-text="vuelo.estado">
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action btn-view" @click="alert('Ver detalles de ' + vuelo.codigo)" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-action btn-edit" @click="openEditModal(vuelo)" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-action btn-danger" @click="deleteVuelo(vuelo.id)" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (incluir partial) -->
+            <div id="pagination"></div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Nuevo/Editar Vuelo -->
+    <div x-show="showModal" 
+         x-cloak
+         @keydown.escape.window="showModal = false"
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="modal-content"
+             @click.away="closeModal()"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-plane"></i>
+                    <span x-text="modalMode === 'create' ? 'Nuevo Vuelo' : 'Editar Vuelo'"></span>
+                </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form @submit.prevent="saveVuelo()">
+                    <div class="form-grid">
+                        
+                        <!-- Código de Vuelo -->
+                        <div class="form-group">
+                            <label class="form-label">Código de Vuelo *</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.codigo"
+                                   placeholder="HC-XXX"
+                                   required>
+                        </div>
+
+                        <!-- Tipo de Asiento -->
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Asiento *</label>
+                            <select class="form-input" x-model="currentVuelo.tipoAsiento" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="TURISTA">Turista</option>
+                                <option value="BUSINESS">Business</option>
+                            </select>
+                        </div>
+
+                        <!-- Origen Ciudad -->
+                        <div class="form-group">
+                            <label class="form-label">Ciudad de Origen *</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.origen"
+                                   placeholder="Guatemala City"
+                                   required>
+                        </div>
+
+                        <!-- Código IATA Origen -->
+                        <div class="form-group">
+                            <label class="form-label">Código IATA Origen *</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.codigoIataOrigen"
+                                   placeholder="GUA"
+                                   maxlength="3"
+                                   required>
+                        </div>
+
+                        <!-- Destino Ciudad -->
+                        <div class="form-group">
+                            <label class="form-label">Ciudad de Destino *</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.destino"
+                                   placeholder="Ciudad de México"
+                                   required>
+                        </div>
+
+                        <!-- Código IATA Destino -->
+                        <div class="form-group">
+                            <label class="form-label">Código IATA Destino *</label>
+                            <input type="text" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.codigoIataDestino"
+                                   placeholder="MEX"
+                                   maxlength="3"
+                                   required>
+                        </div>
+
+                        <!-- Fecha Salida -->
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Salida *</label>
+                            <input type="date" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.fechaSalida"
+                                   required>
+                        </div>
+
+                        <!-- Hora Salida -->
+                        <div class="form-group">
+                            <label class="form-label">Hora de Salida *</label>
+                            <input type="time" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.horaSalida"
+                                   required>
+                        </div>
+
+                        <!-- Fecha Llegada -->
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Llegada *</label>
+                            <input type="date" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.fechaLlegada"
+                                   required>
+                        </div>
+
+                        <!-- Hora Llegada -->
+                        <div class="form-group">
+                            <label class="form-label">Hora de Llegada *</label>
+                            <input type="time" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.horaLlegada"
+                                   required>
+                        </div>
+
+                        <!-- Precio Base -->
+                        <div class="form-group">
+                            <label class="form-label">Precio Base (Q) *</label>
+                            <input type="number" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.precioBase"
+                                   placeholder="1250.00"
+                                   step="0.01"
+                                   min="0"
+                                   required>
+                        </div>
+
+                        <!-- Asientos Totales -->
+                        <div class="form-group">
+                            <label class="form-label">Asientos Totales *</label>
+                            <input type="number" 
+                                   class="form-input" 
+                                   x-model="currentVuelo.asientosTotales"
+                                   placeholder="180"
+                                   min="1"
+                                   required>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-group" x-show="modalMode === 'edit'">
+                            <label class="form-label">Estado</label>
+                            <select class="form-input" x-model="currentVuelo.estado">
+                                <option value="ACTIVO">Activo</option>
+                                <option value="CANCELADO">Cancelado</option>
+                            </select>
+                        </div>
+
                     </div>
                 </form>
             </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button @click="closeModal()" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button @click="saveVuelo()" class="btn-submit">
+                    <i class="fas fa-save"></i>
+                    <span x-text="modalMode === 'create' ? 'Crear Vuelo' : 'Guardar Cambios'"></span>
+                </button>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Notification Toast (incluir partial) -->
+    <div id="notification-toast"></div>
+
+    <!-- Incluir partials -->
+    <script>
+        // Cargar sidebar
+        fetch('../../partials/admin-sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('admin-sidebar').innerHTML = html;
+            });
+
+        // Cargar pagination
+        fetch('../../partials/pagination.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('pagination').innerHTML = html;
+            });
+
+        // Cargar notification toast
+        fetch('../../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('notification-toast').innerHTML = html;
+            });
+    </script>
+
+    <script>
+    // Verificar autenticación al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAuth()) {
+            // Ya redirige automáticamente en requireAuth()
+        }
+    });
+    </script>
+
+    <script>
+    // Verificar que sea admin al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAdmin()) {
+            // Ya redirige automáticamente en requireAdmin()
+        }
+    });
+    </script>
+
 </body>
 </html>
