@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Gestión de Agencias B2B</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../../js/alpine-data.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #F8F9FA;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        .admin-main {
+            margin-left: 260px;
+            padding: 2rem 2.5rem;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title-group h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2C3E50;
+            margin: 0 0 0.5rem;
+        }
+
+        .page-title-group p {
+            font-size: 0.95rem;
+            color: #6C757D;
+            margin: 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4A5F7F, #5B8CC6);
+            color: #FFFFFF;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 2px 4px rgba(74, 95, 127, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3A4D63, #4A5F7F);
+            box-shadow: 0 4px 8px rgba(74, 95, 127, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid #E9ECEF;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #F8F9FA;
+        }
+
+        .data-table th {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #6C757D;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #E9ECEF;
+        }
+
+        .data-table td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #F1F3F5;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .data-table tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: #F8F9FA;
+        }
+
+        /* API Key Display */
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-key-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #495057;
+            background: #F8F9FA;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #E9ECEF;
+        }
+
+        .btn-copy {
+            background: #FFFFFF;
+            border: 1px solid #E9ECEF;
+            color: #4A5F7F;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            background: #F8F9FA;
+            border-color: #4A5F7F;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #CED4DA;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .toggle-slider {
+            background: #28a745;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            padding: 0.45rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-edit {
+            background: #FFFFFF;
+            color: #4A5F7F;
+            border-color: #E9ECEF;
+        }
+
+        .btn-edit:hover {
+            background: rgba(74, 95, 127, 0.05);
+            border-color: #4A5F7F;
+        }
+
+        .btn-danger {
+            background: #FFFFFF;
+            color: #dc3545;
+            border-color: #E9ECEF;
+        }
+
+        .btn-danger:hover {
+            background: rgba(220, 53, 69, 0.05);
+            border-color: #dc3545;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            max-width: 550px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 1.5rem 1.75rem;
+            border-bottom: 1px solid #E9ECEF;
+            background: linear-gradient(135deg, rgba(74, 95, 127, 0.05), rgba(90, 114, 153, 0.03));
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2C3E50;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .modal-body {
+            padding: 1.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 0.9rem;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            color: #495057;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4A5F7F;
+            box-shadow: 0 0 0 3px rgba(74, 95, 127, 0.1);
+        }
+
+        .modal-footer {
+            padding: 1.25rem 1.75rem;
+            background: #F8F9FA;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            border-top: 1px solid #E9ECEF;
+        }
+
+        .btn-cancel {
+            padding: 0.65rem 1.5rem;
+            background: #FFFFFF;
+            color: #6C757D;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #F8F9FA;
+            border-color: #ADB5BD;
+        }
+
+        .btn-submit {
+            padding: 0.65rem 1.5rem;
+            background: linear-gradient(135deg, #4A5F7F, #5B8CC6);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(74, 95, 127, 0.2);
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #3A4D63, #4A5F7F);
+            box-shadow: 0 4px 8px rgba(74, 95, 127, 0.3);
+        }
+
+        /* API Key Modal */
+        .api-key-modal-body {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .api-key-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-key-warning i {
+            font-size: 2rem;
+            color: #ffc107;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-key-warning p {
+            color: #856404;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .api-key-box {
+            background: #F8F9FA;
+            border: 2px dashed #4A5F7F;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-key-label {
+            font-size: 0.8rem;
+            color: #6C757D;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-key-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #2C3E50;
+            font-weight: 700;
+            word-break: break-all;
+            background: #FFFFFF;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #E9ECEF;
+        }
+
+        .btn-copy-large {
+            width: 100%;
+            padding: 0.85rem;
+            background: #4A5F7F;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy-large:hover {
+            background: #3A4D63;
+            box-shadow: 0 4px 8px rgba(74, 95, 127, 0.3);
+        }
+
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 3rem;
+            color: #6C757D;
+        }
+
+        .spinner {
+            border: 3px solid #E9ECEF;
+            border-top: 3px solid #4A5F7F;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .admin-main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-card {
+                overflow-x: auto;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body x-data="agenciasAdminData()">
+    
+    <!-- Layout con Sidebar -->
+    <div class="admin-layout">
+        
+        <!-- Sidebar (incluir partial) -->
+        <div id="admin-sidebar"></div>
+
+        <!-- Contenido Principal -->
+        <main class="admin-main">
+            
+            <!-- Header -->
+            <div class="page-header">
+                <div class="page-title-group">
+                    <h1>
+                        <i class="fas fa-building"></i> Gestión de Agencias B2B
+                    </h1>
+                    <p>Configura agencias de viajes que se conectan vía REST API</p>
+                </div>
+                <button @click="openCreateModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Nueva Agencia
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="isLoading" x-cloak class="loading-container">
+                <div class="spinner"></div>
+                <p>Cargando agencias...</p>
+            </div>
+
+            <!-- Table -->
+            <div x-show="!isLoading" x-cloak class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre Agencia</th>
+                            <th>Usuario WebService</th>
+                            <th>% Descuento</th>
+                            <th>API Key</th>
+                            <th>Estado</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="agencia in agencias" :key="agencia.id">
+                            <tr>
+                                <td>
+                                    <strong x-text="agencia.nombre"></strong>
+                                </td>
+                                <td x-text="agencia.usuarioWebService?.email || 'N/A'"></td>
+                                <td>
+                                    <span style="color: #28a745; font-weight: 600;" x-text="`${agencia.descuento}%`"></span>
+                                </td>
+                                <td>
+                                    <div class="api-key-display">
+                                        <span class="api-key-text" x-text="`sk_live_••••••••••${agencia.apiKey?.substr(-4) || '••••'}`"></span>
+                                        <button class="btn-copy" @click="copyToClipboard(agencia.apiKey)" title="Copiar API Key">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" 
+                                               :checked="agencia.activo"
+                                               @change="toggleActivo(agencia)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td x-text="formatDate(agencia.fechaRegistro)"></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action btn-edit" @click="openEditModal(agencia)" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                            Editar
+                                        </button>
+                                        <button class="btn-action btn-danger" @click="regenerateApiKey(agencia.id)" title="Regenerar API Key">
+                                            <i class="fas fa-sync-alt"></i>
+                                            Regenerar Key
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Nueva/Editar Agencia -->
+    <div x-show="showModal" 
+         x-cloak
+         @keydown.escape.window="showModal = false"
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="modal-content"
+             @click.away="closeModal()"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-building"></i>
+                    <span x-text="modalMode === 'create' ? 'Nueva Agencia B2B' : 'Editar Agencia'"></span>
+                </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Agencia *</label>
+                    <input type="text" 
+                           class="form-input" 
+                           x-model="currentAgencia.nombre"
+                           placeholder="Ej: Viajes Mundo S.A.">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Usuario WebService *</label>
+                    <select class="form-input" x-model="currentAgencia.usuarioWebServiceId">
+                        <option value="">Seleccionar usuario...</option>
+                        <template x-for="usuario in usuariosWebService" :key="usuario.id">
+                            <option :value="usuario.id" x-text="usuario.email"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">% de Descuento (0-100) *</label>
+                    <input type="number" 
+                           class="form-input" 
+                           x-model="currentAgencia.descuento"
+                           min="0"
+                           max="100"
+                           placeholder="Ej: 15">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button @click="closeModal()" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button @click="createAgencia()" class="btn-submit">
+                    <i class="fas fa-save"></i>
+                    <span x-text="modalMode === 'create' ? 'Crear Agencia' : 'Guardar Cambios'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Mostrar API Key (solo una vez) -->
+    <div x-show="showApiKeyModal" 
+         x-cloak
+         @keydown.escape.window="closeApiKeyModal()"
+         class="modal-overlay"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="modal-content"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform scale-100"
+             x-transition:leave-end="opacity-0 transform scale-95">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-key"></i>
+                    API Key Generada
+                </h3>
+            </div>
+
+            <!-- Body -->
+            <div class="api-key-modal-body">
+                <div class="api-key-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Esta clave solo se mostrará UNA VEZ. Guárdala en un lugar seguro.</p>
+                </div>
+
+                <div class="api-key-box">
+                    <div class="api-key-label">API Key</div>
+                    <div class="api-key-value" x-text="generatedApiKey"></div>
+                </div>
+
+                <button @click="copyToClipboard(generatedApiKey)" class="btn-copy-large">
+                    <i class="fas fa-copy"></i>
+                    Copiar al Portapapeles
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button @click="closeApiKeyModal()" class="btn-submit" style="width: 100%;">
+                    <i class="fas fa-check"></i>
+                    Entendido, Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir partials -->
+    <script>
+        // Cargar sidebar
+        fetch('../../partials/admin-sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('admin-sidebar').innerHTML = html;
+            });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Búsqueda - Aerolíneas Halcón</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/resultados.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/resultados.css">
+    <link rel="stylesheet" href="/Frontend/aerolinea/css/index.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ===== HEADER (del Home) ===== -->
+   <header class="header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo-circle">
+                    <i class="fas fa-plane-departure"></i>
+                </div>
+                <span class="brand-name">Aerolíneas Halcón</span>
+            </div>
+            <div class="search-section">
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Buscar vuelos, destinos...">
+                    <button class="filter-btn" title="Filtros">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="user-section" id="guestSection">
+                <button class="btn btn-outline" id="loginBtn">Iniciar Sesión</button>
+                <button class="btn btn-primary" id="registerBtn">Registrarse</button>
+            </div>
+            <div class="user-section user-logged" id="loggedSection" style="display: none;">
+                <div class="user-profile" id="profileDropdown">
+                    <div class="profile-circle"><i class="fas fa-user"></i></div>
+                    <span class="username">Usuario</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
+                <button class="btn btn-outline" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== BARRA DE RESUMEN DE BÚSQUEDA ===== -->
+    <section class="search-summary-bar">
+        <div class="container">
+            <div class="summary-content">
+                <div class="summary-route">
+                    <span class="summary-city">Guatemala</span>
+                    <span class="summary-arrow"><i class="fas fa-long-arrow-alt-right"></i></span>
+                    <span class="summary-city">Ciudad de México</span>
+                </div>
+                <div class="summary-details">
+                    <span class="summary-tag"><i class="fas fa-calendar-alt"></i> 10 Feb – 17 Feb 2026</span>
+                    <span class="summary-tag"><i class="fas fa-users"></i> 2 Pasajeros</span>
+                    <span class="summary-tag"><i class="fas fa-exchange-alt"></i> Ida y Vuelta</span>
+                </div>
+                <button class="btn summary-edit-btn">
+                    <i class="fas fa-pen"></i> Editar Búsqueda
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <main class="results-main">
+        <div class="container">
+            <div class="row">
+
+                <!-- SIDEBAR FILTROS -->
+                <aside class="col-lg-3">
+                    <div class="filters-panel">
+
+                        <div class="filters-header">
+                            <h5><i class="fas fa-sliders-h"></i> Filtros</h5>
+                            <button class="btn clear-filters" id="clearFilters">Limpiar</button>
+                        </div>
+
+                        <!-- Filtro: Rango de precio -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Precio por persona</h6>
+                            <div class="price-range">
+                                <div class="price-labels">
+                                    <span id="priceMin">Q800</span>
+                                    <span id="priceMax">Q3,500</span>
+                                </div>
+                                <input type="range" class="form-range" id="priceRange" min="800" max="3500" value="3500">
+                            </div>
+                        </div>
+
+                        <!-- Filtro: Tipo de vuelo -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Tipo de Vuelo</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" checked> Directo
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" checked> Con Escala
+                            </label>
+                        </div>
+
+                        <!-- Filtro: Calificación -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Calificación</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" checked>
+                                <span class="filter-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </span> 5 estrellas
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" checked>
+                                <span class="filter-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                </span> 4+ estrellas
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox">
+                                <span class="filter-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                                </span> 3+ estrellas
+                            </label>
+                        </div>
+
+                        <!-- Filtro: Clase de asiento -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Clase de Asiento</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" checked> Turista
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" checked> Business
+                            </label>
+                        </div>
+
+                        <!-- Filtro: Hora de salida -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Hora de Salida</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" checked>
+                                <span><i class="fas fa-sun"></i> Mañana (6AM – 12PM)</span>
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" checked>
+                                <span><i class="fas fa-cloud-sun"></i> Tarde (12PM – 6PM)</span>
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox">
+                                <span><i class="fas fa-moon"></i> Noche (6PM – 6AM)</span>
+                            </label>
+                        </div>
+
+                    </div>
+                </aside>
+
+                <!-- RESULTADOS -->
+                <section class="col-lg-9">
+
+                    <!-- Barra superior resultados -->
+                    <div class="results-topbar">
+                        <span class="results-count"><strong>6</strong> vuelos encontrados</span>
+                        <div class="sort-control">
+                            <label for="sortSelect">Ordenar por:</label>
+                            <select class="form-select" id="sortSelect">
+                                <option value="price-asc">Precio: Menor a Mayor</option>
+                                <option value="price-desc">Precio: Mayor a Menor</option>
+                                <option value="duration">Duración del vuelo</option>
+                                <option value="rating">Mejor calificado</option>
+                                <option value="departure">Hora de salida</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Lista de vuelos (generada por JS) -->
+                    <div class="flights-list" id="flightsList"></div>
+
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== FOOTER (del Home) ===== -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="py-5">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                        <div class="footer-brand">
+                            <div class="footer-logo-section">
+                                <div class="footer-logo-circle"><i class="fas fa-plane-departure"></i></div>
+                                <span class="footer-brand-name">Aerolíneas Halcón</span>
+                            </div>
+                            <p class="footer-description mt-3">Conectando tus sueños con el mundo desde 1998. Vuela con confianza, vuela con excelencia.</p>
+                            <div class="social-links mt-4">
+                                <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Servicios</h5>
+                        <ul class="nav flex-column footer-links">
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Reservar Vuelos</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Check-in Online</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Mis Reservaciones</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Información</h5>
+                        <ul class="nav flex-column footer-links">
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Sobre Nosotros</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Destinos</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Nuestros Hoteles</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Agencia Aliada</a></li>
+                            <li class="nav-item mb-2"><a href="#" class="nav-link p-0"><i class="fas fa-chevron-right"></i> Preguntas Frecuentes</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                        <h5 class="footer-heading">Contacto</h5>
+                        <ul class="contact-info">
+                            <li class="contact-item">
+                                <i class="fas fa-phone-alt"></i>
+                                <div><strong>Servicio al Cliente</strong><p>+502 2345-6789</p></div>
+                            </li>
+                            <li class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <div><strong>Email</strong><p>info@aerolineashalcon.com</p></div>
+                            </li>
+                            <li class="contact-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div><strong>Dirección</strong><p>Aeropuerto Internacional La Aurora<br>Guatemala City, Guatemala</p></div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between align-items-center py-4 mt-4 border-top">
+                    <div class="footer-copyright mb-3 mb-sm-0"><p class="mb-0">© 2026 Aerolíneas Halcón. Todos los derechos reservados.</p></div>
+                    <ul class="list-unstyled d-flex footer-legal mb-0">
+                        <li><a href="#" class="footer-legal-link">Términos y Condiciones</a></li>
+                        <li class="ms-3"><a href="#" class="footer-legal-link">Política de Privacidad</a></li>
+                        <li class="ms-3"><a href="#" class="footer-legal-link">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script src="/Frontend/aerolinea/js/resultados.aerolinea.js"></script>
+    <script src="/Frontend/aerolinea/js/index.aerolinea.js"></script>
+</body>
+</html>

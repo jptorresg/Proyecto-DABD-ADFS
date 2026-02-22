@@ -1,0 +1,729 @@
+/* ===================================
+   VARIABLES
+   =================================== */
+:root {
+    --primary-blue:      #4A5F7F;
+    --primary-blue-dark: #3A4D63;
+    --primary-blue-light:#5A7299;
+    --silver:            #C0C5CE;
+    --silver-light:      #E8EAED;
+    --white:             #FFFFFF;
+    --off-white:         #F8F9FA;
+    --light-gray:        #E9ECEF;
+    --medium-gray:       #ADB5BD;
+    --dark-gray:         #495057;
+    --almost-black:      #2C3E50;
+    --accent-blue:       #5B8CC6;
+    --star-gold:         #F5A623;
+    --success:           #28a745;
+    --danger:            #dc3545;
+    --warning:           #ffc107;
+    --shadow-sm:  0 2px 4px  rgba(74,95,127,.08);
+    --shadow-md:  0 4px 12px rgba(74,95,127,.12);
+    --shadow-lg:  0 8px 24px rgba(74,95,127,.16);
+    --font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --tr-fast:    .2s ease;
+    --tr-norm:    .3s ease;
+}
+
+/* ===================================
+   BREADCRUMB
+   =================================== */
+.chk-breadcrumb {
+    background: var(--white);
+    border-bottom: 1px solid var(--light-gray);
+    padding: .7rem 0;
+    font-size: .87rem;
+}
+.chk-breadcrumb .container { display: flex; align-items: center; gap: .5rem; }
+.chk-breadcrumb a { color: var(--primary-blue); text-decoration: none; font-weight: 500; transition: color var(--tr-fast); }
+.chk-breadcrumb a:hover { color: var(--primary-blue-dark); }
+.chk-breadcrumb .fa-chevron-right { color: var(--medium-gray); font-size: .68rem; }
+.chk-breadcrumb > .container > span { color: var(--medium-gray); font-weight: 600; }
+
+/* ===================================
+   PROGRESS INDICATOR
+   =================================== */
+.chk-progress {
+    background: linear-gradient(135deg, rgba(74,95,127,.05), rgba(90,114,153,.08));
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.chk-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+    position: relative;
+}
+
+.chk-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    position: relative;
+}
+
+.chk-step-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 3px solid var(--medium-gray);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--medium-gray);
+    transition: all var(--tr-norm);
+    z-index: 1;
+}
+
+.chk-step-label {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--medium-gray);
+    transition: color var(--tr-norm);
+}
+
+/* conectores entre steps */
+.chk-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: calc(50% + 22px);
+    width: 3rem;
+    height: 3px;
+    background: var(--light-gray);
+    z-index: 0;
+}
+
+/* step completado */
+.chk-step-done .chk-step-circle {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--white);
+}
+.chk-step-done .chk-step-label { color: var(--success); }
+.chk-step-done::after { background: var(--success); }
+
+/* step activo */
+.chk-step-active .chk-step-circle {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: var(--white);
+    box-shadow: 0 0 0 4px rgba(74,95,127,.15);
+}
+.chk-step-active .chk-step-label { color: var(--primary-blue); }
+
+/* ===================================
+   MAIN LAYOUT
+   =================================== */
+.chk-main { padding: 2rem 0 3rem; }
+
+.chk-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    box-shadow: var(--shadow-sm);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    transition: box-shadow var(--tr-norm);
+}
+.chk-card:hover { box-shadow: var(--shadow-md); }
+
+.chk-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding-bottom: .75rem;
+    border-bottom: 2px solid var(--light-gray);
+}
+.chk-card-title i { color: var(--primary-blue); font-size: 1rem; }
+
+/* ===================================
+   PASAJEROS
+   =================================== */
+.chk-passenger-block {
+    background: var(--off-white);
+    border: 1px solid var(--light-gray);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.chk-passenger-header {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+    margin-bottom: 1rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+.chk-passenger-header i { font-size: 1.1rem; color: var(--primary-blue); }
+
+.chk-contact-block {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed var(--light-gray);
+}
+
+.chk-section-subtitle {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.chk-section-subtitle i { color: var(--accent-blue); font-size: .9rem; }
+
+/* inputs */
+.chk-label {
+    display: block;
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: .4rem;
+}
+
+.chk-req { color: var(--danger); margin-left: .15rem; }
+
+.chk-input {
+    width: 100%;
+    padding: .75rem .9rem;
+    border: 2px solid var(--light-gray);
+    border-radius: 8px;
+    font-size: .92rem;
+    font-family: var(--font-family);
+    color: var(--dark-gray);
+    background: var(--white);
+    transition: all var(--tr-fast);
+}
+
+.chk-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(74,95,127,.1);
+}
+
+.chk-input::placeholder { color: var(--medium-gray); }
+
+.chk-input:invalid:not(:placeholder-shown) { border-color: var(--danger); }
+.chk-input:valid:not(:placeholder-shown)   { border-color: var(--success); }
+
+.chk-hint {
+    display: block;
+    font-size: .78rem;
+    color: var(--medium-gray);
+    margin-top: .3rem;
+}
+
+/* ===================================
+   MÉTODOS DE PAGO
+   =================================== */
+.chk-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: .85rem;
+    margin-bottom: 1.5rem;
+}
+
+.chk-payment-option {
+    cursor: pointer;
+    display: block;
+}
+
+.chk-payment-option input[type="radio"] { display: none; }
+
+.chk-pm-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    padding: 1rem;
+    border: 2px solid var(--light-gray);
+    border-radius: 10px;
+    background: var(--white);
+    font-weight: 600;
+    color: var(--dark-gray);
+    transition: all var(--tr-fast);
+}
+
+.chk-pm-content i { font-size: 1.4rem; color: var(--medium-gray); transition: color var(--tr-fast); }
+
+.chk-payment-option:hover .chk-pm-content {
+    border-color: var(--primary-blue-light);
+    background: rgba(74,95,127,.03);
+}
+
+.chk-payment-active .chk-pm-content {
+    border-color: var(--primary-blue);
+    background: rgba(74,95,127,.08);
+    color: var(--primary-blue-dark);
+}
+.chk-payment-active .chk-pm-content i { color: var(--primary-blue); }
+
+/* ===================================
+   FORMULARIO TARJETA
+   =================================== */
+.chk-card-form { margin-top: 1rem; }
+
+.chk-input-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.chk-input-with-icon {
+    padding-left: 2.8rem;
+    padding-right: 3rem;
+}
+
+.chk-input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--medium-gray);
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.chk-card-brand {
+    position: absolute;
+    right: 1rem;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--medium-gray);
+}
+
+.chk-cvv-help {
+    position: absolute;
+    right: 1rem;
+    color: var(--accent-blue);
+    font-size: .95rem;
+    cursor: help;
+}
+
+/* ===================================
+   PAYPAL PLACEHOLDER
+   =================================== */
+.chk-paypal-form { margin-top: 1rem; }
+
+.chk-paypal-placeholder {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+    background: linear-gradient(135deg, rgba(0,48,135,.05), rgba(0,112,210,.08));
+    border: 2px solid rgba(0,112,210,.2);
+    border-radius: 12px;
+}
+
+.chk-paypal-placeholder i {
+    font-size: 3.5rem;
+    color: #0070ba;
+    margin-bottom: 1rem;
+}
+
+.chk-paypal-placeholder p {
+    color: var(--dark-gray);
+    font-size: .95rem;
+    margin-bottom: 1.5rem;
+}
+
+.chk-paypal-btn {
+    background: #0070ba;
+    color: var(--white);
+    border: none;
+    padding: .85rem 2rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    transition: background var(--tr-fast);
+}
+.chk-paypal-btn:hover { background: #005a94; }
+
+/* ===================================
+   TÉRMINOS Y CONDICIONES
+   =================================== */
+.chk-card-terms {
+    background: linear-gradient(135deg, rgba(74,95,127,.03), rgba(90,114,153,.05));
+}
+
+.chk-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    cursor: pointer;
+    margin-bottom: .9rem;
+    font-size: .9rem;
+    color: var(--dark-gray);
+}
+
+.chk-checkbox-label:last-child { margin-bottom: 0; }
+
+.chk-checkbox-label input[type="checkbox"] {
+    width: 20px; height: 20px;
+    border: 2px solid var(--medium-gray);
+    border-radius: 4px;
+    appearance: none; -webkit-appearance: none;
+    flex-shrink: 0;
+    margin-top: .15rem;
+    cursor: pointer;
+    transition: all var(--tr-fast);
+}
+
+.chk-checkbox-label input[type="checkbox"]:checked {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='M3 8l3.5 3.5L13 5'/%3E%3C/svg%3E");
+    background-size: 15px; background-repeat: no-repeat; background-position: center;
+}
+
+.chk-link { color: var(--primary-blue); text-decoration: none; font-weight: 600; }
+.chk-link:hover { text-decoration: underline; }
+
+/* ===================================
+   RESUMEN PEDIDO (sticky)
+   =================================== */
+.chk-summary-panel {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    box-shadow: var(--shadow-md);
+    padding: 1.75rem;
+    position: sticky;
+    top: 88px;
+    margin-bottom: 1.25rem;
+}
+
+.chk-summary-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 2px solid var(--light-gray);
+}
+
+/* vuelo resumen */
+.chk-summary-flight {
+    background: var(--off-white);
+    border: 1px solid var(--light-gray);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: .5rem;
+}
+
+.chk-sf-header {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .7rem;
+}
+
+.chk-sf-code {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    background: rgba(74,95,127,.1);
+    padding: .2rem .6rem;
+    border-radius: 6px;
+}
+
+.chk-sf-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    background: rgba(74,95,127,.15);
+    color: var(--primary-blue);
+    padding: .2rem .5rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+.chk-sf-badge .fa-circle { font-size: .45rem; }
+
+.chk-sf-route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .7rem;
+}
+
+.chk-sf-city {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chk-sf-time {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--almost-black);
+}
+
+.chk-sf-airport {
+    font-size: .8rem;
+    color: var(--medium-gray);
+    font-weight: 600;
+}
+
+.chk-sf-arrow { color: var(--primary-blue); font-size: 1.2rem; }
+
+.chk-sf-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+    font-size: .8rem;
+    color: var(--medium-gray);
+}
+
+.chk-sf-details span { display: flex; align-items: center; gap: .3rem; }
+.chk-sf-details i { font-size: .75rem; }
+
+.chk-summary-divider { height: 1px; background: var(--light-gray); margin: 1rem 0; }
+
+/* desglose */
+.chk-summary-breakdown { }
+
+.chk-sb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .4rem 0;
+    font-size: .9rem;
+    color: var(--dark-gray);
+}
+
+.chk-sb-extra { color: var(--medium-gray); font-size: .85rem; }
+.chk-sb-tax   { font-style: italic; color: var(--medium-gray); }
+
+/* total */
+.chk-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .75rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--almost-black);
+}
+
+.chk-summary-total-price {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+}
+
+/* botón confirmar */
+.chk-btn-confirm {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+    color: var(--white);
+    border: none;
+    border-radius: 28px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    box-shadow: var(--shadow-md);
+    transition: all var(--tr-norm);
+    margin-top: .75rem;
+}
+
+.chk-btn-confirm:hover {
+    background: linear-gradient(135deg, var(--primary-blue-dark), var(--primary-blue));
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.chk-summary-secure {
+    text-align: center;
+    font-size: .78rem;
+    color: var(--medium-gray);
+    margin-top: .9rem;
+    margin-bottom: 0;
+}
+.chk-summary-secure i { margin-right: .25rem; color: var(--success); }
+
+/* ===================================
+   HOTEL ALIADO
+   =================================== */
+.chk-hotel-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    position: relative;
+    transition: all var(--tr-norm);
+}
+
+.chk-hotel-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.chk-hotel-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--warning);
+    color: var(--almost-black);
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .35rem .75rem;
+    border-radius: 20px;
+    z-index: 1;
+    box-shadow: var(--shadow-sm);
+}
+
+.chk-hotel-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.chk-hotel-content { padding: 1.25rem; }
+
+.chk-hotel-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+    margin-bottom: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.chk-hotel-name i { color: var(--accent-blue); font-size: .95rem; }
+
+.chk-hotel-location {
+    font-size: .85rem;
+    color: var(--medium-gray);
+    margin-bottom: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+.chk-hotel-location i { color: var(--accent-blue); font-size: .8rem; }
+
+.chk-hotel-rating {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .75rem;
+    font-size: .88rem;
+}
+.chk-hotel-rating i { color: var(--star-gold); font-size: .82rem; }
+.chk-hotel-rating span { color: var(--medium-gray); font-size: .8rem; margin-left: .25rem; }
+
+.chk-hotel-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+    margin-bottom: 1rem;
+}
+
+.chk-hotel-features span {
+    font-size: .8rem;
+    color: var(--dark-gray);
+    background: var(--off-white);
+    padding: .25rem .6rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+.chk-hotel-features i { color: var(--accent-blue); font-size: .75rem; }
+
+.chk-hotel-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chk-hotel-label {
+    display: block;
+    font-size: .75rem;
+    color: var(--medium-gray);
+    font-weight: 600;
+}
+
+.chk-hotel-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-blue-dark);
+}
+
+.chk-hotel-night {
+    font-size: .85rem;
+    font-weight: 400;
+    color: var(--medium-gray);
+}
+
+.chk-hotel-discount {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--success);
+    background: rgba(40,167,69,.1);
+    padding: .25rem .6rem;
+    border-radius: 12px;
+}
+
+.chk-hotel-btn {
+    width: 100%;
+    padding: .7rem;
+    background: var(--white);
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    border-radius: 22px;
+    font-size: .92rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    transition: all var(--tr-fast);
+}
+
+.chk-hotel-btn:hover {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+@media (max-width: 992px) {
+    .chk-summary-panel { position: static; }
+}
+
+@media (max-width: 768px) {
+    .chk-steps { gap: 1.5rem; }
+    .chk-step:not(:last-child)::after { width: 1.5rem; }
+
+    .chk-card { padding: 1.25rem; }
+    .chk-passenger-block { padding: 1rem; }
+
+    .chk-payment-methods { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .chk-progress { padding: 1rem 0; }
+    .chk-steps { gap: 1rem; }
+    .chk-step-circle { width: 38px; height: 38px; font-size: .9rem; }
+    .chk-step-label { font-size: .8rem; }
+    .chk-step:not(:last-child)::after { width: 1rem; top: 19px; }
+}
