@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ZpiOPtmhOCBYEbE+JMj1z8u65HWmL4PRb/MBnB2D1jLY/FE7/invQoz/G86LSZIhG3JSS+ymFrMD/M9H0ElzLg==",
+  "dgSpecHash": "SlJzaAiI9eI5Ufj8Lruw1ER7rq6vXDWZIThPcXzGqJJZj5SDbQy6HunLumoOx1JN4S28qOX4anJsdpMuLS9QDQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\HotelesAPI.csproj",
+  "projectFilePath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\José Rueda\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",

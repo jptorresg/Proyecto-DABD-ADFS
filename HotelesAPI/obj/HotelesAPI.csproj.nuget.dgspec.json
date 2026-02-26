@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\HotelesAPI.csproj": {}
+    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\HotelesAPI.csproj": {
+    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\HotelesAPI.csproj",
+        "projectUniqueName": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
         "projectName": "HotelesAPI",
-        "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\HotelesAPI.csproj",
+        "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
         "packagesPath": "C:\\Users\\José Rueda\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto-DABD-ADFS-main\\Proyecto-DABD-ADFS-main\\HotelesAPI\\obj\\",
+        "outputPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\José Rueda\\AppData\\Roaming\\NuGet\\NuGet.Config",
