@@ -58,6 +58,29 @@ namespace HotelesAPI.DAO
             return Convert.ToInt32(result);
         }
 
+        public bool Update(Usuario usuario)
+        {
+            string sql = @"UPDATE Usuario SET
+                          nombre = @nombre,
+                          email = @email,
+                          telefono = @telefono,
+                          password_hash = @hash,
+                          activo = @activo
+                          WHERE id_usuario = @id";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@nombre", usuario.Nombre);
+            cmd.Parameters.AddWithValue("@email", usuario.Email);
+            cmd.Parameters.AddWithValue("@telefono", usuario.Telefono);
+            cmd.Parameters.AddWithValue("@hash", (object?)usuario.PasswordHash ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@activo", usuario.Activo);
+            cmd.Parameters.AddWithValue("@id", usuario.IdUsuario);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         private Usuario MapUsuario(SqlDataReader rs)
         {
             return new Usuario
