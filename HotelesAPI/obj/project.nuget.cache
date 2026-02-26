@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "SlJzaAiI9eI5Ufj8Lruw1ER7rq6vXDWZIThPcXzGqJJZj5SDbQy6HunLumoOx1JN4S28qOX4anJsdpMuLS9QDQ==",
+  "dgSpecHash": "l2Pa2jize5AFmakbtufojVfRVfBQYjqZwhUbJF1IyYuMENDi4LYfaJdIUpLAMYofamiesmt6nVopKE86sRm6bQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
   "expectedPackageFiles": [
@@ -26,6 +26,7 @@
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.identitymodel.tokens\\7.7.1\\microsoft.identitymodel.tokens.7.7.1.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
+    "C:\\Users\\José Rueda\\.nuget\\packages\\questpdf\\2026.2.2\\questpdf.2026.2.2.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\system.clientmodel\\1.8.0\\system.clientmodel.1.8.0.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\system.configuration.configurationmanager\\8.0.1\\system.configuration.configurationmanager.8.0.1.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.1\\system.diagnostics.diagnosticsource.8.0.1.nupkg.sha512",
