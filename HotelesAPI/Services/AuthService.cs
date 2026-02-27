@@ -15,22 +15,25 @@ namespace HotelesAPI.Services
         }
 
         public Usuario Login(string email, string password)
-        {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-                throw new ArgumentException("Email y contraseña son requeridos");
+{
+    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        throw new ArgumentException("Email y contraseña son requeridos");
 
-            var usuario = _usuarioDAO.FindByEmail(email)
-                ?? throw new ArgumentException("Usuario no encontrado");
+    var usuario = _usuarioDAO.FindByEmail(email)
+        ?? throw new ArgumentException("Usuario no encontrado");
 
-            if (!usuario.Activo)
-                throw new ArgumentException("Usuario inactivo");
+    if (!usuario.Activo)
+        throw new ArgumentException("Usuario inactivo");
 
-            if (!PasswordUtil.VerifyPassword(password, usuario.PasswordHash!))
-                throw new ArgumentException("Contraseña incorrecta");
+    if (string.IsNullOrEmpty(usuario.PasswordHash))
+        throw new ArgumentException("Error en credenciales del usuario");
 
-            usuario.PasswordHash = null;
-            return usuario;
-        }
+    if (!PasswordUtil.VerifyPassword(password, usuario.PasswordHash))
+        throw new ArgumentException("Contraseña incorrecta");
+
+    usuario.PasswordHash = null;
+    return usuario;
+}
 
         public Usuario Registrar(RegistroDto dto)
         {
