@@ -31,7 +31,7 @@ namespace HotelesAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, JsonResponse.Error(ex.Message));
+                return StatusCode(500, JsonResponse.Error($"{ex.Message} | {ex.StackTrace}"));
             }
         }
 
@@ -54,4 +54,4 @@ namespace HotelesAPI.Controllers
             }
         }
     }
-}
+}   

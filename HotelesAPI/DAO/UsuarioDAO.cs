@@ -13,7 +13,7 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@email", email);
+            cmd.Parameters.Add(new SqlParameter("@email", email));
             using var rs = cmd.ExecuteReader();
 
             if (rs.Read())
@@ -29,7 +29,7 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.Add(new SqlParameter("@id", id));
             using var rs = cmd.ExecuteReader();
 
             if (rs.Read())
@@ -48,11 +48,11 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@nombre", usuario.Nombre);
-            cmd.Parameters.AddWithValue("@email", usuario.Email);
-            cmd.Parameters.AddWithValue("@hash", usuario.PasswordHash!);
-            cmd.Parameters.AddWithValue("@telefono", usuario.Telefono);
-            cmd.Parameters.AddWithValue("@rol", usuario.Rol);
+            cmd.Parameters.Add(new SqlParameter("@nombre", usuario.Nombre));
+            cmd.Parameters.Add(new SqlParameter("@email", usuario.Email));
+            cmd.Parameters.Add(new SqlParameter("@hash", usuario.PasswordHash!));
+            cmd.Parameters.Add(new SqlParameter("@telefono", usuario.Telefono));
+            cmd.Parameters.Add(new SqlParameter("@rol", usuario.Rol));
 
             var result = cmd.ExecuteScalar();
             return Convert.ToInt32(result);
@@ -71,12 +71,12 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@nombre", usuario.Nombre);
-            cmd.Parameters.AddWithValue("@email", usuario.Email);
-            cmd.Parameters.AddWithValue("@telefono", usuario.Telefono);
-            cmd.Parameters.AddWithValue("@hash", (object?)usuario.PasswordHash ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@activo", usuario.Activo);
-            cmd.Parameters.AddWithValue("@id", usuario.IdUsuario);
+            cmd.Parameters.Add(new SqlParameter("@nombre", usuario.Nombre));
+            cmd.Parameters.Add(new SqlParameter("@email", usuario.Email));
+            cmd.Parameters.Add(new SqlParameter("@telefono", usuario.Telefono));
+            cmd.Parameters.Add(new SqlParameter("@hash", (object?)usuario.PasswordHash ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@activo", usuario.Activo));
+            cmd.Parameters.Add(new SqlParameter("@id", usuario.IdUsuario));
 
             return cmd.ExecuteNonQuery() > 0;
         }
