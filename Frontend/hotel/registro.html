@@ -11,23 +11,19 @@
     <style>
         :root { --primary-color: #003580; }
         body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; min-height: 100vh; }
-
         .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
         .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
         .brand span { color: #f5a623; }
-
         .side-panel {
             background-color: var(--primary-color);
             min-height: calc(100vh - 60px);
             display: flex; flex-direction: column; justify-content: center;
-            padding: 3rem 2.5rem;
-            color: white;
+            padding: 3rem 2.5rem; color: white;
         }
         .side-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; line-height: 1.2; }
         .side-title span { color: #f5a623; }
         .benefit-item { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; font-size: 0.95rem; opacity: 0.9; }
         .benefit-icon { background: rgba(255,255,255,0.15); border-radius: 50%; width: 36px; height: 36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-
         .form-panel { background: #fff; padding: 2.5rem; }
         .form-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--primary-color); }
         .form-label { font-size: 0.82rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -39,19 +35,15 @@
         .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
         .form-control.is-invalid { border-color: #dc2626; }
         .invalid-feedback { font-size: 0.78rem; }
-
         .input-icon { position: relative; }
         .input-icon .form-control { padding-left: 2.4rem; }
         .input-icon i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 0.95rem; }
-
         .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; padding: 0.75rem; font-weight: 600; font-size: 1rem; transition: opacity 0.2s; }
         .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
         .btn-primary:disabled { opacity: 0.5; }
-
         .password-strength { height: 4px; border-radius: 2px; transition: all 0.3s; }
         .divider { display: flex; align-items: center; gap: 1rem; color: #9ca3af; font-size: 0.85rem; }
         .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
-
         .step-indicator { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
         .step { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; }
         .step.active { background-color: var(--primary-color); color: #fff; }
@@ -59,7 +51,6 @@
         .step.pending { background: #e5e7eb; color: #9ca3af; }
         .step-line { flex: 1; height: 2px; background: #e5e7eb; }
         .step-line.done { background: #16a34a; }
-
         @media (max-width: 768px) { .side-panel { display: none; } .form-panel { padding: 1.5rem; } }
     </style>
 </head>
@@ -93,14 +84,17 @@
             </div>
             <div class="mt-4 pt-3 border-top border-white border-opacity-25">
                 <p class="mb-1" style="font-size:0.85rem; opacity:0.75;">¿Ya tienes cuenta?</p>
-                <a href="auth.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Iniciar Sesión</a>
+                <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Iniciar Sesión</a>
             </div>
         </div>
 
         <!-- Formulario -->
         <div class="col-lg-8 form-panel">
             <div class="max-w" style="max-width: 580px; margin: 0 auto;">
-                
+
+                <!-- Alerta de error global -->
+                <div x-show="errorGlobal" class="alert alert-danger mb-3" x-text="errorGlobal"></div>
+
                 <!-- Paso indicador -->
                 <div class="step-indicator">
                     <div class="step" :class="paso >= 1 ? 'active' : 'pending'">
@@ -113,11 +107,10 @@
                     <div class="step" :class="paso === 3 ? 'active' : 'pending'">3</div>
                 </div>
 
-                <!-- PASO 1: Datos personales -->
+                <!-- PASO 1 -->
                 <div x-show="paso === 1" x-transition>
                     <h2 class="form-title mb-1">Datos Personales</h2>
                     <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 1 de 3 — Información básica de tu cuenta</p>
-
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Nombres *</label>
@@ -152,11 +145,11 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Fecha de Nacimiento *</label>
+                            <label class="form-label">Fecha de Nacimiento</label>
                             <input type="date" class="form-control" x-model="form.fechaNacimiento">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nacionalidad *</label>
+                            <label class="form-label">Nacionalidad</label>
                             <select class="form-select" x-model="form.nacionalidad">
                                 <option value="">Seleccionar...</option>
                                 <option value="GT">Guatemala</option>
@@ -176,14 +169,13 @@
                     </div>
                 </div>
 
-                <!-- PASO 2: Documento e identificación -->
+                <!-- PASO 2 -->
                 <div x-show="paso === 2" x-transition>
                     <h2 class="form-title mb-1">Identificación</h2>
                     <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 2 de 3 — Documento y datos de facturación</p>
-
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Tipo de Documento *</label>
+                            <label class="form-label">Tipo de Documento</label>
                             <select class="form-select" x-model="form.tipoDocumento">
                                 <option value="">Seleccionar...</option>
                                 <option value="DPI">DPI (Guatemala)</option>
@@ -193,15 +185,14 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Número de Documento *</label>
+                            <label class="form-label">Número de Documento</label>
                             <div class="input-icon">
                                 <i class="bi bi-card-text"></i>
-                                <input type="text" class="form-control" :class="errores.numDocumento ? 'is-invalid' : ''" x-model="form.numDocumento" placeholder="Ej: 1234 56789 0101">
-                                <div class="invalid-feedback" x-text="errores.numDocumento"></div>
+                                <input type="text" class="form-control" x-model="form.numDocumento" placeholder="Ej: 1234 56789 0101">
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">NIT (Opcional — para facturación empresarial)</label>
+                            <label class="form-label">NIT (Opcional)</label>
                             <div class="input-icon">
                                 <i class="bi bi-receipt"></i>
                                 <input type="text" class="form-control" x-model="form.nit" placeholder="Ej: 1234567-8 o CF">
@@ -223,11 +214,10 @@
                     </div>
                 </div>
 
-                <!-- PASO 3: Seguridad -->
+                <!-- PASO 3 -->
                 <div x-show="paso === 3" x-transition>
                     <h2 class="form-title mb-1">Seguridad de la Cuenta</h2>
                     <p class="text-muted mb-4" style="font-size:0.9rem;">Paso 3 de 3 — Crea una contraseña segura</p>
-
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label">Contraseña *</label>
@@ -236,7 +226,6 @@
                                 <input :type="verPassword ? 'text' : 'password'" class="form-control pe-5" :class="errores.password ? 'is-invalid' : ''" x-model="form.password" placeholder="Mínimo 8 caracteres" @input="calcularFortaleza()">
                                 <div class="invalid-feedback" x-text="errores.password"></div>
                             </div>
-                            <!-- Fortaleza -->
                             <div class="mt-2" x-show="form.password.length > 0">
                                 <div class="d-flex gap-1 mb-1">
                                     <div class="password-strength flex-fill" :style="'background:' + (fortaleza >= 1 ? colorFortaleza : '#e5e7eb')"></div>
@@ -283,7 +272,7 @@
                 </div>
 
                 <div class="divider my-4">o</div>
-                <p class="text-center text-muted small">¿Ya tienes una cuenta? <a href="auth.html" class="text-primary fw-bold">Inicia sesión aquí</a></p>
+                <p class="text-center text-muted small">¿Ya tienes una cuenta? <a href="login.html" class="text-primary fw-bold">Inicia sesión aquí</a></p>
             </div>
         </div>
     </div>
@@ -297,6 +286,7 @@
             fortaleza: 0,
             colorFortaleza: '#e5e7eb',
             labelFortaleza: '',
+            errorGlobal: '',
             form: {
                 nombres: '', apellidos: '', email: '', telefono: '',
                 fechaNacimiento: '', nacionalidad: '',
@@ -327,25 +317,42 @@
                     if (!this.form.email || !this.form.email.includes('@')) this.errores.email = 'Correo inválido';
                     if (!this.form.telefono) this.errores.telefono = 'El teléfono es requerido';
                 }
-                if (paso === 2) {
-                    if (!this.form.numDocumento) this.errores.numDocumento = 'El número de documento es requerido';
-                }
                 if (Object.keys(this.errores).length === 0) this.paso++;
             },
 
-            registrar() {
+            async registrar() {
                 this.errores = {};
+                this.errorGlobal = '';
                 if (!this.form.password || this.form.password.length < 8) this.errores.password = 'Mínimo 8 caracteres';
                 if (this.form.password !== this.form.confirmarPassword) this.errores.confirmar = 'Las contraseñas no coinciden';
                 if (!this.form.terminos) this.errores.terminos = 'Debes aceptar los términos';
                 if (Object.keys(this.errores).length > 0) return;
 
                 this.cargando = true;
-                // TODO: fetch('/api/auth/registro', { method: 'POST', body: JSON.stringify(this.form) })
-                setTimeout(() => {
+                try {
+                    const response = await fetch('http://localhost:5043/api/auth/registro', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            nombre: this.form.nombres + ' ' + this.form.apellidos,
+                            email: this.form.email,
+                            password: this.form.password,
+                            telefono: this.form.telefono,
+                            rol: 'cliente'
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('usuario', JSON.stringify(data.data));
+                        window.location.href = 'index.html';
+                    } else {
+                        this.errorGlobal = data.message;
+                    }
+                } catch (e) {
+                    this.errorGlobal = 'Error al conectar con el servidor';
+                } finally {
                     this.cargando = false;
-                    window.location.href = 'auth.html';
-                }, 1500);
+                }
             }
         }
     }
