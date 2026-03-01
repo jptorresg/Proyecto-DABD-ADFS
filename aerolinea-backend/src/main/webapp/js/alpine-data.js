@@ -2,6 +2,14 @@
 // ALPINE.JS DATA COMPONENTS
 // ===================================
 
+
+// Detectar automáticamente el contexto de la app
+const BASE_PATH = window.location.pathname.split('/')[1]
+    ? `/${window.location.pathname.split('/')[1]}`
+    : '';
+
+const API_BASE = `${BASE_PATH}/api`;
+
 // ==================
 // 1. HEADER DATA
 // ==================
@@ -41,7 +49,7 @@ function headerData() {
         
         performSearch() {
             if (this.searchQuery.trim()) {
-                window.location.href = `/frontend/aerolinea/views/resultados.html?q=${encodeURIComponent(this.searchQuery)}`;
+                window.location.href = `${BASE_PATH}/views/resultados.html?q=${encodeURIComponent(this.searchQuery)}`;
             }
         },
         
@@ -50,16 +58,16 @@ function headerData() {
         },
         
         navigateToPerfil() {
-            window.location.href = '/frontend/aerolinea/views/perfil/index.html';
+            window.location.href = `${BASE_PATH}/views/perfil/index.html`;
         },
         
         navigateToReservaciones() {
-            window.location.href = '/frontend/aerolinea/views/perfil/reservaciones.html';
+            window.location.href = `${BASE_PATH}/views/perfil/reservaciones.html`;
         },
         
         navigateToAdmin() {
             if (this.userRole === 'ADMIN') {
-                window.location.href = '/frontend/aerolinea/views/admin/dashboard.html';
+                window.location.href = `${BASE_PATH}/views/admin/dashboard.html`;
             }
         },
         
@@ -70,7 +78,7 @@ function headerData() {
                 this.userName = 'Usuario';
                 this.userRole = '';
                 this.showProfileMenu = false;
-                window.location.href = '/frontend/aerolinea/views/index.html';
+                window.location.href = `${BASE_PATH}/views/index.html`;
             }
         }
     };
@@ -110,7 +118,7 @@ function dashboardData() {
             const session = getUserSession();
             if (!session || session.tipoUsuario !== 'ADMIN') {
                 alert('Acceso denegado. Solo administradores.');
-                window.location.href = '/frontend/aerolinea/views/index.html';
+                window.location.href = `${BASE_PATH}/views/index.html`;
                 return;
             }
             
@@ -121,7 +129,7 @@ function dashboardData() {
             this.isLoading = true;
             try {
                 // Fetch stats
-                const statsResponse = await fetch('http://localhost:8080/api/admin/estadisticas', {
+                const statsResponse = await fetch('${API_BASE}/admin/estadisticas', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -132,7 +140,7 @@ function dashboardData() {
                 }
                 
                 // Fetch recent reservations
-                const reservationsResponse = await fetch('http://localhost:8080/api/admin/reservaciones/recientes?limit=5', {
+                const reservationsResponse = await fetch('${API_BASE}/admin/reservaciones/recientes?limit=5', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -150,7 +158,7 @@ function dashboardData() {
         },
         
         navigateTo(page) {
-            window.location.href = `/frontend/aerolinea/views/admin/${page}.html`;
+            window.location.href = `${BASE_PATH}/views/admin/${page}.html`;
         }
     };
 }
@@ -193,7 +201,7 @@ function vuelosAdminData() {
             const session = getUserSession();
             if (!session || session.tipoUsuario !== 'ADMIN') {
                 alert('Acceso denegado');
-                window.location.href = '/frontend/aerolinea/views/index.html';
+                window.location.href = `${BASE_PATH}/views/index.html`;
                 return;
             }
             
@@ -203,7 +211,7 @@ function vuelosAdminData() {
         async fetchVuelos() {
             this.isLoading = true;
             try {
-                const response = await fetch('http://localhost:8080/api/vuelos', {
+                const response = await fetch(`${API_BASE}/vuelos`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -282,8 +290,8 @@ function vuelosAdminData() {
         async saveVuelo() {
             try {
                 const url = this.modalMode === 'create' 
-                    ? 'http://localhost:8080/api/vuelos'
-                    : `http://localhost:8080/api/vuelos/${this.currentVuelo.id}`;
+                    ? '${API_BASE}/vuelos'
+                    : `${API_BASE}/vuelos/${this.currentVuelo.id}`;
                 
                 const method = this.modalMode === 'create' ? 'POST' : 'PUT';
                 
@@ -316,7 +324,7 @@ function vuelosAdminData() {
             if (!confirm('¿Estás seguro de eliminar este vuelo?')) return;
             
             try {
-                const response = await fetch(`http://localhost:8080/api/vuelos/${vueloId}`, {
+                const response = await fetch(`${API_BASE}/vuelos/${vueloId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
@@ -370,7 +378,7 @@ function usuariosAdminData() {
             const session = getUserSession();
             if (!session || session.tipoUsuario !== 'ADMIN') {
                 alert('Acceso denegado');
-                window.location.href = '/frontend/aerolinea/views/index.html';
+                window.location.href = `${BASE_PATH}/views/index.html`;
                 return;
             }
             
@@ -380,7 +388,7 @@ function usuariosAdminData() {
         async fetchUsuarios() {
             this.isLoading = true;
             try {
-                const response = await fetch('http://localhost:8080/api/admin/usuarios', {
+                const response = await fetch('${API_BASE}/admin/usuarios', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -438,7 +446,7 @@ function usuariosAdminData() {
         
         async toggleActivo(usuario) {
             try {
-                const response = await fetch(`http://localhost:8080/api/admin/usuarios/${usuario.id}/toggle-activo`, {
+                const response = await fetch(`${API_BASE}/admin/usuarios/${usuario.id}/toggle-activo`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
@@ -459,7 +467,7 @@ function usuariosAdminData() {
             if (!confirm(`¿Cambiar rol del usuario a ${nuevoRol}?`)) return;
             
             try {
-                const response = await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/rol`, {
+                const response = await fetch(`${API_BASE}/admin/usuarios/${userId}/rol`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -501,7 +509,7 @@ function agenciasAdminData() {
             const session = getUserSession();
             if (!session || session.tipoUsuario !== 'ADMIN') {
                 alert('Acceso denegado');
-                window.location.href = '/frontend/aerolinea/views/index.html';
+                window.location.href = `${BASE_PATH}/views/index.html`;
                 return;
             }
             
@@ -512,7 +520,7 @@ function agenciasAdminData() {
         async fetchAgencias() {
             this.isLoading = true;
             try {
-                const response = await fetch('http://localhost:8080/api/admin/agencias', {
+                const response = await fetch('${API_BASE}/admin/agencias', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -531,7 +539,7 @@ function agenciasAdminData() {
         
         async fetchUsuariosWebService() {
             try {
-                const response = await fetch('http://localhost:8080/api/admin/usuarios?tipo=WEBSERVICE', {
+                const response = await fetch('${API_BASE}/admin/usuarios?tipo=WEBSERVICE', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -561,7 +569,7 @@ function agenciasAdminData() {
         
         async createAgencia() {
             try {
-                const response = await fetch('http://localhost:8080/api/admin/agencias', {
+                const response = await fetch('${API_BASE}/admin/agencias', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -587,7 +595,7 @@ function agenciasAdminData() {
             if (!confirm('¿Regenerar API Key? La anterior dejará de funcionar.')) return;
             
             try {
-                const response = await fetch(`http://localhost:8080/api/admin/agencias/${agenciaId}/regenerate-key`, {
+                const response = await fetch(`${API_BASE}/admin/agencias/${agenciaId}/regenerate-key`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
@@ -637,7 +645,7 @@ function perfilData() {
         async init() {
             const session = getUserSession();
             if (!session) {
-                window.location.href = '/frontend/aerolinea/views/login.html';
+                window.location.href = '${BASE_PATH}/views/login.html';
                 return;
             }
             
@@ -647,7 +655,7 @@ function perfilData() {
         async fetchProfile() {
             this.isLoading = true;
             try {
-                const response = await fetch('http://localhost:8080/api/perfil', {
+                const response = await fetch('${API_BASE}/perfil', {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -670,7 +678,7 @@ function perfilData() {
         
         async updateProfile() {
             try {
-                const response = await fetch('http://localhost:8080/api/perfil', {
+                const response = await fetch('${API_BASE}/perfil', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -723,7 +731,7 @@ function perfilData() {
             }
             
             try {
-                const response = await fetch('http://localhost:8080/api/perfil/cambiar-password', {
+                const response = await fetch('${API_BASE}/perfil/cambiar-password', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -762,7 +770,7 @@ function reservacionesData() {
         async init() {
             const session = getUserSession();
             if (!session) {
-                window.location.href = '/frontend/aerolinea/views/login.html';
+                window.location.href = '${BASE_PATH}/views/login.html';
                 return;
             }
             
@@ -772,7 +780,7 @@ function reservacionesData() {
         async fetchReservaciones() {
             this.isLoading = true;
             try {
-                const response = await fetch('http://localhost:8080/api/reservaciones/mis-reservaciones', {
+                const response = await fetch('${API_BASE}/reservaciones/mis-reservaciones', { //***revisar
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -807,7 +815,7 @@ function reservacionesData() {
         
         async descargarPDF(codigoReservacion) {
             try {
-                const response = await fetch(`http://localhost:8080/api/reservaciones/${codigoReservacion}/pdf`, {
+                const response = await fetch(`${API_BASE}/reservaciones/${codigoReservacion}/pdf`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -832,7 +840,7 @@ function reservacionesData() {
             if (!confirm('¿Estás seguro de cancelar esta reservación?')) return;
             
             try {
-                const response = await fetch(`http://localhost:8080/api/reservaciones/${reservacionId}/cancelar`, {
+                const response = await fetch(`${API_BASE}/reservaciones/${reservacionId}/cancelar`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`

@@ -2,6 +2,13 @@
 // LOGIN - ALPINE.JS DATA COMPONENT
 // ============================================================
 
+// Detectar automáticamente el contexto de la app
+const BASE_PATH = window.location.pathname.split('/')[1]
+    ? `/${window.location.pathname.split('/')[1]}`
+    : '';
+
+const API_BASE = `${BASE_PATH}/api`;
+
 function loginData() {
     return {
         // Datos del formulario
@@ -49,7 +56,7 @@ function loginData() {
             this.isLoading = true;
 
             try {
-                const response = await fetch('http://localhost:8080/api/auth/login', {
+                const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -78,9 +85,9 @@ function loginData() {
                     // Redirigir según rol
                     setTimeout(() => {
                         if (data.data.tipoUsuario === 'ADMIN') {
-                            window.location.href = '/frontend/aerolinea/views/admin/dashboard.html';
+                            window.location.href = `${BASE_PATH}/views/admin/dashboard.html`;
                         } else {
-                            window.location.href = '/frontend/aerolinea/views/index.html';
+                            window.location.href = `${BASE_PATH}/views/index.html`;
                         }
                     }, 1000);
                 } else {

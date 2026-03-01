@@ -147,7 +147,7 @@ function registroData() {
                 if (response.ok && data.success) {
                     showNotification('¡Registro exitoso! Redirigiendo al login...', 'success');
                     setTimeout(() => {
-                        window.location.href = '/frontend/aerolinea/views/login.html';
+                        window.location.href = '/login.html';
                     }, 2000);
                 } else {
                     throw new Error(data.message || 'Error al registrar usuario');

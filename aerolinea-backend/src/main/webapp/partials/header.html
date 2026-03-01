@@ -3,7 +3,7 @@
     <div class="header-container">
         <!-- Logo y Nombre -->
         <div class="logo-section">
-            <a href="/frontend/aerolinea/views/index.html" class="d-flex align-items-center text-decoration-none">
+            <a href="./index.html" class="d-flex align-items-center text-decoration-none">
                 <div class="logo-circle">
                     <i class="fas fa-plane-departure"></i>
                 </div>
@@ -30,10 +30,10 @@
 
         <!-- Sección de Usuario - Visitante Anónimo -->
         <div class="user-section" x-show="!isLoggedIn">
-            <a href="/frontend/aerolinea/views/login.html" class="btn btn-outline">
+            <a href="./login.html" class="btn btn-outline">
                 Iniciar Sesión
             </a>
-            <a href="/frontend/aerolinea/views/registro.html" class="btn btn-primary">
+            <a href="./registro.html" class="btn btn-primary">
                 Registrarse
             </a>
         </div>
@@ -54,8 +54,8 @@
                  @click.away="showProfileMenu = false"
                  class="profile-dropdown"
                  style="display: none;">
-                <a href="#" class="dropdown-item">Mi Perfil</a>
-                <a href="/frontend/aerolinea/views/perfil/reservaciones.html" class="dropdown-item">Mis Reservaciones</a>
+                <a href="./perfil/index.html" class="dropdown-item">Mi Perfil</a>
+                <a href="./perfil/reservaciones.html" class="dropdown-item">Mis Reservaciones</a>
                 <a href="#" class="dropdown-item">Configuración</a>
             </div>
             

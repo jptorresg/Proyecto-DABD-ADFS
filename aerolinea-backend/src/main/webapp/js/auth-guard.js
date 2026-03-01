@@ -2,13 +2,17 @@
 // AUTH GUARD - PROTECCIÓN DE RUTAS
 // ============================================================
 
+const BASE_PATH = window.location.pathname.split('/')[1]
+    ? `/${window.location.pathname.split('/')[1]}`
+    : '';
+
 /**
  * Verificar si el usuario tiene sesión activa
  */
 function requireAuth() {
     const session = getUserSession();
     if (!session) {
-        window.location.href = '/frontend/aerolinea/views/login.html';
+        window.location.href = `${BASE_PATH}/views/login.html`;
         return false;
     }
     return true;
@@ -20,12 +24,12 @@ function requireAuth() {
 function requireAdmin() {
     const session = getUserSession();
     if (!session) {
-        window.location.href = '/frontend/aerolinea/views/login.html';
+        window.location.href = `${BASE_PATH}/views/login.html`;
         return false;
     }
     if (session.tipoUsuario !== 'ADMIN') {
         alert('Acceso denegado. Solo administradores.');
-        window.location.href = '/frontend/aerolinea/views/index.html';
+        window.location.href = `${BASE_PATH}/views/index.html`;
         return false;
     }
     return true;
@@ -39,11 +43,10 @@ function redirectIfAuthenticated() {
     if (session) {
         // Si es admin, al dashboard
         if (session.tipoUsuario === 'ADMIN') {
-            window.location.href = '/frontend/aerolinea/views/admin/dashboard.html';
+            window.location.href = `${BASE_PATH}/views/admin/dashboard.html`;
         } else {
-            // Si es usuario normal, al home
-            window.location.href = '/frontend/aerolinea/views/index.html';
-        }
+            window.location.href = `${BASE_PATH}/views/index.html`;
+        }   
         return true;
     }
     return false;
@@ -56,7 +59,7 @@ function guardAction(action, errorMessage = 'Debes iniciar sesión para realizar
     const session = getUserSession();
     if (!session) {
         if (confirm(errorMessage + '\n\n¿Deseas iniciar sesión ahora?')) {
-            window.location.href = '/frontend/aerolinea/views/login.html';
+            window.location.href = `${BASE_PATH}/views/login.html`;
         }
         return false;
     }

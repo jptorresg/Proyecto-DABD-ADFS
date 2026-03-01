@@ -153,7 +153,7 @@ function detalleData() {
             const session = getUserSession();
             if (!session) {
                 showNotification('Debes iniciar sesión para comentar', 'error');
-                window.location.href = '/frontend/aerolinea/views/login.html';
+                window.location.href = '//login.html';
                 return;
             }
 
@@ -206,7 +206,7 @@ function detalleData() {
 
         // Proceder a checkout
         procederCompra() {
-            window.location.href = `/frontend/aerolinea/views/checkout.html?vueloId=${this.vueloId}&total=${this.precioTotal}`;
+            window.location.href = `//checkout.html?vueloId=${this.vueloId}&total=${this.precioTotal}`;
         }
     };
 }

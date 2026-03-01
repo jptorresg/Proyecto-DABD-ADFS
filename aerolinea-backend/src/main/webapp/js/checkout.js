@@ -324,7 +324,7 @@ function checkoutData() {
 
                 // Redirigir a confirmación
                 setTimeout(() => {
-                    window.location.href = `/frontend/aerolinea/views/confirmacion.html?codigo=${codigoReservacion}`;
+                    window.location.href = `/confirmacion.html?codigo=${codigoReservacion}`;
                 }, 1500);
 
             } catch (error) {
