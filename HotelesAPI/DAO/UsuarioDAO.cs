@@ -38,6 +38,21 @@ namespace HotelesAPI.DAO
             return null;
         }
 
+        public List<Usuario> GetTodos()
+        {
+            var lista = new List<Usuario>();
+            string sql = "SELECT * FROM Usuario ORDER BY fecha_registro DESC";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            using var rs = cmd.ExecuteReader();
+            while (rs.Read())
+                lista.Add(MapUsuario(rs));
+
+            return lista;
+        }
+
         public int Create(Usuario usuario)
         {
             string sql = @"INSERT INTO Usuario 

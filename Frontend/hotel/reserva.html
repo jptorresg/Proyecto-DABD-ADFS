@@ -5,67 +5,312 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finalizar Reserva - Bedly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
+        .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; font-family: 'DM Sans', sans-serif; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .form-label { font-size: 0.82rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .btn-reservar { background-color: var(--primary-color); border: none; border-radius: 10px; padding: 0.85rem; font-weight: 700; font-size: 1.05rem; transition: opacity 0.2s; }
+        .btn-reservar:hover { opacity: 0.88; background-color: var(--primary-color); }
+        .btn-reservar:disabled { opacity: 0.5; }
+        .resumen-card { background: linear-gradient(135deg, var(--primary-color), #0055b3); color: white; border-radius: 15px; position: sticky; top: 80px; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary-color); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
+        .success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .success-card { background: white; border-radius: 20px; padding: 2.5rem; text-align: center; max-width: 450px; width: 90%; }
+        .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    </style>
 </head>
-<body class="bg-light" x-data="procesoReserva()">
+<body x-data="reservaApp()" x-init="init()">
 
-    <nav class="navbar navbar-light bg-white shadow-sm mb-5">
-        <div class="container">
-            <span class="navbar-brand fw-bold text-primary">UNIS Hotels | Check-out</span>
-            <a href="index.html" class="btn btn-link text-decoration-none">Cancelar</a>
+    <nav class="navbar-bedly mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="bi bi-x-lg me-1"></i>Cancelar
+            </a>
         </div>
     </nav>
 
-    <main class="container">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0 p-4">
-                    <h3 class="mb-4">Datos del Huésped</h3>
+    <!-- Success overlay -->
+    <div class="success-overlay" x-show="exito" x-transition>
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="bi bi-check-lg text-success" style="font-size: 2.5rem;"></i>
+            </div>
+            <h3 class="fw-bold mb-2" style="color: var(--primary-color);">¡Reserva Confirmada!</h3>
+            <p class="text-muted mb-1">Tu reserva #<strong x-text="idReservaCreada"></strong> ha sido registrada exitosamente.</p>
+            <p class="text-muted small mb-4">Recibirás los detalles en tu correo electrónico.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4">Ver Catálogo</a>
+                <a :href="'historial.html'" class="btn btn-primary rounded-pill px-4" style="background: var(--primary-color); border: none;">
+                    Mis Reservas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div x-show="loading" class="container text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Cargando...</p>
+    </div>
+
+    <main class="container pb-5" x-show="!loading">
+        <div class="row g-4">
+
+            <!-- Formulario -->
+            <div class="col-lg-8">
+                <div class="card p-4 mb-4">
+                    <h5 class="section-title">Datos del Huésped</h5>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" x-model="datosCliente.nombre" placeholder="Ej: Juan Pérez">
+                            <input type="text" class="form-control" x-model="form.nombre" readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" x-model="datosCliente.email" placeholder="juan@correo.com">
+                            <input type="email" class="form-control" x-model="form.email" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">NIT / Identificación</label>
-                            <input type="text" class="form-control" x-model="datosCliente.nit">
+                            <label class="form-label">Check-in</label>
+                            <input type="date" class="form-control" x-model="form.checkIn" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Noches de Estancia</label>
-                            <input type="number" class="form-control" x-model="reserva.noches" min="1">
+                            <label class="form-label">Check-out</label>
+                            <input type="date" class="form-control" x-model="form.checkOut" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Número de Huéspedes</label>
+                            <input type="number" class="form-control" x-model="form.huespedes" min="1" max="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Noches</label>
+                            <input type="text" class="form-control" :value="noches + ' noche(s)'" readonly>
                         </div>
                     </div>
-                    <button class="btn btn-primary mt-4 btn-lg w-100" @click="confirmar()">Confirmar y Reservar</button>
                 </div>
+
+                <div class="card p-4 mb-4">
+                    <h5 class="section-title">Método de Pago</h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <select class="form-select" x-model="form.metodoPago">
+                                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                                <option value="efectivo">Efectivo en hotel</option>
+                                <option value="transferencia">Transferencia Bancaria</option>
+                            </select>
+                        </div>
+                        <div class="col-12" x-show="form.metodoPago === 'tarjeta'">
+                            <label class="form-label">Número de Tarjeta</label>
+                            <input type="text" class="form-control" x-model="form.numTarjeta" 
+                                   placeholder="**** **** **** ****" maxlength="19"
+                                   @input="formatarTarjeta()">
+                        </div>
+                        <div class="row g-2" x-show="form.metodoPago === 'tarjeta'">
+                            <div class="col-6">
+                                <label class="form-label">Vencimiento</label>
+                                <input type="text" class="form-control" x-model="form.vencimiento" placeholder="MM/AA" maxlength="5">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">CVV</label>
+                                <input type="password" class="form-control" x-model="form.cvv" placeholder="***" maxlength="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4 mb-4">
+                    <h5 class="section-title">Notas Especiales</h5>
+                    <textarea class="form-control" x-model="form.notas" rows="3" 
+                              placeholder="Ej: Llegada tarde, cama extra, alergias..."></textarea>
+                </div>
+
+                <!-- Error -->
+                <div x-show="error" class="alert alert-danger" x-text="error"></div>
+
+                <button class="btn btn-reservar btn-primary w-100 text-white" 
+                        @click="confirmarReserva()" :disabled="cargando">
+                    <span x-show="!cargando">
+                        <i class="bi bi-calendar-check me-2"></i>Confirmar Reserva · Q<span x-text="totalFinal"></span>
+                    </span>
+                    <span x-show="cargando">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+                    </span>
+                </button>
             </div>
 
-            <div class="col-md-4">
-                <div class="card bg-primary text-white shadow-sm border-0 p-4">
-                    <h4 class="mb-3">Resumen</h4>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span x-text="reserva.habitacion"></span>
-                        <span x-text="'$' + reserva.precioNoche"></span>
+            <!-- Resumen -->
+            <div class="col-lg-4">
+                <div class="resumen-card p-4">
+                    <h5 class="fw-bold mb-3">Resumen de Reserva</h5>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Habitación</span>
+                        <span x-text="habitacion ? habitacion.tipoHabitacion + ' ' + habitacion.numHabitacion : ''"></span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Hotel</span>
+                        <span x-text="habitacion ? habitacion.nombreHotel : ''"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Check-in</span>
+                        <span x-text="form.checkIn"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Check-out</span>
+                        <span x-text="form.checkOut"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
                         <span>Noches</span>
-                        <span x-text="reserva.noches"></span>
+                        <span x-text="noches"></span>
                     </div>
-                    <hr>
-                    <div class="d-flex justify-content-between h4 fw-bold">
+                    <hr class="border-white border-opacity-25">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Subtotal</span>
+                        <span x-text="'Q ' + subtotal"></span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-2">
+                        <span>IVA (12%)</span>
+                        <span x-text="'Q ' + iva"></span>
+                    </div>
+                    <hr class="border-white border-opacity-25">
+                    <div class="d-flex justify-content-between fw-bold fs-5">
                         <span>Total</span>
-                        <span x-text="'$' + total"></span>
+                        <span x-text="'Q ' + totalFinal"></span>
                     </div>
-                    <p class="small mt-3 text-white-50">* Impuestos incluidos. Sujeto a disponibilidad.</p>
+                    <p class="small mt-3 opacity-75 mb-0">
+                        <i class="bi bi-shield-check me-1"></i>Pago seguro · Sin cargos ocultos
+                    </p>
                 </div>
             </div>
         </div>
     </main>
 
-    <script src="assets/js/proceso_reserva.js"></script>
+    <script>
+    const API = 'http://localhost:5043/api';
+
+    function reservaApp() {
+        return {
+            habitacion: null,
+            loading: true,
+            cargando: false,
+            error: '',
+            exito: false,
+            idReservaCreada: null,
+            form: {
+                nombre: '',
+                email: '',
+                checkIn: '',
+                checkOut: '',
+                huespedes: 1,
+                metodoPago: 'tarjeta',
+                numTarjeta: '',
+                vencimiento: '',
+                cvv: '',
+                notas: ''
+            },
+
+            async init() {
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!usuario) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams(window.location.search);
+                this.form.nombre = usuario.nombre;
+                this.form.email = usuario.email;
+                this.form.checkIn = params.get('checkIn') || '';
+                this.form.checkOut = params.get('checkOut') || '';
+                this.form.huespedes = parseInt(params.get('huespedes')) || 1;
+
+                const idHabitacion = params.get('idHabitacion');
+                if (idHabitacion) {
+                    await this.cargarHabitacion(idHabitacion);
+                }
+                this.loading = false;
+            },
+
+            async cargarHabitacion(id) {
+                try {
+                    const res = await fetch(`${API}/habitaciones/${id}`);
+                    const data = await res.json();
+                    if (data.success) this.habitacion = data.data;
+                } catch (e) {}
+            },
+
+            get noches() {
+                if (!this.form.checkIn || !this.form.checkOut) return 0;
+                const diff = new Date(this.form.checkOut) - new Date(this.form.checkIn);
+                return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+            },
+            get subtotal() {
+                if (!this.habitacion) return '0.00';
+                return (this.habitacion.precioNoche * this.noches).toFixed(2);
+            },
+            get iva() {
+                return (parseFloat(this.subtotal) * 0.12).toFixed(2);
+            },
+            get totalFinal() {
+                return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(2);
+            },
+
+            formatarTarjeta() {
+                let val = this.form.numTarjeta.replace(/\D/g, '').substring(0, 16);
+                this.form.numTarjeta = val.replace(/(.{4})/g, '$1 ').trim();
+            },
+
+            async confirmarReserva() {
+                this.error = '';
+                if (!this.form.checkIn || !this.form.checkOut) {
+                    this.error = 'Por favor completa las fechas.';
+                    return;
+                }
+                if (this.noches <= 0) {
+                    this.error = 'Las fechas seleccionadas no son válidas.';
+                    return;
+                }
+
+                const usuario = JSON.parse(localStorage.getItem('usuario'));
+                this.cargando = true;
+
+                try {
+                    const res = await fetch(`${API}/reservaciones`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            idUsuario: usuario.idUsuario,
+                            idHabitacion: this.habitacion.idHabitacion,
+                            fechaCheckIn: this.form.checkIn,
+                            fechaCheckOut: this.form.checkOut,
+                            numHuespedes: parseInt(this.form.huespedes),
+                            metodoPago: this.form.metodoPago,
+                            notasEspeciales: this.form.notas,
+                            precioTotal: parseFloat(this.totalFinal)
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.idReservaCreada = data.data.idReservacion;
+                        this.exito = true;
+                    } else {
+                        this.error = data.message;
+                    }
+                } catch (e) {
+                    this.error = 'Error al conectar con el servidor.';
+                } finally {
+                    this.cargando = false;
+                }
+            }
+        }
+    }
+    </script>
 </body>
 </html>

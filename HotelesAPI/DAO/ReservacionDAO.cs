@@ -125,14 +125,28 @@ namespace HotelesAPI.DAO
             return cmd.ExecuteNonQuery() > 0;
         }
 
+        public bool CambiarEstado(int id, string estado)
+        {
+            string sql = "UPDATE Reservaciones SET estado = @estado WHERE id_reservacion = @id";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@estado", estado);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         public List<Reservacion> GetAll()
         {
             var lista = new List<Reservacion>();
             string sql = @"SELECT r.*, h.tipo_habitacion, h.num_habitacion,
-                          ho.nombre_hotel
+                          ho.nombre_hotel, u.nombre as nombre_usuario
                           FROM Reservaciones r
                           INNER JOIN Habitaciones h ON r.id_habitacion = h.id_habitacion
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
+                          INNER JOIN Usuario u ON r.id_usuario = u.id_usuario
                           ORDER BY r.fecha_reservacion DESC";
 
             using var conn = DatabaseConfig.GetConnection();
@@ -140,7 +154,7 @@ namespace HotelesAPI.DAO
             using var cmd = new SqlCommand(sql, conn);
             using var rs = cmd.ExecuteReader();
             while (rs.Read())
-                lista.Add(MapReservacion(rs));
+                lista.Add(MapReservacionAdmin(rs));
 
             return lista;
         }
@@ -164,6 +178,13 @@ namespace HotelesAPI.DAO
                 NumHuespedes = rs.IsDBNull(rs.GetOrdinal("num_huespedes")) ? 1 : rs.GetInt32(rs.GetOrdinal("num_huespedes")),
                 NotasEspeciales = rs.IsDBNull(rs.GetOrdinal("notas_especiales")) ? null : rs.GetString(rs.GetOrdinal("notas_especiales"))
             };
+        }
+
+        private Reservacion MapReservacionAdmin(SqlDataReader rs)
+        {
+            var r = MapReservacion(rs);
+            r.NombreUsuario = rs.IsDBNull(rs.GetOrdinal("nombre_usuario")) ? "" : rs.GetString(rs.GetOrdinal("nombre_usuario"));
+            return r;
         }
     }
 }

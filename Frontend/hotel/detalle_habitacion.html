@@ -14,77 +14,79 @@
         .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
         .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
         .brand span { color: #f5a623; }
-
         .gallery-main { width: 100%; height: 380px; object-fit: cover; border-radius: 15px; cursor: pointer; }
         .gallery-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; border: 2px solid transparent; }
         .gallery-thumb.active { border-color: var(--primary-color); opacity: 1; }
         .gallery-thumb:hover { opacity: 0.85; }
-
         .room-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--primary-color); }
         .hotel-name { font-size: 0.95rem; color: #6b7280; }
         .stars { color: #f5a623; }
-
-        .card { border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,53,128,0.10); transition: transform 0.3s; }
+        .card { border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
         .booking-card { position: sticky; top: 80px; }
-
         .amenity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
         .amenity-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; }
         .amenity-item i { color: var(--primary-color); font-size: 1rem; }
-
         .price-big { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--primary-color); }
         .price-big span { font-size: 1rem; font-family: 'DM Sans', sans-serif; color: #9ca3af; font-weight: 400; }
-
         .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; font-family: 'DM Sans', sans-serif; }
         .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
         .form-label { font-size: 0.78rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
         .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; padding: 0.75rem; font-weight: 600; font-size: 1rem; transition: opacity 0.2s; }
         .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
-
         .score-big { background-color: var(--primary-color); color: #fff; border-radius: 12px 12px 12px 0; padding: 0.5rem 0.9rem; font-size: 1.3rem; font-weight: 700; display: inline-block; }
-
         .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary-color); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
-
         .politica-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 0.75rem; font-size: 0.9rem; }
         .politica-icon { font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
-
         .currency-toggle { display: inline-flex; background: #e5e7eb; border-radius: 20px; padding: 3px; }
         .currency-btn { border: none; background: transparent; border-radius: 16px; padding: 0.25rem 0.8rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #6b7280; }
         .currency-btn.active { background-color: var(--primary-color); color: #fff; }
     </style>
 </head>
-<body x-data="detalleApp()">
+<body x-data="detalleApp()" x-init="init()">
     <nav class="navbar-bedly mb-4">
         <div class="container d-flex justify-content-between align-items-center">
             <a class="brand" href="index.html">Bed<span>ly</span></a>
-            <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill"><i class="bi bi-arrow-left me-1"></i>Volver al catálogo</a>
+            <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Volver al catálogo
+            </a>
         </div>
     </nav>
 
-    <main class="container pb-5">
+    <!-- Loading -->
+    <div x-show="loading" class="container text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Cargando habitación...</p>
+    </div>
+
+    <!-- Error -->
+    <div x-show="error" class="container">
+        <div class="alert alert-danger" x-text="error"></div>
+    </div>
+
+    <main class="container pb-5" x-show="!loading && !error && habitacion">
         <div class="row g-4">
             <!-- Contenido principal -->
             <div class="col-lg-8">
-                <!-- Galería -->
-                <img :src="fotoActiva" alt="Habitación" class="gallery-main mb-2">
-                <div class="row g-2 mb-4">
-                    <template x-for="(foto, i) in habitacion.fotos" :key="i">
-                        <div class="col-3">
-                            <img :src="foto" class="gallery-thumb" :class="fotoActiva === foto ? 'active' : ''" @click="fotoActiva = foto">
-                        </div>
-                    </template>
-                </div>
+                <!-- Imagen principal -->
+                <img :src="habitacion.imagenUrl || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop'"
+                     alt="Habitación" class="gallery-main mb-4">
 
                 <!-- Nombre y score -->
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <h1 class="room-title mb-1" x-text="habitacion.nombre"></h1>
-                        <p class="hotel-name mb-1"><i class="bi bi-building me-1"></i><span x-text="habitacion.hotel"></span> · <span x-text="habitacion.ubicacion"></span></p>
-                        <div class="stars" x-html="'★'.repeat(habitacion.estrellas)"></div>
+                        <h1 class="room-title mb-1" x-text="habitacion.tipoHabitacion + ' ' + habitacion.numHabitacion"></h1>
+                        <p class="hotel-name mb-1">
+                            <i class="bi bi-building me-1"></i>
+                            <span x-text="habitacion.nombreHotel"></span> · 
+                            <span x-text="habitacion.ubicacion"></span>
+                        </p>
+                        <div class="stars" x-html="'★'.repeat(habitacion.estrellas || 0)"></div>
                     </div>
                     <div class="text-end">
-                        <div class="score-big" x-text="habitacion.score"></div>
-                        <div style="font-size:0.78rem; color:#6b7280; margin-top:4px;" x-text="habitacion.scoreLabel"></div>
-                        <div style="font-size:0.75rem; color:#9ca3af;" x-text="habitacion.numResenas + ' reseñas'"></div>
+                        <div class="score-big" x-text="promedioRating > 0 ? promedioRating : 'N/A'"></div>
+                        <div style="font-size:0.75rem; color:#9ca3af; margin-top:4px;" x-text="totalComentarios + ' reseñas'"></div>
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                           class="text-primary small" style="font-size:0.75rem;">Ver todas</a>
                     </div>
                 </div>
 
@@ -92,21 +94,23 @@
                 <div class="card mb-4">
                     <div class="card-body p-4">
                         <h5 class="section-title">Descripción</h5>
-                        <p style="font-size:0.95rem; color:#374151; line-height:1.7;" x-text="habitacion.descripcion"></p>
+                        <p style="font-size:0.95rem; color:#374151; line-height:1.7;" x-text="habitacion.descripcion || 'Habitación disponible en ' + habitacion.nombreHotel"></p>
                         <div class="row mt-3 g-2">
                             <div class="col-auto">
                                 <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
-                                    <i class="bi bi-people me-1" style="color:var(--primary-color)"></i>Capacidad: <span x-text="habitacion.capacidad"></span> personas
+                                    <i class="bi bi-people me-1" style="color:var(--primary-color)"></i>
+                                    Capacidad: <span x-text="habitacion.capacidadMax"></span> personas
                                 </span>
                             </div>
                             <div class="col-auto">
                                 <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
-                                    <i class="bi bi-rulers me-1" style="color:var(--primary-color)"></i><span x-text="habitacion.metros"></span> m²
+                                    <i class="bi bi-door-open me-1" style="color:var(--primary-color)"></i>
+                                    Habitación <span x-text="habitacion.numHabitacion"></span>
                                 </span>
                             </div>
                             <div class="col-auto">
-                                <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
-                                    <i class="bi bi-door-open me-1" style="color:var(--primary-color)"></i>Piso <span x-text="habitacion.piso"></span>
+                                <span class="badge" :class="habitacion.estado === 'Disponible' ? 'bg-success' : 'bg-danger'" style="font-size:0.82rem;">
+                                    <span x-text="habitacion.estado"></span>
                                 </span>
                             </div>
                         </div>
@@ -118,13 +122,35 @@
                     <div class="card-body p-4">
                         <h5 class="section-title">Servicios Incluidos</h5>
                         <div class="amenity-grid">
-                            <template x-for="a in habitacion.amenidades" :key="a.label">
+                            <template x-for="amenidad in amenidades" :key="amenidad">
                                 <div class="amenity-item">
-                                    <i :class="'bi ' + a.icon"></i>
-                                    <span x-text="a.label"></span>
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span x-text="amenidad"></span>
                                 </div>
                             </template>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Reseñas -->
+                <div class="card mb-4" x-show="comentarios.length > 0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="section-title mb-0" style="border:none;">Reseñas de Huéspedes</h5>
+                            <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                               class="btn btn-outline-primary btn-sm rounded-pill">
+                                <i class="bi bi-star me-1"></i>Ver todas
+                            </a>
+                        </div>
+                        <template x-for="c in comentarios.slice(0, 3)" :key="c.idComentario">
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong x-text="c.nombreUsuario"></strong>
+                                    <span class="text-warning" x-text="'★'.repeat(c.rating)"></span>
+                                </div>
+                                <p class="text-muted small mb-0" x-text="c.texto"></p>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -158,7 +184,8 @@
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <div class="price-big">
-                                <span x-text="moneda === 'GTQ' ? 'Q' : '$'"></span><span x-text="moneda === 'GTQ' ? habitacion.precio : (habitacion.precio / 7.8).toFixed(0)"></span>
+                                <span x-text="moneda === 'GTQ' ? 'Q' : '$'"></span>
+                                <span x-text="moneda === 'GTQ' ? habitacion.precioNoche : (habitacion.precioNoche / 7.8).toFixed(0)"></span>
                                 <span>/ noche</span>
                             </div>
                             <div class="currency-toggle">
@@ -170,26 +197,25 @@
 
                         <div class="mb-3">
                             <label class="form-label">Check-in</label>
-                            <input type="date" class="form-control" x-model="checkIn">
+                            <input type="date" class="form-control" x-model="checkIn" :min="hoy">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Check-out</label>
-                            <input type="date" class="form-control" x-model="checkOut">
+                            <input type="date" class="form-control" x-model="checkOut" :min="checkIn || hoy">
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Huéspedes</label>
                             <select class="form-select" x-model="huespedes">
-                                <option value="1">1 huésped</option>
-                                <option value="2">2 huéspedes</option>
-                                <option value="3">3 huéspedes</option>
-                                <option value="4">4 huéspedes</option>
+                                <template x-for="n in (habitacion.capacidadMax || 2)" :key="n">
+                                    <option :value="n" x-text="n + ' huésped' + (n > 1 ? 'es' : '')"></option>
+                                </template>
                             </select>
                         </div>
 
                         <!-- Resumen precio -->
                         <div class="bg-light rounded-3 p-3 mb-3" x-show="noches > 0">
                             <div class="d-flex justify-content-between small mb-1">
-                                <span x-text="(moneda === 'GTQ' ? 'Q' : '$') + (moneda === 'GTQ' ? habitacion.precio : (habitacion.precio/7.8).toFixed(0)) + ' × ' + noches + ' noche(s)'"></span>
+                                <span x-text="(moneda === 'GTQ' ? 'Q' : '$') + (moneda === 'GTQ' ? habitacion.precioNoche : (habitacion.precioNoche/7.8).toFixed(0)) + ' × ' + noches + ' noche(s)'"></span>
                                 <span x-text="(moneda === 'GTQ' ? 'Q ' : '$ ') + subtotal"></span>
                             </div>
                             <div class="d-flex justify-content-between small text-muted mb-2">
@@ -203,9 +229,17 @@
                             </div>
                         </div>
 
-                        <a href="reserva.html" class="btn btn-primary w-100">
-                            <i class="bi bi-calendar-check me-2"></i>Reservar Ahora
+                        <button class="btn btn-primary w-100 mb-2" @click="reservar()" 
+                                :disabled="habitacion.estado !== 'Disponible'">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            <span x-text="habitacion.estado === 'Disponible' ? 'Reservar Ahora' : 'No Disponible'"></span>
+                        </button>
+
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                           class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-star me-2"></i>Ver todas las reseñas
                         </a>
+
                         <p class="text-center text-muted small mt-2 mb-0">
                             <i class="bi bi-shield-check me-1 text-success"></i>Sin cargos hasta confirmar
                         </p>
@@ -216,44 +250,65 @@
     </main>
 
     <script>
+    const API = 'http://localhost:5043/api';
+
     function detalleApp() {
         return {
+            habitacion: null,
+            comentarios: [],
+            promedioRating: 0,
+            totalComentarios: 0,
+            loading: true,
+            error: '',
             moneda: 'GTQ',
             checkIn: '',
             checkOut: '',
             huespedes: 2,
-            fotoActiva: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop',
-            habitacion: {
-                nombre: 'Suite Ejecutiva',
-                hotel: 'Hotel Grand UNIS',
-                ubicacion: 'Zona 10, Guatemala City',
-                estrellas: 5,
-                score: '9.2',
-                scoreLabel: 'Excepcional',
-                numResenas: 147,
-                precio: 1200,
-                capacidad: 2,
-                metros: 55,
-                piso: 8,
-                descripcion: 'Nuestra Suite Ejecutiva ofrece una experiencia de lujo incomparable con vistas panorámicas a la ciudad. Diseñada para el viajero de negocios exigente, combina elegancia contemporánea con todas las comodidades modernas. Disfruta de una cama king size, sala de estar independiente y baño de mármol con jacuzzi.',
-                fotos: [
-                    'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1560347876-aeef00ee58a1?w=800&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&h=400&fit=crop',
-                ],
-                amenidades: [
-                    { label: 'WiFi de alta velocidad', icon: 'bi-wifi' },
-                    { label: 'Aire acondicionado', icon: 'bi-snow' },
-                    { label: 'Desayuno incluido', icon: 'bi-cup-hot-fill' },
-                    { label: 'Piscina', icon: 'bi-water' },
-                    { label: 'Gimnasio', icon: 'bi-activity' },
-                    { label: 'Spa', icon: 'bi-heart-pulse' },
-                    { label: 'Estacionamiento', icon: 'bi-p-circle' },
-                    { label: 'Room service 24h', icon: 'bi-clock' },
-                    { label: 'Caja fuerte', icon: 'bi-safe' },
-                    { label: 'Smart TV 65"', icon: 'bi-tv' },
-                ]
+            hoy: new Date().toISOString().split('T')[0],
+
+            async init() {
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+                if (!id) {
+                    this.error = 'No se especificó una habitación.';
+                    this.loading = false;
+                    return;
+                }
+                await this.cargarHabitacion(id);
+                await this.cargarComentarios(id);
+            },
+
+            async cargarHabitacion(id) {
+                try {
+                    const res = await fetch(`${API}/habitaciones/${id}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.habitacion = data.data;
+                    } else {
+                        this.error = 'Habitación no encontrada.';
+                    }
+                } catch (e) {
+                    this.error = 'Error al conectar con el servidor.';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async cargarComentarios(id) {
+                try {
+                    const res = await fetch(`${API}/comentarios/habitacion/${id}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.comentarios = data.data.comentarios || [];
+                        this.promedioRating = data.data.promedioRating || 0;
+                        this.totalComentarios = data.data.total || 0;
+                    }
+                } catch (e) {}
+            },
+
+            get amenidades() {
+                if (!this.habitacion || !this.habitacion.amenidades) return [];
+                return this.habitacion.amenidades.split(',').map(a => a.trim()).filter(a => a);
             },
 
             get noches() {
@@ -262,14 +317,38 @@
                 return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
             },
             get subtotal() {
-                const precio = this.moneda === 'GTQ' ? this.habitacion.precio : (this.habitacion.precio / 7.8);
-                return (precio * this.noches).toFixed(0);
+                const precio = this.moneda === 'GTQ' ? this.habitacion.precioNoche : (this.habitacion.precioNoche / 7.8);
+                return (precio * this.noches).toFixed(2);
             },
             get iva() {
-                return (this.subtotal * 0.12).toFixed(0);
+                return (this.subtotal * 0.12).toFixed(2);
             },
             get total() {
-                return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(0);
+                return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(2);
+            },
+
+            reservar() {
+                if (!this.checkIn || !this.checkOut) {
+                    alert('Por favor selecciona fechas de check-in y check-out.');
+                    return;
+                }
+                if (this.noches <= 0) {
+                    alert('La fecha de check-out debe ser posterior al check-in.');
+                    return;
+                }
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!usuario) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const params = new URLSearchParams({
+                    idHabitacion: this.habitacion.idHabitacion,
+                    checkIn: this.checkIn,
+                    checkOut: this.checkOut,
+                    huespedes: this.huespedes,
+                    total: this.total
+                });
+                window.location.href = 'reserva.html?' + params.toString();
             }
         }
     }
