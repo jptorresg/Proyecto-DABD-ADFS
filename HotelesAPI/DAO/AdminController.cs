@@ -78,5 +78,21 @@ namespace HotelesAPI.Controllers
                 return StatusCode(500, JsonResponse.Error(ex.Message));
             }
         }
+
+        // PUT api/admin/usuarios/{id}/toggle
+        [HttpPut("usuarios/{id}/toggle")]
+        public IActionResult ToggleUsuario(int id, [FromBody] ToggleUsuarioDto dto)
+        {
+            try
+            {
+                var dao = new UsuarioDAO();
+                dao.ToggleActivo(id, dto.Activo);
+                return Ok(JsonResponse.Ok("Usuario actualizado", null));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
     }
 }

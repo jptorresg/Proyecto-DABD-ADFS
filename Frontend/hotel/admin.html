@@ -11,8 +11,6 @@
     <style>
         :root { --primary-color: #003580; }
         body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
-
-        /* Sidebar */
         .sidebar { width: 250px; min-height: 100vh; background: var(--primary-color); position: fixed; top: 0; left: 0; z-index: 100; transition: all 0.3s; }
         .sidebar-brand { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: #fff; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-brand span { color: #f5a623; }
@@ -22,27 +20,20 @@
         .nav-item-link.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #f5a623; }
         .nav-item-link i { font-size: 1.1rem; width: 20px; }
         .nav-section { padding: 0.5rem 1.5rem; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1rem; }
-
-        /* Main content */
         .main-content { margin-left: 250px; min-height: 100vh; }
         .topbar { background: #fff; padding: 1rem 1.5rem; box-shadow: 0 2px 12px rgba(0,53,128,0.08); display: flex; justify-content: space-between; align-items: center; }
         .page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 0; }
-
-        /* Cards */
         .stat-card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.10); padding: 1.5rem; background: #fff; }
         .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
         .stat-value { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); line-height: 1; }
         .stat-label { font-size: 0.82rem; color: #9ca3af; font-weight: 500; }
-
         .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.08); }
         .table th { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
-
         .badge-confirmada { background: #dcfce7; color: #16a34a; }
         .badge-pendiente { background: #fef9c3; color: #b45309; }
         .badge-cancelada { background: #fee2e2; color: #dc2626; }
         .badge-completada { background: #e0e7ff; color: #4338ca; }
         .badge-estado { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-
         @media (max-width: 768px) {
             .sidebar { width: 100%; min-height: auto; position: relative; }
             .main-content { margin-left: 0; }
@@ -82,7 +73,12 @@
     <!-- Contenido principal -->
     <div class="main-content">
         <div class="topbar">
-            <h1 class="page-title" x-text="seccion === 'dashboard' ? 'Dashboard' : seccion === 'reservas' ? 'Reservaciones' : 'Usuarios'"></h1>
+            <div class="d-flex align-items-center gap-3">
+                <h1 class="page-title" x-text="seccion === 'dashboard' ? 'Dashboard' : seccion === 'reservas' ? 'Reservaciones' : 'Usuarios'"></h1>
+                <button class="btn btn-outline-primary btn-sm rounded-pill" @click="recargarTodo()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
+            </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-muted small" x-text="fechaHoy"></span>
                 <div class="d-flex align-items-center gap-2">
@@ -93,6 +89,11 @@
         </div>
 
         <div class="p-4">
+
+            <!-- Alerta éxito -->
+            <div x-show="exito" class="alert alert-success alert-dismissible mb-3" x-text="exito">
+                <button type="button" class="btn-close" @click="exito = ''"></button>
+            </div>
 
             <!-- Loading -->
             <div x-show="loading" class="text-center py-5">
@@ -122,7 +123,7 @@
                                 <i class="bi bi-cash-stack" style="color:#16a34a;"></i>
                             </div>
                             <div>
-                                <div class="stat-value" x-text="'Q' + stats.ingresoTotal"></div>
+                                <div class="stat-value" x-text="'Q' + parseFloat(stats.ingresoTotal || 0).toFixed(2)"></div>
                                 <div class="stat-label">Ingresos Totales</div>
                             </div>
                         </div>
@@ -169,7 +170,6 @@
                                         <th>Habitación</th>
                                         <th>Hotel</th>
                                         <th>Check-in</th>
-                                        <th>Check-out</th>
                                         <th>Total</th>
                                         <th>Estado</th>
                                     </tr>
@@ -179,10 +179,9 @@
                                         <tr>
                                             <td class="text-muted small">#<span x-text="r.idReservacion"></span></td>
                                             <td class="fw-bold small" x-text="r.nombreUsuario"></td>
-                                            <td class="small" x-text="r.tipoHabitacion + ' ' + r.numHabitacion"></td>
+                                            <td class="small" x-text="r.nombreHabitacion"></td>
                                             <td class="small text-muted" x-text="r.nombreHotel"></td>
                                             <td class="small" x-text="formatFecha(r.fechaCheckIn)"></td>
-                                            <td class="small" x-text="formatFecha(r.fechaCheckOut)"></td>
                                             <td class="fw-bold text-success small" x-text="'Q ' + parseFloat(r.precioTotal).toFixed(2)"></td>
                                             <td>
                                                 <span class="badge-estado" :class="'badge-' + r.estado.toLowerCase()" x-text="r.estado"></span>
@@ -195,7 +194,7 @@
                     </div>
                 </div>
 
-                <!-- Habitaciones por estado -->
+                <!-- Gráficas de estado -->
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card h-100">
@@ -204,13 +203,13 @@
                                 <template x-for="item in estadoHabitaciones" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" 
+                                            <div class="rounded-circle" style="width:10px; height:10px;"
                                                  :style="'background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" 
+                                                <div style="height:100%; border-radius:3px;"
                                                      :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
@@ -274,7 +273,7 @@
                                         <tr>
                                             <td class="text-muted small">#<span x-text="r.idReservacion"></span></td>
                                             <td class="fw-bold small" x-text="r.nombreUsuario"></td>
-                                            <td class="small" x-text="r.tipoHabitacion + ' ' + r.numHabitacion"></td>
+                                            <td class="small" x-text="r.nombreHabitacion"></td>
                                             <td class="small" x-text="formatFecha(r.fechaCheckIn)"></td>
                                             <td class="small" x-text="formatFecha(r.fechaCheckOut)"></td>
                                             <td class="small" x-text="r.numHuespedes"></td>
@@ -320,6 +319,7 @@
                                         <th>Rol</th>
                                         <th>Registro</th>
                                         <th>Estado</th>
+                                        <th class="text-center">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -339,6 +339,14 @@
                                                 <span class="badge rounded-pill"
                                                       :class="u.activo ? 'bg-success' : 'bg-secondary'"
                                                       x-text="u.activo ? 'Activo' : 'Inactivo'"></span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm rounded-pill px-3"
+                                                        :class="u.activo ? 'btn-outline-danger' : 'btn-outline-success'"
+                                                        :disabled="u.rol === 'admin'"
+                                                        @click="toggleUsuario(u)"
+                                                        x-text="u.activo ? 'Desactivar' : 'Activar'">
+                                                </button>
                                             </td>
                                         </tr>
                                     </template>
@@ -360,21 +368,37 @@
         return {
             seccion: 'dashboard',
             loading: true,
-            stats: { totalReservas: 0, ingresoTotal: '0.00', habitacionesDisponibles: 0, totalUsuarios: 0 },
+            exito: '',
+            stats: {
+                totalReservas: 0, ingresoTotal: 0,
+                habitacionesDisponibles: 0, habitacionesOcupadas: 0,
+                habitacionesMantenimiento: 0, habitacionesInactivas: 0,
+                totalHabitaciones: 0, totalUsuarios: 0
+            },
             ultimasReservas: [],
             todasReservas: [],
             usuarios: [],
-            habitaciones: [],
             fechaHoy: new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
 
             async init() {
                 await Promise.all([
                     this.cargarStats(),
                     this.cargarReservas(),
-                    this.cargarUsuarios(),
-                    this.cargarHabitaciones()
+                    this.cargarUsuarios()
                 ]);
                 this.loading = false;
+            },
+
+            async recargarTodo() {
+                this.loading = true;
+                await Promise.all([
+                    this.cargarStats(),
+                    this.cargarReservas(),
+                    this.cargarUsuarios()
+                ]);
+                this.loading = false;
+                this.exito = 'Datos actualizados correctamente.';
+                setTimeout(() => this.exito = '', 3000);
             },
 
             async cargarStats() {
@@ -404,14 +428,6 @@
                 } catch (e) {}
             },
 
-            async cargarHabitaciones() {
-                try {
-                    const res = await fetch(`${API}/habitaciones`);
-                    const data = await res.json();
-                    if (data.success) this.habitaciones = data.data;
-                } catch (e) {}
-            },
-
             async cambiarEstado(id, estado) {
                 try {
                     const res = await fetch(`${API}/admin/reservaciones/${id}/estado`, {
@@ -420,7 +436,30 @@
                         body: JSON.stringify({ estado })
                     });
                     const data = await res.json();
-                    if (data.success) await this.cargarReservas();
+                    if (data.success) {
+                        await this.cargarReservas();
+                        this.exito = 'Estado de reserva actualizado correctamente.';
+                        setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            async toggleUsuario(u) {
+                if (u.rol === 'admin') return;
+                const accion = u.activo ? 'desactivar' : 'activar';
+                if (!confirm(`¿Estás seguro de ${accion} al usuario ${u.nombre}?`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/toggle`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ activo: !u.activo })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        u.activo = !u.activo;
+                        this.exito = `Usuario ${u.nombre} ${u.activo ? 'activado' : 'desactivado'} correctamente.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    }
                 } catch (e) {}
             },
 
@@ -430,15 +469,13 @@
             },
 
             get estadoHabitaciones() {
-                const estados = ['Disponible', 'Ocupada', 'Mantenimiento', 'Inactiva'];
-                const colores = { Disponible: '#16a34a', Ocupada: '#dc2626', Mantenimiento: '#f59e0b', Inactiva: '#9ca3af' };
-                const total = this.habitaciones.length || 1;
-                return estados.map(e => ({
-                    estado: e,
-                    count: this.habitaciones.filter(h => h.estado === e).length,
-                    color: colores[e],
-                    porcentaje: Math.round(this.habitaciones.filter(h => h.estado === e).length / total * 100)
-                }));
+                const total = this.stats.totalHabitaciones || 1;
+                return [
+                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#16a34a', porcentaje: Math.round(this.stats.habitacionesDisponibles / total * 100) },
+                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#dc2626', porcentaje: Math.round(this.stats.habitacionesOcupadas / total * 100) },
+                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b', porcentaje: Math.round(this.stats.habitacionesMantenimiento / total * 100) },
+                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#9ca3af', porcentaje: Math.round(this.stats.habitacionesInactivas / total * 100) }
+                ];
             },
 
             get estadoReservas() {

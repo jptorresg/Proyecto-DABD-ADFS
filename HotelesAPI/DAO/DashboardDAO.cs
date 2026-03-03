@@ -18,9 +18,10 @@ namespace HotelesAPI.DAO
                 SELECT 
                     COUNT(*) as total,
                     SUM(CASE WHEN estado = 'Disponible' THEN 1 ELSE 0 END) as disponibles,
-                    SUM(CASE WHEN estado = 'Ocupada' THEN 1 ELSE 0 END) as ocupadas
-                FROM Habitaciones
-                WHERE estado != 'Inactiva'", conn))
+                    SUM(CASE WHEN estado = 'Ocupada' THEN 1 ELSE 0 END) as ocupadas,
+                    SUM(CASE WHEN estado = 'Mantenimiento' THEN 1 ELSE 0 END) as mantenimiento,
+                    SUM(CASE WHEN estado = 'Inactiva' THEN 1 ELSE 0 END) as inactivas
+                FROM Habitaciones", conn))
             {
                 using var rs = cmd.ExecuteReader();
                 if (rs.Read())
@@ -28,6 +29,8 @@ namespace HotelesAPI.DAO
                     dashboard.TotalHabitaciones = rs.GetInt32(rs.GetOrdinal("total"));
                     dashboard.HabitacionesDisponibles = rs.GetInt32(rs.GetOrdinal("disponibles"));
                     dashboard.HabitacionesOcupadas = rs.GetInt32(rs.GetOrdinal("ocupadas"));
+                    dashboard.HabitacionesMantenimiento = rs.GetInt32(rs.GetOrdinal("mantenimiento"));
+                    dashboard.HabitacionesInactivas = rs.GetInt32(rs.GetOrdinal("inactivas"));
                 }
             }
 
@@ -35,6 +38,25 @@ namespace HotelesAPI.DAO
             if (dashboard.TotalHabitaciones > 0)
                 dashboard.PorcentajeOcupacion = Math.Round(
                     (double)dashboard.HabitacionesOcupadas / dashboard.TotalHabitaciones * 100, 1);
+
+            // Total usuarios
+            using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Usuario", conn))
+            {
+                dashboard.TotalUsuarios = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+
+            // Total reservas e ingresos totales
+            using (var cmd = new SqlCommand(@"
+                SELECT COUNT(*) as total, ISNULL(SUM(precio_total), 0) as ingresos
+                FROM Reservaciones WHERE estado != 'Cancelada'", conn))
+            {
+                using var rs = cmd.ExecuteReader();
+                if (rs.Read())
+                {
+                    dashboard.TotalReservas = rs.GetInt32(rs.GetOrdinal("total"));
+                    dashboard.IngresoTotal = rs.GetDecimal(rs.GetOrdinal("ingresos"));
+                }
+            }
 
             // Reservaciones hoy
             using (var cmd = new SqlCommand(@"
@@ -45,7 +67,7 @@ namespace HotelesAPI.DAO
                 dashboard.ReservacionesHoy = Convert.ToInt32(cmd.ExecuteScalar());
             }
 
-            // Reservaciones y ingresos del mes
+            // Reservaciones e ingresos del mes
             using (var cmd = new SqlCommand(@"
                 SELECT COUNT(*) as reservaciones, ISNULL(SUM(precio_total), 0) as ingresos
                 FROM Reservaciones

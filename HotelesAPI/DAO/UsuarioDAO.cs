@@ -96,6 +96,19 @@ namespace HotelesAPI.DAO
             return cmd.ExecuteNonQuery() > 0;
         }
 
+        public bool ToggleActivo(int id, bool activo)
+        {
+            string sql = "UPDATE Usuario SET activo = @activo WHERE id_usuario = @id";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.Add(new SqlParameter("@activo", activo));
+            cmd.Parameters.Add(new SqlParameter("@id", id));
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         private Usuario MapUsuario(SqlDataReader rs)
         {
             return new Usuario

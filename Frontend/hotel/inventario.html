@@ -279,7 +279,7 @@
             async cargarHabitaciones() {
                 this.loading = true;
                 try {
-                    const res = await fetch(`${API}/habitaciones`);
+                    const res = await fetch(`${API}/inventario`);
                     const data = await res.json();
                     if (data.success) this.habitaciones = data.data;
                 } catch (e) {

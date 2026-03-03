@@ -5,6 +5,11 @@ namespace HotelesAPI.DTOs
         public int TotalHabitaciones { get; set; }
         public int HabitacionesDisponibles { get; set; }
         public int HabitacionesOcupadas { get; set; }
+        public int HabitacionesMantenimiento { get; set; }
+        public int HabitacionesInactivas { get; set; }
+        public int TotalUsuarios { get; set; }
+        public int TotalReservas { get; set; }
+        public decimal IngresoTotal { get; set; }
         public int ReservacionesHoy { get; set; }
         public int ReservacionesMes { get; set; }
         public decimal IngresosMes { get; set; }
