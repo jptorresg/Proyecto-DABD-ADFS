@@ -26,6 +26,8 @@
         .success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .success-card { background: white; border-radius: 20px; padding: 2.5rem; text-align: center; max-width: 450px; width: 90%; }
         .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+        .cupon-valido { background: #dcfce7; border: 1.5px solid #16a34a; border-radius: 10px; padding: 0.75rem 1rem; }
+        .cupon-invalido { background: #fee2e2; border: 1.5px solid #dc2626; border-radius: 10px; padding: 0.75rem 1rem; }
     </style>
 </head>
 <body x-data="reservaApp()" x-init="init()">
@@ -50,7 +52,7 @@
             <p class="text-muted small mb-4">Recibirás los detalles en tu correo electrónico.</p>
             <div class="d-flex gap-2 justify-content-center">
                 <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4">Ver Catálogo</a>
-                <a :href="'historial.html'" class="btn btn-primary rounded-pill px-4" style="background: var(--primary-color); border: none;">
+                <a href="historial.html" class="btn btn-primary rounded-pill px-4" style="background: var(--primary-color); border: none;">
                     Mis Reservas
                 </a>
             </div>
@@ -98,6 +100,42 @@
                     </div>
                 </div>
 
+                <!-- CUPÓN -->
+                <div class="card p-4 mb-4">
+                    <h5 class="section-title">Código de Descuento</h5>
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" class="form-control text-uppercase"
+                               x-model="codigoCupon"
+                               placeholder="Ej: BEDLY10"
+                               @keydown.enter="aplicarCupon()"
+                               :disabled="cuponAplicado">
+                        <button class="btn btn-outline-primary rounded-pill px-4"
+                                @click="aplicarCupon()"
+                                :disabled="cuponAplicado || validandoCupon"
+                                x-text="validandoCupon ? 'Validando...' : cuponAplicado ? 'Aplicado ✓' : 'Aplicar'">
+                        </button>
+                        <button class="btn btn-outline-danger rounded-pill px-3"
+                                x-show="cuponAplicado"
+                                @click="quitarCupon()">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div x-show="cuponAplicado" class="cupon-valido">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-tag-fill text-success me-2"></i>
+                                <span class="fw-bold small text-success" x-text="infoCupon.codigo"></span>
+                                <span class="small text-muted ms-2" x-text="infoCupon.descripcion"></span>
+                            </div>
+                            <span class="fw-bold text-success small" x-text="'- Q ' + infoCupon.descuentoAplicado"></span>
+                        </div>
+                    </div>
+                    <div x-show="errorCupon" class="cupon-invalido mt-2">
+                        <i class="bi bi-x-circle text-danger me-2"></i>
+                        <span class="small text-danger" x-text="errorCupon"></span>
+                    </div>
+                </div>
+
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Método de Pago</h5>
                     <div class="row g-3">
@@ -110,7 +148,7 @@
                         </div>
                         <div class="col-12" x-show="form.metodoPago === 'tarjeta'">
                             <label class="form-label">Número de Tarjeta</label>
-                            <input type="text" class="form-control" x-model="form.numTarjeta" 
+                            <input type="text" class="form-control" x-model="form.numTarjeta"
                                    placeholder="**** **** **** ****" maxlength="19"
                                    @input="formatarTarjeta()">
                         </div>
@@ -129,14 +167,14 @@
 
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Notas Especiales</h5>
-                    <textarea class="form-control" x-model="form.notas" rows="3" 
+                    <textarea class="form-control" x-model="form.notas" rows="3"
                               placeholder="Ej: Llegada tarde, cama extra, alergias..."></textarea>
                 </div>
 
                 <!-- Error -->
                 <div x-show="error" class="alert alert-danger" x-text="error"></div>
 
-                <button class="btn btn-reservar btn-primary w-100 text-white" 
+                <button class="btn btn-reservar btn-primary w-100 text-white"
                         @click="confirmarReserva()" :disabled="cargando">
                     <span x-show="!cargando">
                         <i class="bi bi-calendar-check me-2"></i>Confirmar Reserva · Q<span x-text="totalFinal"></span>
@@ -176,9 +214,13 @@
                         <span>Subtotal</span>
                         <span x-text="'Q ' + subtotal"></span>
                     </div>
-                    <div class="d-flex justify-content-between small mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
                         <span>IVA (12%)</span>
                         <span x-text="'Q ' + iva"></span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-2 text-warning" x-show="cuponAplicado">
+                        <span><i class="bi bi-tag-fill me-1"></i>Descuento (<span x-text="infoCupon.codigo"></span>)</span>
+                        <span x-text="'- Q ' + infoCupon.descuentoAplicado"></span>
                     </div>
                     <hr class="border-white border-opacity-25">
                     <div class="d-flex justify-content-between fw-bold fs-5">
@@ -204,6 +246,11 @@
             error: '',
             exito: false,
             idReservaCreada: null,
+            codigoCupon: '',
+            cuponAplicado: false,
+            validandoCupon: false,
+            errorCupon: '',
+            infoCupon: { codigo: '', descripcion: '', descuentoAplicado: 0 },
             form: {
                 nombre: '',
                 email: '',
@@ -219,10 +266,7 @@
 
             async init() {
                 const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
-                if (!usuario) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+                if (!usuario) { window.location.href = 'login.html'; return; }
 
                 const params = new URLSearchParams(window.location.search);
                 this.form.nombre = usuario.nombre;
@@ -232,9 +276,7 @@
                 this.form.huespedes = parseInt(params.get('huespedes')) || 1;
 
                 const idHabitacion = params.get('idHabitacion');
-                if (idHabitacion) {
-                    await this.cargarHabitacion(idHabitacion);
-                }
+                if (idHabitacion) await this.cargarHabitacion(idHabitacion);
                 this.loading = false;
             },
 
@@ -246,20 +288,56 @@
                 } catch (e) {}
             },
 
+            async aplicarCupon() {
+                if (!this.codigoCupon) return;
+                this.errorCupon = '';
+                this.validandoCupon = true;
+                try {
+                    const res = await fetch(`${API}/cupones/validar/${this.codigoCupon}?subtotal=${this.subtotalConIva}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.infoCupon = data.data;
+                        this.cuponAplicado = true;
+                    } else {
+                        this.errorCupon = data.message;
+                    }
+                } catch (e) {
+                    this.errorCupon = 'Error al validar el cupón.';
+                } finally {
+                    this.validandoCupon = false;
+                }
+            },
+
+            quitarCupon() {
+                this.cuponAplicado = false;
+                this.codigoCupon = '';
+                this.infoCupon = { codigo: '', descripcion: '', descuentoAplicado: 0 };
+                this.errorCupon = '';
+            },
+
             get noches() {
                 if (!this.form.checkIn || !this.form.checkOut) return 0;
                 const diff = new Date(this.form.checkOut) - new Date(this.form.checkIn);
                 return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
             },
+
             get subtotal() {
                 if (!this.habitacion) return '0.00';
                 return (this.habitacion.precioNoche * this.noches).toFixed(2);
             },
+
             get iva() {
                 return (parseFloat(this.subtotal) * 0.12).toFixed(2);
             },
-            get totalFinal() {
+
+            get subtotalConIva() {
                 return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(2);
+            },
+
+            get totalFinal() {
+                const base = parseFloat(this.subtotalConIva);
+                const descuento = this.cuponAplicado ? parseFloat(this.infoCupon.descuentoAplicado) : 0;
+                return Math.max(0, base - descuento).toFixed(2);
             },
 
             formatarTarjeta() {
@@ -269,14 +347,8 @@
 
             async confirmarReserva() {
                 this.error = '';
-                if (!this.form.checkIn || !this.form.checkOut) {
-                    this.error = 'Por favor completa las fechas.';
-                    return;
-                }
-                if (this.noches <= 0) {
-                    this.error = 'Las fechas seleccionadas no son válidas.';
-                    return;
-                }
+                if (!this.form.checkIn || !this.form.checkOut) { this.error = 'Por favor completa las fechas.'; return; }
+                if (this.noches <= 0) { this.error = 'Las fechas seleccionadas no son válidas.'; return; }
 
                 const usuario = JSON.parse(localStorage.getItem('usuario'));
                 this.cargando = true;
@@ -293,7 +365,9 @@
                             numHuespedes: parseInt(this.form.huespedes),
                             metodoPago: this.form.metodoPago,
                             notasEspeciales: this.form.notas,
-                            precioTotal: parseFloat(this.totalFinal)
+                            precioTotal: parseFloat(this.totalFinal),
+                            codigoCupon: this.cuponAplicado ? this.infoCupon.codigo : null,
+                            descuentoAplicado: this.cuponAplicado ? parseFloat(this.infoCupon.descuentoAplicado) : 0
                         })
                     });
                     const data = await res.json();

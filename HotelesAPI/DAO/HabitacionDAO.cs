@@ -125,8 +125,8 @@ namespace HotelesAPI.DAO
             cmd.Parameters.AddWithValue("@tipo", habitacion.TipoHabitacion);
             cmd.Parameters.AddWithValue("@precio", habitacion.PrecioNoche);
             cmd.Parameters.AddWithValue("@capacidad", habitacion.CapacidadMax);
-            cmd.Parameters.AddWithValue("@estado", habitacion.Estado);
-            cmd.Parameters.AddWithValue("@amenidades", habitacion.Amenidades);
+            cmd.Parameters.AddWithValue("@estado", habitacion.Estado ?? "Disponible");
+            cmd.Parameters.AddWithValue("@amenidades", (object?)habitacion.Amenidades ?? DBNull.Value);
 
             var result = cmd.ExecuteScalar();
             return Convert.ToInt32(result);
@@ -150,9 +150,22 @@ namespace HotelesAPI.DAO
             cmd.Parameters.AddWithValue("@tipo", habitacion.TipoHabitacion);
             cmd.Parameters.AddWithValue("@precio", habitacion.PrecioNoche);
             cmd.Parameters.AddWithValue("@capacidad", habitacion.CapacidadMax);
-            cmd.Parameters.AddWithValue("@estado", habitacion.Estado);
-            cmd.Parameters.AddWithValue("@amenidades", habitacion.Amenidades);
+            cmd.Parameters.AddWithValue("@estado", habitacion.Estado ?? "Disponible");
+            cmd.Parameters.AddWithValue("@amenidades", (object?)habitacion.Amenidades ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@id", habitacion.IdHabitacion);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool CambiarEstado(int id, string estado)
+        {
+            string sql = "UPDATE Habitaciones SET estado = @estado WHERE id_habitacion = @id";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@estado", estado);
+            cmd.Parameters.AddWithValue("@id", id);
 
             return cmd.ExecuteNonQuery() > 0;
         }

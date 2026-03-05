@@ -14,13 +14,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddAuthentication();
+
 var app = builder.Build();
 
-// Inicializar conexión
 DatabaseConfig.ConnectionString = builder.Configuration.GetConnectionString("SqlServer")
     ?? throw new Exception("No se encontró cadena de conexión");
 
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

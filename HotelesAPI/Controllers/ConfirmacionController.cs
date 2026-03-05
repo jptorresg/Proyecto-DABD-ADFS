@@ -47,9 +47,43 @@ namespace HotelesAPI.Controllers
                     return NotFound(JsonResponse.Error("Reservación no encontrada"));
 
                 byte[] pdf = _pdfService.GenerarVoucher(reservacion);
-
                 return File(pdf, "application/pdf",
                     $"Voucher-Bedly-{reservacion.IdReservacion:D6}.pdf");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        // PUT api/confirmacion/{id}/checkin
+        [HttpPut("{id}/checkin")]
+        public IActionResult HacerCheckin(int id)
+        {
+            try
+            {
+                var reservacion = _reservacionDAO.GetById(id);
+                if (reservacion == null)
+                    return NotFound(JsonResponse.Error("Reservación no encontrada"));
+
+                if (reservacion.Estado == "Cancelada")
+                    return BadRequest(JsonResponse.Error("No se puede hacer check-in a una reservación cancelada"));
+
+                if (reservacion.Estado == "Completada")
+                    return BadRequest(JsonResponse.Error("Esta reservación ya fue completada"));
+
+                _reservacionDAO.CambiarEstado(id, "Completada");
+
+                return Ok(JsonResponse.Ok("Check-in realizado exitosamente", new
+                {
+                    idReservacion = id,
+                    huesped = reservacion.NombreUsuario,
+                    habitacion = reservacion.NombreHabitacion,
+                    hotel = reservacion.NombreHotel,
+                    checkIn = reservacion.FechaCheckIn,
+                    checkOut = reservacion.FechaCheckOut,
+                    estado = "Completada"
+                }));
             }
             catch (Exception ex)
             {

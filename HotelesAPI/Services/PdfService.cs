@@ -12,9 +12,9 @@ namespace HotelesAPI.Services
         {
             QuestPDF.Settings.License = LicenseType.Community;
 
-            // Generar QR
-            string qrData = $"BEDLY-RESERVACION-{reservacion.IdReservacion}-{reservacion.FechaCheckIn:yyyyMMdd}";
-            byte[] qrBytes = GenerarQR(qrData);
+            // QR apunta a la página de check-in
+            string qrUrl = $"http://localhost:5500/hotel/checkin.html?id={reservacion.IdReservacion}";
+            byte[] qrBytes = GenerarQR(qrUrl);
 
             var pdf = Document.Create(container =>
             {
@@ -24,7 +24,6 @@ namespace HotelesAPI.Services
                     page.Margin(40);
                     page.DefaultTextStyle(x => x.FontSize(11));
 
-                    // Header
                     page.Header().Element(header =>
                     {
                         header.Row(row =>
@@ -42,10 +41,8 @@ namespace HotelesAPI.Services
                         });
                     });
 
-                    // Contenido
                     page.Content().PaddingTop(20).Column(col =>
                     {
-                        // Título voucher
                         col.Item().Background(Color.FromHex("#003580"))
                             .Padding(12).Text("VOUCHER DE RESERVACIÓN")
                             .FontSize(16).Bold()
@@ -54,7 +51,6 @@ namespace HotelesAPI.Services
 
                         col.Item().PaddingTop(20).Row(row =>
                         {
-                            // Columna izquierda
                             row.RelativeItem().Column(left =>
                             {
                                 left.Item().Text("DATOS DE LA RESERVACIÓN")
@@ -89,7 +85,6 @@ namespace HotelesAPI.Services
 
                             row.ConstantItem(20);
 
-                            // Columna derecha
                             row.RelativeItem().Column(right =>
                             {
                                 right.Item().Text("DETALLE DE PAGO")
@@ -129,7 +124,6 @@ namespace HotelesAPI.Services
                             });
                         });
 
-                        // Política de cancelación
                         col.Item().PaddingTop(20).Background(Color.FromHex("#f0f4f8"))
                             .Padding(12).Column(politica =>
                             {
@@ -144,12 +138,11 @@ namespace HotelesAPI.Services
                                     .FontSize(9);
                             });
 
-                        // Código de validación
-                        col.Item().PaddingTop(16).AlignCenter().Text($"Código de validación: {qrData}")
+                        col.Item().PaddingTop(16).AlignCenter()
+                            .Text($"Escanea el QR para Check-in Express | Reservación #BDL-{reservacion.IdReservacion:D6}")
                             .FontSize(8).FontColor(Color.FromHex("#9ca3af"));
                     });
 
-                    // Footer
                     page.Footer().AlignCenter()
                         .Text($"Generado el {DateTime.Now:dd/MM/yyyy HH:mm} | Bedly — Sistema Hotelero UNIS")
                         .FontSize(8).FontColor(Color.FromHex("#9ca3af"));

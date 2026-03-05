@@ -101,6 +101,27 @@ namespace HotelesAPI.DAO
             return Convert.ToInt32(result);
         }
 
+        public bool Modificar(int id, DateTime checkIn, DateTime checkOut, int numHuespedes, decimal precioTotal)
+        {
+            string sql = @"UPDATE Reservaciones SET
+                          fecha_check_in = @checkIn,
+                          fecha_check_out = @checkOut,
+                          num_huespedes = @numHuespedes,
+                          precio_total = @precioTotal
+                          WHERE id_reservacion = @id";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@checkIn", checkIn);
+            cmd.Parameters.AddWithValue("@checkOut", checkOut);
+            cmd.Parameters.AddWithValue("@numHuespedes", numHuespedes);
+            cmd.Parameters.AddWithValue("@precioTotal", precioTotal);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
         public bool Cancelar(int id)
         {
             string sql = "UPDATE Reservaciones SET estado = 'Cancelada' WHERE id_reservacion = @id";

@@ -10,5 +10,7 @@ namespace HotelesAPI.DTOs
         public int NumHuespedes { get; set; }
         public string? NotasEspeciales { get; set; }
         public string? Nit { get; set; }
+        public string? CodigoCupon { get; set; }
+        public decimal? DescuentoAplicado { get; set; }
     }
 }

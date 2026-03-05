@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Express - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
+        .badge-confirmada { background: #dcfce7; color: #16a34a; }
+        .badge-pendiente { background: #fef9c3; color: #b45309; }
+        .badge-cancelada { background: #fee2e2; color: #dc2626; }
+        .badge-completada { background: #e0e7ff; color: #4338ca; }
+        .badge-estado { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .detail-row { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid #f0f4f8; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 0.82rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; }
+        .detail-value { font-size: 0.92rem; font-weight: 600; color: #1f2937; }
+        .checkin-success { background: linear-gradient(135deg, #16a34a, #15803d); color: white; border-radius: 15px; padding: 2rem; text-align: center; }
+        .acceso-denegado { background: #fee2e2; border: 1px solid #fecaca; border-radius: 15px; padding: 2rem; text-align: center; color: #dc2626; }
+    </style>
+</head>
+<body x-data="checkinApp()" x-init="init()">
+
+    <nav class="navbar-bedly mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <span class="text-white-50 small">Check-in Express</span>
+        </div>
+    </nav>
+
+    <div class="container pb-5" style="max-width: 600px;">
+
+        <!-- Loading -->
+        <div x-show="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Cargando reservación...</p>
+        </div>
+
+        <!-- Error -->
+        <div x-show="!loading && error" class="card p-4 text-center">
+            <i class="bi bi-exclamation-circle text-danger" style="font-size:3rem;"></i>
+            <h5 class="fw-bold mt-3 text-danger" x-text="error"></h5>
+            <a href="index.html" class="btn btn-outline-primary rounded-pill px-4 mt-3">Ir al inicio</a>
+        </div>
+
+        <!-- Acceso denegado (no es admin) -->
+        <div x-show="!loading && !error && !esAdmin" class="acceso-denegado">
+            <i class="bi bi-lock" style="font-size:3rem;"></i>
+            <h5 class="fw-bold mt-3">Acceso restringido</h5>
+            <p class="small mb-3">Solo el personal autorizado puede realizar el check-in.</p>
+            <a href="login.html" class="btn btn-outline-danger rounded-pill px-4">Iniciar sesión como admin</a>
+        </div>
+
+        <!-- Check-in exitoso -->
+        <div x-show="!loading && !error && esAdmin && checkinRealizado" class="checkin-success">
+            <i class="bi bi-check-circle-fill" style="font-size:4rem;"></i>
+            <h3 class="fw-bold mt-3">¡Check-in Completado!</h3>
+            <p class="mb-1">Huésped: <strong x-text="reservacion.nombreUsuario"></strong></p>
+            <p class="mb-1">Habitación: <strong x-text="reservacion.nombreHabitacion"></strong></p>
+            <p class="mb-3 opacity-75 small">El estado de la reservación ha sido actualizado a <strong>Completada</strong>.</p>
+            <a href="admin.html" class="btn btn-light rounded-pill px-4 fw-bold" style="color:var(--primary-color);">
+                Ir al Dashboard
+            </a>
+        </div>
+
+        <!-- Detalles de reservación -->
+        <div x-show="!loading && !error && esAdmin && !checkinRealizado">
+
+            <!-- Header de estado -->
+            <div class="card p-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color:var(--primary-color);"
+                            x-text="'Reservación #BDL-' + String(reservacion.idReservacion).padStart(6, '0')"></h5>
+                        <div class="text-muted small" x-text="reservacion.nombreHotel"></div>
+                    </div>
+                    <span class="badge-estado" :class="'badge-' + (reservacion.estado || '').toLowerCase()"
+                          x-text="reservacion.estado"></span>
+                </div>
+
+                <!-- Alerta si ya está completada o cancelada -->
+                <div x-show="reservacion.estado === 'Completada'" class="alert alert-info small mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Esta reservación ya tiene check-in realizado.
+                </div>
+                <div x-show="reservacion.estado === 'Cancelada'" class="alert alert-danger small mb-0">
+                    <i class="bi bi-x-circle me-2"></i>Esta reservación está cancelada.
+                </div>
+            </div>
+
+            <!-- Datos del huésped -->
+            <div class="card p-4 mb-3">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
+                    <i class="bi bi-person me-2"></i>Datos del Huésped
+                </h6>
+                <div class="detail-row">
+                    <span class="detail-label">Nombre</span>
+                    <span class="detail-value" x-text="reservacion.nombreUsuario"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Huéspedes</span>
+                    <span class="detail-value" x-text="reservacion.numHuespedes + ' persona(s)'"></span>
+                </div>
+            </div>
+
+            <!-- Datos de la habitación -->
+            <div class="card p-4 mb-3">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
+                    <i class="bi bi-door-open me-2"></i>Habitación
+                </h6>
+                <div class="detail-row">
+                    <span class="detail-label">Habitación</span>
+                    <span class="detail-value" x-text="reservacion.nombreHabitacion"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Hotel</span>
+                    <span class="detail-value" x-text="reservacion.nombreHotel"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Check-in</span>
+                    <span class="detail-value" x-text="formatFecha(reservacion.fechaCheckIn)"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Check-out</span>
+                    <span class="detail-value" x-text="formatFecha(reservacion.fechaCheckOut)"></span>
+                </div>
+            </div>
+
+            <!-- Pago -->
+            <div class="card p-4 mb-4">
+                <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
+                    <i class="bi bi-cash me-2"></i>Pago
+                </h6>
+                <div class="detail-row">
+                    <span class="detail-label">Método de Pago</span>
+                    <span class="detail-value" x-text="reservacion.metodoPago"></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Total</span>
+                    <span class="detail-value fw-bold text-success"
+                          x-text="'Q ' + parseFloat(reservacion.precioTotal || 0).toFixed(2)"></span>
+                </div>
+            </div>
+
+            <!-- Botón check-in -->
+            <div x-show="reservacion.estado === 'Confirmada' || reservacion.estado === 'Pendiente'">
+                <button class="btn w-100 py-3 fw-bold rounded-pill text-white"
+                        style="background: var(--primary-color); font-size:1.1rem;"
+                        @click="realizarCheckin()"
+                        :disabled="cargando">
+                    <span x-show="!cargando">
+                        <i class="bi bi-check2-circle me-2"></i>Confirmar Check-in
+                    </span>
+                    <span x-show="cargando">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
+                    </span>
+                </button>
+                <p class="text-center text-muted small mt-2">
+                    Esta acción marcará la reservación como <strong>Completada</strong>.
+                </p>
+            </div>
+
+            <div x-show="reservacion.estado === 'Completada' || reservacion.estado === 'Cancelada'" class="text-center">
+                <a href="admin.html" class="btn btn-outline-primary rounded-pill px-5">
+                    <i class="bi bi-speedometer2 me-2"></i>Ir al Dashboard
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    const API = 'http://localhost:5043/api';
+
+    function checkinApp() {
+        return {
+            reservacion: {},
+            loading: true,
+            error: '',
+            esAdmin: false,
+            cargando: false,
+            checkinRealizado: false,
+
+            async init() {
+                // Verificar que sea admin, recepcionista o superadmin
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                const rolesPermitidos = ['superadmin', 'admin', 'recepcionista'];
+                this.esAdmin = usuario && rolesPermitidos.includes(usuario.rol);
+
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+
+                if (!id) {
+                    this.error = 'No se especificó una reservación.';
+                    this.loading = false;
+                    return;
+                }
+
+                await this.cargarReservacion(id);
+            },
+
+            async cargarReservacion(id) {
+                try {
+                    const res = await fetch(`${API}/confirmacion/${id}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.reservacion = data.data;
+                    } else {
+                        this.error = 'Reservación no encontrada.';
+                    }
+                } catch (e) {
+                    this.error = 'Error al conectar con el servidor.';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async realizarCheckin() {
+                if (!confirm(`¿Confirmar check-in para ${this.reservacion.nombreUsuario}?`)) return;
+                this.cargando = true;
+                try {
+                    const res = await fetch(`${API}/confirmacion/${this.reservacion.idReservacion}/checkin`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.checkinRealizado = true;
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (e) {
+                    alert('Error al realizar el check-in.');
+                } finally {
+                    this.cargando = false;
+                }
+            },
+
+            formatFecha(fecha) {
+                if (!fecha) return '';
+                return new Date(fecha).toLocaleDateString('es-GT', { day: '2-digit', month: 'long', year: 'numeric' });
+            }
+        }
+    }
+    </script>
+</body>
+</html>

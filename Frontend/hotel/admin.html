@@ -11,7 +11,7 @@
     <style>
         :root { --primary-color: #003580; }
         body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
-        .sidebar { width: 250px; min-height: 100vh; background: var(--primary-color); position: fixed; top: 0; left: 0; z-index: 100; transition: all 0.3s; }
+        .sidebar { width: 250px; min-height: 100vh; background: var(--primary-color); position: fixed; top: 0; left: 0; z-index: 100; }
         .sidebar-brand { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: #fff; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-brand span { color: #f5a623; }
         .sidebar-nav { padding: 1rem 0; }
@@ -20,6 +20,11 @@
         .nav-item-link.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #f5a623; }
         .nav-item-link i { font-size: 1.1rem; width: 20px; }
         .nav-section { padding: 0.5rem 1.5rem; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1rem; }
+        .rol-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rol-superadmin { background: #f5a623; color: #003580; }
+        .rol-admin { background: #dc2626; color: white; }
+        .rol-recepcionista { background: #16a34a; color: white; }
+        .rol-auditor { background: #6366f1; color: white; }
         .main-content { margin-left: 250px; min-height: 100vh; }
         .topbar { background: #fff; padding: 1rem 1.5rem; box-shadow: 0 2px 12px rgba(0,53,128,0.08); display: flex; justify-content: space-between; align-items: center; }
         .page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 0; }
@@ -34,6 +39,9 @@
         .badge-cancelada { background: #fee2e2; color: #dc2626; }
         .badge-completada { background: #e0e7ff; color: #4338ca; }
         .badge-estado { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .modal-content { border: none; border-radius: 15px; }
+        .modal-header-custom { background: var(--primary-color); color: white; border-radius: 15px 15px 0 0; }
+        .acceso-denegado { background: #fee2e2; border: 1px solid #fecaca; border-radius: 15px; padding: 2rem; text-align: center; color: #dc2626; }
         @media (max-width: 768px) {
             .sidebar { width: 100%; min-height: auto; position: relative; }
             .main-content { margin-left: 0; }
@@ -44,21 +52,44 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-brand">Bed<span>ly</span> <small style="font-size:0.7rem; opacity:0.6;">Admin</small></div>
+        <div class="sidebar-brand">
+            Bed<span>ly</span>
+            <small style="font-size:0.7rem; opacity:0.6;">Admin</small>
+        </div>
         <nav class="sidebar-nav">
             <div class="nav-section">Principal</div>
             <a href="admin.html" class="nav-item-link active">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
             <div class="nav-section">Gestión</div>
-            <a href="inventario.html" class="nav-item-link">
+            <a href="inventario.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin' || rolActual === 'recepcionista'">
                 <i class="bi bi-door-open"></i> Inventario
             </a>
-            <a href="#" class="nav-item-link" @click.prevent="seccion = 'reservas'">
+            <a href="#" class="nav-item-link"
+               @click.prevent="seccion = 'reservas'"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin' || rolActual === 'recepcionista' || rolActual === 'auditor'">
                 <i class="bi bi-calendar-check"></i> Reservaciones
             </a>
-            <a href="#" class="nav-item-link" @click.prevent="seccion = 'usuarios'">
+            <a href="#" class="nav-item-link"
+               @click.prevent="seccion = 'usuarios'"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
                 <i class="bi bi-people"></i> Usuarios
+            </a>
+            <a href="#" class="nav-item-link"
+               @click.prevent="seccion = 'agencias'"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-building-gear"></i> Agencias B2B
+            </a>
+            <a href="#" class="nav-item-link"
+               @click.prevent="seccion = 'cupones'"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-tag"></i> Cupones
+            </a>
+            <a href="#" class="nav-item-link"
+               @click.prevent="seccion = 'cierre'"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-calendar-x"></i> Cierre de Ventas
             </a>
             <div class="nav-section">Sistema</div>
             <a href="index.html" class="nav-item-link">
@@ -74,7 +105,14 @@
     <div class="main-content">
         <div class="topbar">
             <div class="d-flex align-items-center gap-3">
-                <h1 class="page-title" x-text="seccion === 'dashboard' ? 'Dashboard' : seccion === 'reservas' ? 'Reservaciones' : 'Usuarios'"></h1>
+                <h1 class="page-title" x-text="
+                    seccion === 'dashboard' ? 'Dashboard' :
+                    seccion === 'reservas' ? 'Reservaciones' :
+                    seccion === 'usuarios' ? 'Usuarios' :
+                    seccion === 'agencias' ? 'Agencias B2B' :
+                    seccion === 'cupones' ? 'Cupones de Descuento' :
+                    seccion === 'cierre' ? 'Cierre de Ventas' : 'Dashboard'
+                "></h1>
                 <button class="btn btn-outline-primary btn-sm rounded-pill" @click="recargarTodo()">
                     <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
                 </button>
@@ -82,8 +120,14 @@
             <div class="d-flex align-items-center gap-3">
                 <span class="text-muted small" x-text="fechaHoy"></span>
                 <div class="d-flex align-items-center gap-2">
-                    <div style="width:32px; height:32px; background:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:0.8rem; font-weight:700;">A</div>
-                    <span class="small fw-bold">Admin</span>
+                    <div style="width:36px; height:36px; background:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; font-weight:700;"
+                         x-text="nombreAdmin ? nombreAdmin[0].toUpperCase() : 'A'"></div>
+                    <div>
+                        <div class="small fw-bold" x-text="nombreAdmin"></div>
+                        <div>
+                            <span class="rol-badge" :class="'rol-' + rolActual" x-text="rolActual"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,8 +147,6 @@
 
             <!-- DASHBOARD -->
             <div x-show="seccion === 'dashboard' && !loading">
-
-                <!-- Stats -->
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6 col-xl-3">
                         <div class="stat-card d-flex align-items-center gap-3">
@@ -194,7 +236,7 @@
                     </div>
                 </div>
 
-                <!-- Gráficas de estado -->
+                <!-- Gráficas -->
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card h-100">
@@ -203,14 +245,12 @@
                                 <template x-for="item in estadoHabitaciones" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;"
-                                                 :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;"
-                                                     :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -226,14 +266,12 @@
                                 <template x-for="item in estadoReservas" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;"
-                                                 :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;"
-                                                     :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -265,7 +303,7 @@
                                         <th>Huéspedes</th>
                                         <th>Total</th>
                                         <th>Estado</th>
-                                        <th>Acción</th>
+                                        <th x-show="rolActual !== 'auditor'">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -281,7 +319,7 @@
                                             <td>
                                                 <span class="badge-estado" :class="'badge-' + r.estado.toLowerCase()" x-text="r.estado"></span>
                                             </td>
-                                            <td>
+                                            <td x-show="rolActual !== 'auditor'">
                                                 <select class="form-select form-select-sm" style="width:130px;"
                                                         @change="cambiarEstado(r.idReservacion, $event.target.value)"
                                                         :value="r.estado">
@@ -302,7 +340,11 @@
 
             <!-- USUARIOS -->
             <div x-show="seccion === 'usuarios' && !loading">
-                <div class="card">
+                <div x-show="rolActual !== 'superadmin' && rolActual !== 'admin'" class="acceso-denegado">
+                    <i class="bi bi-lock" style="font-size:2rem;"></i>
+                    <p class="fw-bold mt-2">Acceso denegado. No tienes permisos para ver esta sección.</p>
+                </div>
+                <div class="card" x-show="rolActual === 'superadmin' || rolActual === 'admin'">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="fw-bold mb-0" style="color:var(--primary-color)">Usuarios Registrados</h5>
@@ -331,7 +373,13 @@
                                             <td class="small" x-text="u.telefono"></td>
                                             <td>
                                                 <span class="badge rounded-pill"
-                                                      :class="u.rol === 'admin' ? 'bg-danger' : 'bg-primary'"
+                                                      :class="{
+                                                        'bg-danger': u.rol === 'superadmin',
+                                                        'bg-warning text-dark': u.rol === 'admin',
+                                                        'bg-success': u.rol === 'recepcionista',
+                                                        'bg-info': u.rol === 'auditor',
+                                                        'bg-primary': u.rol === 'cliente'
+                                                      }"
                                                       x-text="u.rol"></span>
                                             </td>
                                             <td class="small text-muted" x-text="formatFecha(u.fechaRegistro)"></td>
@@ -343,7 +391,7 @@
                                             <td class="text-center">
                                                 <button class="btn btn-sm rounded-pill px-3"
                                                         :class="u.activo ? 'btn-outline-danger' : 'btn-outline-success'"
-                                                        :disabled="u.rol === 'admin'"
+                                                        :disabled="u.rol === 'superadmin'"
                                                         @click="toggleUsuario(u)"
                                                         x-text="u.activo ? 'Desactivar' : 'Activar'">
                                                 </button>
@@ -357,6 +405,284 @@
                 </div>
             </div>
 
+            <!-- AGENCIAS B2B -->
+            <div x-show="seccion === 'agencias' && !loading">
+                <div x-show="rolActual !== 'superadmin' && rolActual !== 'admin'" class="acceso-denegado">
+                    <i class="bi bi-lock" style="font-size:2rem;"></i>
+                    <p class="fw-bold mt-2">Acceso denegado. No tienes permisos para ver esta sección.</p>
+                </div>
+                <div class="card mb-4" x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0" style="color:var(--primary-color)">Agencias B2B Registradas</h5>
+                            <button class="btn btn-primary btn-sm rounded-pill px-4" @click="abrirModalAgencia()">
+                                <i class="bi bi-plus-circle me-1"></i>Nueva Agencia
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Token Bearer</th>
+                                        <th>Registro</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="a in agencias" :key="a.idAgencia">
+                                        <tr>
+                                            <td class="text-muted small" x-text="a.idAgencia"></td>
+                                            <td class="fw-bold small" x-text="a.nombre"></td>
+                                            <td class="small text-muted" x-text="a.email"></td>
+                                            <td><code class="small" style="font-size:0.7rem;" x-text="a.token"></code></td>
+                                            <td class="small text-muted" x-text="formatFecha(a.fechaRegistro)"></td>
+                                            <td>
+                                                <span class="badge rounded-pill"
+                                                      :class="a.activo ? 'bg-success' : 'bg-secondary'"
+                                                      x-text="a.activo ? 'Activo' : 'Inactivo'"></span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm rounded-pill px-3"
+                                                        :class="a.activo ? 'btn-outline-danger' : 'btn-outline-success'"
+                                                        @click="toggleAgencia(a)"
+                                                        x-text="a.activo ? 'Desactivar' : 'Activar'">
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="agencias.length === 0">
+                                        <td colspan="7" class="text-center text-muted py-4">No hay agencias registradas.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CUPONES -->
+            <div x-show="seccion === 'cupones' && !loading">
+                <div x-show="rolActual !== 'superadmin' && rolActual !== 'admin'" class="acceso-denegado">
+                    <i class="bi bi-lock" style="font-size:2rem;"></i>
+                    <p class="fw-bold mt-2">Acceso denegado. No tienes permisos para ver esta sección.</p>
+                </div>
+                <div class="card mb-4" x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0" style="color:var(--primary-color)">Cupones de Descuento</h5>
+                            <button class="btn btn-primary btn-sm rounded-pill px-4" @click="abrirModalCupon()">
+                                <i class="bi bi-plus-circle me-1"></i>Nuevo Cupón
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Descripción</th>
+                                        <th>Tipo</th>
+                                        <th>Descuento</th>
+                                        <th>Vigencia</th>
+                                        <th>Usos</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="c in cupones" :key="c.idCupon">
+                                        <tr>
+                                            <td><code class="fw-bold" x-text="c.codigo"></code></td>
+                                            <td class="small text-muted" x-text="c.descripcion"></td>
+                                            <td>
+                                                <span class="badge rounded-pill"
+                                                      :class="c.tipoDescuento === 'porcentaje' ? 'bg-info' : 'bg-warning text-dark'"
+                                                      x-text="c.tipoDescuento"></span>
+                                            </td>
+                                            <td class="fw-bold small"
+                                                x-text="c.tipoDescuento === 'porcentaje' ? c.valorDescuento + '%' : 'Q' + c.valorDescuento"></td>
+                                            <td class="small text-muted">
+                                                <span x-text="formatFecha(c.fechaInicio)"></span> -
+                                                <span x-text="formatFecha(c.fechaFin)"></span>
+                                            </td>
+                                            <td class="small" x-text="c.usosActuales + ' / ' + c.usosMaximos"></td>
+                                            <td>
+                                                <span class="badge rounded-pill"
+                                                      :class="c.activo ? 'bg-success' : 'bg-secondary'"
+                                                      x-text="c.activo ? 'Activo' : 'Inactivo'"></span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm rounded-pill px-3"
+                                                        :class="c.activo ? 'btn-outline-danger' : 'btn-outline-success'"
+                                                        @click="toggleCupon(c)"
+                                                        x-text="c.activo ? 'Desactivar' : 'Activar'">
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="cupones.length === 0">
+                                        <td colspan="8" class="text-center text-muted py-4">No hay cupones registrados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CIERRE DE VENTAS -->
+            <div x-show="seccion === 'cierre' && !loading">
+                <div x-show="rolActual !== 'superadmin' && rolActual !== 'admin'" class="acceso-denegado">
+                    <i class="bi bi-lock" style="font-size:2rem;"></i>
+                    <p class="fw-bold mt-2">Acceso denegado. No tienes permisos para ver esta sección.</p>
+                </div>
+                <div x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card p-4">
+                                <h5 class="fw-bold mb-1" style="color:var(--primary-color)">
+                                    <i class="bi bi-calendar-x me-2"></i>Configurar Cierre de Ventas
+                                </h5>
+                                <p class="text-muted small mb-4">Define una fecha y hora límite para aceptar nuevas reservaciones. Después de esa fecha el sistema bloqueará automáticamente cualquier intento de reserva.</p>
+                                <div class="mb-4 p-3 rounded-3"
+                                     :class="cierreVentas.ventasCerradas ? 'bg-danger bg-opacity-10 border border-danger' : 'bg-success bg-opacity-10 border border-success'">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi fw-bold"
+                                           :class="cierreVentas.ventasCerradas ? 'bi-x-circle-fill text-danger' : 'bi-check-circle-fill text-success'"></i>
+                                        <span class="fw-bold"
+                                              :class="cierreVentas.ventasCerradas ? 'text-danger' : 'text-success'"
+                                              x-text="cierreVentas.ventasCerradas ? 'Ventas CERRADAS' : 'Ventas ABIERTAS'">
+                                        </span>
+                                    </div>
+                                    <p class="small mb-0 mt-1 text-muted"
+                                       x-show="cierreVentas.fechaCierre"
+                                       x-text="'Fecha de cierre configurada: ' + cierreVentas.fechaCierre">
+                                    </p>
+                                    <p class="small mb-0 mt-1 text-muted" x-show="!cierreVentas.fechaCierre">
+                                        Sin fecha de cierre configurada.
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Nueva Fecha y Hora de Cierre</label>
+                                    <input type="datetime-local" class="form-control" x-model="cierreVentas.fechaCierre">
+                                    <div class="form-text">Deja vacío y guarda para reabrir las ventas.</div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary rounded-pill px-4" @click="guardarCierreVentas()">
+                                        <i class="bi bi-save me-2"></i>Guardar
+                                    </button>
+                                    <button class="btn btn-outline-danger rounded-pill px-4"
+                                            x-show="cierreVentas.fechaCierre"
+                                            @click="eliminarCierreVentas()">
+                                        <i class="bi bi-trash me-2"></i>Eliminar Cierre
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-4 h-100" style="background: linear-gradient(135deg, #003580, #0055b3); color:white;">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>¿Cómo funciona?</h5>
+                                <ul class="small" style="line-height:2;">
+                                    <li>Al configurar una fecha de cierre, el sistema bloqueará nuevas reservaciones a partir de esa fecha y hora.</li>
+                                    <li>Las reservaciones existentes <strong>no se cancelan</strong>, solo se impiden nuevas.</li>
+                                    <li>Los clientes verán un mensaje indicando que las ventas están cerradas.</li>
+                                    <li>Puedes reabrir las ventas en cualquier momento eliminando la fecha de cierre.</li>
+                                    <li>Las reservaciones B2B también serán bloqueadas.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Nueva Agencia -->
+    <div class="modal fade" id="modalAgencia" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title fw-bold">Nueva Agencia B2B</h5>
+                    <button type="button" class="btn-close" style="filter:invert(1);" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Nombre de la Agencia</label>
+                        <input type="text" class="form-control" x-model="formAgencia.nombre" placeholder="Ej: Viajes Guatemala">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Email</label>
+                        <input type="email" class="form-control" x-model="formAgencia.email" placeholder="agencia@email.com">
+                    </div>
+                    <div x-show="errorAgencia" class="alert alert-danger small" x-text="errorAgencia"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary rounded-pill px-4" @click="crearAgencia()">
+                        <i class="bi bi-check-circle me-2"></i>Crear Agencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Cupón -->
+    <div class="modal fade" id="modalCupon" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title fw-bold">Nuevo Cupón de Descuento</h5>
+                    <button type="button" class="btn-close" style="filter:invert(1);" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Código</label>
+                            <input type="text" class="form-control text-uppercase" x-model="formCupon.codigo" placeholder="Ej: BEDLY10">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Usos Máximos</label>
+                            <input type="number" class="form-control" x-model="formCupon.usosMaximos" min="1">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Descripción</label>
+                            <input type="text" class="form-control" x-model="formCupon.descripcion" placeholder="Ej: 10% de descuento en tu reserva">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Tipo de Descuento</label>
+                            <select class="form-select" x-model="formCupon.tipoDescuento">
+                                <option value="porcentaje">Porcentaje (%)</option>
+                                <option value="fijo">Monto Fijo (Q)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">
+                                Valor (<span x-text="formCupon.tipoDescuento === 'porcentaje' ? '%' : 'Q'"></span>)
+                            </label>
+                            <input type="number" class="form-control" x-model="formCupon.valorDescuento" min="1" step="0.01">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Fecha Inicio</label>
+                            <input type="date" class="form-control" x-model="formCupon.fechaInicio">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Fecha Fin</label>
+                            <input type="date" class="form-control" x-model="formCupon.fechaFin">
+                        </div>
+                    </div>
+                    <div x-show="errorCupon" class="alert alert-danger mt-3 small" x-text="errorCupon"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary rounded-pill px-4" @click="crearCupon()">
+                        <i class="bi bi-check-circle me-2"></i>Crear Cupón
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -369,6 +695,8 @@
             seccion: 'dashboard',
             loading: true,
             exito: '',
+            rolActual: '',
+            nombreAdmin: '',
             stats: {
                 totalReservas: 0, ingresoTotal: 0,
                 habitacionesDisponibles: 0, habitacionesOcupadas: 0,
@@ -378,13 +706,29 @@
             ultimasReservas: [],
             todasReservas: [],
             usuarios: [],
+            agencias: [],
+            cupones: [],
+            cierreVentas: { fechaCierre: '', ventasCerradas: false },
+            formAgencia: { nombre: '', email: '' },
+            errorAgencia: '',
+            formCupon: { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 },
+            errorCupon: '',
             fechaHoy: new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
 
             async init() {
+                const u = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!u) { window.location.href = 'login.html'; return; }
+                const rolesAdmin = ['superadmin', 'admin', 'recepcionista', 'auditor'];
+                if (!rolesAdmin.includes(u.rol)) { window.location.href = 'index.html'; return; }
+                this.rolActual = u.rol;
+                this.nombreAdmin = u.nombre;
                 await Promise.all([
                     this.cargarStats(),
                     this.cargarReservas(),
-                    this.cargarUsuarios()
+                    this.cargarUsuarios(),
+                    this.cargarAgencias(),
+                    this.cargarCupones(),
+                    this.cargarCierreVentas()
                 ]);
                 this.loading = false;
             },
@@ -394,7 +738,10 @@
                 await Promise.all([
                     this.cargarStats(),
                     this.cargarReservas(),
-                    this.cargarUsuarios()
+                    this.cargarUsuarios(),
+                    this.cargarAgencias(),
+                    this.cargarCupones(),
+                    this.cargarCierreVentas()
                 ]);
                 this.loading = false;
                 this.exito = 'Datos actualizados correctamente.';
@@ -428,6 +775,30 @@
                 } catch (e) {}
             },
 
+            async cargarAgencias() {
+                try {
+                    const res = await fetch(`${API}/admin/agencias`);
+                    const data = await res.json();
+                    if (data.success) this.agencias = data.data;
+                } catch (e) {}
+            },
+
+            async cargarCupones() {
+                try {
+                    const res = await fetch(`${API}/admin/cupones`);
+                    const data = await res.json();
+                    if (data.success) this.cupones = data.data;
+                } catch (e) {}
+            },
+
+            async cargarCierreVentas() {
+                try {
+                    const res = await fetch(`${API}/admin/configuracion/cierre-ventas`);
+                    const data = await res.json();
+                    if (data.success) this.cierreVentas = data.data;
+                } catch (e) {}
+            },
+
             async cambiarEstado(id, estado) {
                 try {
                     const res = await fetch(`${API}/admin/reservaciones/${id}/estado`, {
@@ -445,7 +816,7 @@
             },
 
             async toggleUsuario(u) {
-                if (u.rol === 'admin') return;
+                if (u.rol === 'superadmin') return;
                 const accion = u.activo ? 'desactivar' : 'activar';
                 if (!confirm(`¿Estás seguro de ${accion} al usuario ${u.nombre}?`)) return;
                 try {
@@ -459,6 +830,136 @@
                         u.activo = !u.activo;
                         this.exito = `Usuario ${u.nombre} ${u.activo ? 'activado' : 'desactivado'} correctamente.`;
                         setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            abrirModalAgencia() {
+                this.formAgencia = { nombre: '', email: '' };
+                this.errorAgencia = '';
+                new bootstrap.Modal(document.getElementById('modalAgencia')).show();
+            },
+
+            async crearAgencia() {
+                this.errorAgencia = '';
+                if (!this.formAgencia.nombre) { this.errorAgencia = 'El nombre es requerido.'; return; }
+                if (!this.formAgencia.email) { this.errorAgencia = 'El email es requerido.'; return; }
+                try {
+                    const res = await fetch(`${API}/admin/agencias`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.formAgencia)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('modalAgencia')).hide();
+                        await this.cargarAgencias();
+                        this.exito = 'Agencia creada exitosamente.';
+                        setTimeout(() => this.exito = '', 3000);
+                    } else {
+                        this.errorAgencia = data.message;
+                    }
+                } catch (e) {
+                    this.errorAgencia = 'Error al conectar con el servidor.';
+                }
+            },
+
+            async toggleAgencia(a) {
+                const accion = a.activo ? 'desactivar' : 'activar';
+                if (!confirm(`¿Estás seguro de ${accion} la agencia ${a.nombre}?`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/agencias/${a.idAgencia}/toggle`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ activo: !a.activo })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        a.activo = !a.activo;
+                        this.exito = `Agencia ${a.nombre} ${a.activo ? 'activada' : 'desactivada'}.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            abrirModalCupon() {
+                this.formCupon = { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 };
+                this.errorCupon = '';
+                new bootstrap.Modal(document.getElementById('modalCupon')).show();
+            },
+
+            async crearCupon() {
+                this.errorCupon = '';
+                if (!this.formCupon.codigo) { this.errorCupon = 'El código es requerido.'; return; }
+                if (!this.formCupon.fechaInicio || !this.formCupon.fechaFin) { this.errorCupon = 'Las fechas son requeridas.'; return; }
+                if (this.formCupon.valorDescuento <= 0) { this.errorCupon = 'El valor del descuento debe ser mayor a 0.'; return; }
+                try {
+                    const res = await fetch(`${API}/admin/cupones`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.formCupon)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('modalCupon')).hide();
+                        await this.cargarCupones();
+                        this.exito = 'Cupón creado exitosamente.';
+                        setTimeout(() => this.exito = '', 3000);
+                    } else {
+                        this.errorCupon = data.message;
+                    }
+                } catch (e) {
+                    this.errorCupon = 'Error al conectar con el servidor.';
+                }
+            },
+
+            async toggleCupon(c) {
+                const accion = c.activo ? 'desactivar' : 'activar';
+                if (!confirm(`¿Estás seguro de ${accion} el cupón ${c.codigo}?`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/cupones/${c.idCupon}/toggle`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ activo: !c.activo })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        c.activo = !c.activo;
+                        this.exito = `Cupón ${c.codigo} ${c.activo ? 'activado' : 'desactivado'}.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            async guardarCierreVentas() {
+                try {
+                    const res = await fetch(`${API}/admin/configuracion/cierre-ventas`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fechaCierre: this.cierreVentas.fechaCierre })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        await this.cargarCierreVentas();
+                        this.exito = data.message;
+                        setTimeout(() => this.exito = '', 4000);
+                    }
+                } catch (e) {}
+            },
+
+            async eliminarCierreVentas() {
+                if (!confirm('¿Estás seguro de eliminar el cierre? El sistema volverá a aceptar reservas.')) return;
+                try {
+                    const res = await fetch(`${API}/admin/configuracion/cierre-ventas`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fechaCierre: '' })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.cierreVentas = { fechaCierre: '', ventasCerradas: false };
+                        this.exito = data.message;
+                        setTimeout(() => this.exito = '', 4000);
                     }
                 } catch (e) {}
             },
