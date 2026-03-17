@@ -23,6 +23,8 @@
     /* Colores de Acento */
     --accent-blue: #5B8CC6;
     --accent-silver: #D4D8DD;
+    --success:       #28a745;
+    --warning:       #ffc107;
     
     /* Sombras */
     --shadow-sm: 0 2px 4px rgba(74, 95, 127, 0.08);
@@ -274,6 +276,65 @@ body {
 
 .rotate-180 {
     transform: rotate(180deg);
+}
+
+/* =========================
+   SEARCH DROPDOWN AIRBNB STYLE
+   ========================= */
+
+.search-section {
+    position: relative;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    padding: 1.5rem;
+    z-index: 1500;
+    border: 1px solid var(--light-gray);
+}
+
+.dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: var(--medium-gray);
+}
+
+.field input {
+    border: 1px solid var(--light-gray);
+    border-radius: 12px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+    transition: border var(--transition-fast);
+}
+
+.field input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.dropdown-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: flex-end;
 }
 
 /* ===================================

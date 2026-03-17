@@ -151,7 +151,11 @@ public class VueloDAO {
             stmt.setInt(12, vuelo.getAsientosTotales());
             stmt.setInt(13, vuelo.getAsientosDisponibles());
             stmt.setString(14, "ACTIVO");
-            stmt.setLong(15, idUsuarioCreador);
+            if (idUsuarioCreador != null) {
+                stmt.setLong(15, idUsuarioCreador);
+            } else {
+                stmt.setNull(15, java.sql.Types.BIGINT);
+            }
             
             stmt.executeUpdate();
             

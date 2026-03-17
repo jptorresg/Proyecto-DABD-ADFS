@@ -20,9 +20,28 @@ function headerData() {
         userRole: '', // 'ADMIN', 'REGISTRADO', 'WEBSERVICE'
         searchQuery: '',
         showProfileMenu: false,
+        showFilters: false,
+
+        filters: {
+            origen: '',
+            destino: '',
+            fechaSalida: '',
+        },
+
+        toggleFilters() {
+            this.showFilters = !this.showFilters;
+        },
+
+        applyFilters() {
+            const params = new URLSearchParams(this.filters).toString();
+            window.location.href = `${BASE_PATH}/views/resultados.html?${params}`;
+        },
         
         init() {
             this.checkSession();
+            window.addEventListener('toggle-filters', () => {
+                this.showFilters = true;
+            });
         },
         
         checkSession() {
@@ -69,18 +88,8 @@ function headerData() {
             if (this.userRole === 'ADMIN') {
                 window.location.href = `${BASE_PATH}/views/admin/dashboard.html`;
             }
-        },
-        
-        logout() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                localStorage.removeItem('userSession');
-                this.isLoggedIn = false;
-                this.userName = 'Usuario';
-                this.userRole = '';
-                this.showProfileMenu = false;
-                window.location.href = `${BASE_PATH}/views/index.html`;
-            }
         }
+        
     };
 }
 
@@ -129,26 +138,30 @@ function dashboardData() {
             this.isLoading = true;
             try {
                 // Fetch stats
-                const statsResponse = await fetch('${API_BASE}/admin/estadisticas', {
+                const statsResponse = await fetch(`${API_BASE}/admin/stats`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
                 });
                 
                 if (statsResponse.ok) {
-                    this.stats = await statsResponse.json();
+                    const result = await statsResponse.json();
+                    this.stats = result.data;
                 }
                 
                 // Fetch recent reservations
-                const reservationsResponse = await fetch('${API_BASE}/admin/reservaciones/recientes?limit=5', {
+                /*
+                const reservationsResponse = await fetch(`${API_BASE}/admin/reservaciones/recientes?limit=5`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
                 });
                 
+                
                 if (reservationsResponse.ok) {
                     this.recentReservations = await reservationsResponse.json();
                 }
+                */
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 showNotification('Error al cargar datos del dashboard', 'error');
@@ -196,6 +209,65 @@ function vuelosAdminData() {
             asientosTotales: 0
         },
         isLoading: true,
+
+        getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+
+            return {
+                origen: params.get("origen"),
+                destino: params.get("destino"),
+                fechaSalida: params.get("fechaSalida"),
+                tipoAsiento: params.get("tipoAsiento")
+            };
+        },
+
+        mapBackendVuelo(v) {
+            return {
+                id: v.idVuelo,
+                codigo: v.codigoVuelo,
+                origen: v.origenCiudad,
+                codigoIataOrigen: v.origenCodigoIata,
+                destino: v.destinoCiudad,
+                codigoIataDestino: v.destinoCodigoIata,
+                fechaSalida: v.fechaSalida,
+                horaSalida: v.horaSalida,
+
+                // ⭐ FALTABAN
+                fechaLlegada: v.fechaLlegada,
+                horaLlegada: v.horaLlegada,
+
+                tipoAsiento: v.tipoAsiento,
+                precioBase: Number(v.precioBase),
+                asientosDisponibles: v.asientosDisponibles,
+                asientosTotales: v.asientosTotales,
+                estado: v.estado
+            };
+        },
+
+        calcularDuracion(horaSalida, horaLlegada) {
+            const [hs, ms] = horaSalida.split(':').map(Number);
+            const [hl, ml] = horaLlegada.split(':').map(Number);
+
+            let inicio = hs * 60 + ms;
+            let fin = hl * 60 + ml;
+
+            if (fin < inicio) fin += 24 * 60;
+
+            const diff = fin - inicio;
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+
+            return `${h}h ${m}m`;
+        },
+
+        marcarMejorPrecio() {
+            if (!this.vuelos.length) return;
+
+            const minPrice = Math.min(...this.vuelos.map(v => v.precioBase));
+            this.vuelos.forEach(v => {
+                v.bestPrice = v.precioBase === minPrice;
+            });
+        },
         
         async init() {
             const session = getUserSession();
@@ -206,26 +278,44 @@ function vuelosAdminData() {
             }
             
             await this.fetchVuelos();
+            const query = this.getQueryParams();
         },
         
         async fetchVuelos() {
+
             this.isLoading = true;
+
             try {
-                const response = await fetch(`${API_BASE}/vuelos`, {
-                    headers: {
-                        'Authorization': `Bearer ${getUserSession()?.token}`
-                    }
+
+                const response = await fetch(`${API_BASE}/vuelos/admin`, {
+                    credentials: 'include'
                 });
-                
-                if (response.ok) {
-                    this.vuelos = await response.json();
+
+                const data = await response.json();
+
+                console.log("Respuesta backend:", data);
+
+                if (response.ok && data.success) {
+
+                    this.vuelos = data.data.map(v => this.mapBackendVuelo(v));
+                    console.log("Vuelos mapeados:", this.vuelos);
                     this.applyFilters();
+
+                } else {
+
+                    throw new Error(`HTTP error: ${response.status}`);
+
                 }
+
             } catch (error) {
-                console.error('Error fetching vuelos:', error);
+
+                console.error('Error cargando vuelos:', error);
                 showNotification('Error al cargar vuelos', 'error');
+
             } finally {
+
                 this.isLoading = false;
+
             }
         },
         
@@ -289,54 +379,130 @@ function vuelosAdminData() {
         
         async saveVuelo() {
             try {
-                const url = this.modalMode === 'create' 
-                    ? '${API_BASE}/vuelos'
+
+                // ======================
+                // VALIDACIONES FRONTEND
+                // ======================
+
+                if (this.currentVuelo.origen === this.currentVuelo.destino) {
+                    showNotification('Origen y destino no pueden ser iguales', 'error');
+                    return;
+                }
+
+                if (this.currentVuelo.fechaLlegada < this.currentVuelo.fechaSalida) {
+                    showNotification('La fecha de llegada no puede ser anterior a la salida', 'error');
+                    return;
+                }
+
+                if (this.currentVuelo.precioBase <= 0) {
+                    showNotification('El precio debe ser mayor a 0', 'error');
+                    return;
+                }
+
+                if (this.currentVuelo.asientosTotales <= 0) {
+                    showNotification('Debe haber al menos 1 asiento', 'error');
+                    return;
+                }
+
+                // ======================
+                // CONSTRUIR PAYLOAD
+                // ======================
+
+                const session = getUserSession();
+
+                if (!session || !session.idUsuario) {
+                    showNotification('Error: No hay sesión activa', 'error');
+                    console.error('Session data:', session);
+                    return;
+                }
+
+                console.log('Usuario logueado:', session);
+
+                const vueloPayload = {
+                    codigoVuelo: this.currentVuelo.codigo,
+                    origenCiudad: this.currentVuelo.origen,
+                    origenIata: this.currentVuelo.codigoIataOrigen,
+                    destinoCiudad: this.currentVuelo.destino,
+                    destinoIata: this.currentVuelo.codigoIataDestino,
+                    fechaSalida: this.currentVuelo.fechaSalida,
+                    horaSalida: this.currentVuelo.horaSalida,
+                    fechaLlegada: this.currentVuelo.fechaLlegada,
+                    horaLlegada: this.currentVuelo.horaLlegada,
+                    tipoAsiento: this.currentVuelo.tipoAsiento,
+                    precioBase: this.currentVuelo.precioBase,
+                    asientosTotales: this.currentVuelo.asientosTotales,
+                    asientosDisponibles: this.currentVuelo.asientosDisponibles,
+                    estado: this.currentVuelo.estado,
+
+                    idUsuarioCreador: session.idUsuario
+                };
+
+                console.log('Payload con idUsuarioCreador:', vueloPayload);
+
+                const url = this.modalMode === 'create'
+                    ? `${API_BASE}/vuelos`
                     : `${API_BASE}/vuelos/${this.currentVuelo.id}`;
-                
+
                 const method = this.modalMode === 'create' ? 'POST' : 'PUT';
-                
+
+                console.log("Payload enviado:", JSON.stringify(vueloPayload, null, 2));
                 const response = await fetch(url, {
                     method: method,
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getUserSession()?.token}`
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(this.currentVuelo)
+                    credentials: 'include',
+                    body: JSON.stringify(vueloPayload)
                 });
-                
-                if (response.ok) {
+
+                const data = await response.json();
+                console.log("Respuesta backend:", data);
+
+                if (response.ok && data.success) {
+
                     showNotification(
-                        this.modalMode === 'create' ? 'Vuelo creado exitosamente' : 'Vuelo actualizado exitosamente',
+                        this.modalMode === 'create'
+                            ? 'Vuelo creado exitosamente'
+                            : 'Vuelo actualizado exitosamente',
                         'success'
                     );
+
                     this.closeModal();
                     await this.fetchVuelos();
+
                 } else {
-                    throw new Error('Error al guardar vuelo');
+
+                    console.error("Backend response:", data);
+                    throw new Error(data.message || 'Error al guardar vuelo');
+
                 }
+
             } catch (error) {
+
                 console.error('Error saving vuelo:', error);
                 showNotification('Error al guardar vuelo', 'error');
+
             }
         },
         
         async deleteVuelo(vueloId) {
             if (!confirm('¿Estás seguro de eliminar este vuelo?')) return;
-            
+
             try {
                 const response = await fetch(`${API_BASE}/vuelos/${vueloId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${getUserSession()?.token}`
-                    }
+                    credentials: 'include'
                 });
-                
-                if (response.ok) {
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
                     showNotification('Vuelo eliminado exitosamente', 'success');
                     await this.fetchVuelos();
                 } else {
-                    throw new Error('Error al eliminar vuelo');
+                    throw new Error(data.message);
                 }
+
             } catch (error) {
                 console.error('Error deleting vuelo:', error);
                 showNotification('Error al eliminar vuelo', 'error');
@@ -388,17 +554,24 @@ function usuariosAdminData() {
         async fetchUsuarios() {
             this.isLoading = true;
             try {
-                const response = await fetch('${API_BASE}/admin/usuarios', {
+                const response = await fetch(`${API_BASE}/admin/usuarios`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
                 });
                 
                 if (response.ok) {
-                    this.usuarios = await response.json();
-                    this.calculateStats();
-                    this.applyFilters();
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.usuarios = data.data;
+                        this.calculateStats();
+                        this.applyFilters();
+                    }
+
                 }
+
             } catch (error) {
                 console.error('Error fetching usuarios:', error);
                 showNotification('Error al cargar usuarios', 'error');
@@ -520,7 +693,7 @@ function agenciasAdminData() {
         async fetchAgencias() {
             this.isLoading = true;
             try {
-                const response = await fetch('${API_BASE}/admin/agencias', {
+                const response = await fetch(`${API_BASE}/admin/agencias`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -539,7 +712,7 @@ function agenciasAdminData() {
         
         async fetchUsuariosWebService() {
             try {
-                const response = await fetch('${API_BASE}/admin/usuarios?tipo=WEBSERVICE', {
+                const response = await fetch(`${API_BASE}/admin/usuarios?tipo=WEBSERVICE`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -569,7 +742,7 @@ function agenciasAdminData() {
         
         async createAgencia() {
             try {
-                const response = await fetch('${API_BASE}/admin/agencias', {
+                const response = await fetch(`${API_BASE}/admin/agencias`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -629,7 +802,7 @@ function agenciasAdminData() {
 // ==================
 // 7. PERFIL DATA
 // ==================
-/*
+
 function perfilData() {
     return {
         usuario: {},
@@ -645,7 +818,7 @@ function perfilData() {
         async init() {
             const session = getUserSession();
             if (!session) {
-                window.location.href = '${BASE_PATH}/views/login.html';
+                window.location.href = `${BASE_PATH}/views/login.html`;
                 return;
             }
             
@@ -655,7 +828,7 @@ function perfilData() {
         async fetchProfile() {
             this.isLoading = true;
             try {
-                const response = await fetch('${API_BASE}/perfil', {
+                const response = await fetch(`${API_BASE}/perfil`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
@@ -678,7 +851,7 @@ function perfilData() {
         
         async updateProfile() {
             try {
-                const response = await fetch('${API_BASE}/perfil', {
+                const response = await fetch(`${API_BASE}/perfil`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -731,7 +904,7 @@ function perfilData() {
             }
             
             try {
-                const response = await fetch('${API_BASE}/perfil/cambiar-password', {
+                const response = await fetch(`${API_BASE}/perfil/cambiar-password`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -756,7 +929,7 @@ function perfilData() {
         }
     };
 }
-*/
+
 // ==================
 // 8. RESERVACIONES DATA
 // ==================
@@ -770,7 +943,7 @@ function reservacionesData() {
         async init() {
             const session = getUserSession();
             if (!session) {
-                window.location.href = '${BASE_PATH}/views/login.html';
+                window.location.href = `${BASE_PATH}/views/login.html`;
                 return;
             }
             
@@ -780,14 +953,17 @@ function reservacionesData() {
         async fetchReservaciones() {
             this.isLoading = true;
             try {
-                const response = await fetch('${API_BASE}/reservaciones/mis-reservaciones', { //***revisar
+                const response = await fetch(`${API_BASE}/reservaciones/mis-reservaciones`, { //***revisar
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
                     }
                 });
                 
-                if (response.ok) {
-                    this.reservaciones = await response.json();
+                const result = await response.json();
+
+
+                if (response.ok && result.success) {
+                    this.reservaciones = result.data;;
                     this.filtrarReservaciones();
                 }
             } catch (error) {
@@ -891,49 +1067,283 @@ function notificationsData() {
     };
 }
 
-// Función global para mostrar notificaciones
-function showNotification(message, type = 'info', duration = 3000) {
-    // Emitir evento personalizado que el componente de notificaciones escuchará
-    window.dispatchEvent(new CustomEvent('show-notification', {
-        detail: { message, type, duration }
-    }));
-}
+// ==================
+// 10. RESULTADOS DATA
+// ==================
+function resultadosData() {
+    return {
+        vuelos: [],
+        filteredVuelos: [],
+        displayedVuelos: [],
+        loading: true,
+        filters: {
+            precioMax: 3500,
+            tipoVuelo: {
+                directo: true,
+                escala: true
+            },
+            claseAsiento: {
+                turista: true,
+                business: true
+            }
+        },
+        sortBy: 'price-asc',
+        searchParams:{
+            origen: '',
+            destino: '',
+            fechaSalida: '',
+            pasajeros: 1,
+            tipoViaje: 'ida'
+        },
 
-// ===================================
-// UTILIDADES GLOBALES
-// ===================================
+        loadSearchParams() {
+            const query = this.getQueryParams();
 
-function saveUserSession(userData) {
-    localStorage.setItem('userSession', JSON.stringify(userData));
-}
+            this.searchParams.origen = query.origen || '';
+            this.searchParams.destino = query.destino || '';
+            this.searchParams.fechaSalida = query.fechaSalida || '';
+            this.searchParams.pasajeros = query.pasajeros || 1;
+            this.searchParams.tipoViaje = query.tipoViaje || 'ida';
+            this.searchParams.pasajeros = query.pasajeros ? parseInt(query.pasajeros) : 1;
+        },
 
-function getUserSession() {
-    const session = localStorage.getItem('userSession');
-    return session ? JSON.parse(session) : null;
-}
+        openFiltersWithCurrentValues() {
+            this.filters.origen = this.searchParams.origen;
+            this.filters.destino = this.searchParams.destino;
+            this.filters.fechaSalida = this.searchParams.fechaSalida;
+            this.filters.pasajeros = this.searchParams.pasajeros;
 
-function clearUserSession() {
-    localStorage.removeItem('userSession');
-}
+            this.showFilters = true;
+        },
 
-// Formatear moneda
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-GT', {
-        style: 'currency',
-        currency: 'GTQ'
-    }).format(amount);
-}
+        getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                origen: params.get('origen'),
+                destino: params.get('destino'),
+                fechaSalida: params.get('fechaSalida'),
+                tipoAsiento: params.get('tipoAsiento'),
+                pasajeros: params.get('pasajeros')
+            };
+        },
 
-// Formatear fecha
-function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('es-GT', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-}
+        applySort() {
+            let vuelos = [...this.filteredVuelos];
 
-// Formatear hora
-function formatTime(timeString) {
-    return timeString.substring(0, 5); // HH:MM
+            switch (this.sortBy) {
+                case 'price-asc':
+                    vuelos.sort((a,b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    vuelos.sort((a,b) => b.price - a.price);
+                    break;
+                case 'rating':
+                    vuelos.sort((a,b) => b.rating - a.rating);
+                    break;
+                case 'departure':
+                    vuelos.sort((a,b) => a.from.time.localeCompare(b.from.time));
+                    break;
+                case 'duration':
+                    vuelos.sort((a,b) => this.convertDurationToMinutes(a.duration) - this.convertDurationToMinutes(b.duration));
+                    break;
+            }
+
+            this.displayedVuelos = vuelos;
+        },
+
+        applyFilters() {
+            this.filteredVuelos = this.vuelos.filter(v => {
+                if (v.price > this.filters.precioMax) return false;
+
+                if (!this.filters.tipoVuelo.directo && v.type === 'direct') return false;
+                if (!this.filters.tipoVuelo.escala && v.type === 'layover') return false;
+
+                if (!this.filters.claseAsiento.turista && v.class === 'TURISTA') return false;
+                if (!this.filters.claseAsiento.business && v.class === 'BUSINESS') return false;
+
+                return true;
+            });
+
+            this.applySort();
+        },
+
+        updatePriceProgress() {
+            const min = 800;
+            const max = 3500;
+            const value = this.filters.precioMax;
+
+            const percentage = ((value - min) / (max - min)) * 100;
+
+            const range = document.querySelector('.form-range');
+            if (range) {
+                range.style.background = `
+                    linear-gradient(to right, 
+                        #0d6efd 0%, 
+                        #0d6efd ${percentage}%, 
+                        #ddd ${percentage}%, 
+                        #ddd 100%)
+                `;
+            }
+        },
+
+        renderRouteGraphic(type) {
+
+            if (type === 'direct') {
+                return `
+                <div class="route-direct">
+                    <span class="route-dot"></span>
+                    <span class="route-line"></span>
+                    <i class="fa-solid fa-plane route-plane"></i>
+                    <span class="route-dot"></span>
+                </div>
+                `;
+            }
+
+            return `
+            <div class="route-layover">
+                <span class="route-dot"></span>
+                <span class="route-curve"></span>
+                <span class="route-stop"></span>
+                <i class="fa-solid fa-plane route-plane-layover"></i>
+                <span class="route-dot"></span>
+            </div>
+            `;
+        },
+
+        renderStars(rating) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= Math.floor(rating)) {
+                    html += '<i class="fas fa-star"></i>';
+                } else if (i - rating < 1 && i - rating > 0) {
+                    html += '<i class="fas fa-star-half-alt"></i>';
+                } else {
+                    html += '<i class="far fa-star"></i>';
+                }
+            }
+            return html;
+        },
+
+        async init() {
+            this.loadSearchParams();
+            await this.fetchVuelos();
+            const query = this.getQueryParams();
+
+            if (query.openFilters === 'true') {
+                window.dispatchEvent(new CustomEvent('toggle-filters'));
+            }
+
+            this.$nextTick(() => {
+                this.updatePriceProgress();
+            });
+        },
+
+        async fetchVuelos() {
+            try {
+                const query = this.getQueryParams();
+
+                const params = new URLSearchParams();
+
+                if (query.origen) params.append("origen", query.origen);
+                if (query.destino) params.append("destino", query.destino);
+                if (query.fechaSalida) params.append("fechaSalida", query.fechaSalida);
+                if (query.tipoAsiento) params.append("tipoAsiento", query.tipoAsiento);
+
+                const url = params.toString()
+                    ? `${API_BASE}/vuelos?${params.toString()}`
+                    : `${API_BASE}/vuelos`;
+
+                console.log("Fetching:", url); // 👈 DEBUG
+
+                const response = await fetch(url);
+                const json = await response.json();
+
+                if (json.success) {
+                    this.vuelos = json.data.map(v => this.mapBackendVuelo(v));
+
+                    this.filteredVuelos = this.vuelos;
+                    this.displayedVuelos = this.vuelos;
+
+                    this.marcarMejorPrecio();
+                }
+
+            } catch (error) {
+                console.error('Error cargando vuelos:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        mapBackendVuelo(v) {
+            return {
+                id: v.idVuelo,
+                code: v.codigoVuelo,
+                type: 'direct', // luego puedes calcular escalas
+                class: v.tipoAsiento,
+                price: Number(v.precioBase),
+
+                from: {
+                    city: v.origenCiudad,
+                    time: formatTime(v.horaSalida),
+                    zone: v.origenCodigoIata
+                },
+
+                to: {
+                    city: v.destinoCiudad,
+                    time: formatTime(v.horaLlegada),
+                    zone: v.destinoCodigoIata
+                },
+
+                duration: this.calcularDuracion(
+                    v.horaSalida,
+                    v.horaLlegada
+                ),
+
+                rating: (Math.random() * 2 + 3).toFixed(1),
+                reviews: Math.floor(Math.random() * 200) + 50,
+
+                bestPrice: false,
+                layover: null
+            };
+        },
+
+        calcularDuracion(horaSalida, horaLlegada) {
+            const [hs, ms] = horaSalida.split(':').map(Number);
+            const [hl, ml] = horaLlegada.split(':').map(Number);
+
+            let inicio = hs * 60 + ms;
+            let fin = hl * 60 + ml;
+
+            if (fin < inicio) fin += 24 * 60;
+
+            const diff = fin - inicio;
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+
+            return `${h}h ${m}m`;
+        },
+
+        marcarMejorPrecio() {
+            if (!this.vuelos.length) return;
+
+            const minPrice = Math.min(...this.vuelos.map(v => v.price));
+            this.vuelos.forEach(v => {
+                v.bestPrice = v.price === minPrice;
+            });
+        },
+
+        navigateToDetalle(id) {
+            const pasajeros = this.searchParams?.pasajeros || 1;
+
+            window.location.href =
+                `${BASE_PATH}/views/detalle.html?id=${id}&pasajeros=${pasajeros}`;
+        },
+
+        convertDurationToMinutes(duration) {
+            const [hPart, mPart] = duration.split(' ');
+            const hours = parseInt(hPart.replace('h', ''));
+            const minutes = parseInt(mPart.replace('m', ''));
+            return hours * 60 + minutes;
+        }
+    };
 }

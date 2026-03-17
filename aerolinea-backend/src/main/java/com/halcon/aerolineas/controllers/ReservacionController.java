@@ -100,18 +100,21 @@ public class ReservacionController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.setStatus(401);
-            out.print(JsonResponse.error("No autenticado"));
-            return;
+        HttpSession session = request.getSession(true);
+
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
+
+        // SOLO PARA DESARROLLO
+        if (usuarioId == null) {
+            usuarioId = 2L;
+            session.setAttribute("usuarioId", usuarioId);
         }
         
         try {
             JsonObject json = parseRequestBody(request);
             
             Long idVuelo = json.get("idVuelo").getAsLong();
-            Long usuarioId = (Long) session.getAttribute("usuarioId");
+            System.out.println("Usuario ID: " + usuarioId);
             String metodoPago = json.get("metodoPago").getAsString();
             
             // Parsear pasajeros
@@ -135,6 +138,7 @@ public class ReservacionController extends HttpServlet {
             out.print(JsonResponse.success("Reservación creada exitosamente", reservacion));
             
         } catch (Exception e) {
+            e.printStackTrace();
             response.setStatus(400);
             out.print(JsonResponse.error(e.getMessage()));
         }
