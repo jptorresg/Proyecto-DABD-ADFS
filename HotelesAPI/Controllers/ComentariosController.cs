@@ -28,9 +28,9 @@ namespace HotelesAPI.Controllers
 
                 return Ok(JsonResponse.Ok("Comentarios obtenidos", new
                 {
-                    Promedio = promedio,
-                    Total = comentarios.Count,
-                    Comentarios = comentarios
+                    promedioRating = promedio,
+                    total = comentarios.Count,
+                    comentarios
                 }));
             }
             catch (Exception ex)
@@ -60,7 +60,8 @@ namespace HotelesAPI.Controllers
         {
             try
             {
-                if (dto.Rating < 1 || dto.Rating > 5)
+                // Si es respuesta, rating es 0 (no aplica)
+                if (dto.IdComentarioPadre == null && (dto.Rating < 1 || dto.Rating > 5))
                     return BadRequest(JsonResponse.Error("El rating debe estar entre 1 y 5"));
 
                 if (string.IsNullOrEmpty(dto.Texto))
@@ -70,12 +71,13 @@ namespace HotelesAPI.Controllers
                 {
                     IdUsuario = dto.IdUsuario,
                     IdHabitacion = dto.IdHabitacion,
-                    Rating = dto.Rating,
-                    Texto = dto.Texto
+                    Rating = dto.IdComentarioPadre != null ? 0 : dto.Rating,
+                    Texto = dto.Texto,
+                    IdComentarioPadre = dto.IdComentarioPadre
                 };
 
                 int id = _comentarioDAO.Create(comentario);
-                return StatusCode(201, JsonResponse.Ok("Comentario publicado exitosamente", new { IdComentario = id }));
+                return StatusCode(201, JsonResponse.Ok("Comentario publicado exitosamente", new { idComentario = id }));
             }
             catch (Exception ex)
             {

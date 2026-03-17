@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Hoteles - Bedly</title>
+    <title>Bedly | Hoteles y Reservas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,47 +14,74 @@
         .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
         .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
         .brand span { color: #f5a623; }
-        .hero { background: linear-gradient(135deg, #003580, #0055b3); color: white; padding: 70px 0 50px; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 900; }
+        .hero { background: linear-gradient(135deg, #003580, #0055b3); color: white; padding: 90px 0 70px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; }
+        .hero p { font-size: 1.15rem; opacity: 0.85; }
         .search-box { background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.15); margin-top: -40px; position: relative; z-index: 10; }
         .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.08); transition: transform 0.2s, box-shadow 0.2s; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,53,128,0.15); }
         .badge-amenidad { background: #e8f4fd; color: #1e6fa5; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; }
+        .btn-reservar-lock { background: #f5a623; border: none; color: white; border-radius: 10px; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+        .btn-reservar-lock:hover { background: #e8940f; color: white; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+        .feature-icon { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 1rem; }
+        .stat-box { background: white; border-radius: 15px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 24px rgba(0,53,128,0.08); }
+        .stat-number { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; color: var(--primary-color); }
+        .login-banner { background: linear-gradient(135deg, #f5a623, #e8940f); border-radius: 15px; padding: 2rem; color: white; }
         .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; }
         .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
     </style>
 </head>
-<body x-data="appHabitaciones()" x-init="init()">
+<body x-data="landingApp()" x-init="init()">
 
+    <!-- Navbar -->
     <nav class="navbar-bedly">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <a class="brand" href="landing.html">Bed<span>ly</span></a>
             <div class="d-flex align-items-center gap-3">
-                <a href="historial.html" class="btn btn-outline-light btn-sm rounded-pill">
-                    <i class="bi bi-calendar-check me-1"></i>Mis Reservas
+                <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-4">
+                    <i class="bi bi-person me-1"></i>Iniciar Sesión
                 </a>
-                <a href="admin.html" class="btn btn-warning btn-sm rounded-pill fw-bold"
-                   x-show="usuario && (usuario.rol === 'admin' || usuario.rol === 'superadmin' || usuario.rol === 'recepcionista' || usuario.rol === 'auditor')">
-                    <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                </a>
-                <span class="text-white-50 small" x-text="usuario ? '👤 ' + usuario.nombre : ''"></span>
-                <a href="landing.html" class="btn btn-outline-light btn-sm rounded-pill"
-                   @click="localStorage.removeItem('usuario')">
-                    <i class="bi bi-box-arrow-left me-1"></i>Salir
+                <a href="registro.html" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold">
+                    <i class="bi bi-person-plus me-1"></i>Registrarse
                 </a>
             </div>
         </div>
     </nav>
 
+    <!-- Hero -->
     <div class="hero text-center">
         <div class="container">
-            <h1>Bienvenido, <span x-text="usuario ? usuario.nombre.split(' ')[0] : ''"></span></h1>
-            <p class="lead mb-0" style="opacity:0.85;">Explora y reserva la habitación perfecta para ti.</p>
+            <h1>Encuentra tu próximo destino</h1>
+            <p class="lead mb-4">Explora nuestras habitaciones y reserva fácilmente con tu cuenta.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="login.html" class="btn btn-warning btn-lg rounded-pill px-5 fw-bold">
+                    <i class="bi bi-calendar-check me-2"></i>Reservar ahora
+                </a>
+                <a href="registro.html" class="btn btn-outline-light btn-lg rounded-pill px-5">
+                    <i class="bi bi-person-plus me-2"></i>Crear cuenta gratis
+                </a>
+            </div>
         </div>
     </div>
 
     <main class="container my-5">
+
+        <!-- Banner de login -->
+        <div class="login-banner mb-5 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h5 class="fw-bold mb-1"><i class="bi bi-lock me-2"></i>¿Quieres hacer una reserva?</h5>
+                <p class="mb-0 small" style="opacity:0.9;">Inicia sesión o crea una cuenta gratuita para reservar cualquier habitación.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="login.html" class="btn btn-light rounded-pill px-4 fw-bold" style="color:#003580;">
+                    Iniciar Sesión
+                </a>
+                <a href="registro.html" class="btn btn-outline-light rounded-pill px-4">
+                    Registrarse
+                </a>
+            </div>
+        </div>
 
         <!-- Filtros -->
         <div class="search-box mb-5">
@@ -92,7 +119,7 @@
             </div>
         </div>
 
-        <!-- Título -->
+        <!-- Título sección -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="section-title mb-0">Habitaciones Disponibles</h2>
             <span class="text-muted small" x-text="habitaciones.length + ' habitaciones encontradas'"></span>
@@ -111,7 +138,7 @@
         </div>
 
         <!-- Tarjetas -->
-        <div class="row g-4">
+        <div class="row g-4 mb-5">
             <template x-for="h in habitaciones" :key="h.idHabitacion">
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100">
@@ -146,17 +173,95 @@
                                           x-text="'Q' + h.precioNoche.toFixed(2)"></span>
                                     <span class="text-muted small"> / noche</span>
                                 </div>
-                                <a :href="'detalle_habitacion.html?id=' + h.idHabitacion"
-                                   class="btn btn-primary rounded-pill px-4"
-                                   style="background:var(--primary-color); border:none;">
-                                    Ver detalle
-                                </a>
+                                <div class="d-flex gap-2">
+                                    <a :href="'detalle_habitacion.html?id=' + h.idHabitacion + '&modo=publico'"
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                        <i class="bi bi-eye me-1"></i>Ver detalle
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </template>
         </div>
+
+        <!-- Características -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <h2 class="section-title text-center mb-4">¿Por qué elegir Bedly?</h2>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 text-center h-100">
+                    <div class="feature-icon mx-auto" style="background:#dbeafe;">
+                        <i class="bi bi-shield-check" style="color:#2563eb;"></i>
+                    </div>
+                    <h6 class="fw-bold">Reservas Seguras</h6>
+                    <p class="text-muted small mb-0">Tu información y pagos están protegidos en todo momento.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 text-center h-100">
+                    <div class="feature-icon mx-auto" style="background:#dcfce7;">
+                        <i class="bi bi-clock" style="color:#16a34a;"></i>
+                    </div>
+                    <h6 class="fw-bold">Disponibilidad en Tiempo Real</h6>
+                    <p class="text-muted small mb-0">Consulta disponibilidad actualizada al instante.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-4 text-center h-100">
+                    <div class="feature-icon mx-auto" style="background:#fef9c3;">
+                        <i class="bi bi-tag" style="color:#b45309;"></i>
+                    </div>
+                    <h6 class="fw-bold">Cupones y Descuentos</h6>
+                    <p class="text-muted small mb-0">Accede a ofertas exclusivas y códigos de descuento.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-4 mb-5">
+            <div class="col-6 col-md-3">
+                <div class="stat-box">
+                    <div class="stat-number" x-text="habitaciones.length + '+'"></div>
+                    <div class="text-muted small">Habitaciones</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-box">
+                    <div class="stat-number">5⭐</div>
+                    <div class="text-muted small">Calidad</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-box">
+                    <div class="stat-number">24/7</div>
+                    <div class="text-muted small">Soporte</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-box">
+                    <div class="stat-number">100%</div>
+                    <div class="text-muted small">Seguro</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA final -->
+        <div class="card p-5 text-center" style="background: linear-gradient(135deg, #003580, #0055b3); color:white;">
+            <h3 class="fw-bold mb-2" style="font-family:'Playfair Display',serif;">¿Listo para reservar?</h3>
+            <p class="mb-4" style="opacity:0.85;">Crea tu cuenta gratis y empieza a disfrutar de los mejores precios.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="registro.html" class="btn btn-warning btn-lg rounded-pill px-5 fw-bold">
+                    <i class="bi bi-person-plus me-2"></i>Crear cuenta gratis
+                </a>
+                <a href="login.html" class="btn btn-outline-light btn-lg rounded-pill px-5">
+                    Ya tengo cuenta
+                </a>
+            </div>
+        </div>
+
     </main>
 
     <footer class="bg-white py-4 mt-5 border-top">
@@ -170,24 +275,21 @@
     <script>
     const API = 'http://localhost:5043/api';
 
-    function appHabitaciones() {
+    function landingApp() {
         return {
             habitaciones: [],
             loading: false,
-            usuario: null,
             filtros: { tipo: '', capacidad: '', precioMax: '' },
 
             async init() {
-                // Si no hay sesión redirigir a landing
-                this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
-                if (!this.usuario) {
-                    window.location.href = 'landing.html';
-                    return;
-                }
-                // Si es admin redirigir al dashboard
-                const rolesAdmin = ['superadmin', 'admin', 'recepcionista', 'auditor'];
-                if (rolesAdmin.includes(this.usuario.rol)) {
-                    window.location.href = 'admin.html';
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (usuario) {
+                    const rolesAdmin = ['superadmin', 'admin', 'recepcionista', 'auditor'];
+                    if (rolesAdmin.includes(usuario.rol)) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
                     return;
                 }
                 await this.cargarHabitaciones();

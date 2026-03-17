@@ -11,5 +11,7 @@ namespace HotelesAPI.Models
         public int Rating { get; set; }
         public string Texto { get; set; } = string.Empty;
         public DateTime FechaComentario { get; set; }
+        public int? IdComentarioPadre { get; set; }
+        public List<Comentario> Respuestas { get; set; } = new();
     }
 }

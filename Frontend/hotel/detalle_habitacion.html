@@ -15,9 +15,6 @@
         .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
         .brand span { color: #f5a623; }
         .gallery-main { width: 100%; height: 380px; object-fit: cover; border-radius: 15px; cursor: pointer; }
-        .gallery-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; border: 2px solid transparent; }
-        .gallery-thumb.active { border-color: var(--primary-color); opacity: 1; }
-        .gallery-thumb:hover { opacity: 0.85; }
         .room-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--primary-color); }
         .hotel-name { font-size: 0.95rem; color: #6b7280; }
         .stars { color: #f5a623; }
@@ -40,13 +37,15 @@
         .currency-toggle { display: inline-flex; background: #e5e7eb; border-radius: 20px; padding: 3px; }
         .currency-btn { border: none; background: transparent; border-radius: 16px; padding: 0.25rem 0.8rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #6b7280; }
         .currency-btn.active { background-color: var(--primary-color); color: #fff; }
+        .lock-banner { background: linear-gradient(135deg, #f5a623, #e8940f); border-radius: 12px; padding: 1rem 1.2rem; color: white; margin-bottom: 1rem; }
     </style>
 </head>
 <body x-data="detalleApp()" x-init="init()">
+
     <nav class="navbar-bedly mb-4">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="brand" href="index.html">Bed<span>ly</span></a>
-            <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill">
+            <a class="brand" href="landing.html">Bed<span>ly</span></a>
+            <a :href="modoPublico ? 'landing.html' : 'index.html'" class="btn btn-outline-light btn-sm rounded-pill">
                 <i class="bi bi-arrow-left me-1"></i>Volver al catálogo
             </a>
         </div>
@@ -77,7 +76,7 @@
                         <h1 class="room-title mb-1" x-text="habitacion.tipoHabitacion + ' ' + habitacion.numHabitacion"></h1>
                         <p class="hotel-name mb-1">
                             <i class="bi bi-building me-1"></i>
-                            <span x-text="habitacion.nombreHotel"></span> · 
+                            <span x-text="habitacion.nombreHotel"></span> ·
                             <span x-text="habitacion.ubicacion"></span>
                         </p>
                         <div class="stars" x-html="'★'.repeat(habitacion.estrellas || 0)"></div>
@@ -85,7 +84,7 @@
                     <div class="text-end">
                         <div class="score-big" x-text="promedioRating > 0 ? promedioRating : 'N/A'"></div>
                         <div style="font-size:0.75rem; color:#9ca3af; margin-top:4px;" x-text="totalComentarios + ' reseñas'"></div>
-                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
                            class="text-primary small" style="font-size:0.75rem;">Ver todas</a>
                     </div>
                 </div>
@@ -94,7 +93,8 @@
                 <div class="card mb-4">
                     <div class="card-body p-4">
                         <h5 class="section-title">Descripción</h5>
-                        <p style="font-size:0.95rem; color:#374151; line-height:1.7;" x-text="habitacion.descripcion || 'Habitación disponible en ' + habitacion.nombreHotel"></p>
+                        <p style="font-size:0.95rem; color:#374151; line-height:1.7;"
+                           x-text="habitacion.descripcion || 'Habitación disponible en ' + habitacion.nombreHotel"></p>
                         <div class="row mt-3 g-2">
                             <div class="col-auto">
                                 <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
@@ -137,7 +137,7 @@
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="section-title mb-0" style="border:none;">Reseñas de Huéspedes</h5>
-                            <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                            <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
                                class="btn btn-outline-primary btn-sm rounded-pill">
                                 <i class="bi bi-star me-1"></i>Ver todas
                             </a>
@@ -229,18 +229,37 @@
                             </div>
                         </div>
 
-                        <button class="btn btn-primary w-100 mb-2" @click="reservar()" 
+                        <!-- Modo público: banner de login -->
+                        <div x-show="modoPublico" class="lock-banner mb-3">
+                            <div class="fw-bold small mb-1">
+                                <i class="bi bi-lock me-1"></i>Inicia sesión para reservar
+                            </div>
+                            <p class="small mb-2" style="opacity:0.9;">Necesitas una cuenta para completar tu reserva.</p>
+                            <div class="d-flex gap-2">
+                                <a href="login.html" class="btn btn-light btn-sm rounded-pill fw-bold px-3" style="color:#003580;">
+                                    Iniciar Sesión
+                                </a>
+                                <a href="registro.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                                    Registrarse
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Modo logueado: botón reservar normal -->
+                        <button x-show="!modoPublico"
+                                class="btn btn-primary w-100 mb-2"
+                                @click="reservar()"
                                 :disabled="habitacion.estado !== 'Disponible'">
                             <i class="bi bi-calendar-check me-2"></i>
                             <span x-text="habitacion.estado === 'Disponible' ? 'Reservar Ahora' : 'No Disponible'"></span>
                         </button>
 
-                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')" 
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
                            class="btn btn-outline-secondary w-100">
                             <i class="bi bi-star me-2"></i>Ver todas las reseñas
                         </a>
 
-                        <p class="text-center text-muted small mt-2 mb-0">
+                        <p class="text-center text-muted small mt-2 mb-0" x-show="!modoPublico">
                             <i class="bi bi-shield-check me-1 text-success"></i>Sin cargos hasta confirmar
                         </p>
                     </div>
@@ -265,10 +284,17 @@
             checkOut: '',
             huespedes: 2,
             hoy: new Date().toISOString().split('T')[0],
+            modoPublico: false,
 
             async init() {
                 const params = new URLSearchParams(window.location.search);
                 const id = params.get('id');
+                const modo = params.get('modo');
+
+                // Determinar si es modo público
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                this.modoPublico = !usuario || modo === 'publico';
+
                 if (!id) {
                     this.error = 'No se especificó una habitación.';
                     this.loading = false;
@@ -316,13 +342,16 @@
                 const diff = new Date(this.checkOut) - new Date(this.checkIn);
                 return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
             },
+
             get subtotal() {
                 const precio = this.moneda === 'GTQ' ? this.habitacion.precioNoche : (this.habitacion.precioNoche / 7.8);
                 return (precio * this.noches).toFixed(2);
             },
+
             get iva() {
                 return (this.subtotal * 0.12).toFixed(2);
             },
+
             get total() {
                 return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(2);
             },

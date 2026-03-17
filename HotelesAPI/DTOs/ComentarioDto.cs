@@ -6,5 +6,6 @@ namespace HotelesAPI.DTOs
         public int IdHabitacion { get; set; }
         public int Rating { get; set; }
         public string Texto { get; set; } = string.Empty;
+        public int? IdComentarioPadre { get; set; }
     }
 }

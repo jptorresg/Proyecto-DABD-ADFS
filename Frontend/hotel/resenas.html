@@ -25,9 +25,11 @@
         .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
         .bar-fill { height: 100%; background-color: var(--primary-color); border-radius: 4px; }
         .bar-num { font-size: 0.82rem; font-weight: 600; width: 30px; text-align: right; flex-shrink: 0; }
-        .resena-card { background: #fff; border-radius: 15px; padding: 1.2rem 1.4rem; box-shadow: 0 2px 12px rgba(0,53,128,0.07); margin-bottom: 1rem; transition: transform 0.3s; }
-        .resena-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .resena-card { background: #fff; border-radius: 15px; padding: 1.2rem 1.4rem; box-shadow: 0 2px 12px rgba(0,53,128,0.07); margin-bottom: 1rem; }
+        .resena-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .respuesta-card { background: #f8fafc; border-radius: 12px; padding: 1rem 1.2rem; margin-top: 0.75rem; border-left: 3px solid var(--primary-color); }
         .reviewer-avatar { width: 44px; height: 44px; border-radius: 50%; background-color: var(--primary-color); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+        .reviewer-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background-color: #6366f1; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
         .reviewer-name { font-weight: 600; font-size: 0.95rem; }
         .reviewer-date { font-size: 0.78rem; color: #9ca3af; }
         .stars-display { color: #f5a623; font-size: 0.9rem; }
@@ -41,13 +43,19 @@
         .star-btn { background: none; border: none; font-size: 2rem; color: #d1d5db; cursor: pointer; transition: color 0.15s, transform 0.15s; padding: 0; }
         .star-btn.selected, .star-btn:hover { color: #f5a623; transform: scale(1.2); }
         .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary-color); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
+        .btn-responder { background: none; border: none; color: #6b7280; font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px; transition: all 0.2s; }
+        .btn-responder:hover { background: #e5e7eb; color: var(--primary-color); }
+        .respuesta-form { background: #f0f4f8; border-radius: 10px; padding: 0.75rem; margin-top: 0.75rem; }
+        .login-aviso { background: linear-gradient(135deg, #f5a623, #e8940f); border-radius: 12px; padding: 1.2rem; color: white; text-align: center; }
+        .menciona-a { font-size: 0.78rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.25rem; }
     </style>
 </head>
 <body x-data="resenasApp()" x-init="init()">
     <nav class="navbar-bedly">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="brand" href="index.html">Bed<span>ly</span></a>
-            <a :href="'detalle_habitacion.html?id=' + idHabitacion" class="btn btn-outline-light btn-sm rounded-pill">
+            <a class="brand" :href="modoPublico ? 'landing.html' : 'index.html'">Bed<span>ly</span></a>
+            <a :href="'detalle_habitacion.html?id=' + idHabitacion + (modoPublico ? '&modo=publico' : '')"
+               class="btn btn-outline-light btn-sm rounded-pill">
                 <i class="bi bi-arrow-left me-1"></i>Volver
             </a>
         </div>
@@ -62,14 +70,14 @@
 
     <main class="container my-4">
 
-        <!-- Loading -->
         <div x-show="loading" class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2 text-muted">Cargando reseñas...</p>
         </div>
 
         <div class="row g-4" x-show="!loading">
-            <!-- Panel de puntuación -->
+
+            <!-- Panel izquierdo -->
             <div class="col-lg-4">
                 <div class="card mb-3">
                     <div class="score-hero">
@@ -77,7 +85,7 @@
                         <div class="stars-display" x-html="promedio > 0 ? '★'.repeat(Math.round(promedio)) + '☆'.repeat(5 - Math.round(promedio)) : ''"></div>
                         <div class="score-label mt-1">
                             <span x-text="promedio >= 4.5 ? 'Excepcional' : promedio >= 4 ? 'Muy bueno' : promedio >= 3 ? 'Bueno' : 'Regular'"></span>
-                             · <span x-text="resenas.length"></span> reseñas
+                            · <span x-text="resenas.length"></span> reseñas
                         </div>
                     </div>
                     <div class="card-body p-3" x-show="resenas.length > 0">
@@ -94,15 +102,11 @@
                     </div>
                 </div>
 
-                <!-- Formulario nueva reseña -->
-                <div class="card">
+                <div class="card" x-show="!modoPublico">
                     <div class="card-body p-4">
                         <h5 class="section-title">Deja tu Reseña</h5>
-
-                        <!-- Error/éxito -->
                         <div x-show="errorForm" class="alert alert-danger small p-2 mb-3" x-text="errorForm"></div>
                         <div x-show="exitoForm" class="alert alert-success small p-2 mb-3">¡Reseña publicada exitosamente!</div>
-
                         <div class="mb-3">
                             <label class="form-label">Tu calificación</label>
                             <div class="star-selector">
@@ -114,14 +118,24 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tu comentario</label>
-                            <textarea class="form-control" rows="4" x-model="nuevaResena.texto" 
+                            <textarea class="form-control" rows="4" x-model="nuevaResena.texto"
                                       placeholder="Cuéntanos tu experiencia..."></textarea>
                         </div>
-                        <button class="btn btn-primary w-100" @click="publicar()" 
+                        <button class="btn btn-primary w-100" @click="publicar()"
                                 :disabled="nuevaResena.rating === 0 || !nuevaResena.texto || cargando">
                             <span x-show="!cargando"><i class="bi bi-send me-2"></i>Publicar Reseña</span>
                             <span x-show="cargando"><span class="spinner-border spinner-border-sm me-2"></span>Publicando...</span>
                         </button>
+                    </div>
+                </div>
+
+                <div class="login-aviso" x-show="modoPublico">
+                    <i class="bi bi-lock" style="font-size:2rem;"></i>
+                    <h6 class="fw-bold mt-2 mb-1">¿Quieres dejar una reseña?</h6>
+                    <p class="small mb-3" style="opacity:0.9;">Inicia sesión o crea una cuenta para compartir tu experiencia.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="login.html" class="btn btn-light btn-sm rounded-pill fw-bold px-3" style="color:#003580;">Iniciar Sesión</a>
+                        <a href="registro.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Registrarse</a>
                     </div>
                 </div>
             </div>
@@ -139,11 +153,12 @@
 
                 <div x-show="resenas.length === 0" class="text-center py-5 text-muted">
                     <i class="bi bi-star" style="font-size:3rem;"></i>
-                    <p class="mt-2">Sé el primero en dejar una reseña.</p>
+                    <p class="mt-2">Aún no hay reseñas para esta habitación.</p>
                 </div>
 
                 <template x-for="r in resenasFiltradas" :key="r.idComentario">
                     <div class="resena-card">
+                        <!-- Reseña principal -->
                         <div class="d-flex align-items-center gap-3 mb-2">
                             <div class="reviewer-avatar" x-text="r.nombreUsuario ? r.nombreUsuario[0].toUpperCase() : '?'"></div>
                             <div class="flex-grow-1">
@@ -155,7 +170,87 @@
                                 <div style="font-size:0.78rem; font-weight:700; color:var(--primary-color); text-align:right;" x-text="r.rating + '.0'"></div>
                             </div>
                         </div>
-                        <p class="resena-text mb-0" x-text="r.texto"></p>
+                        <p class="resena-text mb-2" x-text="r.texto"></p>
+
+                        <!-- Botón responder reseña principal -->
+                        <div x-show="!modoPublico">
+                            <button class="btn-responder" @click="toggleRespuesta(r.idComentario, null)">
+                                <i class="bi bi-reply me-1"></i>
+                                <span x-text="respondiendo === r.idComentario ? 'Cancelar' : 'Responder'"></span>
+                            </button>
+                        </div>
+
+                        <!-- Form respuesta a reseña principal -->
+                        <div class="respuesta-form" x-show="respondiendo === r.idComentario" x-transition>
+                            <div class="d-flex gap-2">
+                                <div class="reviewer-avatar-sm" x-text="usuario ? usuario.nombre[0].toUpperCase() : '?'"></div>
+                                <div class="flex-grow-1">
+                                    <textarea class="form-control form-control-sm mb-2" rows="2"
+                                              x-model="textoRespuesta"
+                                              placeholder="Escribe tu respuesta..."></textarea>
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                            @click="publicarRespuesta(r.idComentario, r.idComentario)"
+                                            :disabled="!textoRespuesta || cargandoRespuesta">
+                                        <span x-show="!cargandoRespuesta"><i class="bi bi-send me-1"></i>Responder</span>
+                                        <span x-show="cargandoRespuesta"><span class="spinner-border spinner-border-sm"></span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hilo de respuestas flat (estilo YouTube) -->
+                        <template x-if="r.respuestas && r.respuestas.length > 0">
+                            <div class="mt-2">
+                                <button class="btn-responder mb-2" @click="toggleHilo(r.idComentario)">
+                                    <i class="bi bi-chat-dots me-1"></i>
+                                    <span x-text="(hilosExpandidos[r.idComentario] ? 'Ocultar ' : 'Ver ') + contarTotalRespuestas(r.respuestas) + ' respuesta' + (contarTotalRespuestas(r.respuestas) !== 1 ? 's' : '')"></span>
+                                </button>
+
+                                <div x-show="hilosExpandidos[r.idComentario]" x-transition>
+                                    <template x-for="resp in aplanarRespuestas(r.respuestas)" :key="resp.idComentario">
+                                        <div class="respuesta-card">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <div class="reviewer-avatar-sm" x-text="resp.nombreUsuario ? resp.nombreUsuario[0].toUpperCase() : '?'"></div>
+                                                <div>
+                                                    <span class="fw-bold" style="font-size:0.85rem;" x-text="resp.nombreUsuario"></span>
+                                                    <span class="text-muted ms-2" style="font-size:0.75rem;" x-text="formatFecha(resp.fechaComentario)"></span>
+                                                </div>
+                                            </div>
+                                            <div x-show="resp.nombrePadre" class="menciona-a ms-4">
+                                                <i class="bi bi-reply-fill"></i> <span x-text="resp.nombrePadre"></span>
+                                            </div>
+                                            <p class="resena-text mb-1 ms-4" style="font-size:0.88rem;" x-text="resp.texto"></p>
+
+                                            <!-- Botón responder dentro del hilo -->
+                                            <div x-show="!modoPublico" class="ms-4">
+                                                <button class="btn-responder" @click="toggleRespuesta(resp.idComentario, r.idComentario)">
+                                                    <i class="bi bi-reply me-1"></i>
+                                                    <span x-text="respondiendo === resp.idComentario ? 'Cancelar' : 'Responder'"></span>
+                                                </button>
+                                            </div>
+
+                                            <!-- Form responder dentro del hilo -->
+                                            <div class="respuesta-form mt-2" x-show="respondiendo === resp.idComentario" x-transition>
+                                                <div class="d-flex gap-2">
+                                                    <div class="reviewer-avatar-sm" x-text="usuario ? usuario.nombre[0].toUpperCase() : '?'"></div>
+                                                    <div class="flex-grow-1">
+                                                        <textarea class="form-control form-control-sm mb-2" rows="2"
+                                                                  x-model="textoRespuesta"
+                                                                  :placeholder="'Respondiendo a ' + resp.nombreUsuario + '...'"></textarea>
+                                                        <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                                @click="publicarRespuesta(resp.idComentario, r.idComentario)"
+                                                                :disabled="!textoRespuesta || cargandoRespuesta">
+                                                            <span x-show="!cargandoRespuesta"><i class="bi bi-send me-1"></i>Responder</span>
+                                                            <span x-show="cargandoRespuesta"><span class="spinner-border spinner-border-sm"></span></span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </template>
             </div>
@@ -173,26 +268,25 @@
             promedio: 0,
             loading: true,
             cargando: false,
+            cargandoRespuesta: false,
             errorForm: '',
             exitoForm: false,
             orden: 'reciente',
             nuevaResena: { rating: 0, texto: '' },
             usuario: null,
+            modoPublico: false,
+            respondiendo: null,
+            textoRespuesta: '',
+            hilosExpandidos: {},
 
             async init() {
                 this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
                 const params = new URLSearchParams(window.location.search);
                 this.idHabitacion = params.get('id');
-
-                if (!this.idHabitacion) {
-                    this.loading = false;
-                    return;
-                }
-
-                await Promise.all([
-                    this.cargarHabitacion(),
-                    this.cargarResenas()
-                ]);
+                const modo = params.get('modo');
+                this.modoPublico = !this.usuario || modo === 'publico';
+                if (!this.idHabitacion) { this.loading = false; return; }
+                await Promise.all([this.cargarHabitacion(), this.cargarResenas()]);
                 this.loading = false;
             },
 
@@ -218,20 +312,9 @@
             async publicar() {
                 this.errorForm = '';
                 this.exitoForm = false;
-
-                if (!this.usuario) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                if (!this.nuevaResena.rating) {
-                    this.errorForm = 'Selecciona una calificación.';
-                    return;
-                }
-                if (!this.nuevaResena.texto.trim()) {
-                    this.errorForm = 'Escribe un comentario.';
-                    return;
-                }
-
+                if (!this.usuario) { window.location.href = 'login.html'; return; }
+                if (!this.nuevaResena.rating) { this.errorForm = 'Selecciona una calificación.'; return; }
+                if (!this.nuevaResena.texto.trim()) { this.errorForm = 'Escribe un comentario.'; return; }
                 this.cargando = true;
                 try {
                     const res = await fetch(`${API}/comentarios`, {
@@ -241,7 +324,8 @@
                             idUsuario: this.usuario.idUsuario,
                             idHabitacion: parseInt(this.idHabitacion),
                             rating: this.nuevaResena.rating,
-                            texto: this.nuevaResena.texto
+                            texto: this.nuevaResena.texto,
+                            idComentarioPadre: null
                         })
                     });
                     const data = await res.json();
@@ -249,6 +333,7 @@
                         this.exitoForm = true;
                         this.nuevaResena = { rating: 0, texto: '' };
                         await this.cargarResenas();
+                        setTimeout(() => this.exitoForm = false, 3000);
                     } else {
                         this.errorForm = data.message;
                     }
@@ -257,6 +342,91 @@
                 } finally {
                     this.cargando = false;
                 }
+            },
+
+            // idPadre = comentario al que se responde directamente
+            // idRaiz  = reseña raíz del hilo (para mantenerlo expandido)
+            async publicarRespuesta(idPadre, idRaiz) {
+                if (!this.textoRespuesta.trim()) return;
+                this.cargandoRespuesta = true;
+                try {
+                    const res = await fetch(`${API}/comentarios`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            idUsuario: this.usuario.idUsuario,
+                            idHabitacion: parseInt(this.idHabitacion),
+                            rating: 0,
+                            texto: this.textoRespuesta,
+                            idComentarioPadre: idPadre
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.respondiendo = null;
+                        this.textoRespuesta = '';
+                        await this.cargarResenas();
+                        // Expandir el hilo después de que Alpine procese los nuevos datos
+                        this.$nextTick(() => {
+                            this.hilosExpandidos[idRaiz] = true;
+                        });
+                    }
+                } catch (e) {}
+                finally { this.cargandoRespuesta = false; }
+            },
+
+            toggleRespuesta(idComentario, idRaiz) {
+                if (this.respondiendo === idComentario) {
+                    this.respondiendo = null;
+                    this.textoRespuesta = '';
+                    return;
+                }
+                this.respondiendo = idComentario;
+                this.textoRespuesta = '';
+                if (idRaiz) this.hilosExpandidos[idRaiz] = true;
+            },
+
+            toggleHilo(idComentario) {
+                this.hilosExpandidos[idComentario] = !this.hilosExpandidos[idComentario];
+            },
+
+            aplanarRespuestas(respuestas) {
+                // Construir mapa global id → nombreUsuario para referencias
+                const mapa = {};
+                const agregarAlMapa = (lista) => {
+                    lista.forEach(r => {
+                        mapa[r.idComentario] = r.nombreUsuario;
+                        if (r.respuestas && r.respuestas.length > 0)
+                            agregarAlMapa(r.respuestas);
+                    });
+                };
+                agregarAlMapa(this.resenas);
+
+                const resultado = [];
+                const recorrer = (lista) => {
+                    lista.forEach(r => {
+                        resultado.push({
+                            ...r,
+                            nombrePadre: r.idComentarioPadre ? (mapa[r.idComentarioPadre] || null) : null
+                        });
+                        if (r.respuestas && r.respuestas.length > 0)
+                            recorrer(r.respuestas);
+                    });
+                };
+                recorrer(respuestas);
+                return resultado;
+            },
+
+            contarTotalRespuestas(respuestas) {
+                let total = 0;
+                const contar = (lista) => {
+                    lista.forEach(r => {
+                        total++;
+                        if (r.respuestas && r.respuestas.length > 0) contar(r.respuestas);
+                    });
+                };
+                contar(respuestas);
+                return total;
             },
 
             formatFecha(fecha) {
