@@ -154,7 +154,8 @@ function dashboardData() {
                 const reservationsResponse = await fetch(`${API_BASE}/admin/reservaciones/recientes?limit=5`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
-                    }
+                    },
+                    credentials: 'include'
                 });
                 
                 
@@ -953,9 +954,13 @@ function reservacionesData() {
         async fetchReservaciones() {
             this.isLoading = true;
             try {
-                const response = await fetch(`${API_BASE}/reservaciones/mis-reservaciones`, { //***revisar
+                const session = getUserSession();
+
+                const response = await fetch(`${API_BASE}/reservaciones/mis-reservaciones`, { 
+                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${getUserSession()?.token}`
+                        'Content-Type': 'application/json',
+                        'x-usuario-id': session.idUsuario // 👈 AQUÍ
                     }
                 });
                 
@@ -963,6 +968,7 @@ function reservacionesData() {
 
 
                 if (response.ok && result.success) {
+                    console.log("🔥 RAW BACKEND:", result.data);
                     this.reservaciones = result.data;;
                     this.filtrarReservaciones();
                 }
@@ -977,6 +983,7 @@ function reservacionesData() {
         filtrarReservaciones() {
             if (this.filtroActivo === 'todas') {
                 this.filteredReservaciones = this.reservaciones;
+                console.log("🎯 Reservaciones filtradas:", this.filteredReservaciones);
             } else {
                 this.filteredReservaciones = this.reservaciones.filter(r => 
                     r.estado.toLowerCase() === this.filtroActivo
@@ -994,7 +1001,8 @@ function reservacionesData() {
                 const response = await fetch(`${API_BASE}/reservaciones/${codigoReservacion}/pdf`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
-                    }
+                    },
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -1020,7 +1028,8 @@ function reservacionesData() {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
-                    }
+                    },
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {

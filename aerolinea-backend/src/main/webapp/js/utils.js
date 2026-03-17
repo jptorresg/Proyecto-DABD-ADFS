@@ -70,7 +70,8 @@ function formatCurrency(amount) {
 }
 
 function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('es-GT', {
+    const date = new Date(dateString + 'T00:00:00'); 
+    return date.toLocaleDateString('es-GT', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'

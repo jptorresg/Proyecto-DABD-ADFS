@@ -235,7 +235,7 @@ public class VueloDAO {
     /**
      * Helper: mapear ResultSet a objeto Vuelo
      */
-    private Vuelo mapResultSetToVuelo(ResultSet rs) throws SQLException {
+    public Vuelo mapResultSetToVuelo(ResultSet rs) throws SQLException {
         Vuelo v = new Vuelo();
         v.setIdVuelo(rs.getLong("id_vuelo"));
         v.setCodigoVuelo(rs.getString("codigo_vuelo"));

@@ -328,11 +328,13 @@ function checkoutData() {
                     }))
                 };
 
+                const session = getUserSession();
                 console.log("Reservacion enviada:", JSON.stringify(reservacionData, null, 2));
                 const response = await fetch(`${API_BASE}/reservaciones`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'x-usuario-id': session.idUsuario
                     },
                     body: JSON.stringify(reservacionData)
                 });

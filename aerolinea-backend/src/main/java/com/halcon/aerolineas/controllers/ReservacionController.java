@@ -70,19 +70,25 @@ public class ReservacionController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
 
-        // ⚠️ SOLO PARA DESARROLLO
-        HttpSession session = request.getSession(true);
+        Long usuarioId = null;
 
-        Long usuarioId = (Long) session.getAttribute("usuarioId");
-
-        if (usuarioId == null) {
-            usuarioId = 2L; // ID del admin en BD
-            session.setAttribute("usuarioId", usuarioId);
+        try {
+            String usuarioHeader = request.getHeader("x-usuario-id");
+            if (usuarioHeader != null) {
+                usuarioId = Long.parseLong(usuarioHeader);
+            }
+        } catch (NumberFormatException e) {
+            response.setStatus(400);
+            out.print(JsonResponse.error("ID de usuario inválido"));
+            return;
         }
 
         try {
             List<Reservacion> reservaciones =
                     reservacionService.obtenerReservacionesUsuario(usuarioId);
+
+            System.out.println("=== RESPONSE FINAL ===");
+            System.out.println(reservaciones);
 
             out.print(JsonResponse.success(reservaciones));
 
@@ -100,14 +106,17 @@ public class ReservacionController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        HttpSession session = request.getSession(true);
+        Long usuarioId = null;
 
-        Long usuarioId = (Long) session.getAttribute("usuarioId");
-
-        // SOLO PARA DESARROLLO
-        if (usuarioId == null) {
-            usuarioId = 2L;
-            session.setAttribute("usuarioId", usuarioId);
+        try {
+            String usuarioHeader = request.getHeader("x-usuario-id");
+            if (usuarioHeader != null) {
+                usuarioId = Long.parseLong(usuarioHeader);
+            }
+        } catch (NumberFormatException e) {
+            response.setStatus(400);
+            out.print(JsonResponse.error("ID de usuario inválido"));
+            return;
         }
         
         try {
@@ -141,6 +150,30 @@ public class ReservacionController extends HttpServlet {
             e.printStackTrace();
             response.setStatus(400);
             out.print(JsonResponse.error(e.getMessage()));
+        }
+    }
+
+    @Override
+protected void doPut(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+
+        String pathInfo = request.getPathInfo(); 
+        // /{id}/cancelar
+
+        if (pathInfo != null && pathInfo.matches("/\\d+/cancelar")) {
+            try {
+                String[] parts = pathInfo.split("/");
+                Long id = Long.parseLong(parts[1]);
+
+                reservacionService.cancelarReservacion(id);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("{\"mensaje\":\"Reservación cancelada\"}");
+
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
+            }
         }
     }
     

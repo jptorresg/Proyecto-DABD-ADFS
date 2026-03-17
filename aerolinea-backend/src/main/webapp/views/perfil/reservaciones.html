@@ -97,21 +97,21 @@
                                 <i class="fas fa-list"></i>
                                 Todas
                             </button>
-                            <button @click="cambiarFiltro('confirmadas')" 
+                            <button @click="cambiarFiltro('confirmada')" 
                                     class="tab-btn"
-                                    :class="{ 'active': filtroActivo === 'confirmadas' }">
+                                    :class="{ 'active': filtroActivo === 'confirmada' }">
                                 <i class="fas fa-check-circle"></i>
                                 Confirmadas
                             </button>
-                            <button @click="cambiarFiltro('pendientes')" 
+                            <button @click="cambiarFiltro('pendiente')" 
                                     class="tab-btn"
-                                    :class="{ 'active': filtroActivo === 'pendientes' }">
+                                    :class="{ 'active': filtroActivo === 'pendiente' }">
                                 <i class="fas fa-clock"></i>
                                 Pendientes
                             </button>
-                            <button @click="cambiarFiltro('canceladas')" 
+                            <button @click="cambiarFiltro('cancelada')" 
                                     class="tab-btn"
-                                    :class="{ 'active': filtroActivo === 'canceladas' }">
+                                    :class="{ 'active': filtroActivo === 'cancelada' }">
                                 <i class="fas fa-times-circle"></i>
                                 Canceladas
                             </button>
@@ -151,8 +151,8 @@
                                     <!-- Ruta -->
                                     <div class="reservacion-route">
                                         <div class="route-city">
-                                            <div class="route-iata" x-text="reservacion.vuelo.codigoIataOrigen"></div>
-                                            <div class="route-name" x-text="reservacion.vuelo.origen"></div>
+                                            <div class="route-iata" x-text="reservacion.vuelo.origenCodigoIata"></div>
+                                            <div class="route-name" x-text="reservacion.vuelo.origenCiudad"></div>
                                         </div>
                                         
                                         <div class="route-arrow">
@@ -160,8 +160,8 @@
                                         </div>
                                         
                                         <div class="route-city">
-                                            <div class="route-iata" x-text="reservacion.vuelo.codigoIataDestino"></div>
-                                            <div class="route-name" x-text="reservacion.vuelo.destino"></div>
+                                            <div class="route-iata" x-text="reservacion.vuelo.destinoCodigoIata"></div>
+                                            <div class="route-name" x-text="reservacion.vuelo.destinoCiudad"></div>
                                         </div>
                                     </div>
 
@@ -177,7 +177,7 @@
                                         </div>
                                         <div class="detail-item">
                                             <i class="fas fa-users"></i>
-                                            <span x-text="`${reservacion.numeroPasajeros} pasajero(s)`"></span>
+                                            <span x-text="`${reservacion.numPasajeros} pasajero(s)`"></span>
                                         </div>
                                         <div class="detail-item">
                                             <i class="fas fa-chair"></i>
@@ -195,7 +195,7 @@
 
                                 <!-- Footer con acciones -->
                                 <div class="reservacion-footer">
-                                    <button @click="window.location.href = `../detalle.html?id=${reservacion.vuelo.id}`" 
+                                    <button @click="window.location.href = `../detalle.html?id=${reservacion.vuelo.idVuelo}&pasajeros=${reservacion.numPasajeros}`" 
                                             class="btn-reservacion btn-ver">
                                         <i class="fas fa-eye"></i>
                                         Ver Detalles
@@ -206,7 +206,7 @@
                                         Descargar Comprobante
                                     </button>
                                     <button x-show="puedeSerCancelada(reservacion)"
-                                            @click="cancelarReservacion(reservacion.id)" 
+                                            @click="cancelarReservacion(reservacion.idReservacion)" 
                                             class="btn-reservacion btn-cancelar">
                                         <i class="fas fa-ban"></i>
                                         Cancelar Reservación
