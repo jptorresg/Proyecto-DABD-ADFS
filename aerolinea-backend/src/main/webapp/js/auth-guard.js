@@ -2,10 +2,6 @@
 // AUTH GUARD - PROTECCIÓN DE RUTAS
 // ============================================================
 
-const BASE_PATH = window.location.pathname.split('/')[1]
-    ? `/${window.location.pathname.split('/')[1]}`
-    : '';
-
 /**
  * Verificar si el usuario tiene sesión activa
  */
@@ -39,17 +35,11 @@ function requireAdmin() {
  * Verificar si el usuario ya está logueado (para login/registro)
  */
 function redirectIfAuthenticated() {
-    const session = getUserSession();
-    if (session) {
-        // Si es admin, al dashboard
-        if (session.tipoUsuario === 'ADMIN') {
-            window.location.href = `${BASE_PATH}/views/admin/dashboard.html`;
-        } else {
-            window.location.href = `${BASE_PATH}/views/index.html`;
-        }   
-        return true;
+    const { isLoggedIn } = Utils.getSession();
+
+    if (isLoggedIn) {
+        window.location.href = `${BASE_PATH}/index.html`;
     }
-    return false;
 }
 
 /**

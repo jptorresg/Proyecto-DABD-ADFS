@@ -72,5 +72,15 @@ namespace HotelesAPI.DAO
             cmd.Parameters.AddWithValue("@id", id);
             return cmd.ExecuteNonQuery() > 0;
         }
+
+        public bool Delete(int id)
+        {
+            string sql = "DELETE FROM Agencias WHERE id_agencia = @id";
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            return cmd.ExecuteNonQuery() > 0;
+        }
     }
 }

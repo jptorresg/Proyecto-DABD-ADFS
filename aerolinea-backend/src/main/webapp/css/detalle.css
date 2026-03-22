@@ -23,7 +23,7 @@
 }
 
 .det-breadcrumb a:hover {
-    color: var(--secondary-blue);
+    color: var(--primary-blue);
 }
 
 .det-breadcrumb i {
@@ -185,7 +185,7 @@
 }
 
 .det-tl-marker-dest {
-    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    background: var(--primary-blue);
     color: var(--white);
 }
 
@@ -312,7 +312,7 @@
     width: 48px;
     height: 48px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    background: var(--primary-blue);
     color: var(--white);
     display: flex;
     align-items: center;
@@ -535,7 +535,7 @@
 }
 
 .det-nc-btn {
-    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    background: var(--primary-blue);
     color: var(--white);
     border: none;
     padding: 0.75rem 2rem;
@@ -746,7 +746,7 @@
 }
 
 .det-reply-send:hover {
-    background: var(--secondary-blue);
+    background: var(--primary-blue);
 }
 
 /* Nested Comments */
@@ -914,7 +914,7 @@
 }
 
 .det-pp-checkout {
-    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    background: var(--primary-blue);
     color: var(--white);
     border: none;
     padding: 1rem;

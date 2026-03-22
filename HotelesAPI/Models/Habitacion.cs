@@ -12,7 +12,7 @@ namespace HotelesAPI.Models
         public string Estado { get; set; } = "Disponible";
         public string Ubicacion { get; set; } = string.Empty;
         public int Estrellas { get; set; }
-        public string Amenidades { get; set; } = string.Empty;
+        public string? Amenidades { get; set; }
         public string? Descripcion { get; set; }
         public string? ImagenUrl { get; set; }
     }
