@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados — TravelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/travelnow/public/css/styles.css">
+  <style>
+    body { background: var(--navy); }
+    .filter-sidebar {
+      background: rgba(17,34,64,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      position: sticky;
+      top: 90px;
+    }
+    .filter-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--white);
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border-gold);
+    }
+    .filter-group { margin-bottom: 1.4rem; padding-bottom: 1.4rem; border-bottom: 1px solid rgba(212,168,67,0.1); }
+    .filter-group:last-child { border-bottom: none; margin-bottom: 0; }
+    .filter-group-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; }
+    .filter-check { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; cursor: pointer; font-size: 0.86rem; color: var(--text-muted); }
+    .filter-check input { accent-color: var(--gold); }
+    .price-input-row { display: flex; gap: 0.5rem; }
+    .price-input-sm { flex: 1; background: rgba(10,22,40,0.7); border: 1px solid var(--border-gold); color: var(--cream); border-radius: var(--radius-sm); padding: 0.45rem 0.6rem; font-size: 0.83rem; font-family: var(--font-body); width: 100%; }
+    /* Búsqueda hero */
+    .search-hero {
+      padding: 5rem 0 2rem;
+      background: linear-gradient(160deg, #0A1628 0%, #112240 60%, #0A1628 100%);
+      border-bottom: 1px solid var(--border-gold);
+    }
+    .search-params-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .search-param-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .search-param-item strong { color: var(--cream); }
+    /* Result card vuelos */
+    .result-card-full {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: 1.8rem;
+      margin-bottom: 1rem;
+      transition: var(--trans);
+      backdrop-filter: blur(10px);
+    }
+    .result-card-full:hover { border-color: rgba(212,168,67,0.55); box-shadow: var(--shadow-gold); }
+    .airline-badge { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+    .route-display { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin: 0.8rem 0; }
+    .route-location { text-align: center; }
+    .route-time { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--white); line-height: 1; }
+    .route-code { font-size: 0.9rem; font-weight: 600; color: var(--cream); }
+    .route-city { font-size: 0.75rem; color: var(--text-muted); }
+    .route-mid { flex: 1; min-width: 100px; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+    .route-dur { font-size: 0.78rem; color: var(--text-muted); }
+    .route-line-gold { height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); width: 100%; position: relative; }
+    .route-line-gold::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+    .flight-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.6rem; }
+    .flight-meta-item { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+    .flight-meta-item i { color: var(--gold); font-size: 0.75rem; }
+    .stars-display { color: var(--gold); font-size: 0.8rem; }
+    .price-col { text-align: right; }
+    .big-price { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .big-price small { font-family: var(--font-body); font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
+    .btn-ver { background: transparent; border: 1px solid var(--border-gold); color: var(--cream); padding: 0.5rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer; transition: var(--trans); text-decoration: none; display: inline-block; margin-right: 0.5rem; }
+    .btn-ver:hover { border-color: var(--gold); color: var(--gold); }
+    .sort-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem; }
+    .results-count { font-size: 0.88rem; color: var(--text-muted); }
+    .results-count strong { color: var(--gold); }
+    .sort-select { background: rgba(17,34,64,0.8); border: 1px solid var(--border-gold); color: var(--cream); border-radius: var(--radius-sm); padding: 0.5rem 1rem; font-size: 0.85rem; font-family: var(--font-body); cursor: pointer; }
+    .sort-select option { background: var(--navy-mid); }
+    .modify-btn { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); padding: 0.55rem 1.4rem; border-radius: 50px; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: var(--trans); text-decoration: none; }
+    .modify-btn:hover { background: var(--gold); color: var(--navy); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span></a>
+        <div class="d-none d-lg-flex align-items-center gap-4">
+          <a href="/buscar" class="nav-link-custom"><i class="fa-solid fa-magnifying-glass me-1"></i> Búsqueda avanzada</a>
+        </div>
+        <div id="nav-user-area">
+          <a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero de búsqueda -->
+  <section class="search-hero">
+    <div class="container">
+      <div class="hero-eyebrow"><i class="fa-solid fa-plane"></i> Resultados de búsqueda</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.8rem);font-weight:300;color:var(--white);">
+        Vuelos <em style="font-style:italic;color:var(--gold-light)">disponibles</em>
+      </h1>
+      <div class="search-params-bar">
+        <div class="search-param-item"><i class="fa-solid fa-location-dot" style="color:var(--gold)"></i> <strong>Guatemala City (GUA)</strong> → <strong>Miami (MIA)</strong></div>
+        <div class="search-param-item"><i class="fa-regular fa-calendar" style="color:var(--gold)"></i> <strong>15 Feb</strong> — <strong>22 Feb 2026</strong></div>
+        <div class="search-param-item"><i class="fa-solid fa-users" style="color:var(--gold)"></i> <strong>2 Pasajeros</strong> · Turista</div>
+        <a href="/buscar" class="modify-btn ms-auto">
+          <i class="fa-solid fa-pen me-1"></i> Modificar búsqueda
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenido -->
+  <div style="padding:2.5rem 0 5rem;">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- Sidebar filtros -->
+        <div class="col-lg-3">
+          <div class="filter-sidebar anim-up">
+            <div class="filter-title"><i class="fa-solid fa-sliders me-2" style="color:var(--gold)"></i>Filtros</div>
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-dollar-sign me-1"></i> Rango de precio</div>
+              <div class="price-input-row">
+                <input class="price-input-sm" type="number" placeholder="Mín" value="100">
+                <input class="price-input-sm" type="number" placeholder="Máx" value="1000">
+              </div>
+            </div>
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-plane me-1"></i> Aerolíneas</div>
+              <label class="filter-check"><input type="checkbox" checked> AeroGuatemala</label>
+              <label class="filter-check"><input type="checkbox" checked> SkyConnect</label>
+              <label class="filter-check"><input type="checkbox" checked> Pacific Airlines</label>
+            </div>
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-route me-1"></i> Tipo de vuelo</div>
+              <label class="filter-check"><input type="checkbox" checked> Vuelo directo</label>
+              <label class="filter-check"><input type="checkbox" checked> 1 escala</label>
+            </div>
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-star me-1"></i> Calificación</div>
+              <label class="filter-check"><input type="checkbox"> <span style="color:var(--gold)">★★★★★</span></label>
+              <label class="filter-check"><input type="checkbox"> <span style="color:var(--gold)">★★★★</span><span style="color:var(--border-gold)">★</span></label>
+              <label class="filter-check"><input type="checkbox"> <span style="color:var(--gold)">★★★</span><span style="color:var(--border-gold)">★★</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="col-lg-9">
+          <div class="sort-row">
+            <p class="results-count">Mostrando <strong>4 resultados</strong></p>
+            <div class="d-flex align-items-center gap-2">
+              <span style="font-size:0.82rem;color:var(--text-muted);">Ordenar:</span>
+              <select class="sort-select">
+                <option>Precio (menor a mayor)</option>
+                <option>Precio (mayor a menor)</option>
+                <option>Duración</option>
+                <option>Calificación</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card 1 -->
+          <div class="result-card-full anim-up">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div style="flex:1;">
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>AeroGuatemala</span>
+                <div class="route-display">
+                  <div class="route-location"><div class="route-time">08:30</div><div class="route-code">GUA</div><div class="route-city">Guatemala City</div></div>
+                  <div class="route-mid">
+                    <div class="route-dur">3h 45m</div>
+                    <div class="route-line-gold"></div>
+                    <div style="font-size:0.72rem;color:var(--gold);">Directo</div>
+                  </div>
+                  <div class="route-location"><div class="route-time">12:15</div><div class="route-code">MIA</div><div class="route-city">Miami</div></div>
+                </div>
+                <div class="flight-meta">
+                  <span class="flight-meta-item"><i class="fa-solid fa-chair"></i> Turista</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-suitcase"></i> 1 maleta incluida</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-star"></i> <span class="stars-display">★★★★★</span> (328)</span>
+                </div>
+              </div>
+              <div class="price-col">
+                <div class="big-price">$450<small>/persona</small></div>
+                <div class="mt-2">
+                  <a href="/detalle-vuelo" class="btn-ver">Ver detalles</a>
+                  <a href="/checkout" class="btn-reservar">Seleccionar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="result-card-full anim-up anim-up-1">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div style="flex:1;">
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>SkyConnect</span>
+                <div class="route-display">
+                  <div class="route-location"><div class="route-time">14:20</div><div class="route-code">GUA</div><div class="route-city">Guatemala City</div></div>
+                  <div class="route-mid">
+                    <div class="route-dur">5h 30m</div>
+                    <div class="route-line-gold"></div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);">1 escala (MEX)</div>
+                  </div>
+                  <div class="route-location"><div class="route-time">19:50</div><div class="route-code">MIA</div><div class="route-city">Miami</div></div>
+                </div>
+                <div class="flight-meta">
+                  <span class="flight-meta-item"><i class="fa-solid fa-chair"></i> Turista</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-suitcase"></i> 1 maleta incluida</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-clock"></i> Escala 1h 20m</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-star"></i> <span class="stars-display">★★★★</span> (156)</span>
+                </div>
+              </div>
+              <div class="price-col">
+                <div class="big-price">$385<small>/persona</small></div>
+                <div class="mt-2">
+                  <a href="/detalle-vuelo" class="btn-ver">Ver detalles</a>
+                  <a href="/checkout" class="btn-reservar">Seleccionar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="result-card-full anim-up anim-up-2">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div style="flex:1;">
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>Pacific Airlines</span>
+                <div class="route-display">
+                  <div class="route-location"><div class="route-time">06:00</div><div class="route-code">GUA</div><div class="route-city">Guatemala City</div></div>
+                  <div class="route-mid">
+                    <div class="route-dur">3h 50m</div>
+                    <div class="route-line-gold"></div>
+                    <div style="font-size:0.72rem;color:var(--gold);">Directo</div>
+                  </div>
+                  <div class="route-location"><div class="route-time">09:50</div><div class="route-code">MIA</div><div class="route-city">Miami</div></div>
+                </div>
+                <div class="flight-meta">
+                  <span class="flight-meta-item"><i class="fa-solid fa-star" style="color:var(--gold)"></i> Business</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-suitcase"></i> 2 maletas</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-utensils"></i> Comida incluida</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-star"></i> <span class="stars-display">★★★★★</span> (542)</span>
+                </div>
+              </div>
+              <div class="price-col">
+                <div class="big-price">$890<small>/persona</small></div>
+                <div class="mt-2">
+                  <a href="/detalle-vuelo" class="btn-ver">Ver detalles</a>
+                  <a href="/checkout" class="btn-reservar">Seleccionar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="result-card-full anim-up anim-up-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div style="flex:1;">
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>AeroGuatemala</span>
+                <div class="route-display">
+                  <div class="route-location"><div class="route-time">18:45</div><div class="route-code">GUA</div><div class="route-city">Guatemala City</div></div>
+                  <div class="route-mid">
+                    <div class="route-dur">3h 40m</div>
+                    <div class="route-line-gold"></div>
+                    <div style="font-size:0.72rem;color:var(--gold);">Directo</div>
+                  </div>
+                  <div class="route-location"><div class="route-time">22:25</div><div class="route-code">MIA</div><div class="route-city">Miami</div></div>
+                </div>
+                <div class="flight-meta">
+                  <span class="flight-meta-item"><i class="fa-solid fa-chair"></i> Turista</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-suitcase"></i> 1 maleta incluida</span>
+                  <span class="flight-meta-item"><i class="fa-solid fa-star"></i> <span class="stars-display">★★★★★</span> (328)</span>
+                </div>
+              </div>
+              <div class="price-col">
+                <div class="big-price">$465<small>/persona</small></div>
+                <div class="mt-2">
+                  <a href="/detalle-vuelo" class="btn-ver">Ver detalles</a>
+                  <a href="/checkout" class="btn-reservar">Seleccionar</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    fetch('/api/auth/me').then(r=>r.json()).then(d=>{
+      if(d?.ok && d.usuario) document.getElementById('nav-user-area').innerHTML=`<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+    }).catch(()=>{});
+  </script>
+</body>
+</html>
