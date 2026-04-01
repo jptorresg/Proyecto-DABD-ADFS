@@ -9,7 +9,6 @@ function gestionInventario() {
         agregarHabitacion() {
             this.habitaciones.push({...this.nuevaHab});
             this.nuevaHab = { id: '', tipo: '', precio: '', estado: 'Disponible' };
-            // Aquí se cerraría el modal automáticamente
         },
         eliminar(id) {
             this.habitaciones = this.habitaciones.filter(h => h.id !== id);

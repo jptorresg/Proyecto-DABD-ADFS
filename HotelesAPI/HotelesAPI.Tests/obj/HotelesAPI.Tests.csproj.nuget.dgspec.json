@@ -1,0 +1,169 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\HotelesAPI.Tests.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
+        "projectName": "HotelesAPI",
+        "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
+        "packagesPath": "C:\\Users\\José Rueda\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\José Rueda\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )"
+            },
+            "Microsoft.Data.SqlClient": {
+              "target": "Package",
+              "version": "[5.1.5, )"
+            },
+            "QRCoder": {
+              "target": "Package",
+              "version": "[1.7.0, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2026.2.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\HotelesAPI.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\HotelesAPI.Tests.csproj",
+        "projectName": "HotelesAPI.Tests",
+        "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\HotelesAPI.Tests.csproj",
+        "packagesPath": "C:\\Users\\José Rueda\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\José Rueda\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {
+              "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {
+                "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.3.2, )"
+            },
+            "Moq": {
+              "target": "Package",
+              "version": "[4.20.72, )"
+            },
+            "coverlet.collector": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.1.2, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.4.2, )"
+            },
+            "xunit.runner.visualstudio": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.4.5, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

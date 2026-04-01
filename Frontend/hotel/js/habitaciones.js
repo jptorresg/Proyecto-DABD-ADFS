@@ -8,3 +8,33 @@ function dataHabitaciones() {
         ]
     }
 }
+
+function filtrarHabitaciones(habitaciones, criterios) {
+    let resultado = [...habitaciones];
+
+    if (criterios.busqueda && criterios.busqueda.trim() !== '') {
+        const busq = criterios.busqueda.toLowerCase().trim();
+        resultado = resultado.filter(h =>
+            h.nombre.toLowerCase().includes(busq) ||
+            h.desc.toLowerCase().includes(busq)
+        );
+    }
+
+    if (criterios.precioMax && criterios.precioMax > 0) {
+        resultado = resultado.filter(h => h.precio <= criterios.precioMax);
+    }
+
+    if (criterios.precioMin && criterios.precioMin > 0) {
+        resultado = resultado.filter(h => h.precio >= criterios.precioMin);
+    }
+
+    if (criterios.orden === 'asc') {
+        resultado.sort((a, b) => a.precio - b.precio);
+    } else if (criterios.orden === 'desc') {
+        resultado.sort((a, b) => b.precio - a.precio);
+    }
+
+    return resultado;
+}
+
+if (typeof module !== 'undefined') module.exports = { filtrarHabitaciones };
