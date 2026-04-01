@@ -94,4 +94,18 @@ public class ReservacionService {
     public List<Pasajero> obtenerPasajeros(Long idReservacion) throws SQLException {
         return pasajeroDAO.findByReservacion(idReservacion);
     }
+
+    public void cancelarReservacion(Long idReservacion) throws SQLException {
+        Reservacion reservacion = reservacionDAO.findById(idReservacion);
+
+        if (reservacion == null) {
+            throw new IllegalArgumentException("Reservación no encontrada");
+        }
+
+        if (!"CONFIRMADA".equals(reservacion.getEstado())) {
+            throw new IllegalArgumentException("Solo se pueden cancelar reservaciones confirmadas");
+        }
+
+        reservacionDAO.cancelar(idReservacion);
+    }
 }

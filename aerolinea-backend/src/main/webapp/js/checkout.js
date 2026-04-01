@@ -21,28 +21,7 @@ function checkoutData() {
         },
 
         // Datos de pasajeros
-        pasajeros: [
-            {
-                numero: 1,
-                tipo: 'Adulto',
-                nombres: '',
-                apellidos: '',
-                fechaNacimiento: '',
-                genero: '',
-                pasaporte: '',
-                nacionalidad: ''
-            },
-            {
-                numero: 2,
-                tipo: 'Adulto',
-                nombres: '',
-                apellidos: '',
-                fechaNacimiento: '',
-                genero: '',
-                pasaporte: '',
-                nacionalidad: ''
-            }
-        ],
+        pasajeros: [],
 
         // Contacto de emergencia
         emergencia: {
@@ -110,40 +89,91 @@ function checkoutData() {
         },
 
         // Inicialización
-        init() {
+        async init() {
             // Verificar autenticación
             if (!requireAuth()) {
                 return;
             }
 
             // Cargar datos de URL params o sessionStorage
-            this.loadFlightData();
+            await this.loadFlightData();
             this.loadExtras();
             this.configureDateInputs();
+            const params = new URLSearchParams(window.location.search);
+
+            this.vueloId = params.get('vueloId');
+            this.numPasajeros = params.get('pasajeros')
+                ? parseInt(params.get('pasajeros'))
+                : 1;
+
+            console.log("Vuelo:", this.vueloId);
+            console.log("Pasajeros:", this.numPasajeros);
+            this.generarPasajeros();
         },
 
         // Cargar datos del vuelo
-        loadFlightData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const vueloId = urlParams.get('vueloId');
-            
-            if (vueloId) {
-                // En producción, fetch del backend
-                // const response = await fetch(`/api/vuelos/${vueloId}`);
-                // this.vueloInfo = await response.json();
-                
-                console.log('Vuelo cargado:', vueloId);
-            }
+        async loadFlightData() {
+            const params = new URLSearchParams(window.location.search);
+            const vueloId = params.get('vueloId');
+            const pasajeros = params.get('pasajeros');
+            const totalUrl = params.get('total');
 
-            // Cargar de sessionStorage si existe
-            const stored = sessionStorage.getItem('checkoutFlight');
-            if (stored) {
-                try {
-                    const data = JSON.parse(stored);
-                    this.vueloInfo = { ...this.vueloInfo, ...data };
-                } catch (e) {
-                    console.error('Error parsing flight data:', e);
+            if (!vueloId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/vuelos/${vueloId}`);
+                const json = await response.json();
+
+                if (json.success) {
+                    const v = json.data;
+
+                    const numPasajeros = pasajeros ? parseInt(pasajeros) : 1;
+                    const total = totalUrl ? parseFloat(totalUrl) : 0;
+
+                    // Si viene total por URL, lo usamos para sacar precio individual
+                    const precioBaseCalculado = total && numPasajeros
+                        ? Math.round(total / numPasajeros)
+                        : v.precioBase;
+
+                    this.vueloInfo = {
+                        id: v.idVuelo,
+                        codigo: v.codigoVuelo,
+                        origen: v.origenCiudad,
+                        origenIata: v.origenCodigoIata,
+                        destino: v.destinoCiudad,
+                        destinoIata: v.destinoCodigoIata,
+                        fecha: v.fechaSalida,
+                        horaSalida: v.horaSalida,
+                        horaLlegada: v.horaLlegada,
+                        numPasajeros: numPasajeros,
+                        clase: v.tipoAsiento,
+                        tipoVuelo: 'direct', // ajusta si manejas escalas
+                        precioBase: precioBaseCalculado
+                    };
+
+                    this.numPasajeros = numPasajeros;
+
                 }
+
+            } catch (error) {
+                console.error("Error cargando vuelo:", error);
+            }
+        },
+
+        generarPasajeros() {
+            this.pasajeros = [];
+
+            for (let i = 1; i <= this.numPasajeros; i++) {
+                this.pasajeros.push({
+                    numero: i,
+                    tipo: 'Adulto', // luego puedes diferenciar niños
+                    nombres: '',
+                    apellidos: '',
+                    fechaNacimiento: '',
+                    genero: '',
+                    pasaporte: '',
+                    nacionalidad: ''
+                });
             }
         },
 
@@ -272,12 +302,9 @@ function checkoutData() {
 
         // Procesar pago
         async procesarPago() {
+
             if (this.paymentType === 'paypal') {
                 showNotification('Redirigiendo a PayPal...', 'info');
-                // Simular redirección a PayPal
-                setTimeout(() => {
-                    showNotification('Funcionalidad de PayPal próximamente', 'info');
-                }, 1500);
                 return;
             }
 
@@ -288,48 +315,59 @@ function checkoutData() {
             this.isProcessing = true;
 
             try {
-                // Preparar datos de la reservación
+
                 const reservacionData = {
-                    idVuelo: this.vueloInfo.id || 1,
-                    pasajeros: this.pasajeros,
-                    emergencia: this.emergencia,
-                    precioTotal: this.total,
+                    idVuelo: this.vueloInfo.id,
                     metodoPago: this.paymentType,
-                    tarjeta: this.paymentType === 'card' ? {
-                        // NO enviar datos reales en producción - usar tokenización
-                        numero: this.tarjeta.numero.substring(this.tarjeta.numero.length - 4),
-                        nombre: this.tarjeta.nombre,
-                        // CVV nunca se guarda
-                    } : null,
-                    billing: this.billing,
-                    extras: this.extras
+                    pasajeros: this.pasajeros.map(p => ({
+                        nombres: p.nombres,
+                        apellidos: p.apellidos,
+                        fechaNacimiento: p.fechaNacimiento,
+                        idNacionalidad: parseInt(p.nacionalidad) || 83,
+                        numPasaporte: p.pasaporte
+                    }))
                 };
 
-                // Simular API call
-                // const response = await fetch('/api/reservaciones', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(reservacionData)
-                // });
+                const session = getUserSession();
+                console.log("Reservacion enviada:", JSON.stringify(reservacionData, null, 2));
+                const response = await fetch(`${API_BASE}/reservaciones`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-usuario-id': session.idUsuario
+                    },
+                    body: JSON.stringify(reservacionData)
+                });
 
-                // Simular respuesta exitosa
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                const text = await response.text();
+                console.log("Respuesta cruda backend:", text);
+                const result = JSON.parse(text);
 
-                const codigoReservacion = 'HC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+
+                const reservacion = result.data;
+                const codigoReservacion = reservacion.codigoReservacion;
 
                 showNotification('¡Compra confirmada exitosamente!', 'success');
 
-                // Guardar código de reservación
                 sessionStorage.setItem('lastReservation', codigoReservacion);
 
-                // Redirigir a confirmación
                 setTimeout(() => {
-                    window.location.href = `/confirmacion.html?codigo=${codigoReservacion}`;
+                    window.location.href =
+                        `${BASE_PATH}/views/confirmacion.html?codigo=${codigoReservacion}`;
                 }, 1500);
 
             } catch (error) {
+
                 console.error('Error procesando pago:', error);
-                showNotification('Error al procesar el pago. Intente nuevamente.', 'error');
+
+                showNotification(
+                    error.message || 'Error al procesar el pago.',
+                    'error'
+                );
+
             } finally {
                 this.isProcessing = false;
             }

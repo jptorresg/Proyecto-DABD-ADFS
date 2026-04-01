@@ -12,19 +12,57 @@
         </div>
 
         <!-- Barra de Búsqueda -->
-        <div class="search-section">
-            <div class="search-bar">
+        <div class="search-section" @click.away="showFilters = false">
+            <div class="search-bar" @click="toggleFilters">
                 <i class="fas fa-search search-icon"></i>
                 <input 
                     type="text" 
                     class="search-input" 
                     placeholder="Buscar vuelos, destinos..."
                     x-model="searchQuery"
-                    @keyup.enter="performSearch"
+                    readonly
                 >
-                <button class="filter-btn" title="Filtros" @click="toggleFilters">
+                <button type="button" class="filter-btn" @click.stop="toggleFilters">
                     <i class="fas fa-sliders-h"></i>
                 </button>
+            </div>
+
+            <!-- DROPDOWN TIPO AIRBNB -->
+            <div 
+                x-show="showFilters"
+                x-transition
+                x-cloak
+                class="search-dropdown"
+            >
+                <div class="dropdown-grid">
+
+                    <div class="field">
+                        <label>Origen</label>
+                        <input type="text" placeholder="Ciudad origen" x-model="filters.origen">
+                    </div>
+
+                    <div class="field">
+                        <label>Destino</label>
+                        <input type="text" placeholder="Ciudad destino" x-model="filters.destino">
+                    </div>
+
+                    <div class="field">
+                        <label>Fecha salida</label>
+                        <input type="date" x-model="filters.fechaSalida">
+                    </div>
+
+                    <div class="field">
+                        <label>Pasajeros</label>
+                        <input type="number" min="1" value="1" x-model="filters.pasajeros">
+                    </div>
+
+                </div>
+
+                <div class="dropdown-actions">
+                    <button class="btn btn-primary" @click="applyFilters">
+                        Buscar vuelos
+                    </button>
+                </div>
             </div>
         </div>
 

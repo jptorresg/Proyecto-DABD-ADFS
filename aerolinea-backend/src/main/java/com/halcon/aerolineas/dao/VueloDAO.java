@@ -151,7 +151,11 @@ public class VueloDAO {
             stmt.setInt(12, vuelo.getAsientosTotales());
             stmt.setInt(13, vuelo.getAsientosDisponibles());
             stmt.setString(14, "ACTIVO");
-            stmt.setLong(15, idUsuarioCreador);
+            if (idUsuarioCreador != null) {
+                stmt.setLong(15, idUsuarioCreador);
+            } else {
+                stmt.setNull(15, java.sql.Types.BIGINT);
+            }
             
             stmt.executeUpdate();
             
@@ -231,7 +235,7 @@ public class VueloDAO {
     /**
      * Helper: mapear ResultSet a objeto Vuelo
      */
-    private Vuelo mapResultSetToVuelo(ResultSet rs) throws SQLException {
+    public Vuelo mapResultSetToVuelo(ResultSet rs) throws SQLException {
         Vuelo v = new Vuelo();
         v.setIdVuelo(rs.getLong("id_vuelo"));
         v.setCodigoVuelo(rs.getString("codigo_vuelo"));

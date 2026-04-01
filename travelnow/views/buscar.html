@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Búsqueda Avanzada — TravelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/travelnow/public/css/styles.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    /* Sidebar de filtros */
+    .filter-sidebar {
+      background: rgba(17,34,64,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      position: sticky;
+      top: 90px;
+    }
+    .filter-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-gold);
+    }
+    .filter-group {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(212,168,67,0.1);
+    }
+    .filter-group:last-child { border-bottom: none; margin-bottom: 0; }
+    .filter-group-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .filter-check {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.6rem;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      transition: var(--trans);
+    }
+    .filter-check:hover { color: var(--cream); }
+    .filter-check input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .stars-gold { color: var(--gold); font-size: 0.8rem; }
+    .price-inputs-row { display: flex; gap: 0.6rem; }
+    .price-input-sm {
+      flex: 1;
+      background: rgba(10,22,40,0.7);
+      border: 1px solid var(--border-gold);
+      color: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.7rem;
+      font-size: 0.85rem;
+      font-family: var(--font-body);
+      width: 100%;
+    }
+    .price-input-sm::placeholder { color: rgba(245,240,232,0.3); }
+    /* Destinos populares */
+    .dest-pop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .dest-pop-card {
+      background: rgba(10,22,40,0.6);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .dest-pop-card:hover { background: var(--gold-dim); border-color: var(--gold); }
+    .dest-pop-card .icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+    .dest-pop-card .name { font-size: 0.78rem; color: var(--cream); font-weight: 500; }
+    /* Contenedor principal */
+    .main-container {
+      padding: 2rem 0 4rem;
+      min-height: 100vh;
+    }
+    /* Panel de búsqueda */
+    .search-panel {
+      background: rgba(17,34,64,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+    }
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .checkbox-pref {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .checkbox-pref input { accent-color: var(--gold); }
+    .btn-reset-dark {
+      background: transparent;
+      border: 1px solid var(--border-gold);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem;
+      font-size: 0.88rem;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: var(--trans);
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    .btn-reset-dark:hover { border-color: var(--gold); color: var(--cream); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="th-navbar scrolled" id="mainNav">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo">
+          <i class="fa-solid fa-plane-departure"></i>
+          Travel<span class="logo-dot">Hub</span>
+        </a>
+        <div class="d-none d-lg-flex align-items-center gap-4">
+          <a href="/" class="nav-link-custom">Inicio</a>
+          <a href="/buscar" class="nav-link-custom" style="color:var(--gold)">Buscar</a>
+          <a href="/#destinos" class="nav-link-custom">Destinos</a>
+        </div>
+        <div id="nav-user-area">
+          <a href="/login" class="btn-nav-login">
+            <i class="fa-regular fa-user me-1"></i> Iniciar sesión
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero mini -->
+  <div style="padding-top:80px;background:linear-gradient(160deg,#0A1628 0%,#112240 100%);padding-bottom:2.5rem;">
+    <div class="container pt-4">
+      <div class="hero-eyebrow">
+        <i class="fa-solid fa-magnifying-glass"></i> Búsqueda avanzada
+      </div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--white);margin-bottom:0.5rem;">
+        Encuentra el viaje <em style="font-style:italic;color:var(--gold-light)">perfecto</em>
+      </h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;">Filtra por precio, aerolínea, tipo de vuelo y más.</p>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-container" style="background:var(--navy);">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- Sidebar de filtros -->
+        <div class="col-lg-3">
+          <div class="filter-sidebar anim-up">
+            <div class="filter-title">
+              <i class="fa-solid fa-sliders me-2" style="color:var(--gold)"></i>Filtros rápidos
+            </div>
+
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-building me-1"></i> Proveedores</div>
+              <label class="filter-check"><input type="checkbox" id="all-providers" checked> Todos los proveedores</label>
+              <label class="filter-check"><input type="checkbox" id="airlines"> Solo aerolíneas</label>
+              <label class="filter-check"><input type="checkbox" id="hotels"> Solo hoteles</label>
+            </div>
+
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-dollar-sign me-1"></i> Rango de precio</div>
+              <div class="price-inputs-row">
+                <input class="price-input-sm" type="number" placeholder="Mín $" value="0">
+                <input class="price-input-sm" type="number" placeholder="Máx $" value="5000">
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-star me-1"></i> Calificación mínima</div>
+              <label class="filter-check"><input type="checkbox" id="rating5"> <span class="stars-gold">★★★★★</span></label>
+              <label class="filter-check"><input type="checkbox" id="rating4"> <span class="stars-gold">★★★★</span><span style="color:var(--border-gold)">★</span></label>
+              <label class="filter-check"><input type="checkbox" id="rating3"> <span class="stars-gold">★★★</span><span style="color:var(--border-gold)">★★</span></label>
+            </div>
+
+            <div class="filter-group">
+              <div class="filter-group-title"><i class="fa-solid fa-location-dot me-1"></i> Destinos populares</div>
+              <div class="dest-pop-grid" id="popular-dests">
+                <div class="dest-pop-card" data-dest="Nueva York"><div class="icon">🗽</div><div class="name">Nueva York</div></div>
+                <div class="dest-pop-card" data-dest="Cancún"><div class="icon">🌴</div><div class="name">Cancún</div></div>
+                <div class="dest-pop-card" data-dest="París"><div class="icon">🗼</div><div class="name">París</div></div>
+                <div class="dest-pop-card" data-dest="Miami"><div class="icon">🏖️</div><div class="name">Miami</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de búsqueda -->
+        <div class="col-lg-9">
+          <div class="search-panel anim-up anim-up-1">
+
+            <!-- Tabs -->
+            <div class="search-tabs-custom mb-4">
+              <button class="s-tab active" data-tab="vuelos"><i class="fa-solid fa-plane me-1"></i> Vuelos</button>
+              <button class="s-tab" data-tab="hoteles"><i class="fa-solid fa-building me-1"></i> Hoteles</button>
+              <button class="s-tab" data-tab="paquetes"><i class="fa-solid fa-bag-shopping me-1"></i> Paquetes</button>
+            </div>
+
+            <!-- FORM VUELOS -->
+            <div class="search-form-content" id="tab-vuelos"
+                 hx-get="/api/search/flights"
+                 hx-target="#search-results"
+                 hx-swap="innerHTML">
+              <div class="section-heading">
+                <i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Información del vuelo
+              </div>
+              <div class="trip-type-group mb-3">
+                <label class="trip-radio"><input type="radio" name="tipo_vuelo" value="ida_vuelta" checked><span class="radio-dot"></span><span>Ida y vuelta</span></label>
+                <label class="trip-radio"><input type="radio" name="tipo_vuelo" value="solo_ida"><span class="radio-dot"></span><span>Solo ida</span></label>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-plane-departure me-1"></i> Origen</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-location-dot"></i><input class="th-input" type="text" name="origen" placeholder="Ciudad o aeropuerto"></div></div>
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-plane-arrival me-1"></i> Destino</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-location-dot"></i><input class="th-input" type="text" name="destino" id="vuelo-destino" placeholder="Ciudad o aeropuerto"></div></div>
+                <div class="col-md-3"><label class="th-label"><i class="fa-regular fa-calendar me-1"></i> Fecha de ida</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_salida"></div></div>
+                <div class="col-md-3" id="regreso-col"><label class="th-label"><i class="fa-regular fa-calendar me-1"></i> Fecha de vuelta</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_regreso"></div></div>
+                <div class="col-md-3"><label class="th-label"><i class="fa-solid fa-users me-1"></i> Pasajeros</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-users"></i>
+                    <select class="th-input" name="num_pasajeros"><option value="1">1 Pasajero</option><option value="2">2 Pasajeros</option><option value="3">3 Pasajeros</option><option value="4">4 Pasajeros</option></select></div></div>
+                <div class="col-md-3"><label class="th-label"><i class="fa-solid fa-chair me-1"></i> Clase</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-chair"></i>
+                    <select class="th-input" name="tipo_asiento"><option value="turista">Turista</option><option value="business">Business</option></select></div></div>
+              </div>
+              <div class="section-heading mt-3"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Preferencias adicionales</div>
+              <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Solo vuelos directos</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Equipaje incluido</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> WiFi a bordo</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Comidas incluidas</label></div>
+              </div>
+              <button type="button" class="btn-buscar" onclick="buscar('flights')">
+                <i class="fa-solid fa-magnifying-glass"></i> Buscar vuelos
+              </button>
+              <button type="reset" class="btn-reset-dark">Limpiar filtros</button>
+            </div>
+
+            <!-- FORM HOTELES -->
+            <div class="search-form-content d-none" id="tab-hoteles">
+              <div class="section-heading"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Información del hotel</div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-city me-1"></i> Destino (Ciudad)</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-building"></i><input class="th-input" type="text" name="ciudad" id="hotel-destino" placeholder="Ej: Miami Beach"></div></div>
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-users me-1"></i> Huéspedes</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-users"></i>
+                    <select class="th-input" name="num_huespedes"><option value="1">1 Huésped</option><option value="2">2 Huéspedes</option><option value="3">3 Huéspedes</option><option value="4">4 Huéspedes</option></select></div></div>
+                <div class="col-md-3"><label class="th-label"><i class="fa-regular fa-calendar-check me-1"></i> Check-in</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_checkin"></div></div>
+                <div class="col-md-3"><label class="th-label"><i class="fa-regular fa-calendar-xmark me-1"></i> Check-out</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_checkout"></div></div>
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-bed me-1"></i> Tipo de habitación</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-bed"></i>
+                    <select class="th-input" name="tipo_habitacion"><option value="">Cualquiera</option><option value="doble">Doble</option><option value="junior_suite">Junior Suite</option><option value="suite">Suite</option><option value="gran_suite">Gran Suite</option></select></div></div>
+              </div>
+              <div class="section-heading mt-2"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Amenidades deseadas</div>
+              <div class="row g-2 mb-3">
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-water-ladder me-1" style="color:var(--gold)"></i> Piscina</label></div>
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-dumbbell me-1" style="color:var(--gold)"></i> Gimnasio</label></div>
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-spa me-1" style="color:var(--gold)"></i> Spa</label></div>
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-mug-hot me-1" style="color:var(--gold)"></i> Desayuno incluido</label></div>
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-wifi me-1" style="color:var(--gold)"></i> WiFi gratuito</label></div>
+                <div class="col-6 col-md-4"><label class="checkbox-pref"><input type="checkbox"> <i class="fa-solid fa-square-parking me-1" style="color:var(--gold)"></i> Estacionamiento</label></div>
+              </div>
+              <button type="button" class="btn-buscar" onclick="buscar('hotels')">
+                <i class="fa-solid fa-magnifying-glass"></i> Buscar hoteles
+              </button>
+              <button type="reset" class="btn-reset-dark">Limpiar filtros</button>
+            </div>
+
+            <!-- FORM PAQUETES -->
+            <div class="search-form-content d-none" id="tab-paquetes">
+              <div class="section-heading"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Información del paquete</div>
+              <div class="row g-3 mb-3">
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-plane-departure me-1"></i> País de origen</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-location-dot"></i><input class="th-input" type="text" name="origen" placeholder="Ej: Guatemala"></div></div>
+                <div class="col-md-6"><label class="th-label"><i class="fa-solid fa-plane-arrival me-1"></i> País de destino</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-location-dot"></i><input class="th-input" type="text" name="destino" id="paquete-destino" placeholder="Ej: Estados Unidos"></div></div>
+                <div class="col-md-3"><label class="th-label">Fecha de ida</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_salida"></div></div>
+                <div class="col-md-3"><label class="th-label">Fecha de vuelta</label>
+                  <div class="input-group-custom"><i class="input-icon fa-regular fa-calendar"></i><input class="th-input" type="date" name="fecha_regreso"></div></div>
+                <div class="col-md-3"><label class="th-label">Pasajeros</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-users"></i>
+                    <select class="th-input" name="num_pasajeros"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div></div>
+                <div class="col-md-3"><label class="th-label">Clase</label>
+                  <div class="input-group-custom"><i class="input-icon fa-solid fa-chair"></i>
+                    <select class="th-input" name="tipo_asiento"><option value="turista">Turista</option><option value="business">Business</option></select></div></div>
+              </div>
+              <div class="section-heading mt-2">Preferencias del paquete</div>
+              <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Todo incluido</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Tours incluidos</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Seguro de viaje</label></div>
+                <div class="col-6 col-md-3"><label class="checkbox-pref"><input type="checkbox"> Traslado aeropuerto</label></div>
+              </div>
+              <button type="button" class="btn-buscar" onclick="buscar('packages')">
+                <i class="fa-solid fa-magnifying-glass"></i> Buscar paquetes
+              </button>
+              <button type="reset" class="btn-reset-dark">Limpiar filtros</button>
+            </div>
+          </div>
+
+          <!-- Resultados -->
+          <div id="search-results" class="mt-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer mínimo -->
+  <footer class="th-footer" style="padding:2rem 0;">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="footer-logo">Travel<span>Hub</span></div>
+        <p class="footer-copy">© 2026 TravelHub. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Tabs
+    document.querySelectorAll('.s-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.search-form-content').forEach(f => f.classList.add('d-none'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.remove('d-none');
+        document.getElementById('search-results').innerHTML = '';
+      });
+    });
+    // Radio vuelo
+    document.querySelectorAll('input[name="tipo_vuelo"]').forEach(r => {
+      r.addEventListener('change', e => {
+        document.getElementById('regreso-col').style.opacity = e.target.value === 'solo_ida' ? '0.35' : '1';
+      });
+    });
+    // Destinos populares → rellena el campo activo
+    document.querySelectorAll('.dest-pop-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const name = card.dataset.dest;
+        const activeTab = document.querySelector('.s-tab.active').dataset.tab;
+        const targets = { vuelos: 'vuelo-destino', hoteles: 'hotel-destino', paquetes: 'paquete-destino' };
+        const el = document.getElementById(targets[activeTab]);
+        if (el) el.value = name;
+      });
+    });
+    // Función buscar
+    function buscar(tipo) {
+      const params = new URLSearchParams();
+      const activeForm = document.getElementById('tab-' + (tipo === 'flights' ? 'vuelos' : tipo === 'hotels' ? 'hoteles' : 'paquetes'));
+      activeForm.querySelectorAll('input[name],select[name]').forEach(el => {
+        if (el.name && el.value) params.append(el.name, el.value);
+      });
+      const url = `/api/search/${tipo}?${params.toString()}`;
+      fetch(url).then(r => r.json()).then(data => {
+        document.getElementById('search-results').innerHTML = renderResultados(data, tipo);
+      }).catch(() => {
+        document.getElementById('search-results').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Error al buscar. Verifica que el servidor esté corriendo.</p>';
+      });
+    }
+    function renderResultados(data, tipo) {
+      if (!data.ok || !data.data?.length) return '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-magnifying-glass" style="font-size:2rem;color:var(--gold);margin-bottom:1rem;display:block;"></i><p>No se encontraron resultados para tu búsqueda.</p></div>';
+      return `<div style="margin-bottom:1rem;color:var(--text-muted);font-size:0.88rem;">${data.total} resultados encontrados</div>` +
+        data.data.map(item => `
+          <div class="result-card mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div>
+                <span class="result-tag">${item.nombre_proveedor || 'Proveedor'}</span>
+                ${tipo === 'flights' ? `
+                  <div class="mt-2" style="font-size:0.95rem;color:var(--cream);">${item.origen_ciudad || ''} <i class="fa-solid fa-arrow-right mx-2" style="color:var(--gold)"></i> ${item.destino_ciudad || ''}</div>
+                  <div style="font-size:0.82rem;color:var(--text-muted);">${item.tipo_asiento || ''} · ${item.asientos_disponibles || ''} disponibles</div>
+                ` : `
+                  <div class="mt-2" style="font-size:0.95rem;color:var(--cream);">${item.nombre_hotel || ''} <span style="color:var(--text-muted);font-size:0.82rem;">· ${item.ciudad || ''}</span></div>
+                  <div style="font-size:0.82rem;color:var(--text-muted);">${item.tipo_habitacion || ''}</div>
+                `}
+              </div>
+              <div class="text-end">
+                <div class="result-price">$${item.precio_agencia}<small>/persona</small></div>
+                <a href="${tipo === 'flights' ? '/detalle-vuelo' : '/detalle-hotel'}?id=${item.id_vuelo || item.id_habitacion}" class="btn-reservar mt-2 d-inline-block">
+                  Ver detalles <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>`).join('');
+    }
+    // Nav user
+    fetch('/api/auth/me').then(r=>r.json()).then(d=>{
+      if(d?.ok && d.usuario) document.getElementById('nav-user-area').innerHTML = `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+    }).catch(()=>{});
+  </script>
+</body>
+</html>

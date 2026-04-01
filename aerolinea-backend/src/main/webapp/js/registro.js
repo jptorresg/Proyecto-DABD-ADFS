@@ -126,7 +126,7 @@ function registroData() {
             this.isLoading = true;
 
             try {
-                const response = await fetch('http://localhost:8080/api/auth/register', {
+                const response = await fetch(`${API_BASE}/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -147,7 +147,7 @@ function registroData() {
                 if (response.ok && data.success) {
                     showNotification('¡Registro exitoso! Redirigiendo al login...', 'success');
                     setTimeout(() => {
-                        window.location.href = '/login.html';
+                        window.location.href = 'aerolineas/views/login.html';
                     }, 2000);
                 } else {
                     throw new Error(data.message || 'Error al registrar usuario');

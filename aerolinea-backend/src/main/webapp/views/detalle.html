@@ -23,6 +23,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="../js/alpine-data.js"></script>
     <script src="../js/detalle.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth-guard.js"></script>
     
     <style>
         [x-cloak] { display: none !important; }
@@ -261,47 +263,23 @@
                                 <span class="det-rs-count" x-text="`${vuelo.totalComentarios} calificaciones`"></span>
                             </div>
                             <div class="det-rs-bars">
+                            <template x-for="star in [5,4,3,2,1]" :key="star">
                                 <div class="det-rs-bar-row">
-                                    <span class="det-rs-bar-n">5</span>
+                                    <span class="det-rs-bar-n" x-text="star"></span>
                                     <i class="fas fa-star det-rs-bar-star"></i>
+
                                     <div class="det-rs-bar-track">
-                                        <div class="det-rs-bar-fill" style="width: 42%;"></div>
+                                        <div class="det-rs-bar-fill"
+                                            :style="`width: ${distribucionRatings[star]}%`">
+                                        </div>
                                     </div>
-                                    <span class="det-rs-bar-pct">42%</span>
+
+                                    <span class="det-rs-bar-pct"
+                                        x-text="`${distribucionRatings[star]}%`">
+                                    </span>
                                 </div>
-                                <div class="det-rs-bar-row">
-                                    <span class="det-rs-bar-n">4</span>
-                                    <i class="fas fa-star det-rs-bar-star"></i>
-                                    <div class="det-rs-bar-track">
-                                        <div class="det-rs-bar-fill" style="width: 33%;"></div>
-                                    </div>
-                                    <span class="det-rs-bar-pct">33%</span>
-                                </div>
-                                <div class="det-rs-bar-row">
-                                    <span class="det-rs-bar-n">3</span>
-                                    <i class="fas fa-star det-rs-bar-star"></i>
-                                    <div class="det-rs-bar-track">
-                                        <div class="det-rs-bar-fill" style="width: 15%;"></div>
-                                    </div>
-                                    <span class="det-rs-bar-pct">15%</span>
-                                </div>
-                                <div class="det-rs-bar-row">
-                                    <span class="det-rs-bar-n">2</span>
-                                    <i class="fas fa-star det-rs-bar-star"></i>
-                                    <div class="det-rs-bar-track">
-                                        <div class="det-rs-bar-fill" style="width: 7%;"></div>
-                                    </div>
-                                    <span class="det-rs-bar-pct">7%</span>
-                                </div>
-                                <div class="det-rs-bar-row">
-                                    <span class="det-rs-bar-n">1</span>
-                                    <i class="fas fa-star det-rs-bar-star"></i>
-                                    <div class="det-rs-bar-track">
-                                        <div class="det-rs-bar-fill" style="width: 3%;"></div>
-                                    </div>
-                                    <span class="det-rs-bar-pct">3%</span>
-                                </div>
-                            </div>
+                            </template>
+                        </div>
                         </div>
 
                         <!-- Nuevo Comentario -->
@@ -328,38 +306,99 @@
                         <!-- Toolbar de Ordenamiento -->
                         <div class="det-comments-toolbar">
                             <span>Ordenar:</span>
-                            <button class="det-sort-btn det-sort-active">Recientes</button>
-                            <button class="det-sort-btn">Más útiles</button>
-                            <button class="det-sort-btn">Mejor calificados</button>
+                            <button 
+                                class="det-sort-btn"
+                                :class="{ 'det-sort-active': sortActual === 'recent' }"
+                                @click="cambiarOrden('recent')">
+                                Recientes
+                            </button>
+
+                            <button 
+                                class="det-sort-btn"
+                                :class="{ 'det-sort-active': sortActual === 'likes' }"
+                                @click="cambiarOrden('likes')">
+                                Más útiles
+                            </button>
+
+                            <button 
+                                class="det-sort-btn"
+                                :class="{ 'det-sort-active': sortActual === 'rating' }"
+                                @click="cambiarOrden('rating')">
+                                Mejor calificados
+                            </button>
                         </div>
 
                         <!-- Árbol de Comentarios -->
                         <div class="det-comments-tree">
                             <template x-for="comentario in comentarios" :key="comentario.id">
-                                <div class="det-comment">
-                                    <div class="det-comment-header">
-                                        <div class="det-comment-avatar" :style="`background: ${comentario.color}`">
-                                            <span x-text="comentario.avatar"></span>
-                                        </div>
-                                        <span class="det-comment-author" x-text="comentario.autor"></span>
-                                        <span class="det-comment-date" x-text="comentario.fecha"></span>
-                                        <span class="det-comment-stars" x-show="comentario.rating" x-html="renderStars(comentario.rating)"></span>
-                                    </div>
-                                    <p class="det-comment-text" x-text="comentario.texto"></p>
-                                    <div class="det-comment-actions">
-                                        <button class="det-comment-action" 
-                                                :class="{ 'liked': comentario.liked }"
-                                                @click="toggleLike(comentario)">
-                                            <i class="fas fa-thumbs-up"></i>
-                                            <span class="det-like-count" x-text="comentario.likes"></span>
-                                        </button>
-                                        <button class="det-comment-action">
-                                            <i class="fas fa-reply"></i> Responder
-                                        </button>
-                                    </div>
+                                <div x-data="{ comment: comentario }">
+                                    <div x-html="$refs.commentTemplate.innerHTML"></div>
                                 </div>
                             </template>
                         </div>
+                        <!-- Template recursivo -->
+                        <template x-ref="commentTemplate">
+                            <div class="det-comment">
+
+                                <div class="det-comment-header">
+                                    <div class="det-comment-avatar" :style="`background: ${comment.color}`">
+                                        <span x-text="comment.avatar"></span>
+                                    </div>
+                                    <span class="det-comment-author" x-text="comment.autor"></span>
+                                    <span class="det-comment-date" x-text="comment.fecha"></span>
+                                    <span class="det-comment-stars"
+                                        x-show="comment.rating"
+                                        x-html="renderStars(comment.rating)">
+                                    </span>
+                                </div>
+
+                                <p class="det-comment-text" x-text="comment.texto"></p>
+
+                                <div class="det-comment-actions">
+                                    <button class="det-comment-action"
+                                            :class="{ 'liked': comment.liked }"
+                                            @click="toggleLike(comment)">
+                                        <i class="fas fa-thumbs-up"></i>
+                                        <span class="det-like-count" x-text="comment.likes"></span>
+                                    </button>
+
+                                    <button class="det-comment-action"
+                                            @click="comentarioActivo = comment.idComentario">
+                                        <i class="fas fa-reply"></i> Responder
+                                    </button>
+                                </div>
+
+                                <!-- FORM RESPUESTA -->
+                                <div x-show="comentarioActivo === comment.idComentario"
+                                    class="mt-2">
+
+                                    <textarea class="det-nc-textarea"
+                                            x-model="respuestaTexto"
+                                            placeholder="Escribe tu respuesta..."></textarea>
+
+                                    <button class="det-nc-btn"
+                                            @click="responderComentario(comment.idComentario)">
+                                        Publicar respuesta
+                                    </button>
+
+                                </div>
+
+                                <!-- HIJOS RECURSIVOS -->
+                                <div class="det-comment-replies"
+                                    x-show="comment.respuestas && comment.respuestas.length > 0">
+
+                                    <template x-for="child in comment.respuestas" :key="child.id">
+                                        <div x-data="{ comment: child }">
+                                            <template x-if="true">
+                                                <div x-html="$refs.commentTemplate.innerHTML"></div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                </div>
+
+                            </div>
+                        </template>
                     </div>
 
                 </div><!-- /col-lg-8 -->
@@ -377,8 +416,8 @@
                             <span class="det-pp-muted" x-text="formatCurrency(vuelo.precioBase)"></span>
                         </div>
                         <div class="det-pp-row det-pp-row-passengers">
-                            <span>× 2 pasajeros</span>
-                            <span class="det-pp-muted" x-text="formatCurrency(vuelo.precioBase * 2)"></span>
+                            <span x-text="`× ${pasajeros} pasajeros`"></span>
+                            <span class="det-pp-muted" x-text="formatCurrency(vuelo.precioBase * pasajeros)"></span>
                         </div>
 
                         <div class="det-pp-divider"></div>

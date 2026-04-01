@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Iniciar Sesión — TravelHub</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/travelnow/public/css/styles.css">
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    </head>
+    <body>
+        <nav style="position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;background:rgba(10,22,40,0.6);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);">
+            <div class="container d-flex justify-content-between align-items-center">
+              <a href="/" class="th-logo" style="font-size:1.5rem;">
+                <i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span>
+              </a>
+              <a href="/" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none;">
+                <i class="fa-solid fa-arrow-left me-1"></i> Volver al inicio
+              </a>
+            </div>
+          </nav>
+         
+          <div class="auth-bg" style="padding-top:5rem;">
+            <div class="container">
+              <div class="row justify-content-center">
+                <div class="col-xl-10">
+                  <div class="auth-card">
+                    <div class="row g-0">
+         
+                      <!-- Panel de marca -->
+                      <div class="col-lg-5 auth-brand-panel">
+                        <div class="hero-eyebrow mb-3">Bienvenido de vuelta</div>
+                        <div class="brand-quote">
+                          El mundo espera.<br><em>¿A dónde vas hoy?</em>
+                        </div>
+                        <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.8;">
+                          Accede a tu cuenta para gestionar tus reservaciones, ver tu historial de viajes y disfrutar de ofertas exclusivas.
+                        </p>
+                        <ul class="brand-feature-list">
+                          <li><i class="fa-solid fa-check"></i> Gestiona tus reservaciones fácilmente</li>
+                          <li><i class="fa-solid fa-check"></i> Accede a ofertas exclusivas para miembros</li>
+                          <li><i class="fa-solid fa-check"></i> Descarga tus comprobantes en PDF</li>
+                          <li><i class="fa-solid fa-check"></i> Historial completo de viajes</li>
+                          <li><i class="fa-solid fa-check"></i> Soporte prioritario 24/7</li>
+                        </ul>
+                      </div>
+         
+                      <!-- Panel de formulario -->
+                      <div class="col-lg-7 auth-form-panel">
+                        <h1 class="auth-heading">Iniciar Sesión</h1>
+                        <p class="auth-sub">Ingresa tus credenciales para continuar</p>
+         
+                        <!-- Error inline (HTMX lo llena) -->
+                        <div class="th-alert-error" id="login-error">
+                          <i class="fa-solid fa-circle-exclamation"></i>
+                          <span id="login-error-msg">Correo o contraseña incorrectos</span>
+                        </div>
+         
+                        <!--
+                          HTMX: POST /api/auth/login
+                          Éxito → servidor responde HX-Redirect al home
+                          Error → servidor responde texto de error → se muestra en #login-error
+                        -->
+                        <form hx-post="/api/auth/login"
+                              hx-target="#login-error"
+                              hx-swap="none"
+                              id="loginForm">
+         
+                          <div class="th-form-group">
+                            <label class="th-label">
+                              <i class="fa-regular fa-envelope me-1"></i> Correo electrónico
+                            </label>
+                            <div class="input-group-auth">
+                              <i class="input-icon-auth fa-regular fa-envelope"></i>
+                              <input class="th-input-auth" type="email" name="correo"
+                                     placeholder="tu@email.com" required autocomplete="email">
+                            </div>
+                          </div>
+         
+                          <div class="th-form-group">
+                            <label class="th-label">
+                              <i class="fa-solid fa-lock me-1"></i> Contraseña
+                            </label>
+                            <div class="input-group-auth">
+                              <i class="input-icon-auth fa-solid fa-lock"></i>
+                              <input class="th-input-auth" type="password" name="contrasena"
+                                     id="passInput" placeholder="••••••••" required autocomplete="current-password">
+                              <i class="fa-regular fa-eye" id="togglePass"
+                                 style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-muted);font-size:0.9rem;"></i>
+                            </div>
+                          </div>
+         
+                          <div class="d-flex justify-content-end mb-3">
+                            <a href="#" style="color:var(--text-muted);font-size:0.82rem;text-decoration:none;">
+                              <i class="fa-regular fa-circle-question me-1"></i>¿Olvidaste tu contraseña?
+                            </a>
+                          </div>
+         
+                          <button type="submit" class="btn-auth">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i>
+                            Iniciar sesión
+                            <span class="htmx-indicator ms-2">
+                              <i class="fa-solid fa-spinner fa-spin"></i>
+                            </span>
+                          </button>
+                        </form>
+         
+                        <!-- Seguridad -->
+                        <div style="background:rgba(212,168,67,0.06);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:0.9rem 1rem;display:flex;align-items:center;gap:0.8rem;margin-top:1rem;">
+                          <i class="fa-solid fa-shield-halved" style="color:var(--gold);font-size:1rem;flex-shrink:0;"></i>
+                          <span style="font-size:0.8rem;color:var(--text-muted);">Tu información está protegida con cifrado de extremo a extremo.</span>
+                        </div>
+         
+                        <div class="auth-link">
+                          ¿No tienes cuenta? <a href="/registro">Regístrate gratis</a>
+                        </div>
+                      </div>
+         
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+         
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+          <script>
+            // Toggle contraseña
+            document.getElementById('togglePass').addEventListener('click', function() {
+              const inp = document.getElementById('passInput');
+              const isPass = inp.type === 'password';
+              inp.type = isPass ? 'text' : 'password';
+              this.classList.toggle('fa-eye', !isPass);
+              this.classList.toggle('fa-eye-slash', isPass);
+            });
+         
+            // Manejo de respuesta HTMX
+            document.body.addEventListener('htmx:afterRequest', function(e) {
+              const errDiv = document.getElementById('login-error');
+              if (e.detail.failed || e.detail.xhr.status >= 400) {
+                let msg = 'Correo o contraseña incorrectos';
+                try { msg = JSON.parse(e.detail.xhr.responseText).message || msg; } catch {}
+                document.getElementById('login-error-msg').textContent = msg;
+                errDiv.classList.add('show');
+              } else {
+                errDiv.classList.remove('show');
+              }
+            });
+          </script>
+    </body>
+</html>

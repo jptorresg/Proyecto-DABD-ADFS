@@ -41,14 +41,22 @@ public class VueloController extends HttpServlet {
         
         try {
             if (pathInfo == null || "/".equals(pathInfo)) {
+
                 handleBuscarVuelos(request, out);
+
+            } else if ("/admin".equals(pathInfo)) {
+
+                handleListarVuelosAdmin(request, out);
+
             } else {
-                // GET /api/vuelos/{id}
+
                 Long id = Long.parseLong(pathInfo.substring(1));
                 Vuelo vuelo = vueloService.obtenerVuelo(id);
                 out.print(JsonResponse.success(vuelo));
+
             }
         } catch (Exception e) {
+            e.printStackTrace();
             response.setStatus(500);
             out.print(JsonResponse.error(e.getMessage()));
         }
@@ -62,36 +70,55 @@ public class VueloController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        // Verificar que sea admin
-        if (!esAdmin(request)) {
-            response.setStatus(403);
-            out.print(JsonResponse.error("Acceso denegado - Solo administradores"));
-            return;
-        }
-        
         try {
             JsonObject json = parseRequestBody(request);
+
+            System.out.println("════════════════════════════════════════");
+            System.out.println("📥 JSON RECIBIDO:");
+            System.out.println(json.toString());
+            System.out.println("════════════════════════════════════════");
+
+            // ⭐ LEER idUsuarioCreador DEL JSON (no de la sesión)
+            Long idUsuarioCreador = null;
             
+            if (json.has("idUsuarioCreador")) {
+                idUsuarioCreador = json.get("idUsuarioCreador").getAsLong();
+                System.out.println("✅ ID Usuario Creador (desde JSON): " + idUsuarioCreador);
+            } else {
+                System.err.println("❌ ERROR: idUsuarioCreador NO viene en el JSON!");
+                System.err.println("Campos recibidos: " + json.keySet());
+                response.setStatus(400);
+                out.print(JsonResponse.error("Falta idUsuarioCreador en el payload"));
+                return;
+            }
+            
+            // Extraer demás campos
+            String codigoVuelo = json.get("codigoVuelo").getAsString();
+            String origenCiudad = json.get("origenCiudad").getAsString();
+            String origenIata = json.get("origenIata").getAsString();
+            String destinoCiudad = json.get("destinoCiudad").getAsString();
+            String destinoIata = json.get("destinoIata").getAsString();
+            LocalDate fechaSalida = LocalDate.parse(json.get("fechaSalida").getAsString());
+            String horaSalida = json.get("horaSalida").getAsString();
+            LocalDate fechaLlegada = LocalDate.parse(json.get("fechaLlegada").getAsString());
+            String horaLlegada = json.get("horaLlegada").getAsString();
+            String tipoAsiento = json.get("tipoAsiento").getAsString();
+            BigDecimal precioBase = new BigDecimal(json.get("precioBase").getAsString());
+            Integer asientosTotales = json.get("asientosTotales").getAsInt();
+            
+            // Crear vuelo
             Vuelo vuelo = vueloService.crearVuelo(
-                json.get("codigoVuelo").getAsString(),
-                json.get("origenCiudad").getAsString(),
-                json.get("origenIata").getAsString(),
-                json.get("destinoCiudad").getAsString(),
-                json.get("destinoIata").getAsString(),
-                LocalDate.parse(json.get("fechaSalida").getAsString()),
-                json.get("horaSalida").getAsString(),
-                LocalDate.parse(json.get("fechaLlegada").getAsString()),
-                json.get("horaLlegada").getAsString(),
-                json.get("tipoAsiento").getAsString(),
-                new BigDecimal(json.get("precioBase").getAsString()),
-                json.get("asientosTotales").getAsInt(),
-                getUsuarioIdFromSession(request)
+                codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
+                fechaSalida, horaSalida, fechaLlegada, horaLlegada, tipoAsiento,
+                precioBase, asientosTotales, idUsuarioCreador
             );
             
             response.setStatus(201);
             out.print(JsonResponse.success("Vuelo creado exitosamente", vuelo));
             
         } catch (Exception e) {
+            System.err.println("❌ ERROR en VueloController: " + e.getMessage());
+            e.printStackTrace();
             response.setStatus(400);
             out.print(JsonResponse.error(e.getMessage()));
         }
@@ -105,11 +132,11 @@ public class VueloController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        if (!esAdmin(request)) {
-            response.setStatus(403);
-            out.print(JsonResponse.error("Acceso denegado"));
-            return;
-        }
+        //if (!esAdmin(request)) {
+        //    response.setStatus(403);
+        //    out.print(JsonResponse.error("Acceso denegado"));
+        //    return;
+        //}
         
         try {
             String pathInfo = request.getPathInfo();
@@ -129,10 +156,14 @@ public class VueloController extends HttpServlet {
             vuelo.setFechaLlegada(LocalDate.parse(json.get("fechaLlegada").getAsString()));
             vuelo.setHoraLlegada(json.get("horaLlegada").getAsString());
             vuelo.setTipoAsiento(json.get("tipoAsiento").getAsString());
-            vuelo.setPrecioBase(new BigDecimal(json.get("precioBase").getAsString()));
+            vuelo.setPrecioBase(json.get("precioBase").getAsBigDecimal());
             vuelo.setAsientosTotales(json.get("asientosTotales").getAsInt());
-            vuelo.setAsientosDisponibles(json.get("asientosDisponibles").getAsInt());
-            vuelo.setEstado(json.get("estado").getAsString());
+            if (json.has("asientosDisponibles")) {
+                vuelo.setAsientosDisponibles(json.get("asientosDisponibles").getAsInt());
+            }
+            if (json.has("estado")) {
+                vuelo.setEstado(json.get("estado").getAsString());
+            }
             
             vueloService.actualizarVuelo(vuelo);
             out.print(JsonResponse.success("Vuelo actualizado exitosamente", vuelo));
@@ -151,11 +182,11 @@ public class VueloController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        if (!esAdmin(request)) {
-            response.setStatus(403);
-            out.print(JsonResponse.error("Acceso denegado"));
-            return;
-        }
+        //if (!esAdmin(request)) {
+        //    response.setStatus(403);
+        //    out.print(JsonResponse.error("Acceso denegado"));
+        //    return;
+        //}
         
         try {
             String pathInfo = request.getPathInfo();
@@ -181,19 +212,46 @@ public class VueloController extends HttpServlet {
         List<Vuelo> vuelos = vueloService.buscarVuelos(origen, destino, fechaSalida, tipoAsiento);
         out.print(JsonResponse.success(vuelos));
     }
+
+    private void handleListarVuelosAdmin(HttpServletRequest request, PrintWriter out) throws Exception {
+
+        System.out.println("=== Entrando a handleListarVuelosAdmin ===");
+
+        //if (!esAdmin(request)) {
+          //  System.out.println("Usuario no es admin");
+            //throw new IllegalAccessException("Acceso denegado - Solo administradores");
+        //}
+
+        System.out.println("Usuario es admin");
+
+        List<Vuelo> vuelos = vueloService.listarVuelos(1, 100);
+
+        System.out.println("Vuelos obtenidos: " + vuelos.size());
+
+        out.print(JsonResponse.success(vuelos));
+    }
     
     private boolean esAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session == null) return false;
-        
+            if (session == null) {
+                System.out.println("No hay sesión activa");
+                return false;
+            }        
         String tipo = (String) session.getAttribute("usuarioTipo");
+        System.out.println("Rol en sesión: " + tipo);
         return "ADMIN".equals(tipo);
     }
     
     private Long getUsuarioIdFromSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session == null) return null;
-        return (Long) session.getAttribute("usuarioId");
+        if (session == null) {
+            System.out.println("No hay sesión");
+            return null;
+        } else {
+            System.out.println("SESSION ID EN VUELOS: " + session.getId());
+            System.out.println("usuarioId en sesión: " + session.getAttribute("usuarioId"));
+            return (Long) session.getAttribute("usuarioId");
+        }
     }
     
     private JsonObject parseRequestBody(HttpServletRequest request) throws IOException {

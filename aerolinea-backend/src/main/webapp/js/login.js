@@ -2,13 +2,6 @@
 // LOGIN - ALPINE.JS DATA COMPONENT
 // ============================================================
 
-// Detectar automáticamente el contexto de la app
-const BASE_PATH = window.location.pathname.split('/')[1]
-    ? `/${window.location.pathname.split('/')[1]}`
-    : '';
-
-const API_BASE = `${BASE_PATH}/api`;
-
 function loginData() {
     return {
         // Datos del formulario
@@ -61,6 +54,7 @@ function loginData() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         email: this.email,
                         password: this.password
@@ -70,6 +64,11 @@ function loginData() {
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    console.log('Datos del usuario recibidos:', data.data);
+                    if (!data.data.idUsuario) {
+                        console.error('⚠️ WARNING: idUsuario no viene en la respuesta!');
+                    }
+                    
                     // Guardar sesión
                     saveUserSession(data.data);
 

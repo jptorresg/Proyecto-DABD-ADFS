@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Cuenta — TravelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/travelnow/public/css/styles.css">
+</head>
+<body>
+
+  <!-- Navbar mínima -->
+  <nav style="position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;background:rgba(10,22,40,0.6);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="/" class="th-logo" style="font-size:1.5rem;">
+        <i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span>
+      </a>
+      <a href="/" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none;">
+        <i class="fa-solid fa-arrow-left me-1"></i> Volver al inicio
+      </a>
+    </div>
+  </nav>
+
+  <div class="auth-bg" style="padding-top:5rem;align-items:flex-start;">
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-xl-9">
+          <div class="auth-card">
+            <div class="row g-0">
+
+              <!-- Panel de marca -->
+              <div class="col-lg-4 auth-brand-panel">
+                <div class="hero-eyebrow mb-3">Únete hoy</div>
+                <div class="brand-quote" style="font-size:1.8rem;">
+                  Comienza tu próxima <em>aventura</em>
+                </div>
+                <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.8;margin-top:1rem;">
+                  Crea tu cuenta en menos de 2 minutos y accede a miles de vuelos y hoteles al mejor precio.
+                </p>
+                <ul class="brand-feature-list" style="margin-top:1.5rem;">
+                  <li><i class="fa-solid fa-check"></i> Registro 100% gratuito</li>
+                  <li><i class="fa-solid fa-check"></i> Sin comisiones ocultas</li>
+                  <li><i class="fa-solid fa-check"></i> Comprobantes PDF automáticos</li>
+                  <li><i class="fa-solid fa-check"></i> Soporte dedicado 24/7</li>
+                </ul>
+              </div>
+
+              <!-- Panel de formulario -->
+              <div class="col-lg-8 auth-form-panel" style="padding:2.5rem;">
+                <h1 class="auth-heading">Crear cuenta</h1>
+                <p class="auth-sub">Completa los pasos para registrarte</p>
+
+                <!-- Progress Steps -->
+                <div class="reg-steps mb-4">
+                  <div class="reg-step active" id="step-indicator-1">
+                    <div class="step-circle-custom"><i class="fa-solid fa-user"></i></div>
+                    <div class="step-label-custom">Datos</div>
+                  </div>
+                  <div class="step-line"></div>
+                  <div class="reg-step" id="step-indicator-2">
+                    <div class="step-circle-custom"><i class="fa-solid fa-lock"></i></div>
+                    <div class="step-label-custom">Seguridad</div>
+                  </div>
+                  <div class="step-line"></div>
+                  <div class="reg-step" id="step-indicator-3">
+                    <div class="step-circle-custom"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="step-label-custom">Verificar</div>
+                  </div>
+                </div>
+
+                <!-- Error -->
+                <div class="th-alert-error" id="reg-error">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <span id="reg-error-msg"></span>
+                </div>
+
+                <form id="registerForm">
+
+                  <!-- PASO 1: Datos personales -->
+                  <div class="form-step" id="step-1">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-user me-1"></i> Nombres <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-user"></i>
+                          <input class="th-input-auth" type="text" name="nombre" placeholder="Juan" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-user me-1"></i> Apellidos <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-user"></i>
+                          <input class="th-input-auth" type="text" name="apellido" placeholder="Pérez" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-regular fa-calendar me-1"></i> Fecha de nacimiento <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-regular fa-calendar"></i>
+                          <input class="th-input-auth" type="date" name="fecha_nacimiento" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-earth-americas me-1"></i> País de origen <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-earth-americas"></i>
+                          <select class="th-input-auth" name="pais_origen" required>
+                            <option value="">Seleccione un país</option>
+                            <option>Guatemala</option><option>México</option>
+                            <option>Estados Unidos</option><option>El Salvador</option>
+                            <option>Honduras</option><option>Costa Rica</option>
+                            <option>Colombia</option><option>Argentina</option>
+                            <option>España</option><option>Otro</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-globe me-1"></i> Nacionalidad <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-globe"></i>
+                          <select class="th-input-auth" name="nacionalidad" required>
+                            <option value="">Seleccione</option>
+                            <option>Guatemalteco</option><option>Mexicano</option>
+                            <option>Estadounidense</option><option>Salvadoreño</option>
+                            <option>Hondureño</option><option>Costarricense</option>
+                            <option>Colombiano</option><option>Argentino</option>
+                            <option>Español</option><option>Otro</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-passport me-1"></i> N° de pasaporte <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-passport"></i>
+                          <input class="th-input-auth" type="text" name="numero_pasaporte" placeholder="A12345678" required>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                      <button type="button" class="btn-auth" style="width:auto;padding:0.8rem 2.5rem;" onclick="nextStep()">
+                        Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- PASO 2: Seguridad -->
+                  <div class="form-step d-none" id="step-2">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <label class="th-label"><i class="fa-regular fa-envelope me-1"></i> Correo electrónico <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-regular fa-envelope"></i>
+                          <input class="th-input-auth" type="email" name="correo" placeholder="tu@email.com" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-lock me-1"></i> Contraseña <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-lock"></i>
+                          <input class="th-input-auth" type="password" name="contrasena" id="regPass"
+                                 placeholder="Mínimo 8 caracteres" required minlength="8">
+                        </div>
+                        <!-- Barra de fuerza -->
+                        <div style="margin-top:0.5rem;height:3px;background:var(--border-gold);border-radius:2px;overflow:hidden;">
+                          <div id="strength-bar" style="height:100%;width:0;transition:all 0.3s;background:var(--gold);"></div>
+                        </div>
+                        <div id="strength-label" style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;"></div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="th-label"><i class="fa-solid fa-lock me-1"></i> Confirmar contraseña <span style="color:var(--coral)">*</span></label>
+                        <div class="input-group-auth">
+                          <i class="input-icon-auth fa-solid fa-key"></i>
+                          <input class="th-input-auth" type="password" id="regPassConfirm"
+                                 placeholder="Repite tu contraseña" required>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                      <button type="button" class="btn-auth"
+                              style="width:auto;padding:0.8rem 2rem;background:transparent;border:1px solid var(--border-gold);color:var(--cream);"
+                              onclick="prevStep()">
+                        <i class="fa-solid fa-arrow-left me-2"></i> Anterior
+                      </button>
+                      <button type="button" class="btn-auth" style="width:auto;padding:0.8rem 2.5rem;" onclick="nextStep()">
+                        Siguiente <i class="fa-solid fa-arrow-right ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- PASO 3: Captcha + submit -->
+                  <div class="form-step d-none" id="step-3">
+                    <div style="background:rgba(10,22,40,0.5);border:1px solid var(--border-gold);border-radius:var(--radius-md);padding:1.5rem;margin-bottom:1.5rem;">
+                      <label class="th-label mb-3">
+                        <i class="fa-solid fa-robot me-1"></i> Verificación de humano <span style="color:var(--coral)">*</span>
+                      </label>
+                      <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="captcha-display" id="captchaText">AB7K3</div>
+                        <button type="button" class="btn-captcha-refresh" onclick="refreshCaptcha()">
+                          <i class="fa-solid fa-rotate"></i>
+                        </button>
+                      </div>
+                      <div class="input-group-auth">
+                        <i class="input-icon-auth fa-solid fa-keyboard"></i>
+                        <input class="th-input-auth" type="text" id="captchaInput"
+                               placeholder="Escribe el código que ves arriba" required>
+                      </div>
+                    </div>
+
+                    <label class="th-check-wrap mb-4">
+                      <input type="checkbox" id="termsCheck" required>
+                      <span class="custom-check"></span>
+                      <span class="check-text">
+                        He leído y acepto los <a href="#">Términos y Condiciones</a> y la
+                        <a href="#">Política de Privacidad</a> de TravelHub
+                      </span>
+                    </label>
+
+                    <div class="d-flex justify-content-between">
+                      <button type="button" class="btn-auth"
+                              style="width:auto;padding:0.8rem 2rem;background:transparent;border:1px solid var(--border-gold);color:var(--cream);"
+                              onclick="prevStep()">
+                        <i class="fa-solid fa-arrow-left me-2"></i> Anterior
+                      </button>
+                      <button type="submit" class="btn-auth" style="width:auto;padding:0.8rem 2.5rem;" id="submitBtn">
+                        <i class="fa-solid fa-user-plus me-2"></i> Crear cuenta
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <!-- Éxito -->
+                <div class="d-none" id="successMsg" style="text-align:center;padding:2rem;">
+                  <div style="width:80px;height:80px;background:var(--gold-dim);border:1px solid var(--border-gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;color:var(--gold);">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                  <h3 style="font-family:var(--font-display);font-size:1.8rem;color:var(--white);margin-bottom:0.8rem;">¡Cuenta creada!</h3>
+                  <p style="color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">Tu registro fue exitoso. Ya puedes iniciar sesión.</p>
+                  <a href="/login" class="btn-auth" style="display:inline-block;text-decoration:none;padding:0.9rem 2.5rem;width:auto;">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Iniciar sesión
+                  </a>
+                </div>
+
+                <div class="auth-link" id="loginLinkDiv">
+                  ¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let currentStep = 1;
+    let captchaCode = 'AB7K3';
+
+    function nextStep() {
+      if (!validateStep(currentStep)) return;
+      currentStep++;
+      updateUI();
+    }
+    function prevStep() {
+      currentStep--;
+      updateUI();
+    }
+    function updateUI() {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById('step-' + i).classList.toggle('d-none', i !== currentStep);
+        const ind = document.getElementById('step-indicator-' + i);
+        ind.classList.remove('active', 'done');
+        if (i < currentStep) ind.classList.add('done');
+        else if (i === currentStep) ind.classList.add('active');
+      }
+    }
+    function validateStep(step) {
+      const container = document.getElementById('step-' + step);
+      const required  = container.querySelectorAll('[required]');
+      let valid = true;
+      required.forEach(f => {
+        if (!f.value) {
+          valid = false;
+          f.style.borderColor = 'var(--coral)';
+          setTimeout(() => f.style.borderColor = '', 2000);
+        }
+      });
+      if (!valid) { showError('Por favor completa todos los campos requeridos'); return false; }
+      if (step === 2) {
+        const p1 = document.getElementById('regPass').value;
+        const p2 = document.getElementById('regPassConfirm').value;
+        if (p1 !== p2) { showError('Las contraseñas no coinciden'); return false; }
+      }
+      clearError();
+      return true;
+    }
+    function showError(msg) {
+      document.getElementById('reg-error-msg').textContent = msg;
+      document.getElementById('reg-error').classList.add('show');
+    }
+    function clearError() {
+      document.getElementById('reg-error').classList.remove('show');
+    }
+    function refreshCaptcha() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      captchaCode = '';
+      for (let i = 0; i < 5; i++) captchaCode += chars[Math.floor(Math.random() * chars.length)];
+      document.getElementById('captchaText').textContent = captchaCode;
+      document.getElementById('captchaInput').value = '';
+    }
+    // Fuerza contraseña
+    document.getElementById('regPass').addEventListener('input', function() {
+      const v = this.value;
+      let s = 0;
+      if (v.length >= 8) s++;
+      if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+      if (/\d/.test(v)) s++;
+      if (/[@$!%*?&#]/.test(v)) s++;
+      const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+      const labels = ['', 'Muy débil', 'Débil', 'Aceptable', 'Fuerte'];
+      const widths = ['0%', '25%', '50%', '75%', '100%'];
+      document.getElementById('strength-bar').style.width    = widths[s];
+      document.getElementById('strength-bar').style.background = colors[s] || 'var(--gold)';
+      document.getElementById('strength-label').textContent  = labels[s] || '';
+    });
+    // Submit
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const captchaVal = document.getElementById('captchaInput').value.toUpperCase();
+      if (captchaVal !== captchaCode) {
+        showError('El código de verificación es incorrecto'); refreshCaptcha(); return;
+      }
+      if (!document.getElementById('termsCheck').checked) {
+        showError('Debes aceptar los términos y condiciones'); return;
+      }
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Creando cuenta...';
+
+      const body = Object.fromEntries(new FormData(this).entries());
+      try {
+        const res  = await fetch('/api/auth/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('registerForm').classList.add('d-none');
+          document.querySelector('.reg-steps').classList.add('d-none');
+          document.getElementById('loginLinkDiv').classList.add('d-none');
+          document.getElementById('successMsg').classList.remove('d-none');
+        } else {
+          showError(data.message || 'Error al crear la cuenta');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Crear cuenta';
+        }
+      } catch {
+        showError('Error de conexión. Intenta de nuevo.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-user-plus me-2"></i> Crear cuenta';
+      }
+    });
+  </script>
+</body>
+</html>

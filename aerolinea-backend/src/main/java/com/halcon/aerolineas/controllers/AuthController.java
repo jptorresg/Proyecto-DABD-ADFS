@@ -64,12 +64,17 @@ public class AuthController extends HttpServlet {
             
             Usuario usuario = authService.login(email, password);
             
-            // Crear sesión
-            HttpSession session = request.getSession(true);
-            session.setAttribute("usuarioId", usuario.getIdUsuario());
-            session.setAttribute("usuarioEmail", usuario.getEmail());
-            session.setAttribute("usuarioTipo", usuario.getTipoUsuario());
-            session.setMaxInactiveInterval(3600); // 1 hora
+            if (usuario != null) {
+                // Crear sesión
+                HttpSession session = request.getSession(true);
+
+                System.out.println("LOGIN SESSION ID: " + session.getId());
+                
+                session.setAttribute("usuarioId", usuario.getIdUsuario());
+                session.setAttribute("usuarioEmail", usuario.getEmail());
+                session.setAttribute("usuarioTipo", usuario.getTipoUsuario());
+                session.setMaxInactiveInterval(3600); // 1 hora
+            }
             
             out.print(JsonResponse.success("Login exitoso", usuario));
             

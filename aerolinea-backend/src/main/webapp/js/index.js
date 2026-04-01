@@ -161,30 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===================================
-// FUNCIONES ADICIONALES (Futuras)
-// ===================================
-
-// Simular almacenamiento de sesión
-function saveUserSession(userData) {
-    // En producción, usar localStorage o sessionStorage
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('isLoggedIn', 'true');
-}
-
-function getUserSession() {
-    // Recuperar sesión del usuario
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const userData = JSON.parse(localStorage.getItem('user'));
-    return { isLoggedIn, userData };
-}
-
-function clearUserSession() {
-    // Limpiar sesión
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
-}
-
-// ===================================
 // FILTROS (Para implementación futura)
 // ===================================
 const filterBtn = document.querySelector('.filter-btn');
@@ -213,11 +189,12 @@ searchInput.addEventListener('keypress', (e) => {
 
 // Botón "Explorar Vuelos" del Hero
 const exploreFlightsBtn = document.getElementById('exploreFlightsBtn');
+
 if (exploreFlightsBtn) {
-    exploreFlightsBtn.addEventListener('click', () => {
-        console.log('Navegando a página de vuelos...');
-        // En producción: window.location.href = 'vuelos.html';
-        alert('Redirigiendo a la página de búsqueda de vuelos...');
+    exploreFlightsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        window.location.href = '${BASE_PATH}/views/resultados.html';
     });
 }
 

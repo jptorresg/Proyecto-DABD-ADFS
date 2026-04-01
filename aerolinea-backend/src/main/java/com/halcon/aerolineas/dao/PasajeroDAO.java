@@ -14,7 +14,7 @@ public class PasajeroDAO {
      */
     public Long create(Pasajero pasajero) throws SQLException {
         String sql = "INSERT INTO PASAJEROS (id_reservacion, nombres, apellidos, " +
-                    "fecha_nacimiento, id_nacionalidad, num_pasaporte, tipo_asiento) " +
+                    "fecha_nacimiento, nacionalidad, num_pasaporte, tipo_asiento) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseConfig.getConnection();
@@ -46,7 +46,7 @@ public class PasajeroDAO {
         List<Pasajero> pasajeros = new ArrayList<>();
         String sql = "SELECT p.*, pa.name as nombre_nacionalidad, pa.alfa2 as codigo_nacionalidad " +
                     "FROM PASAJEROS p " +
-                    "LEFT JOIN PAISES pa ON p.id_nacionalidad = pa.id " +
+                    "LEFT JOIN PAISES pa ON p.nacionalidad = pa.id " +
                     "WHERE p.id_reservacion = ?";
         
         try (Connection conn = DatabaseConfig.getConnection();
@@ -63,7 +63,7 @@ public class PasajeroDAO {
                 p.setApellidos(rs.getString("apellidos"));
                 p.setFechaNacimiento(rs.getDate("fecha_nacimiento").toLocalDate());
                 
-                Long idNacionalidad = rs.getLong("id_nacionalidad");
+                Long idNacionalidad = rs.getLong("nacionalidad");
                 if (!rs.wasNull()) {
                     p.setIdNacionalidad(idNacionalidad);
                     p.setNombreNacionalidad(rs.getString("nombre_nacionalidad"));
