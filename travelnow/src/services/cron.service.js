@@ -38,7 +38,7 @@ const guardarCacheAerolinea = async (idProveedor, datos) => {
 const guardarCacheHotel = async (idProveedor, datos) => {
     await db.query('DELETE FROM cache_destinos WHERE id_proveedor = ? AND tipo = "ciudad"', [idProveedor]);
     const rows = (datos.ciudades || datos || []).map(c => [idPProveedor, 'ciudad', c.nombre || c, null, c.pais || null]);
-    if (rows.lenght){
+    if (rows.length){
         await db.query('INSERT INTO cache_destinos (id_proveedor, tipo, valor, codigo, pais) VALUES ?' , [rows]);
     }
 };
