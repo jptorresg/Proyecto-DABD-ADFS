@@ -6,6 +6,10 @@ using HotelesAPI.Utils;
 
 namespace HotelesAPI.Controllers
 {
+    /// <summary>
+    /// Controlador principal para la gestión de reservaciones del sistema Bedly.
+    /// Expone endpoints REST para crear, consultar, modificar y cancelar reservaciones.
+    /// </summary>
     [ApiController]
     [Route("api/reservaciones")]
     public class ReservacionesController : ControllerBase
@@ -14,6 +18,9 @@ namespace HotelesAPI.Controllers
         private readonly ReservacionDAO _reservacionDAO;
         private readonly ConfiguracionDAO _configuracionDAO;
 
+        /// <summary>
+        /// Inicializa una nueva instancia del controlador de reservaciones.
+        /// </summary>
         public ReservacionesController()
         {
             _reservacionService = new ReservacionService();
@@ -21,13 +28,21 @@ namespace HotelesAPI.Controllers
             _configuracionDAO = new ConfiguracionDAO();
         }
 
-        // POST api/reservaciones
+        /// <summary>
+        /// Crea una nueva reservación en el sistema.
+        /// Verifica el cierre de ventas antes de procesar la solicitud.
+        /// </summary>
+        /// <param name="dto">Datos de la reservación a crear.</param>
+        /// <returns>
+        /// 201 Created con los datos de la reservación creada.
+        /// 400 Bad Request si las ventas están cerradas o los datos son inválidos.
+        /// 500 Internal Server Error si ocurre un error inesperado.
+        /// </returns>
         [HttpPost]
         public IActionResult Crear([FromBody] ReservacionDto dto)
         {
             try
             {
-                // Validar cierre de ventas
                 if (_configuracionDAO.VentasCerradas())
                 {
                     var fechaCierre = _configuracionDAO.GetFechaCierre();
@@ -48,7 +63,14 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // GET api/reservaciones/usuario/{idUsuario}
+        /// <summary>
+        /// Obtiene todas las reservaciones de un usuario específico.
+        /// </summary>
+        /// <param name="idUsuario">ID del usuario cuyas reservaciones se desean consultar.</param>
+        /// <returns>
+        /// 200 OK con la lista de reservaciones del usuario.
+        /// 500 Internal Server Error si ocurre un error inesperado.
+        /// </returns>
         [HttpGet("usuario/{idUsuario}")]
         public IActionResult GetByUsuario(int idUsuario)
         {
@@ -63,7 +85,15 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // GET api/reservaciones/{id}
+        /// <summary>
+        /// Obtiene el detalle de una reservación por su ID.
+        /// </summary>
+        /// <param name="id">ID de la reservación a consultar.</param>
+        /// <returns>
+        /// 200 OK con los datos de la reservación.
+        /// 404 Not Found si la reservación no existe.
+        /// 500 Internal Server Error si ocurre un error inesperado.
+        /// </returns>
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -81,7 +111,13 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // GET api/reservaciones
+        /// <summary>
+        /// Obtiene todas las reservaciones del sistema.
+        /// </summary>
+        /// <returns>
+        /// 200 OK con la lista completa de reservaciones.
+        /// 500 Internal Server Error si ocurre un error inesperado.
+        /// </returns>
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -96,7 +132,16 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // PUT api/reservaciones/{id}/cancelar
+        /// <summary>
+        /// Cancela una reservación existente.
+        /// </summary>
+        /// <param name="id">ID de la reservación a cancelar.</param>
+        /// <param name="idUsuario">ID del usuario que solicita la cancelación.</param>
+        /// <returns>
+        /// 200 OK si la reservación fue cancelada exitosamente.
+        /// 400 Bad Request si los datos son inválidos.
+        /// 500 Internal Server Error si no se pudo cancelar o hay un error inesperado.
+        /// </returns>
         [HttpPut("{id}/cancelar")]
         public IActionResult Cancelar(int id, [FromQuery] int idUsuario)
         {
@@ -118,7 +163,15 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // PUT api/reservaciones/{id}/confirmar
+        /// <summary>
+        /// Confirma una reservación pendiente.
+        /// </summary>
+        /// <param name="id">ID de la reservación a confirmar.</param>
+        /// <returns>
+        /// 200 OK si la reservación fue confirmada exitosamente.
+        /// 404 Not Found si la reservación no existe.
+        /// 500 Internal Server Error si no se pudo confirmar o hay un error inesperado.
+        /// </returns>
         [HttpPut("{id}/confirmar")]
         public IActionResult Confirmar(int id)
         {
@@ -140,7 +193,19 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // PUT api/reservaciones/{id}/modificar
+        /// <summary>
+        /// Modifica las fechas y datos de una reservación existente.
+        /// Valida disponibilidad y que la reservación no esté cancelada o completada.
+        /// </summary>
+        /// <param name="id">ID de la reservación a modificar.</param>
+        /// <param name="dto">Nuevos datos de la reservación.</param>
+        /// <returns>
+        /// 200 OK con los datos actualizados de la reservación.
+        /// 400 Bad Request si los datos son inválidos o el estado no permite modificación.
+        /// 404 Not Found si la reservación no existe.
+        /// 409 Conflict si la habitación no está disponible en las nuevas fechas.
+        /// 500 Internal Server Error si ocurre un error inesperado.
+        /// </returns>
         [HttpPut("{id}/modificar")]
         public IActionResult Modificar(int id, [FromBody] ModificarReservacionDto dto)
         {
