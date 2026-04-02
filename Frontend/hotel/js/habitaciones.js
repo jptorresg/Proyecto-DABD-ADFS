@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Módulo de catálogo de habitaciones para el sistema Bedly.
+ * Maneja la visualización y filtrado de habitaciones disponibles.
+ */
+
+/**
+ * Inicializa el estado y datos del catálogo de habitaciones.
+ * @returns {Object} Objeto reactivo con habitaciones y campo de búsqueda.
+ */
 function dataHabitaciones() {
     return {
         search: '',
@@ -9,6 +18,23 @@ function dataHabitaciones() {
     }
 }
 
+/**
+ * Filtra y ordena una lista de habitaciones según criterios específicos.
+ * @param {Object[]} habitaciones - Lista de habitaciones a filtrar.
+ * @param {number} habitaciones[].id - ID único de la habitación.
+ * @param {string} habitaciones[].nombre - Nombre de la habitación.
+ * @param {number} habitaciones[].precio - Precio por noche.
+ * @param {string} habitaciones[].desc - Descripción de la habitación.
+ * @param {Object} criterios - Criterios de filtrado y ordenamiento.
+ * @param {string} [criterios.busqueda] - Texto para buscar en nombre o descripción.
+ * @param {number} [criterios.precioMax] - Precio máximo por noche.
+ * @param {number} [criterios.precioMin] - Precio mínimo por noche.
+ * @param {string} [criterios.orden] - Orden por precio: 'asc' o 'desc'.
+ * @returns {Object[]} Lista filtrada y ordenada de habitaciones.
+ * @example
+ * const resultado = filtrarHabitaciones(habitaciones, { busqueda: 'suite' });
+ * // Retorna solo habitaciones cuyo nombre o descripción contenga 'suite'
+ */
 function filtrarHabitaciones(habitaciones, criterios) {
     let resultado = [...habitaciones];
 

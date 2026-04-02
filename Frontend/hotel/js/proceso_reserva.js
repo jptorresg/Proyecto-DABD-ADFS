@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Módulo de proceso de reserva para el sistema Bedly.
+ * Maneja el flujo de reservación y validación de datos del cliente.
+ */
+
+/**
+ * Inicializa el estado y lógica del proceso de reserva.
+ * @returns {Object} Objeto reactivo con datos y métodos de reserva.
+ */
 function procesoReserva() {
     return {
         step: 1,
@@ -7,9 +16,17 @@ function procesoReserva() {
             precioNoche: 120, 
             noches: 1 
         },
+        /**
+         * Calcula el precio total de la reserva.
+         * @returns {number} Precio total (precio por noche × número de noches).
+         */
         get total() {
             return this.reserva.precioNoche * this.reserva.noches;
         },
+        /**
+         * Confirma y envía la reserva al backend.
+         * Redirige a la página de confirmación al finalizar.
+         */
         confirmar() {
             alert('Enviando reserva al sistema de Hoteles...');
             window.location.href = 'confirmacion.html';
@@ -17,6 +34,29 @@ function procesoReserva() {
     }
 }
 
+/**
+ * Valida todos los campos necesarios para crear una reservación.
+ * @param {Object} datos - Datos de la reservación a validar.
+ * @param {string} datos.nombre - Nombre completo del cliente.
+ * @param {string} datos.email - Correo electrónico del cliente.
+ * @param {number} datos.noches - Número de noches de la estancia.
+ * @param {number} datos.precioNoche - Precio por noche de la habitación.
+ * @param {string} datos.estado - Estado actual de la habitación.
+ * @returns {Object} Resultado de la validación.
+ * @returns {boolean} resultado.valido - Indica si la reservación es válida.
+ * @returns {string[]} resultado.errores - Lista de errores encontrados.
+ * @returns {number} resultado.total - Precio total calculado si es válida, 0 si no.
+ * @example
+ * const resultado = validarReserva({
+ *   nombre: 'Juan Perez',
+ *   email: 'juan@email.com',
+ *   noches: 3,
+ *   precioNoche: 120,
+ *   estado: 'Disponible'
+ * });
+ * // resultado.valido === true
+ * // resultado.total === 360
+ */
 function validarReserva(datos) {
     const errores = [];
 
