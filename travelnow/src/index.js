@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // APIS REST
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/search', require('./routes/search.routes'));
-app.use('/api/reservaciones', require('./routes/reservaciones.routes'));
+app.use('/api/reservaciones', require('./routes/reservacion.routes'));
 app.use('/api/notifications', require('./routes/notificacion.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 
@@ -76,9 +76,9 @@ app.use((error, req, res, next) => {
 //Inicia el servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('TravelNow corriento en http://localhost:${PORT}');
-    console.log('Ambiente: ${process.env.NODE_ENV || "development"}');
-    require('./servicies/cron.service').iniciarCron();
+    console.log(`TravelNow corriendo en http://localhost:${PORT}`);
+    console.log(`Ambiente: ${process.env.NODE_ENV || "development"}`);
+    require('./services/cron.service').iniciarCron();
 });
 
 module.exports = app;

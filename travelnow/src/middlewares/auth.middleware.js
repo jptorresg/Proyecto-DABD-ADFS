@@ -5,7 +5,7 @@ require('dotenv').config();
 
 //Ruta API
 const verifyToken = (req, res, next) => {
-    const header = req.headers['authhorization'];
+    const header = req.headers['authorization'];
     const token = header && header.split(' ')[1];
     if (!token) {
         return res.status(401).json({ ok: false, message: 'Token requerido' });

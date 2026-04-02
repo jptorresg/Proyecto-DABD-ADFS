@@ -18,8 +18,8 @@ const actualizarCacheDestinos = async () => {
                     const datos = await proveedoresService.obtenerCiudades(prov.id_proveedor);
                     await guardarCacheHotel(prov.id_proveedor, datos);
                 }
-                console.log('Proveedor ${prov.nombre} actualizado');
-            } catch (e) { console.error('Error proveedor ${prov.nombre}:', e.message);}
+                console.log(`Proveedor ${prov.nombre} actualizado`);
+            } catch (e) { console.error(`Error proveedor ${prov.nombre}:`, e.message);}
         }
         console.log('Cache de destinos actualizado');
     } catch (e) { console.error('Error en cron de cache:', e.message);}
@@ -37,7 +37,7 @@ const guardarCacheAerolinea = async (idProveedor, datos) => {
 
 const guardarCacheHotel = async (idProveedor, datos) => {
     await db.query('DELETE FROM cache_destinos WHERE id_proveedor = ? AND tipo = "ciudad"', [idProveedor]);
-    const rows = (datos.ciudades || datos || []).map(c => [idPProveedor, 'ciudad', c.nombre || c, null, c.pais || null]);
+    const rows = (datos.ciudades || datos || []).map(c => [idProveedor, 'ciudad', c.nombre || c, null, c.pais || null]);
     if (rows.length){
         await db.query('INSERT INTO cache_destinos (id_proveedor, tipo, valor, codigo, pais) VALUES ?' , [rows]);
     }
@@ -49,4 +49,4 @@ const iniciarCron = () => {
     console.log('Cron de actualización semanal de destinos iniciado');
 };
 
-module.esports = { iniciarCron, actualizarCacheDestinos };
+module.exports = { iniciarCron, actualizarCacheDestinos };
