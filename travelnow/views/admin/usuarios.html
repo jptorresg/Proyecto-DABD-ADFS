@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Admin TravelNow</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-logo">Travel<span>Now</span></div>
+            <a href="/admin" class="sidebar-nav-item active">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="/admin/usuarios" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> Usuarios
+            </a>
+            <a href="/admin/reservaciones" class="sidebar-nav-item">
+                <i class="fas fa-plane"></i> Reservaciones
+            </a>
+            <a href="/admin/proveedores" class="sidebar-nav-item">
+                <i class="fas fa-building"></i> Proveedores
+            </a>
+        </nav>
+
+        <!-- Main -->
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                <div style="display:flex;gap:1rem;align-items:center;">
+                    <span>Admin Sistema</span>
+                    <a href="/api/auth/logout" class="btn-sm-gold">Logout</a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <!-- Filtros -->
+                <div class="admin-filters">
+                    <select class="th-select-sm" hx-get="/api/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
+                        <option value="">Todos los roles</option>
+                        <option value="usuario">Usuario</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                    <select class="th-select-sm" hx-get="/api/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
+                        <option value="">Todos estados</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <input type="text" class="th-input" placeholder="Buscar por correo..." hx-get="/api/admin/usuarios" hx-trigger="keyup changed delay:500ms" hx-target="#usuarios-table">
+                </div>
+
+                <!-- Tabla -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h2>Lista de Usuarios</h2>
+                        <span id="usuarios-count">Cargando...</span>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div id="usuarios-table">
+                            <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:1rem"></i>
+                                <p>Cargando usuarios...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // Cargar usuarios al inicio
+        document.body.addEventListener('htmx:configRequest', (e) => {
+            const token = localStorage.getItem('token');
+            if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
+        });
+        
+        htmx.onLoad(function() {
+            // Auto-reload cada 30s
+            setInterval(() => {
+                htmx.trigger('#usuarios-table', 'reload');
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

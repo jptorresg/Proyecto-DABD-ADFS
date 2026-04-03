@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - Admin TravelNow</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-logo">Travel<span>Now</span></div>
+            <a href="/admin" class="sidebar-nav-item">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="/admin/usuarios" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> Usuarios
+            </a>
+            <a href="/admin/reservaciones" class="sidebar-nav-item">
+                <i class="fas fa-plane"></i> Reservaciones
+            </a>
+            <a href="/admin/proveedores" class="sidebar-nav-item active">
+                <i class="fas fa-building"></i> Proveedores
+            </a>
+        </nav>
+
+        <!-- Main -->
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <h1><i class="fas fa-building"></i> Gestión de Proveedores</h1>
+                <div style="display:flex;gap:1rem;align-items:center;">
+                    <button class="btn-sm-gold" hx-post="/api/admin/proveedores" hx-target="#proveedores-table">
+                        <i class="fas fa-plus"></i> Nuevo Proveedor
+                    </button>
+                    <span>Admin Sistema</span>
+                    <a href="/api/auth/logout" class="btn-sm-gold">Logout</a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <!-- Filtros -->
+                <div class="admin-filters">
+                    <select class="th-select-sm" hx-get="/api/admin/proveedores" hx-trigger="change" hx-target="#proveedores-table">
+                        <option value="">Todos tipos</option>
+                        <option value="aerolinea">Aerolínea</option>
+                        <option value="hotel">Hotel</option>
+                    </select>
+                    <select class="th-select-sm" hx-get="/api/admin/proveedores" hx-trigger="change" hx-target="#proveedores-table">
+                        <option value="">Todos estados</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                    <input type="text" class="th-input" placeholder="Buscar proveedor..." hx-get="/api/admin/proveedores" hx-trigger="keyup changed delay:500ms" hx-target="#proveedores-table">
+                </div>
+
+                <!-- Tabla -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h2>Lista de Proveedores</h2>
+                        <span id="proveedores-count">Cargando...</span>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div id="proveedores-table">
+                            <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:1rem"></i>
+                                <p>Cargando proveedores...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Editar (HTMX) -->
+                <div id="modal-proveedor" class="modal-overlay" style="display:none;">
+                    <div class="modal-content">
+                        <div class="admin-panel-header">
+                            <h2 id="modal-title">Nuevo Proveedor</h2>
+                            <button class="btn-sm-danger" hx-post="/api/admin/proveedores/cancelar" hx-target="#modal-proveedor">×</button>
+                        </div>
+                        <form id="form-proveedor" hx-post="/api/admin/proveedores" hx-target="#proveedores-table">
+                            <input type="hidden" name="id_proveedor" id="edit-id">
+                            <div class="th-form-group">
+                                <label class="th-label">Nombre</label>
+                                <input type="text" name="nombre" class="th-input" required>
+                            </div>
+                            <div class="th-form-group">
+                                <label class="th-label">Tipo</label>
+                                <select name="tipo" class="th-input" required>
+                                    <option value="aerolinea">Aerolínea</option>
+                                    <option value="hotel">Hotel</option>
+                                </select>
+                            </div>
+                            <div class="th-form-group">
+                                <label class="th-label">Endpoint API</label>
+                                <input type="url" name="endpoint_api" class="th-input" required>
+                            </div>
+                            <div class="th-form-group">
+                                <label class="th-label">% Ganancia</label>
+                                <input type="number" name="porcentaje_ganancia" class="th-input" step="0.01" min="0" max="100">
+                            </div>
+                            <div class="th-form-group">
+                                <label class="th-label">País</label>
+                                <input type="text" name="pais" class="th-input">
+                            </div>
+                            <button type="submit" class="btn-buscar">Guardar Proveedor</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(10,22,40,0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-content {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content .admin-panel-header {
+            padding: 1.5rem;
+            gap: 1rem;
+        }
+        .modal-content form { padding: 0 1.5rem 1.5rem; }
+    </style>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // Headers de autenticación
+        document.body.addEventListener('htmx:configRequest', (e) => {
+            const token = localStorage.getItem('token');
+            if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
+        });
+
+        // Modal handlers
+        document.body.addEventListener('htmx:afterRequest', (e) => {
+            if (e.detail.target.id === 'proveedores-table') {
+                document.getElementById('proveedores-count').textContent = e.detail.xhr.response.match(/(\d+)/)?.[1] || '0';
+            }
+        });
+
+        // Abrir modal editar
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('[data-edit]')) {
+                const id = e.target.dataset.edit;
+                document.getElementById('edit-id').value = id;
+                document.getElementById('modal-title').textContent = 'Editar Proveedor';
+                document.getElementById('modal-proveedor').style.display = 'flex';
+                htmx.ajax('GET', `/api/admin/proveedores/${id}`, { target: '#form-proveedor' });
+            }
+        });
+
+        htmx.onLoad(function() {
+            setInterval(() => htmx.trigger('#proveedores-table', 'reload'), 30000);
+        });
+    </script>
+</body>
+</html>

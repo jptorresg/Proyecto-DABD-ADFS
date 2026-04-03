@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservaciones - Admin TravelNow</title>
+    <link rel="stylesheet" href="/public/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-logo">Travel<span>Now</span></div>
+            <a href="/admin" class="sidebar-nav-item">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="/admin/usuarios" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> Usuarios
+            </a>
+            <a href="/admin/reservaciones" class="sidebar-nav-item active">
+                <i class="fas fa-plane"></i> Reservaciones
+            </a>
+            <a href="/admin/proveedores" class="sidebar-nav-item">
+                <i class="fas fa-building"></i> Proveedores
+            </a>
+        </nav>
+
+        <!-- Main -->
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <h1><i class="fas fa-plane"></i> Gestión de Reservaciones</h1>
+                <div style="display:flex;gap:1rem;align-items:center;">
+                    <span>Admin Sistema</span>
+                    <a href="/api/auth/logout" class="btn-sm-gold">Logout</a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                <!-- Filtros -->
+                <div class="admin-filters">
+                    <select class="th-select-sm" hx-get="/api/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
+                        <option value="">Todos estados</option>
+                        <option value="confirmada">Confirmada</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="cancelada">Cancelada</option>
+                    </select>
+                    <select class="th-select-sm" hx-get="/api/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
+                        <option value="">Todos tipos</option>
+                        <option value="vuelo">Vuelo</option>
+                        <option value="hotel">Hotel</option>
+                    </select>
+                    <input type="date" class="th-input" hx-get="/api/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
+                    <input type="text" class="th-input" placeholder="Buscar código reserva..." hx-get="/api/admin/reservaciones" hx-trigger="keyup changed delay:500ms" hx-target="#reservaciones-table">
+                </div>
+
+                <!-- Estadísticas -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
+                    <div class="admin-stat-card">
+                        <div style="display:flex;align-items:center;gap:1rem;">
+                            <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
+                            <div>
+                                <div class="admin-stat-num" id="total-reservas">0</div>
+                                <div class="admin-stat-lbl">Total</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div style="display:flex;align-items:center;gap:1rem;">
+                            <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
+                            <div>
+                                <div class="admin-stat-num" id="confirmadas">0</div>
+                                <div class="admin-stat-lbl">Confirmadas</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div style="display:flex;align-items:center;gap:1rem;">
+                            <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <div class="admin-stat-num" id="pendientes">0</div>
+                                <div class="admin-stat-lbl">Pendientes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h2>Reservaciones Recientes</h2>
+                        <span id="reservaciones-count">Cargando...</span>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div id="reservaciones-table">
+                            <div style="text-align:center;padding:2rem;color:var(--text-muted)">
+                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:1rem"></i>
+                                <p>Cargando reservaciones...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // Headers de autenticación
+        document.body.addEventListener('htmx:configRequest', (e) => {
+            const token = localStorage.getItem('token');
+            if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
+        });
+
+        // Actualizar stats desde respuesta
+        document.body.addEventListener('htmx:afterRequest', (e) => {
+            if (e.detail.xhr.status === 200) {
+                try {
+                    const data = JSON.parse(e.detail.xhr.responseText);
+                    if (data.stats) {
+                        document.getElementById('total-reservas').textContent = data.stats.total || 0;
+                        document.getElementById('confirmadas').textContent = data.stats.confirmadas || 0;
+                        document.getElementById('pendientes').textContent = data.stats.pendientes || 0;
+                    }
+                } catch {}
+            }
+        });
+
+        htmx.onLoad(function() {
+            setInterval(() => htmx.trigger('#reservaciones-table', 'reload'), 30000);
+        });
+    </script>
+</body>
+</html>

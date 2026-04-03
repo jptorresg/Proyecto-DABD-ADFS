@@ -23,6 +23,7 @@ app.use(session({
 }));
 
 // Vistas, diseños e imagenes o tambien archivos estaticos
+app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // APIS REST
@@ -33,12 +34,11 @@ app.use('/api/notifications', require('./routes/notificacion.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 
 //Vistas
-const view = (file) => (req, res) =>
-    res.sendFile(path.join(__dirname, '../views', file));
+const view = (file) => (req, res) => res.sendFile(path.join(__dirname, '../views', file));
 
 //Vistas públicas
 app.get('/', view('index.html'));
-app.get('login', view('login.html'));
+app.get('/login', view('login.html'));
 app.get('/registro', view('registro.html'));
 
 //Redireccion a registro

@@ -12,8 +12,7 @@ const register = async (req, res) => {
     try {
         const [exist] = await db.query('SELECT id_usuario FROM usuario WHERE correo = ?', [correo]);
         if (exist.length) return err(res, 'El correo ya está registrado', 409);
-        const hash = await bcrypt.hash(contrasena, 10);
-        const [result] = await db.query('INSERT INTO usuario (nombre, apellido, correo, contrasena, fecha_nacimiento, pais_origen, nacionalidad, numero_pasaporte) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [nombre, apellido, correo, hash, fecha_nacimiento, pais_origen || null, nacionalidad || null, numero_pasaporte || null]);
+        const [result] = await db.query('INSERT INTO usuario (nombre, apellido, correo, constrasena, fecha_nacimiento, pais_origen, nacionalidad, numero_pasaporte) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [nombre, apellido, correo, contrasena, fecha_nacimiento, pais_origen || null, nacionalidad || null, numero_pasaporte || null]);
         return ok(res, { message: 'Usuario registrado', id: result.insertID }, 201);
     } catch (e) { return err(res, e.message); }
 };
@@ -29,8 +28,7 @@ const login = async (req, res) => {
       if (!rows.length) return err(res, 'Credenciales incorrectas', 401);
    
       const usuario = rows[0];
-      const valido  = await bcrypt.compare(contrasena, usuario.contrasena);
-      if (!valido)  return err(res, 'Credenciales incorrectas', 401);
+      if (contrasena !== usuario.contrasena) return err(res, 'Credenciales incorrectas', 401);
    
       const payload = {
         id_usuario: usuario.id_usuario,
