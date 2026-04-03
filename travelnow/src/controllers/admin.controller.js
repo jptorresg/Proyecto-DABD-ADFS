@@ -144,4 +144,4 @@ const proveedores = async (req, res) => {
   res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
 };
 
-module.exports = { dashboard, usuarios, reservaciones, proveedores, listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor, listarUsuarios, cambiarRol, todasReservaciones};
+module.exports = { dashboard, usuarios, reservaciones, proveedores, listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor, listarUsuarios, cambiarRol, todasReservaciones };

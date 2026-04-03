@@ -81,4 +81,5 @@ app.listen(PORT, () => {
     require('./services/cron.service').iniciarCron();
 });
 
+
 module.exports = app;
