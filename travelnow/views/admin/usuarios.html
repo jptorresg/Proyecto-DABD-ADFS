@@ -32,24 +32,24 @@
                 <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
                 <div style="display:flex;gap:1rem;align-items:center;">
                     <span>Admin Sistema</span>
-                    <a href="/api/auth/logout" class="btn-sm-gold">Logout</a>
+                    <a href="/auth/logout" class="btn-sm-gold">Logout</a>
                 </div>
             </header>
 
             <main class="admin-content">
                 <!-- Filtros -->
                 <div class="admin-filters">
-                    <select class="th-select-sm" hx-get="/api/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
+                    <select class="th-select-sm" hx-get="/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
                         <option value="">Todos los roles</option>
                         <option value="usuario">Usuario</option>
                         <option value="administrador">Administrador</option>
                     </select>
-                    <select class="th-select-sm" hx-get="/api/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
+                    <select class="th-select-sm" hx-get="/admin/usuarios" hx-trigger="change" hx-target="#usuarios-table">
                         <option value="">Todos estados</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
                     </select>
-                    <input type="text" class="th-input" placeholder="Buscar por correo..." hx-get="/api/admin/usuarios" hx-trigger="keyup changed delay:500ms" hx-target="#usuarios-table">
+                    <input type="text" class="th-input" placeholder="Buscar por correo..." hx-get="/admin/usuarios" hx-trigger="keyup changed delay:500ms" hx-target="#usuarios-table">
                 </div>
 
                 <!-- Tabla -->
