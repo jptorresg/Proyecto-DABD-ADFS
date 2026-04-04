@@ -28,7 +28,7 @@ const listarProveedores = async (req, res) => {
     if (search) { query += ' AND (nombre LIKE ? OR endpoint_api LIKE ?)'; params.push(`%${search}%`, `%${search}%`) }
     query += ' ORDER BY tipo, nombre';
     const [rows] = await db.query(query, params);
-    const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM proveedor WHERE 1=1' + (params.length ? ` AND ${query.split('WHERE ')[1].split(' ORDER')[0]}` : ''), params); 
+    const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM proveedor WHERE 1=1' + (tipo ? ' AND tipo = ?' : '') + (estado ? ' AND estado = ?' : '') + (search ? ' AND (nombre LIKE ? OR endpoint_api LIKE ?)' : ''), params); 
     return ok(res, { data: rows, total: total });
   } catch (e) { return err(res, e.message); }
 };
@@ -76,8 +76,8 @@ const listarUsuarios = async (req, res) => {
     let where = 'WHERE 1=1'
     const params =[];
     if(rol) { where += ' AND rol = ?', params.push(rol); }
-    if (estado) { where += ' AND estado = ?', params.push(estado); }
-    if (search) { where += ' AND (nombre LIKE ? or apellido ? OR correo LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`);}
+    if (estado) { where += ' AND estado = ?'; params.push(estado); }
+    if (search) { where += ' AND (nombre LIKE ? or apellido LIKE ? OR correo LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`);}
     const [rows] = await db.query(`SELECT id_usuario, nombre, apellido, correo, rol, estado, pais_origen, fecha_registro FROM usuario ${where} ORDER BY fecha_registro DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);
     const countQuery = `SELECT COUNT(*) as total FROM usuario ${where}`;
     const [[{ total }]] = await db.query(countQuery, params);
@@ -92,7 +92,7 @@ const cambiarRol = async (req, res) => {
   if(!roles.includes(rol)) return err(res, 'Rol no valido', 400);
   try {
     await db.query('UPDATE usuario SET rol = ? WHERE id_usuario = ?', [rol, id]);
-    return ok(res, { message: 'Rol actualizado a ${rol}'});
+    return ok(res, { message: `Rol actualizado a ${rol}` });
   } catch (e) { return err(res, e.message); } 
 };
 
@@ -115,7 +115,7 @@ const todasReservaciones = async (req, res) => {
     const [[stats]] = await db.query(`
       SELECT COUNT(*) as total, SUM(CASE WHEN r.estado='confirmada' THEN 1 ELSE 0 END) as confirmadas, SUM(CASE WHEN r.estado='pendiente' THEN 1 ELSE 0 END) as pendientes, SUM(CASE WHEN r.estado='confirmada' THEN r.total ELSE 0 END) as ingresos FROM reservacion r ${where}`, params
     );
-    const countQuery = 'SELECT COUNT(*) as total FROM reservacion r ${where}';
+    const countQuery = `SELECT COUNT(*) as total FROM reservacion r ${where}`;
     const [[{ total }]] = await db.query(countQuery, params);
     return ok(res, { 
       data: rows, 

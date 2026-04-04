@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.MAIL_POR) || 587,
+    port: parseInt(process.env.MAIL_PORT) || 587,
     secure: false,
     auth: {
         user: process.env.MAIL_USER,
@@ -13,8 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendMail = async ({ to, subject, html }) => {
-    return trasnporter.sendMail({
-        from: process.env.MAIL_FROM || 'TravelNow <noreply@traelnow.com>',
+    return transporter.sendMail({
+        from: process.env.MAIL_FROM || 'TravelNow <noreply@travelnow.com>',
         to,
         subject,
         html,

@@ -4,7 +4,7 @@ const { ok, err } = require('../utils/response');
 
 const recibirCambio = async (req, res) => {
     const { codigo_reserva_proveedor, tipo_cambio, detalle } = req.body;
-    if (!codigo_reserva_proveedor, tipo_cambio, detalle) {
+    if (!codigo_reserva_proveedor || !tipo_cambio || !detalle) {
         return err(res, 'Fatlan campos requeridos', 400);
     }
     try {

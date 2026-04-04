@@ -39,7 +39,7 @@ const crear = async (req, res) => {
         // ----------- Reservar Hotel -----------
         if((tipo === 'hotel' || tipo === 'paquete') && hotel) {
            const prov = await proveedorService.buscarConfig(hotel.id_proveedor);
-           const respHotel = await proveedorService.reservarHotel(hotel.id_proveedor, {id_habitacion: hotel.id_habitacion, fecha_checkin: hotel.fecha_checkin, fecha_checkout: hotel.fecha_checkout, num_huespedes: hotel.num_huespedes, id_usuario_externo: 1, metodo_pago: 'transferencia', notas: 'Agencia TravelNow - usuario &{usuario.id_usuario}'});
+           const respHotel = await proveedorService.reservarHotel(hotel.id_proveedor, {id_habitacion: hotel.id_habitacion, fecha_checkin: hotel.fecha_checkin, fecha_checkout: hotel.fecha_checkout, num_huespedes: hotel.num_huespedes, id_usuario_externo: 1, metodo_pago: 'transferencia', notas: `Agencia TravelNow - usuario ${usuario.id_usuario}`});
            const codigoHotelProv = String(respHotel.data?.idReservacion || respHotel.idReservacion || '');
            const totalHotel = parseFloat(respHotel.data?.total || respHotel.total || 0);
            const precioNocheAgencia = proveedorService.calcularPrecioConGanancia(hotel.precio_noche_proveedor, prov.porcentaje_ganancia);
@@ -47,7 +47,7 @@ const crear = async (req, res) => {
            await conn.query('INSERT INTO detalle_hotel (id_reservacion, id_proveedor, codigo_reserva_proveedor, nombre_hotel, ciudad, tipo_habitacion, fecha_checkin, fecha_checkout, num_huespedes, precio_por_noche_proveedor, porcentaje_ganancia, precio_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [idReservacion, hotel.id_proveedor, codigoHotelProv, hotel.nombre_hotel || '', hotel.ciudad || '', hotel.tipo_habitacion || 'doble', hotel.fecha_checkin, hotel.fecha_checkout, hotel.num_huespedes, hotel.precio_noche_proveedor, prov.porcentaje_ganancia, totalHotel > 0 ? totalHotel : precioNocheAgencia]); 
         }
         // ---------- Confirmacion --------------
-        await conn.query('UPDATE reservaciones SET total = ?, estado = "Confirmado" WHERE id_reservacion = ?', [totalAgencia.toFixed(2), idReservacion]);
+        await conn.query('UPDATE reservacion SET total = ?, estado = "confirmada" WHERE id_reservacion = ?', [totalAgencia.toFixed(2), idReservacion]);
         await conn.commit();
         // ------- Generación de PDF y envío de correo -----------
         const [rows] = await db.query('SELECT r.*, u.correo, u.nombre, u.apellido FROM reservacion r JOIN usuario u ON u.id_usuario = r.id_usuario WHERE r.id_reservacion = ?', [idReservacion]);
@@ -57,8 +57,8 @@ const crear = async (req, res) => {
         await sendMail({
             from: 'TravelNow', 
             to: reservacion.correo, 
-            subject: 'Confirmacion de reserva ${codigoReserva}', 
-            html: '<h2>¡Tu reserva está confirmada!</h2><p>Hola ${reservacion.nombre}, tu reservación <strong>${codigoReserva}</strong> ha sido confirmada por un total de <strong>$${totalAgencia.toFixed(2)} USD</strong>.</p><p>Puedes descargar tu comprobante desde tu historial de reservas.</p>',}).catch(() => {});
+            subject: `Confirmacion de reserva ${codigoReserva}`,
+            html: `<h2>¡Tu reserva está confirmada!</h2><p>Hola ${reservacion.nombre}, tu reservación <strong>${codigoReserva}</strong> ha sido confirmada por un total de <strong>$${totalAgencia.toFixed(2)} USD</strong>.</p><p>Puedes descargar tu comprobante desde tu historial de reservas.</p>`,}).catch(() => {});
             return ok(res, {
                 message: 'Reservacion creada exitosamente',
                 reservacion: {
@@ -68,7 +68,7 @@ const crear = async (req, res) => {
                     estado: 'confirmada'
                 }
             }, 201);
-        } catch (e) { await conn.rollback(); return err(res, 'Error al crear reservación: ${e.message}');
+        } catch (e) { await conn.rollback(); return err(res, `Error al crear reservación: ${e.message}`);
         } finally { conn.release();}
     };
 
@@ -77,7 +77,7 @@ const obtener = async (req, res) => {
     const { id } = req.params;
     const usuario = req.user;
     try {
-        cosnt [rows] = await db.query('SELECT r.*, u.nombre, u.apellido, u.correo FROM reservacion r JOIN usuario u ON u.id_usuario = r.id_usuario WHERE r.id_reservacion = ?', [id]);
+      const [rows] = await db.query('SELECT r.*, u.nombre, u.apellido, u.correo FROM reservacion r JOIN usuario u ON u.id_usuario = r.id_usuario WHERE r.id_reservacion = ?', [id]);
         if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
         const reservacion = rows[0];
         if(reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador') {

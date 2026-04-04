@@ -49,8 +49,8 @@ app.get('/buscar', view('buscar.html'));
 app.get('/resultados', view('resultados.html'));
 
 //Detalles
-app.get('/detalle-vuelo', view('detalle.html'));
-app.get('/detalle-hotel', view('detalle-hotel.html'));
+app.get('/detalle-vuelo', view('detalle_vuelo.html'));
+app.get('/detalle-hotel', view('detalle_hotel.html'));
 
 //Flujo de la compra
 app.get('/checkout', view('checkout.html'));

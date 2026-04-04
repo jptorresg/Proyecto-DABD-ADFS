@@ -13,7 +13,7 @@ const register = async (req, res) => {
         const [exist] = await db.query('SELECT id_usuario FROM usuario WHERE correo = ?', [correo]);
         if (exist.length) return err(res, 'El correo ya está registrado', 409);
         const [result] = await db.query('INSERT INTO usuario (nombre, apellido, correo, constrasena, fecha_nacimiento, pais_origen, nacionalidad, numero_pasaporte) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [nombre, apellido, correo, contrasena, fecha_nacimiento, pais_origen || null, nacionalidad || null, numero_pasaporte || null]);
-        return ok(res, { message: 'Usuario registrado', id: result.insertID }, 201);
+        return ok(res, { message: 'Usuario registrado', id: result.insertId }, 201);
     } catch (e) { return err(res, e.message); }
 };
 
