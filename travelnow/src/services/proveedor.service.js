@@ -20,7 +20,7 @@ const clienteAerolinea = (prov) => axios.create({
     headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Basic ' + Buffer.from(
-            '${prov.api_usuario}:${prov.api_password}'
+            `${prov.api_usuario}:${prov.api_password}`
         ).toString('base64'),
     },
 });
@@ -31,7 +31,7 @@ const clienteHotel = (prov) => axios.create({
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${prov.api_password}',
+        'Authorization': `Bearer ${prov.api_password}`,
     },
 });
 
@@ -78,7 +78,7 @@ const buscarVuelos = async (idProveedor, params) => {
 
 //Aerolínea - ReservacionController.java
 const reservarVuelo = async (idProveedor, payload) => {
-    const prov = await getConfiig(idProveedor);
+    const prov = await getConfig(idProveedor);
     const client = clienteAerolinea(prov);
     const body = {
         idVuelo: payload.id_vuelo,
@@ -139,7 +139,7 @@ const buscarHoteles = async (idProveedor, params) => {
         porcentaje_ganancia: prov.porcentaje_ganancia,
         nombre_proveedor: prov.nombre,
         id_proveedor: prov.id_proveedor,
-        tipo: 'hotel,',
+        tipo: 'hotel',
     }));
 };
 
@@ -165,7 +165,7 @@ const reservarHotel = async (idProveedor, payload) => {
 const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     const prov = await getConfig(idProveedor);
     const client = clienteHotel(prov);
-    const { data } = await client.put('/api/b2b/reservas/${idReservacionProveedor}/cancelar');
+    const { data } = await client.put(`/api/b2b/reservas/${idReservacionProveedor}/cancelar`);
     return data;
 };
 

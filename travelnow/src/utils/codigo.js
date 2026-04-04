@@ -5,7 +5,7 @@ const generarCodigoReserva = () => {
     //Formato a usar es: TN-YYYYMMDD-XXXX
     const fecha = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const sufijo = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
-    return 'TN-${fecha}-${sufijo}';
+    return `TN-${fecha}-${sufijo}`;
 };
 
 module.exports = { generarCodigoReserva };

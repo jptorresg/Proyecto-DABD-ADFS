@@ -75,7 +75,7 @@ const listarUsuarios = async (req, res) => {
   try {
     let where = 'WHERE 1=1'
     const params =[];
-    if(rol) { where += ' AND rol = ?', params.push(rol); }
+    if(rol) { where += ' AND rol = ?'; params.push(rol); }
     if (estado) { where += ' AND estado = ?'; params.push(estado); }
     if (search) { where += ' AND (nombre LIKE ? or apellido LIKE ? OR correo LIKE ?)'; params.push(`%${search}%`, `%${search}%`, `%${search}%`);}
     const [rows] = await db.query(`SELECT id_usuario, nombre, apellido, correo, rol, estado, pais_origen, fecha_registro FROM usuario ${where} ORDER BY fecha_registro DESC LIMIT ? OFFSET ?`, [...params, parseInt(limit), offset]);

@@ -58,6 +58,10 @@ app.get('/confirmacion', view('confirmacion.html'));
 
 //Administrador
 app.get('/admin', view('admin/dashboard.html'));
+app.get('/admin/dashboard', view('admin/dashboard.html'));
+app.get('/admin/usuarios', view('admin/usuarios.html'));
+app.get('/admin/reservaciones', view('admin/reservaciones.html'));
+app.get('/admin/proveedores', view('admin/proveedores.html'));
 
 //Error 404
 app.use((req,res) => {
