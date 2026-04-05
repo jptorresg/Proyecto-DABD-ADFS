@@ -3,6 +3,23 @@
 const axios = require('axios');
 const db = require('../config/db');
 
+//Sessión compartida con aerolíneas
+let sessionCookie = null;
+let idUsuarioAerolinea = 1;
+const loginAerolinea = async (prov) => {
+    const client = axios.create({
+        baseURL: prov.endpoint_api,
+        timeout: 10000,
+        headers: { 'Content-Type': 'application/json' }
+    });
+    const { data } = await client.post('/api/auth/login', {
+        email: prov.api_usuario,
+        password: prov.api_password
+    });
+    sessionCookie = data.data ? 'usuarioId=' + idUsuarioAerolinea : null;
+    return sessionCookie;
+}
+
 //Configuración del proveedor desde la base de datos
 const getConfig = async (idProveedor) => {
     const [rows] = await db.query(
@@ -13,17 +30,23 @@ const getConfig = async (idProveedor) => {
     return rows[0];
 };
 
-//Cliente HTTP para Aerolínea con autenticación basica (usuario/contraseña en Base64)
-const clienteAerolinea = (prov) => axios.create({
-    baseURL: prov.endpoint_api,
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + Buffer.from(
-            `${prov.api_usuario}:${prov.api_password}`
-        ).toString('base64'),
-    },
-});
+//Cliente HTTP para Aerolínea
+const clienteAerolinea = (prov) => {
+    //Hacer login si no hay sesión
+    if (!sessionCookie) {
+        loginAerolinea(prov);
+    }
+    
+    return axios.create({
+        baseURL: prov.endpoint_api,
+        timeout: 10000,
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': sessionCookie,
+            'x-usuario-id': String(idUsuarioAerolinea)
+        },
+    });
+};
 
 //Cliente HTTP para Hotel con autenticación basica (usuario/contraseña en Base64)
 const clienteHotel = (prov) => axios.create({
@@ -80,26 +103,37 @@ const buscarVuelos = async (idProveedor, params) => {
 const reservarVuelo = async (idProveedor, payload) => {
     const prov = await getConfig(idProveedor);
     const client = clienteAerolinea(prov);
-    const body = {
-        idVuelo: payload.id_vuelo,
-        metodoPago: payload.metodo_pago || 'tarjeta',
-        pasajeros: payload.pasajeros.map(p => ({
-            nombres: p.nombres,
-            apellidos: p.apellidos,
-            fechaNacimiento: p.fecha_nacimiento,
-            idNacionalidad: p.id_nacionalidad,
-            numPasaporte: p.num_pasaporte,
-        })),
-    };
-    const { data } = await client.post('/api/reservaciones', body);
-    return data;
+    const idUsuario = payload.id_usuario_externo || 1;
+const body = {
+    idVuelo: payload.id_vuelo,
+    metodoPago: payload.metodo_pago || 'tarjeta',
+    pasajeros: payload.pasajeros.map(p => ({
+        nombres: p.nombres,
+        apellidos: p.apellidos,
+        fechaNacimiento: p.fecha_nacimiento,
+        idNacionalidad: p.id_nacionalidad,
+        numPasaporte: p.num_pasaporte,
+    })),
+};
+const { data } = await client.post('/api/reservaciones', body, {
+    headers: { 'x-usuario-id': String(idUsuario) }
+});
+return data.data || data;
 };
 
 const obtenerOrigenesDestinos = async (idProveedor) => {
     const prov = await getConfig(idProveedor);
     const client = clienteAerolinea(prov);
-    const { data } = await client.get('/api/paises');
-    const paises = data.data || data || [];
+    const paises = [
+        { id: 1, name: 'Guatemala', alfa2: 'GT', alfa3: 'GTM' },
+        { id: 2, name: 'México', alfa2: 'MX', alfa3: 'MEX' },
+        { id: 3, name: 'Estados Unidos', alfa2: 'US', alfa3: 'USA' },
+        { id: 4, name: 'El Salvador', alfa2: 'SV', alfa3: 'SLV' },
+        { id: 5, name: 'Honduras', alfa2: 'HN', alfa3: 'HND' },
+        { id: 6, name: 'Nicaragua', alfa2: 'NI', alfa3: 'NIC' },
+        { id: 7, name: 'Costa Rica', alfa2: 'CR', alfa3: 'CRI' },
+        { id: 8, name: 'Panamá', alfa2: 'PA', alfa3: 'PAN' },
+    ];
     const lista = paises.map(p => ({
         id: p.id,
         nombre: p.name,
@@ -157,8 +191,8 @@ const reservarHotel = async (idProveedor, payload) => {
         MetodoPago: payload.metodo_pago || 'transferencia',
         NotasEspeciales: payload.notas || '',
     };
-    const { data } = await client.post('/api/b2b/reservaciones', body);
-    return data;
+    const { data } = await client.post('/api/b2b/reservar', body);
+    return data.data || data;
 }; 
 
 // Hotel - Cancelacion - B2BController.cs
@@ -166,17 +200,21 @@ const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     const prov = await getConfig(idProveedor);
     const client = clienteHotel(prov);
     const { data } = await client.put(`/api/b2b/reservas/${idReservacionProveedor}/cancelar`);
-    return data;
+    return data.data || data;
 };
 
 //Hotel - Ciudades
-const obtenerCiudades = async (idProveedor) => {
+/*const obtenerCiudades = async (idProveedor) => {
     const prov = await getConfig(idProveedor);
     const client = clienteHotel(prov);
     const { data } = await client.get('/api/habitaciones');
     const habitaciones = data.data || data || [];
     const ciudades = [...new Set(habitaciones.map(h => h.ciudad || h.Ciudad).filter(Boolean))];
     return { ciudades: ciudades.map(c => ({ nombre: c })) };
+}; */
+
+const obtenerCiudades = async (idProveedor) => {
+    return { ciudades: [] };
 };
 
 // Precio Ganancia --------
