@@ -237,7 +237,6 @@
 
             <!-- FORM VUELOS -->
             <div class="search-form-content" id="tab-vuelos"
-                 hx-get="/api/search/flights"
                  hx-target="#search-results"
                  hx-swap="innerHTML">
               <div class="section-heading">
@@ -391,7 +390,7 @@
       const params = new URLSearchParams();
       const activeForm = document.getElementById('tab-' + (tipo === 'flights' ? 'vuelos' : tipo === 'hotels' ? 'hoteles' : 'paquetes'));
       activeForm.querySelectorAll('input[name],select[name]').forEach(el => {
-        if (el.name && el.value) params.append(el.name, el.value);
+        if (el.name && el.value && (el.type !== 'radio' || el.checked)) params.append(el.name, el.value);
       });
       const url = `/api/search/${tipo}?${params.toString()}`;
       fetch(url).then(r => r.json()).then(data => {
