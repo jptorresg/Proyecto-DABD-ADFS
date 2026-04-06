@@ -36,8 +36,9 @@ const _loginAerolinea = async (prov) => {
     const resp = await axios.post(
         `${prov.endpoint_api}/api/auth/login`,
         { email: prov.api_usuario, password: prov.api_password },
-        { headers: { 'Content-Type': 'application/json' }, maxRedirects: 0, validateStatus: () => true }
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true, validateStatus: () => true }
     );
+    if (!resp.data?.success) throw new Error(`Login a aerolínea fallido: ${resp.data?.message || resp.status}`);
     const setCookie = resp.headers['set-cookie'];
     if (!setCookie) throw new Error('Login a aerolínea fallido: sin cookie de sesión');
     const cookie = setCookie.map(c => c.split(';')[0]).join('; ');
@@ -79,10 +80,10 @@ const buscarVuelos = async (idProveedor, params) => {
 
     // Nombres de campo que espera la API Java (camelCase)
     const queryParams = {
-        origen:      params.origen,
-        destino:     params.destino,
-        fechaSalida: params.fecha_salida,
-        tipoAsiento: params.tipo_asiento,
+        origen:        params.origen,      // debe ser código IATA: GUA, MEX, MIA
+        destino:       params.destino,
+        fechaSalida:   params.fecha_salida,
+        tipoAsiento:   params.tipo_asiento ? params.tipo_asiento.toUpperCase() : undefined,
     };
 
     const { data } = await client.get('/api/vuelos', { params: queryParams });

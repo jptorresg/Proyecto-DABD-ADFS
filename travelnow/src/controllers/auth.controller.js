@@ -27,6 +27,7 @@ const login = async (req, res) => {
       if (!rows.length) return err(res, 'Credenciales incorrectas', 401);
    
       const usuario = rows[0];
+      const bcrypt = require('bcrypt');
       if (contrasena !== usuario.contrasena) return err(res, 'Credenciales incorrectas', 401);
    
       const payload = {
