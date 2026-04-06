@@ -33,6 +33,7 @@ const crear = async (req, res) => {
         // ── Vuelo Ida ──────────────────────────────────────────
         if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo) {
             if (!vuelo.id_proveedor) throw new Error('Falta id_proveedor en vuelo');
+            if (!vuelo.pasajeros || !vuelo.pasajeros.length) throw new Error('Se requiere al menos un pasajero');
             const prov = await proveedorService.buscarConfig(vuelo.id_proveedor);
 
             const respVuelo = await proveedorService.reservarVuelo(vuelo.id_proveedor, {
