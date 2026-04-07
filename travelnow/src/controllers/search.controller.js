@@ -67,7 +67,7 @@ const searchFlights = async (req, res) => {
         const resultados = await Promise.allSettled(
             proveedores.map(p => proveedorService.buscarVuelos(p.id_proveedor, params))
         );
-        resultados.flatMap((r, i) => {
+        resultados.forEach((r, i) => {
             if (r.status === 'rejected') {
                 console.error(
                     `[Search] Proveedor ${proveedores[i].id_proveedor} falló:`,
@@ -77,7 +77,7 @@ const searchFlights = async (req, res) => {
         });
         const vuelos = resultados
             .filter(r => r.status === 'fulfilled')
-            .flatMap(r => r.value)
+            .forEach(r => r.value)
             .sort((a, b) => a.precio_agencia - b.precio_agencia);
         await _registrarBusqueda(req, 'vuelo', {
             origen:        origenNorm,
@@ -108,7 +108,7 @@ const searchHotels = async (req, res) => {
         const resultados = await Promise.allSettled(
             proveedores.map(p => proveedorService.buscarHoteles(p.id_proveedor, params))
         ); 
-        resultados.flatMap((r, i) => {
+        resultados.forEach((r, i) => {
             if (r.status === 'rejected') {
                 console.error(
                     `[Search] Proveedor hotel ${proveedores[i].id_proveedor} falló:`,
@@ -118,7 +118,7 @@ const searchHotels = async (req, res) => {
         }); 
         const hoteles = resultados
             .filter(r => r.status === 'fulfilled')
-            .flatMap(r => r.value)
+            .forEach(r => r.value)
             .sort((a, b) => a.precio_noche_agencia - b.precio_noche_agencia); 
         await _registrarBusqueda(req, 'hotel', {
             ciudad,

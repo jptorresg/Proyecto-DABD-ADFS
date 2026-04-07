@@ -339,7 +339,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
         if (vuelos.length) {
             doc.fontSize(14).font('Helvetica-Bold').text('Vuelo(s)');
             doc.moveDown(0.5);
-            vuelos.flatMap(v => {
+            vuelos.forEach(v => {
                 doc.fontSize(11).font('Helvetica');
                 doc.text(`${v.es_regreso ? 'Regreso' : 'Ida'}: ${v.origen} → ${v.destino}`);
                 doc.text(`Código: ${v.codigo_vuelo}   Asiento: ${v.tipo_asiento}`);
@@ -355,7 +355,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
         if (hoteles.length) {
             doc.fontSize(14).font('Helvetica-Bold').text('Hotel');
             doc.moveDown(0.5);
-            hoteles.flatMap(h => {
+            hoteles.forEach(h => {
                 doc.fontSize(11).font('Helvetica');
                 doc.text(`Hotel: ${h.nombre_hotel}   Ciudad: ${h.ciudad}`);
                 doc.text(`Habitación: ${h.tipo_habitacion}`);

@@ -360,23 +360,23 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Tabs
-    document.querySelectorAll('.s-tab').flatMap(tab => {
+    document.querySelectorAll('.s-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        document.querySelectorAll('.s-tab').flatMap(t => t.classList.remove('active'));
-        document.querySelectorAll('.search-form-content').flatMap(f => f.classList.add('d-none'));
+        document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.search-form-content').forEach(f => f.classList.add('d-none'));
         tab.classList.add('active');
         document.getElementById('tab-' + tab.dataset.tab).classList.remove('d-none');
         document.getElementById('search-results').innerHTML = '';
       });
     });
     // Radio vuelo
-    document.querySelectorAll('input[name="tipo_vuelo"]').flatMap(r => {
+    document.querySelectorAll('input[name="tipo_vuelo"]').forEach(r => {
       r.addEventListener('change', e => {
         document.getElementById('regreso-col').style.opacity = e.target.value === 'solo_ida' ? '0.35' : '1';
       });
     });
     // Destinos populares → rellena el campo activo
-    document.querySelectorAll('.dest-pop-card').flatMap(card => {
+    document.querySelectorAll('.dest-pop-card').forEach(card => {
       card.addEventListener('click', () => {
         const name = card.dataset.dest;
         const activeTab = document.querySelector('.s-tab.active').dataset.tab;
@@ -389,7 +389,7 @@
     function buscar(tipo) {
       const params = new URLSearchParams();
       const activeForm = document.getElementById('tab-' + (tipo === 'flights' ? 'vuelos' : tipo === 'hotels' ? 'hoteles' : 'paquetes'));
-      activeForm.querySelectorAll('input[name],select[name]').flatMap(el => {
+      activeForm.querySelectorAll('input[name],select[name]').forEach(el => {
         if (el.name && el.value && (el.type !== 'radio' || el.checked)) params.append(el.name, el.value);
       });
       const url = `/api/search/${tipo}?${params.toString()}`;

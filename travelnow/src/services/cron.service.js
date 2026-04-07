@@ -32,12 +32,12 @@ const actualizarCacheDestinos = async () => {
 const _guardarCacheAerolinea = async (idProveedor, datos) => {
     await db.query('DELETE FROM cache_destinos WHERE id_proveedor = ?', [idProveedor]);
     const rows = [];
-    (datos.origenes || []).flatMap(p => {
+    (datos.origenes || []).forEach(p => {
         if(p.nombre && p.codigo) {
             rows.push([idProveedor, 'origen', p.nombre, p.codigo, null]);
         }
     });
-    (datos.destinos || []).flatMap(p => {
+    (datos.destinos || []).forEach(p => {
         if(p.nombre && p.codigo) {
             rows.push([idProveedor, 'destino', p.nombre, p.codigo, null]);
         }
