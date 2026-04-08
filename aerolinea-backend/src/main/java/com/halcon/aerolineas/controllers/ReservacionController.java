@@ -122,7 +122,17 @@ public class ReservacionController extends HttpServlet {
         try {
             JsonObject json = parseRequestBody(request);
             
-            Long idVuelo = json.get("idVuelo").getAsLong();
+            String idVueloStr = json.get("idVuelo").getAsString();
+
+            List<Long> idsVuelo = new ArrayList<>();
+
+            if (idVueloStr.contains("-")) {
+                for (String part : idVueloStr.split("-")) {
+                    idsVuelo.add(Long.parseLong(part));
+                }
+            } else {
+                idsVuelo.add(Long.parseLong(idVueloStr));
+            }
             System.out.println("Usuario ID: " + usuarioId);
             String metodoPago = json.get("metodoPago").getAsString();
             
@@ -140,11 +150,16 @@ public class ReservacionController extends HttpServlet {
                 pasajero.setNumPasaporte(p.get("numPasaporte").getAsString());
                 pasajeros.add(pasajero);
             }
-            
-            Reservacion reservacion = reservacionService.crearReservacion(idVuelo, usuarioId, pasajeros, metodoPago);
-            
+                        
+            List<Reservacion> reservaciones = new ArrayList<>();
+
+            for (Long id : idsVuelo) {
+                Reservacion r = reservacionService.crearReservacion(id, usuarioId, pasajeros, metodoPago);
+                reservaciones.add(r);
+            }
+
             response.setStatus(201);
-            out.print(JsonResponse.success("Reservación creada exitosamente", reservacion));
+            out.print(JsonResponse.success("Reservaciones creadas", reservaciones));            
             
         } catch (Exception e) {
             e.printStackTrace();

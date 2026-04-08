@@ -44,7 +44,17 @@ public class ComentarioController extends HttpServlet {
             }
 
             // GET /api/comentarios/{idVuelo}
-            Long idVuelo = Long.parseLong(pathInfo.substring(1));
+            String idParam = pathInfo.substring(1);
+
+            Long idVuelo;
+
+            if (idParam.contains("-")) {
+                // 🔥 vuelo con escalas → usamos el primero
+                idVuelo = Long.parseLong(idParam.split("-")[0]);
+            } else {
+                // ✅ vuelo normal
+                idVuelo = Long.parseLong(idParam);
+            }
 
             ComentarioResponse comentarios =
                     comentarioService.obtenerComentarios(idVuelo.intValue());

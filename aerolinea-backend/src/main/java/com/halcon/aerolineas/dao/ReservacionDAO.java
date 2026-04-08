@@ -10,6 +10,7 @@ import java.util.List;
 import com.halcon.aerolineas.config.DatabaseConfig;
 import com.halcon.aerolineas.models.Reservacion;
 import com.halcon.aerolineas.models.Vuelo;
+import com.halcon.aerolineas.models.VueloConEscala;
 
 public class ReservacionDAO {
     
