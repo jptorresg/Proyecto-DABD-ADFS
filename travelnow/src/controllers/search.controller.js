@@ -42,19 +42,24 @@ const searchFlights = async (req, res) => {
         tipo_asiento,
         num_pasajeros,
         tipo_vuelo,
-    } = req.query; 
+    } = req.query;
+
     if (!origen || !destino || !fecha_salida) {
-        return err(res, 'Faltan parámetros requeridos: origen, destino, fecha_salida', 400);
-    } 
+        return err(res, 'Faltan parametros requeridos: origen, destino, fecha_salida', 400);
+    }
+
     try {
         const [proveedores] = await db.query(
             'SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'
-        ); 
+        );
+
         if (!proveedores.length) {
-            return ok(res, { data: [], total: 0, mensaje: 'No hay aerolíneas activas configuradas' });
+            return ok(res, { data: [], total: 0, mensaje: 'No hay aerolineas activas configuradas' });
         }
+
         const origenNorm  = await _resolverIata(origen);
         const destinoNorm = await _resolverIata(destino);
+
         const params = {
             origen:        origenNorm,
             destino:       destinoNorm,
@@ -64,21 +69,26 @@ const searchFlights = async (req, res) => {
             num_pasajeros,
             tipo_vuelo,
         };
+
         const resultados = await Promise.allSettled(
             proveedores.map(p => proveedorService.buscarVuelos(p.id_proveedor, params))
         );
+
         resultados.forEach((r, i) => {
             if (r.status === 'rejected') {
                 console.error(
-                    `[Search] Proveedor ${proveedores[i].id_proveedor} falló:`,
+                    `[Search] Proveedor ${proveedores[i].id_proveedor} fallo:`,
                     r.reason?.message
                 );
             }
         });
+
+        // BUG CORREGIDO: flatMap en lugar de forEach
         const vuelos = resultados
             .filter(r => r.status === 'fulfilled')
-            .forEach(r => r.value)
+            .flatMap(r => r.value)
             .sort((a, b) => a.precio_agencia - b.precio_agencia);
+
         await _registrarBusqueda(req, 'vuelo', {
             origen:        origenNorm,
             destino:       destinoNorm,
@@ -86,6 +96,7 @@ const searchFlights = async (req, res) => {
             fecha_fin:     fecha_regreso,
             num_pasajeros,
         });
+
         return ok(res, { data: vuelos, total: vuelos.length });
     } catch (e) {
         return err(res, e.message);
@@ -93,39 +104,49 @@ const searchFlights = async (req, res) => {
 };
 
 const searchHotels = async (req, res) => {
-    const { ciudad, fecha_checkin, fecha_checkout, num_huespedes } = req.query; 
+    const { ciudad, fecha_checkin, fecha_checkout, num_huespedes } = req.query;
+
     if (!ciudad || !fecha_checkin || !fecha_checkout) {
-        return err(res, 'Faltan parámetros requeridos: ciudad, fecha_checkin, fecha_checkout', 400);
-    } 
+        return err(res, 'Faltan parametros requeridos: ciudad, fecha_checkin, fecha_checkout', 400);
+    }
+
     try {
         const [proveedores] = await db.query(
             'SELECT id_proveedor FROM proveedor WHERE tipo = "hotel" AND estado = "activo"'
-        ); 
+        );
+
         if (!proveedores.length) {
             return ok(res, { data: [], total: 0, mensaje: 'No hay hoteles activos configurados' });
-        } 
-        const params = { ciudad, fecha_checkin, fecha_checkout, num_huespedes }; 
+        }
+
+        const params = { ciudad, fecha_checkin, fecha_checkout, num_huespedes };
+
         const resultados = await Promise.allSettled(
             proveedores.map(p => proveedorService.buscarHoteles(p.id_proveedor, params))
-        ); 
+        );
+
         resultados.forEach((r, i) => {
             if (r.status === 'rejected') {
                 console.error(
-                    `[Search] Proveedor hotel ${proveedores[i].id_proveedor} falló:`,
+                    `[Search] Proveedor hotel ${proveedores[i].id_proveedor} fallo:`,
                     r.reason?.message
                 );
             }
-        }); 
+        });
+
+        // BUG CORREGIDO: flatMap en lugar de forEach
         const hoteles = resultados
             .filter(r => r.status === 'fulfilled')
-            .forEach(r => r.value)
-            .sort((a, b) => a.precio_noche_agencia - b.precio_noche_agencia); 
+            .flatMap(r => r.value)
+            .sort((a, b) => a.precio_noche_agencia - b.precio_noche_agencia);
+
         await _registrarBusqueda(req, 'hotel', {
             ciudad,
             fecha_inicio:  fecha_checkin,
             fecha_fin:     fecha_checkout,
             num_pasajeros: num_huespedes,
-        }); 
+        });
+
         return ok(res, { data: hoteles, total: hoteles.length });
     } catch (e) {
         return err(res, e.message);
@@ -149,14 +170,14 @@ const _resolverIata = async (valor) => {
             [trimmed]
         );
         if (rows.length && rows[0].codigo) return rows[0].codigo.toUpperCase();
-    } catch {    }
+    } catch {}
     return trimmed.toUpperCase();
 };
 
 const _registrarBusqueda = async (req, tipo, datos) => {
     try {
-        const idUsuario   = req.session?.user?.id_usuario ?? null;
-        const origenBusq  = req.headers['hx-request'] ? 'web' : 'rest';
+        const idUsuario  = req.session?.user?.id_usuario ?? null;
+        const origenBusq = req.headers['hx-request'] ? 'web' : 'rest';
         await db.query(
             `INSERT INTO historial_busqueda
              (id_usuario, tipo_busqueda, origen_busqueda, origen, destino,
@@ -175,7 +196,7 @@ const _registrarBusqueda = async (req, tipo, datos) => {
             ]
         );
     } catch (e) {
-        console.error('[Search] Error registrando búsqueda:', e.message);
+        console.error('[Search] Error registrando busqueda:', e.message);
     }
 };
 

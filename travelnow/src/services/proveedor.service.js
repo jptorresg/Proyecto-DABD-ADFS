@@ -1,14 +1,19 @@
-// Control de integracion con aerolínea y hotel
+// Control de integracion con aerolinea y hotel
 const axios = require('axios');
 const db    = require('../config/db');
 
 // ─────────────────────────────────────────────────────────────
-//  CONFIGURACIÓN DEL PROVEEDOR (desde BD)
+//  CONFIGURACION DEL PROVEEDOR (desde BD)
 // ─────────────────────────────────────────────────────────────
 
 const getConfig = async (idProveedor) => {
-    const [rows] = await db.query('SELECT * FROM proveedor WHERE id_proveedor = ? AND estado = "activo"', [idProveedor]);
-    if(!rows.length) { throw new Error(`Proveedor ${idProveedor} no encontrado o inactivo`); }
+    const [rows] = await db.query(
+        'SELECT * FROM proveedor WHERE id_proveedor = ? AND estado = "activo"',
+        [idProveedor]
+    );
+    if (!rows.length) {
+        throw new Error(`Proveedor ${idProveedor} no encontrado o inactivo`);
+    }
     return rows[0];
 };
 
@@ -24,6 +29,7 @@ const _loginAerolinea = async (prov) => {
     if (cached && Date.now() - cached.ts < SESSION_TTL_MS) {
         return cached.cookie;
     }
+
     let resp;
     try {
         resp = await axios.post(
@@ -32,29 +38,32 @@ const _loginAerolinea = async (prov) => {
             {
                 headers: { 'Content-Type': 'application/json' },
                 withCredentials: true,
-                validateStatus: () => true,   // manejamos el status manualmente
+                validateStatus: () => true,
                 timeout: 10_000,
             }
         );
     } catch (netErr) {
         throw new Error(
-            `[Aerolínea] No se pudo conectar con ${prov.endpoint_api}: ${netErr.message}`
+            `[Aerolinea] No se pudo conectar con ${prov.endpoint_api}: ${netErr.message}`
         );
     }
+
     if (!resp.data?.success) {
         throw new Error(
-            `[Aerolínea] Login fallido para "${prov.nombre}": ${resp.data?.message ?? resp.status}`
+            `[Aerolinea] Login fallido para "${prov.nombre}": ${resp.data?.message ?? resp.status}`
         );
     }
+
     const setCookie = resp.headers['set-cookie'];
     if (!setCookie || !setCookie.length) {
         throw new Error(
-            `[Aerolínea] Login exitoso pero Tomcat no devolvió Set-Cookie. Verifica la configuración del servidor.`
+            `[Aerolinea] Login exitoso pero Tomcat no devolvio Set-Cookie. Verifica la configuracion del servidor.`
         );
     }
+
     const cookie = setCookie.map(c => c.split(';')[0]).join('; ');
     _sessionCache[prov.id_proveedor] = { cookie, ts: Date.now() };
-    console.log(`[Aerolínea] Sesión establecida para proveedor "${prov.nombre}"`);
+    console.log(`[Aerolinea] Sesion establecida para proveedor "${prov.nombre}"`);
     return cookie;
 };
 
@@ -81,8 +90,9 @@ const _withRetry = async (prov, fn) => {
         return await fn(client);
     } catch (err) {
         const status = err.response?.status;
-        if(status === 401 || status === 403) {
-            console.warm(`[Aerolínea] Sesión expirada para "${prov.nombre}", reintentando login...`);
+        if (status === 401 || status === 403) {
+            // BUG CORREGIDO: "warn" en lugar de "warm"
+            console.warn(`[Aerolinea] Sesion expirada para "${prov.nombre}", reintentando login...`);
             _invalidarSession(prov.id_proveedor);
             const client = await _crearClienteAerolinea(prov);
             return await fn(client);
@@ -96,7 +106,7 @@ const clienteHotel = (prov) => axios.create({
     baseURL: prov.endpoint_api,
     timeout: 10000,
     headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':  'application/json',
         'Authorization': `Bearer ${prov.api_password}`,
     },
 });
@@ -108,74 +118,83 @@ const clienteHotel = (prov) => axios.create({
 const buscarVuelos = async (idProveedor, params) => {
     const prov = await getConfig(idProveedor);
     const queryParams = {};
-    if (params.origen) queryParams.origen = params.origen.toUpperCase().trim();
-    if (params.destino) queryParams.destino = params.destino.toUpperCase().trim();
+    if (params.origen)       queryParams.origen       = params.origen.toUpperCase().trim();
+    if (params.destino)      queryParams.destino      = params.destino.toUpperCase().trim();
     if (params.fecha_salida) queryParams.fecha_salida = params.fecha_salida.toUpperCase().trim();
     if (params.tipo_asiento) queryParams.tipo_asiento = params.tipo_asiento.toUpperCase().trim();
+
     const raw = await _withRetry(prov, async (client) => {
-        const  { data } = await client.get('/api/vuelos', { params: queryParams });
+        const { data } = await client.get('/api/vuelos', { params: queryParams });
         return data;
     });
+
     const vuelos = raw?.data ?? (Array.isArray(raw) ? raw : []);
-    if(!Array.isArray(vuelos)) {
-        console.warm(`[Aerolínea] buscarVuelos: respuesta inesperada de "${prov.nombre}"`, raw);
+    if (!Array.isArray(vuelos)) {
+        // BUG CORREGIDO: "warn" en lugar de "warm"
+        console.warn(`[Aerolinea] buscarVuelos: respuesta inesperada de "${prov.nombre}"`, raw);
         return [];
     }
+
     return vuelos.map(v => ({
-        id_vuelo: v.idVuelo,
-        codigo_vuelo: v.codigoVuelo,
-        origen_ciudad: v.origenCiudad,
-        origen_iata: v.origenCodigoIata,
-        destino_ciudad: v.destinoCiudad,
-        destino_iata: v.destinoCodigoIata,
-        fecha_salida: v.fechaSalida,
-        fecha_llegada: v.fechaLlegada,
-        hora_salida: v.horaSalida,
-        hora_llegada: v.horaLlegada,
-        tipo_asiento: v.tipoAsiento,
+        id_vuelo:             v.idVuelo,
+        codigo_vuelo:         v.codigoVuelo,
+        origen_ciudad:        v.origenCiudad,
+        origen_iata:          v.origenCodigoIata,
+        destino_ciudad:       v.destinoCiudad,
+        destino_iata:         v.destinoCodigoIata,
+        fecha_salida:         v.fechaSalida,
+        fecha_llegada:        v.fechaLlegada,
+        hora_salida:          v.horaSalida,
+        hora_llegada:         v.horaLlegada,
+        tipo_asiento:         v.tipoAsiento,
         asientos_disponibles: v.asientosDisponibles ?? 0,
-        precio_proveedor: parseFloat(v.precioBase) || 0,
-        precio_agencia: calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
-        porcentaje_ganancia: prov.porcentaje_ganancia,
-        nombre_proveedor: prov.nombre,
-        id_proveedor: prov.id_proveedor,
-        tipo: 'vuelo',
+        precio_proveedor:     parseFloat(v.precioBase) || 0,
+        precio_agencia:       calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
+        porcentaje_ganancia:  prov.porcentaje_ganancia,
+        nombre_proveedor:     prov.nombre,
+        id_proveedor:         prov.id_proveedor,
+        tipo:                 'vuelo',
     }));
 };
 
 const reservarVuelo = async (idProveedor, payload) => {
     const prov = await getConfig(idProveedor);
-    if (!payload.id_vuelo) throw new Error('[Aerolínea] Falta id_vuelo en el payload');
-    if (!payload.pasajeros?.length) throw new Error('[Aerolínea] Se requiere al menos un pasajero');
+    if (!payload.id_vuelo)        throw new Error('[Aerolinea] Falta id_vuelo en el payload');
+    if (!payload.pasajeros?.length) throw new Error('[Aerolinea] Se requiere al menos un pasajero');
+
     const body = {
-        idVuelo: payload.id_vuelo,
-        metodoPago: payload.metodo_pago || 'tarjeta',
-        pasajeros: payload.pasajeros.map(p => ({
-            nombres: p.nombres,
-            apellidos: p.apellidos,
-            fechaNacimiento: p.fecha_nacimiento,
-            idNacionalidad: p.id_nacionalidad ?? 83,
-            numPasaporte: p.num_pasaporte,
+        idVuelo:     payload.id_vuelo,
+        metodoPago:  payload.metodo_pago || 'tarjeta',
+        pasajeros:   payload.pasajeros.map(p => ({
+            nombres:          p.nombres,
+            apellidos:        p.apellidos,
+            fechaNacimiento:  p.fecha_nacimiento,
+            idNacionalidad:   p.id_nacionalidad ?? 83,
+            numPasaporte:     p.num_pasaporte,
         })),
     };
+
     const raw = await _withRetry(prov, async (client) => {
         const { data } = await client.post('/api/reservaciones', body, {
-            headers:{
+            headers: {
                 'x-usuario-id': String(payload.id_usuario_externo ?? 1),
             },
         });
         return data;
     });
+
     const reservacion = raw?.data ?? raw;
     if (!reservacion?.codigoReservacion && !reservacion?.idReservacion) {
-        throw new Error(`[Aerolínea] La reservación no devolvió un identificador válido. Respuesta: ${JSON.stringify(raw)}`);
+        throw new Error(
+            `[Aerolinea] La reservacion no devolvio un identificador valido. Respuesta: ${JSON.stringify(raw)}`
+        );
     }
     return reservacion;
 };
 
 const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
     const prov = await getConfig(idProveedor);
-    const raw = await _withRetry(prov, async (client) => {
+    const raw  = await _withRetry(prov, async (client) => {
         const { data } = await client.put(`/api/reservaciones/${idReservacionProveedor}/cancelar`);
         return data;
     });
@@ -194,14 +213,14 @@ const obtenerOrigenesDestinos = async (idProveedor) => {
             return { origenes: [], destinos: [] };
         }
         const lista = paises.map(p => ({
-            id: p.idPais,
+            id:     p.idPais,
             nombre: p.name ?? p.nombre,
             codigo: p.alfa2,
-            alfa3: p.alfa3
+            alfa3:  p.alfa3,
         })).filter(p => p.nombre ?? p.codigo);
         return { origenes: lista, destinos: lista };
     } catch (e) {
-        console.warn(`[Aerolínea] obtenerOrigenesDestinos falló para "${prov.nombre}": ${e.message}`);
+        console.warn(`[Aerolinea] obtenerOrigenesDestinos fallo para "${prov.nombre}": ${e.message}`);
         return { origenes: [], destinos: [] };
     }
 };
@@ -210,12 +229,10 @@ const obtenerOrigenesDestinos = async (idProveedor) => {
 //  Hotel
 // ─────────────────────────────────────────────────────────────
 
-// GET /api/b2b/disponibilidad
 const buscarHoteles = async (idProveedor, params) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
 
-    // Nombres que espera B2BController.cs
     const queryParams = {
         checkIn:   params.fecha_checkin,
         checkOut:  params.fecha_checkout,
@@ -236,21 +253,19 @@ const buscarHoteles = async (idProveedor, params) => {
             h.precioNoche || h.PrecioNoche,
             prov.porcentaje_ganancia
         ),
-        amenidades:             h.amenidades || [],
-        estado:                 h.estado || h.Estado,
-        porcentaje_ganancia:    prov.porcentaje_ganancia,
-        nombre_proveedor:       prov.nombre,
-        id_proveedor:           prov.id_proveedor,
-        tipo:                   'hotel',
+        amenidades:          h.amenidades || [],
+        estado:              h.estado || h.Estado,
+        porcentaje_ganancia: prov.porcentaje_ganancia,
+        nombre_proveedor:    prov.nombre,
+        id_proveedor:        prov.id_proveedor,
+        tipo:                'hotel',
     }));
 };
 
-// POST /api/b2b/reservaciones
 const reservarHotel = async (idProveedor, payload) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
 
-    // PascalCase tal como espera B2BController.cs
     const body = {
         IdHabitacion:    payload.id_habitacion,
         FechaCheckIn:    payload.fecha_checkin,
@@ -265,7 +280,6 @@ const reservarHotel = async (idProveedor, payload) => {
     return data.data || data;
 };
 
-// PUT /api/b2b/reservas/{id}/cancelar
 const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -273,7 +287,6 @@ const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     return data.data || data;
 };
 
-// GET /api/habitaciones → extrae ciudades únicas
 const obtenerCiudades = async (idProveedor) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -288,15 +301,17 @@ const obtenerCiudades = async (idProveedor) => {
 // ─────────────────────────────────────────────────────────────
 //  UTILIDAD DE PRECIO
 // ─────────────────────────────────────────────────────────────
+
 const calcularPrecioConGanancia = (precioBase, porcentaje) => {
     const base = parseFloat(precioBase) || 0;
-    const pct = parseFloat(porcentaje) || 0;
+    const pct  = parseFloat(porcentaje) || 0;
     return parseFloat((base * (1 + pct / 100)).toFixed(2));
 };
 
 // ─────────────────────────────────────────────────────────────
 //  EXPORTS
 // ─────────────────────────────────────────────────────────────
+
 module.exports = {
     buscarVuelos,
     reservarVuelo,
