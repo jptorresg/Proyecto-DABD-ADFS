@@ -2,11 +2,13 @@ package com.halcon.aerolineas.services;
 
 import com.halcon.aerolineas.dao.VueloDAO;
 import com.halcon.aerolineas.models.Vuelo;
+import com.halcon.aerolineas.models.VueloConEscala;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 public class VueloService {
     private VueloDAO vueloDAO;
@@ -18,9 +20,31 @@ public class VueloService {
     /**
      * Buscar vuelos disponibles
      */
-    public List<Vuelo> buscarVuelos(String origen, String destino, LocalDate fechaSalida, 
-                                     String tipoAsiento) throws SQLException {
-        return vueloDAO.buscarVuelos(origen, destino, fechaSalida, tipoAsiento);
+    public List<Object> buscarVuelos(String origen, String destino, LocalDate fechaSalida,
+                                      String tipoAsiento) throws SQLException {
+        List<Object> resultados = new ArrayList<>();
+
+        // Directos
+        resultados.addAll(vueloDAO.buscarVuelos(origen, destino, fechaSalida, tipoAsiento));
+
+        // Con escalas
+        if (origen != null && !origen.isEmpty() && destino != null && !destino.isEmpty()) {
+            List<List<Vuelo>> cadenas = vueloDAO.buscarVuelosConEscala(
+                origen, destino, fechaSalida, tipoAsiento
+            );
+            for (List<Vuelo> cadena : cadenas) {
+                if (cadena.size() >= 2) {
+                    resultados.add(new VueloConEscala(cadena));
+                }
+            }
+        }
+
+        System.out.println("=== BUSQUEDA ===");
+        System.out.println("Origen: " + origen);
+        System.out.println("Destino: " + destino);
+        System.out.println("Fecha: " + fechaSalida);
+
+        return resultados;
     }
     
     /**
@@ -32,6 +56,20 @@ public class VueloService {
             throw new IllegalArgumentException("Vuelo no encontrado");
         }
         return vuelo;
+    }
+
+    public Object obtenerVueloConEscalas(List<Long> ids) throws SQLException {
+        List<Vuelo> tramos = new ArrayList<>();
+
+        for (Long id : ids) {
+            Vuelo v = vueloDAO.findById(id);
+            if (v == null) {
+                throw new IllegalArgumentException("Vuelo no encontrado: " + id);
+            }
+            tramos.add(v);
+        }
+
+        return new VueloConEscala(tramos);
     }
     
     /**

@@ -1284,10 +1284,15 @@ function resultadosData() {
         },
 
         mapBackendVuelo(v) {
+            const tieneEscala = v.escalas && v.escalas.length > 0;
+
+            // Para la card de resultados mostramos solo la primera escala como resumen
+            const primeraEscala = tieneEscala ? v.escalas[0] : null;
+
             return {
-                id: v.idVuelo,
-                code: v.codigoVuelo,
-                type: 'direct', // luego puedes calcular escalas
+                id:    v.idVuelo,
+                code:  v.codigoVuelo,
+                type:  tieneEscala ? 'layover' : 'direct',
                 class: v.tipoAsiento,
                 price: Number(v.precioBase),
 
@@ -1296,23 +1301,28 @@ function resultadosData() {
                     time: formatTime(v.horaSalida),
                     zone: v.origenCodigoIata
                 },
-
                 to: {
                     city: v.destinoCiudad,
                     time: formatTime(v.horaLlegada),
                     zone: v.destinoCodigoIata
                 },
 
-                duration: this.calcularDuracion(
-                    v.horaSalida,
-                    v.horaLlegada
-                ),
-
-                rating: (Math.random() * 2 + 3).toFixed(1),
-                reviews: Math.floor(Math.random() * 200) + 50,
-
+                duration: this.calcularDuracion(v.horaSalida, v.horaLlegada),
+                rating:   (Math.random() * 2 + 3).toFixed(1),
+                reviews:  Math.floor(Math.random() * 200) + 50,
                 bestPrice: false,
-                layover: null
+
+                escalas: tieneEscala ? v.escalas : [],
+
+                // layover sigue siendo el resumen para la card (primera escala)
+                layover: primeraEscala ? {
+                    city:     primeraEscala.ciudad,
+                    code:     primeraEscala.codigo,
+                    duration: primeraEscala.duracion,
+                    llegada:  primeraEscala.llegada,
+                    salida:   primeraEscala.salida,
+                    totalEscalas: v.escalas.length  // para mostrar "2 escalas" si aplica
+                } : null
             };
         },
 

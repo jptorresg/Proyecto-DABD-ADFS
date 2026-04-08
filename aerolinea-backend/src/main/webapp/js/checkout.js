@@ -317,7 +317,7 @@ function checkoutData() {
             try {
 
                 const reservacionData = {
-                    idVuelo: this.vueloInfo.id,
+                    idVuelo: this.vueloId,
                     metodoPago: this.paymentType,
                     pasajeros: this.pasajeros.map(p => ({
                         nombres: p.nombres,

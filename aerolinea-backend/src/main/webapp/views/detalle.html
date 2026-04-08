@@ -112,47 +112,63 @@
                             </div>
 
                             <!-- Escala (si aplica) -->
-                            <template x-if="vuelo.tipoVuelo === 'escala' && vuelo.escala">
+                            <template x-if="vuelo.tipoVuelo === 'escala' && vuelo.escalas.length > 0">
                                 <div>
-                                    <div class="det-tl-conn">
-                                        <div class="det-tl-line"></div>
-                                        <span class="det-tl-seg">Vuelo · 1h 45m</span>
-                                    </div>
+                                    <template x-for="(escala, index) in vuelo.escalas" :key="index">
+                                        <div>
 
-                                    <div class="det-tl-stop det-tl-stop-layover">
-                                        <div class="det-tl-marker det-tl-marker-layover">
-                                            <i class="fas fa-clock"></i>
-                                        </div>
-                                        <div class="det-tl-body">
-                                            <div class="det-tl-time">
-                                                <span x-text="vuelo.escala.llegada"></span>
-                                                <span class="det-tl-tz">GMT-6</span>
-                                                <span class="det-tl-badge-escala">
-                                                    Escala · <span x-text="vuelo.escala.duracion"></span>
+                                            <!-- Conexión antes de la escala -->
+                                            <div class="det-tl-conn">
+                                                <div class="det-tl-line"></div>
+                                                <span class="det-tl-seg">
+                                                    Vuelo · tramo <span x-text="index + 1"></span>
                                                 </span>
                                             </div>
-                                            <div class="det-tl-city" x-text="vuelo.escala.ciudad"></div>
-                                            <div class="det-tl-airport">
-                                                Aeropuerto · <strong x-text="vuelo.escala.codigo"></strong>
-                                            </div>
-                                            <div class="det-tl-escala-horario">
-                                                <span>
-                                                    <i class="fas fa-arrow-down"></i> 
-                                                    Llegada <span x-text="vuelo.escala.llegada"></span>
-                                                </span>
-                                                <span class="det-tl-sep">|</span>
-                                                <span>
-                                                    <i class="fas fa-arrow-up"></i> 
-                                                    Salida <span x-text="vuelo.escala.salida"></span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    <div class="det-tl-conn">
-                                        <div class="det-tl-line"></div>
-                                        <span class="det-tl-seg">Vuelo · 1h 30m</span>
-                                    </div>
+                                            <!-- Escala -->
+                                            <div class="det-tl-stop det-tl-stop-layover">
+                                                <div class="det-tl-marker det-tl-marker-layover">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                                <div class="det-tl-body">
+                                                    <div class="det-tl-time">
+                                                        <span x-text="escala.llegada"></span>
+                                                        <span class="det-tl-tz">GMT-6</span>
+                                                        <span class="det-tl-badge-escala">
+                                                            Escala · <span x-text="escala.duracion"></span>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="det-tl-city" x-text="escala.ciudad"></div>
+
+                                                    <div class="det-tl-airport">
+                                                        Aeropuerto · <strong x-text="escala.codigo"></strong>
+                                                    </div>
+
+                                                    <div class="det-tl-escala-horario">
+                                                        <span>
+                                                            <i class="fas fa-arrow-down"></i> 
+                                                            Llegada <span x-text="escala.llegada"></span>
+                                                        </span>
+                                                        <span class="det-tl-sep">|</span>
+                                                        <span>
+                                                            <i class="fas fa-arrow-up"></i> 
+                                                            Salida <span x-text="escala.salida"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Conexión después de la escala -->
+                                            <div class="det-tl-conn">
+                                                <div class="det-tl-line"></div>
+                                                <span class="det-tl-seg">
+                                                    Vuelo · tramo <span x-text="index + 2"></span>
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
 

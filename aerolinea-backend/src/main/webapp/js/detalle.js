@@ -12,7 +12,7 @@ function detalleData() {
         nuevoComentario: '',
         comentarioActivo: null,
         respuestaTexto: '',
-        precioTotal: 1900,
+        precioTotal: 0,
         extras: {
             equipaje: false,
             asiento: false,
@@ -56,6 +56,7 @@ function detalleData() {
                 }
 
                 const data = result.data;
+                const tieneEscala = !!data.escala;
 
                 // Mapear estructura backend → frontend
                 this.vuelo = {
@@ -74,8 +75,8 @@ function detalleData() {
                     precioBase: data.precioBase,
                     rating: 0, // temporal
                     totalComentarios: 0, // temporal
-                    tipoVuelo: 'direct', // temporal (si aún no tienes lógica)
-                    escala: null
+                    tipoVuelo: (data.escalas && data.escalas.length > 0) ? 'escala' : 'direct',
+                    escalas:   data.escalas || []
                 };
 
             } catch (error) {
