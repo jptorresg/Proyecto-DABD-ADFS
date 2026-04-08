@@ -144,7 +144,7 @@ const crear = async (req, res) => {
             [totalAgencia.toFixed(2), idReservacion]
         );
         await conn.commit();
-        const [row] = await db.query(`SELECT r.*, u.correo, u.nombre, u.apellido FROM reservacion r JOIN usuario u ON u.id_usuario = r.id_usuario WHERE r.id_reservacion = ?`, [idReservacion]);
+        const [rows] = await db.query(`SELECT r.*, u.correo, u.nombre, u.apellido FROM reservacion r JOIN usuario u ON u.id_usuario = r.id_usuario WHERE r.id_reservacion = ?`, [idReservacion]);
         const reservacion = rows[0];
         const pdfPath = await _generarPDF(reservacion, idReservacion);
         await db.query('UPDATE reservacion SET comprobante_pdf = ? WHERE id_reservacion = ?', [pdfPath, idReservacion]);
@@ -173,7 +173,7 @@ const crear = async (req, res) => {
     } catch (e) {
         await conn.rollback();
         console.error('[Reservación] Error al crear la reservacion:', e.message);
-        return error(res,`Error al crear la reservacion: ${e.message}`);
+        return err(res,`Error al crear la reservacion: ${e.message}`);
     } finally {
         conn.release();
     }

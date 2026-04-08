@@ -15,7 +15,7 @@ router.get('/proveedores/data', ...isAdmin, ctrl.listarProveedores);
 router.get('/proveedores/:id', ...isAdmin, ctrl.obtenerProveedor);
 router.post('/proveedores', ...isAdmin, ctrl.crearProveedor);
 router.put('/proveedores/:id', ...isAdmin, ctrl.actualizarProveedor);
-router.delete('/proveedores/:id', isAdmin, ctrl.eliminarProveedor);
+router.delete('/proveedores/:id', ...isAdmin, ctrl.eliminarProveedor);
 
 //rutas de los usuarios
 router.get('/usuarios/data', ...isAdmin, ctrl.listarUsuarios);

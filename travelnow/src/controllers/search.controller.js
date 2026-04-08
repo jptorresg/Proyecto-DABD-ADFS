@@ -77,7 +77,7 @@ const searchFlights = async (req, res) => {
         });
         const vuelos = resultados
             .filter(r => r.status === 'fulfilled')
-            .forEach(r => r.value)
+            .flatMap(r => r.value)
             .sort((a, b) => a.precio_agencia - b.precio_agencia);
         await _registrarBusqueda(req, 'vuelo', {
             origen:        origenNorm,
@@ -118,7 +118,7 @@ const searchHotels = async (req, res) => {
         }); 
         const hoteles = resultados
             .filter(r => r.status === 'fulfilled')
-            .forEach(r => r.value)
+            .flatMap(r => r.value)
             .sort((a, b) => a.precio_noche_agencia - b.precio_noche_agencia); 
         await _registrarBusqueda(req, 'hotel', {
             ciudad,
