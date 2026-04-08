@@ -196,16 +196,14 @@ const todasReservaciones = async (req, res) => {
 };
 
 // --------------------- Visuales o Vistas ----------------------------
-const usuarios = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+const usuarios      = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+const reservaciones = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/reservaciones.html'));
+const proveedores   = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
+ 
+module.exports = {
+  dashboard,
+  usuarios, reservaciones, proveedores,
+  listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor,
+  listarUsuarios, cambiarRol, cambiarEstadoUsuario, eliminarUsuario,
+  todasReservaciones,
 };
-
-const reservaciones = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/reservaciones.html'));
-};
-
-const proveedores = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
-};
-
-module.exports = { dashboard, usuarios, reservaciones, proveedores, listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor, listarUsuarios, cambiarRol, todasReservaciones };

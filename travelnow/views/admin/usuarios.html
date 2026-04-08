@@ -1,242 +1,268 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios - Admin TravelNow</title>
-    <link rel="stylesheet" href="/public/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios — Admin TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-layout">
-        <nav class="admin-sidebar">
-            <div class="sidebar-logo">Travel<span>Now</span></div>
-            <a href="/admin/dashboard" class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="/admin/usuarios" class="sidebar-nav-item active"><i class="fas fa-users"></i> Usuarios</a>
-            <a href="/admin/reservaciones" class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
-            <a href="/admin/proveedores" class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
-        </nav>
+<div class="admin-layout">
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"     class="sidebar-nav-item active"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones"class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"  class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+  </nav>
 
-        <div class="admin-main">
-            <header class="admin-topbar">
-                <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
-                <div style="display:flex;gap:1rem;align-items:center;">
-                    <span id="topbar-user">Admin Sistema</span>
-                    <button class="btn-sm-gold" onclick="logout()">Logout</button>
-                </div>
-            </header>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
 
-            <main class="admin-content">
-                <div class="admin-filters">
-                    <select class="th-select-sm" id="filter-rol" onchange="cargarUsuarios()">
-                        <option value="">Todos los roles</option>
-                        <option value="usuario">Usuario</option>
-                        <option value="administrador">Administrador</option>
-                        <option value="webservice">Webservice</option>
-                    </select>
-                    <select class="th-select-sm" id="filter-estado" onchange="cargarUsuarios()">
-                        <option value="">Todos estados</option>
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
-                    <input type="text" class="th-select-sm" id="filter-search"
-                           placeholder="Buscar por nombre o correo..."
-                           oninput="debounceSearch()"
-                           style="min-width:220px;padding:0.5rem 0.9rem;">
-                </div>
+    <main class="admin-content">
+      <div class="admin-filters">
+        <select class="th-select-sm" id="filter-rol" onchange="cargarUsuarios()">
+          <option value="">Todos los roles</option>
+          <option value="usuario">Usuario</option>
+          <option value="administrador">Administrador</option>
+          <option value="webservice">Webservice</option>
+        </select>
+        <select class="th-select-sm" id="filter-estado" onchange="cargarUsuarios()">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+        <input type="text" class="th-select-sm" id="filter-search"
+               placeholder="Buscar por nombre o correo..."
+               oninput="debounceSearch()"
+               style="min-width:220px;padding:0.5rem 0.9rem;">
+      </div>
 
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h2>Lista de Usuarios</h2>
-                        <span id="usuarios-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
-                    </div>
-                    <div class="admin-panel-body" style="overflow-x:auto;">
-                        <table class="th-table" id="usuarios-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Correo</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>País</th>
-                                    <th>Registro</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usuarios-tbody">
-                                <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
-                                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
-                                    Cargando usuarios...
-                                </td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
-                        <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
-                        <div style="display:flex;gap:0.5rem;">
-                            <button class="btn-sm-gold" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
-                            <button class="btn-sm-gold" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
-                        </div>
-                    </div>
-                </div>
-            </main>
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h2>Lista de Usuarios</h2>
+          <span id="usuarios-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
         </div>
-    </div>
+        <div class="admin-panel-body" style="overflow-x:auto;">
+          <table class="th-table" id="usuarios-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+                <th>Estado</th><th>País</th><th>Registro</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuarios-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Cargando usuarios...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
+          <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-sm-gold" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
+            <button class="btn-sm-gold" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
 
-    <script>
-        let paginaActual = 1;
-        const limit = 25;
-        let searchTimeout = null;
+<script>
+  let paginaActual = 1;
+  const limit = 25;
+  let searchTimeout = null;
 
-        async function cargarUsuarios() {
-            paginaActual = 1;
-            await fetchUsuarios();
-        }
+  async function cargarUsuarios() {
+    paginaActual = 1;
+    await fetchUsuarios();
+  }
 
-        async function fetchUsuarios() {
-            const rol    = document.getElementById('filter-rol').value;
-            const estado = document.getElementById('filter-estado').value;
-            const search = document.getElementById('filter-search').value;
+  async function fetchUsuarios() {
+    const rol    = document.getElementById('filter-rol').value;
+    const estado = document.getElementById('filter-estado').value;
+    const search = document.getElementById('filter-search').value;
 
-            const params = new URLSearchParams({ page: paginaActual, limit });
-            if (rol)    params.append('rol', rol);
-            if (estado) params.append('estado', estado);
-            if (search) params.append('search', search);
+    const params = new URLSearchParams({ page: paginaActual, limit });
+    if (rol)    params.append('rol',    rol);
+    if (estado) params.append('estado', estado);
+    if (search) params.append('search', search);
 
-            const tbody = document.getElementById('usuarios-tbody');
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
-                <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
-            </td></tr>`;
+    const tbody = document.getElementById('usuarios-tbody');
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
+    </td></tr>`;
 
-            try {
-                const token = localStorage.getItem('token');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const res  = await fetch(`/api/admin/usuarios/data?${params}`, { credentials: 'include' });
+      const data = await res.json();
 
-                const res  = await fetch(`/api/admin/usuarios/data?${params}`, { headers, credentials: 'include' });
-                const data = await res.json();
+      if (!data.ok) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
+          Error: ${data.message || 'No autorizado'}
+        </td></tr>`;
+        document.getElementById('usuarios-count').textContent = '';
+        return;
+      }
 
-                if (!data.ok) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
-                        Error: ${data.message || 'No autorizado'}
-                    </td></tr>`;
-                    document.getElementById('usuarios-count').textContent = '';
-                    return;
-                }
+      const usuarios = data.data || [];
+      const total    = data.total || 0;
 
-                const usuarios = data.data || [];
-                const total    = data.total || 0;
+      document.getElementById('usuarios-count').textContent = `${total} usuario(s)`;
+      document.getElementById('pagination-info').textContent =
+        `Página ${paginaActual} · Mostrando ${usuarios.length} de ${total}`;
+      document.getElementById('btn-prev').disabled = paginaActual <= 1;
+      document.getElementById('btn-next').disabled = paginaActual * limit >= total;
 
-                document.getElementById('usuarios-count').textContent = `${total} usuario(s)`;
-                document.getElementById('pagination-info').textContent =
-                    `Página ${paginaActual} · Mostrando ${usuarios.length} de ${total}`;
-                document.getElementById('btn-prev').disabled = paginaActual <= 1;
-                document.getElementById('btn-next').disabled = paginaActual * limit >= total;
+      if (!usuarios.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+          No se encontraron usuarios
+        </td></tr>`;
+        return;
+      }
 
-                if (!usuarios.length) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
-                        No se encontraron usuarios
-                    </td></tr>`;
-                    return;
-                }
+      tbody.innerHTML = usuarios.map(u => `
+        <tr>
+          <td style="color:var(--text-muted);font-size:0.8rem;">#${u.id_usuario}</td>
+          <td><strong>${u.nombre} ${u.apellido}</strong></td>
+          <td style="font-size:0.85rem;">${u.correo}</td>
+          <td>${badgeRol(u.rol)}</td>
+          <td>${badgeEstado(u.estado)}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">${u.pais_origen || '—'}</td>
+          <td style="font-size:0.78rem;color:var(--text-muted);">${formatFecha(u.fecha_registro)}</td>
+          <td style="white-space:nowrap;">
+            <select class="th-select-sm" onchange="cambiarRol(${u.id_usuario}, this.value)"
+                    style="font-size:0.75rem;padding:0.3rem 0.5rem;margin-right:0.3rem;"
+                    title="Cambiar rol">
+              <option value="">Rol...</option>
+              <option value="usuario"       ${u.rol==='usuario'       ?'selected':''}>Usuario</option>
+              <option value="administrador" ${u.rol==='administrador' ?'selected':''}>Admin</option>
+              <option value="webservice"    ${u.rol==='webservice'    ?'selected':''}>Webservice</option>
+            </select>
+            <button class="btn-sm-gold" title="${u.estado==='activo'?'Desactivar':'Activar'}"
+                    onclick="cambiarEstado(${u.id_usuario}, '${u.estado==='activo'?'inactivo':'activo'}', '${u.nombre.replace(/'/g,"\\'")} ${u.apellido.replace(/'/g,"\\'")}')">
+              <i class="fas fa-${u.estado==='activo'?'ban':'check'}"></i>
+            </button>
+            <button class="btn-sm-danger" title="Eliminar usuario"
+                    onclick="eliminarUsuario(${u.id_usuario}, '${u.nombre.replace(/'/g,"\\'")} ${u.apellido.replace(/'/g,"\\'")}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
 
-                tbody.innerHTML = usuarios.map(u => `
-                    <tr>
-                        <td style="color:var(--text-muted);font-size:0.8rem;">#${u.id_usuario}</td>
-                        <td><strong>${u.nombre} ${u.apellido}</strong></td>
-                        <td style="font-size:0.85rem;">${u.correo}</td>
-                        <td>${badgeRol(u.rol)}</td>
-                        <td>${badgeEstado(u.estado)}</td>
-                        <td style="font-size:0.82rem;color:var(--text-muted);">${u.pais_origen || '—'}</td>
-                        <td style="font-size:0.78rem;color:var(--text-muted);">${formatFecha(u.fecha_registro)}</td>
-                        <td>
-                            <select class="th-select-sm" onchange="cambiarRol(${u.id_usuario}, this.value)" style="font-size:0.75rem;padding:0.3rem 0.5rem;">
-                                <option value="">Cambiar rol</option>
-                                <option value="usuario">Usuario</option>
-                                <option value="administrador">Administrador</option>
-                                <option value="webservice">Webservice</option>
-                            </select>
-                        </td>
-                    </tr>
-                `).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
+        Error de conexión: ${e.message}
+      </td></tr>`;
+    }
+  }
 
-            } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
-                    Error de conexión: ${e.message}
-                </td></tr>`;
-            }
-        }
+  /* ── Acciones ─────────────────────────────────── */
+  async function cambiarRol(id, rol) {
+    if (!rol) return;
+    try {
+      const res  = await fetch(`/api/admin/usuarios/${id}/rol`, {
+        method: 'PUT', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rol }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchUsuarios();
+      } else {
+        alert('Error: ' + (data.message || 'No se pudo cambiar el rol'));
+      }
+    } catch (e) { alert('Error de conexión: ' + e.message); }
+  }
 
-        async function cambiarRol(id, rol) {
-            if (!rol) return;
-            try {
-                const token = localStorage.getItem('token');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
+  async function cambiarEstado(id, nuevoEstado, nombre) {
+    const accion = nuevoEstado === 'inactivo' ? 'desactivar' : 'activar';
+    if (!confirm(`¿Deseas ${accion} al usuario "${nombre}"?`)) return;
+    try {
+      const res  = await fetch(`/api/admin/usuarios/${id}/estado`, {
+        method: 'PUT', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: nuevoEstado }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchUsuarios();
+      } else {
+        alert('Error: ' + (data.message || 'No se pudo cambiar el estado'));
+      }
+    } catch (e) { alert('Error de conexión: ' + e.message); }
+  }
 
-                const res  = await fetch(`/api/admin/usuarios/${id}/rol`, {
-                    method: 'PUT',
-                    headers,
-                    credentials: 'include',
-                    body: JSON.stringify({ rol })
-                });
-                const data = await res.json();
-                if (data.ok) {
-                    await fetchUsuarios();
-                } else {
-                    alert('Error: ' + (data.message || 'No se pudo cambiar el rol'));
-                }
-            } catch (e) {
-                alert('Error de conexión: ' + e.message);
-            }
-        }
+  async function eliminarUsuario(id, nombre) {
+    if (!confirm(`¿Eliminar PERMANENTEMENTE al usuario "${nombre}"?\n\nEsta acción no se puede deshacer.\nSi el usuario tiene reservaciones, usa "Desactivar" en su lugar.`)) return;
+    try {
+      const res  = await fetch(`/api/admin/usuarios/${id}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchUsuarios();
+      } else {
+        alert('Error: ' + (data.message || 'No se pudo eliminar el usuario'));
+      }
+    } catch (e) { alert('Error de conexión: ' + e.message); }
+  }
 
-        function cambiarPagina(dir) {
-            paginaActual += dir;
-            fetchUsuarios();
-        }
+  /* ── Helpers ─────────────────────────────────── */
+  function cambiarPagina(dir) {
+    paginaActual += dir;
+    fetchUsuarios();
+  }
 
-        function debounceSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(cargarUsuarios, 400);
-        }
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(cargarUsuarios, 400);
+  }
 
-        function badgeRol(rol) {
-            const map = {
-                administrador: '<span class="badge-custom badge-gold">Administrador</span>',
-                usuario:       '<span class="badge-custom badge-blue">Usuario</span>',
-                webservice:    '<span class="badge-custom badge-green">Webservice</span>',
-            };
-            return map[rol] || `<span class="badge-custom">${rol}</span>`;
-        }
+  function badgeRol(rol) {
+    const map = {
+      administrador: '<span class="badge-custom badge-gold">Administrador</span>',
+      usuario:       '<span class="badge-custom badge-blue">Usuario</span>',
+      webservice:    '<span class="badge-custom badge-green">Webservice</span>',
+    };
+    return map[rol] || `<span class="badge-custom">${rol}</span>`;
+  }
 
-        function badgeEstado(estado) {
-            return estado === 'activo'
-                ? '<span class="badge-custom badge-green">Activo</span>'
-                : '<span class="badge-custom badge-red">Inactivo</span>';
-        }
+  function badgeEstado(estado) {
+    return estado === 'activo'
+      ? '<span class="badge-custom badge-green">Activo</span>'
+      : '<span class="badge-custom badge-red">Inactivo</span>';
+  }
 
-        function formatFecha(f) {
-            if (!f) return '—';
-            return new Date(f).toLocaleDateString('es-GT');
-        }
+  function formatFecha(f) {
+    if (!f) return '—';
+    return new Date(f).toLocaleDateString('es-GT');
+  }
 
-        function logout() {
-            fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
-        }
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+  }
 
-        // Cargar al iniciar
-        fetchUsuarios();
+  /* ── Inicializar ── */
+  fetchUsuarios();
 
-        // Mostrar usuario actual en topbar
-        fetch('/api/auth/me', { credentials: 'include' })
-            .then(r => r.json())
-            .then(d => {
-                if (d?.ok && d.usuario) {
-                    document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
-                }
-            }).catch(() => {});
-    </script>
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario)
+        document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
+    }).catch(() => {});
+</script>
 </body>
 </html>
