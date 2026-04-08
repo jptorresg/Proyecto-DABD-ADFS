@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
+//Prueba de ayuda
 const crear = async (req, res) => {
     const usuario = req.user;
     const { tipo, metodo_pago, datos_cobro, vuelo, vuelo_regreso, hotel } = req.body;
