@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -50,9 +51,25 @@ public class VueloController extends HttpServlet {
 
             } else {
 
-                Long id = Long.parseLong(pathInfo.substring(1));
-                Vuelo vuelo = vueloService.obtenerVuelo(id);
-                out.print(JsonResponse.success(vuelo));
+                String idParam = pathInfo.substring(1);
+
+                if (idParam.contains("-")) {
+                    // 🔥 VUELO CON ESCALAS
+                    List<Long> ids = new ArrayList<>();
+
+                    for (String part : idParam.split("-")) {
+                        ids.add(Long.parseLong(part));
+                    }
+
+                    Object vuelo = vueloService.obtenerVueloConEscalas(ids);
+                    out.print(JsonResponse.success(vuelo));
+
+                } else {
+                    // ✅ VUELO NORMAL
+                    Long id = Long.parseLong(idParam);
+                    Vuelo vuelo = vueloService.obtenerVuelo(id);
+                    out.print(JsonResponse.success(vuelo));
+                }
 
             }
         } catch (Exception e) {
@@ -209,7 +226,7 @@ public class VueloController extends HttpServlet {
         
         LocalDate fechaSalida = (fechaSalidaStr != null) ? LocalDate.parse(fechaSalidaStr) : null;
         
-        List<Vuelo> vuelos = vueloService.buscarVuelos(origen, destino, fechaSalida, tipoAsiento);
+        List<Object> vuelos = vueloService.buscarVuelos(origen, destino, fechaSalida, tipoAsiento);
         out.print(JsonResponse.success(vuelos));
     }
 

@@ -16,23 +16,36 @@ const dashboard = async (req, res) => {
       return err(res, e.message);
   }
 };
-
+ 
 // ------------------ Proveedores -------------------
 const listarProveedores = async (req, res) => {
   const { tipo, estado, search } = req.query;
   try {
     let query = `SELECT id_proveedor, nombre, tipo, endpoint_api, api_usuario, porcentaje_ganancia, pais, estado, fecha_registro FROM proveedor WHERE 1=1`;
     const params = [];
-    if (tipo) { query += ' AND tipo = ?'; params.push(tipo); }
+    if (tipo)   { query += ' AND tipo = ?';   params.push(tipo); }
     if (estado) { query += ' AND estado = ?'; params.push(estado); }
-    if (search) { query += ' AND (nombre LIKE ? OR endpoint_api LIKE ?)'; params.push(`%${search}%`, `%${search}%`) }
+    if (search) {
+      query += ' AND (nombre LIKE ? OR endpoint_api LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
+    }
     query += ' ORDER BY tipo, nombre';
     const [rows] = await db.query(query, params);
-    const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM proveedor WHERE 1=1' + (tipo ? ' AND tipo = ?' : '') + (estado ? ' AND estado = ?' : '') + (search ? ' AND (nombre LIKE ? OR endpoint_api LIKE ?)' : ''), params); 
-    return ok(res, { data: rows, total: total });
+ 
+    // Count con los mismos filtros
+    let countQuery = 'SELECT COUNT(*) as total FROM proveedor WHERE 1=1';
+    const countParams = [];
+    if (tipo)   { countQuery += ' AND tipo = ?';   countParams.push(tipo); }
+    if (estado) { countQuery += ' AND estado = ?'; countParams.push(estado); }
+    if (search) {
+      countQuery += ' AND (nombre LIKE ? OR endpoint_api LIKE ?)';
+      countParams.push(`%${search}%`, `%${search}%`);
+    }
+    const [[{ total }]] = await db.query(countQuery, countParams);
+    return ok(res, { data: rows, total });
   } catch (e) { return err(res, e.message); }
 };
-
+ 
 const obtenerProveedor = async (req, res) => {
   const { id } = req.params;
   try {
@@ -41,30 +54,43 @@ const obtenerProveedor = async (req, res) => {
     return ok(res, rows[0]);
   } catch (e) { return err(res, e.message); }
 };
-
+ 
 const crearProveedor = async (req, res) => {
   const { nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais } = req.body;
   if (!nombre || !tipo || !endpoint_api) return err(res, 'Nombre, tipo y endpoint son requeridos', 400);
-  try{
-    const [result] = await db.query(`INSERT INTO proveedor (nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado) VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')`, [nombre, tipo, endpoint_api, api_usuario || null, api_password || null, porcentaje_ganancia || 0, pais]);
+  try {
+    const [result] = await db.query(
+      `INSERT INTO proveedor (nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')`,
+      [nombre, tipo, endpoint_api, api_usuario || null, api_password || null, porcentaje_ganancia || 0, pais]
+    );
     return ok(res, { message: 'Proveedor creado', id: result.insertId }, 201);
   } catch (e) { return err(res, e.message); }
 };
-
+ 
 const actualizarProveedor = async (req, res) => {
   const { id } = req.params;
   const { nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado } = req.body;
   try {
-    await db.query(`UPDATE proveedor SET nombre=?, tipo=?, endpoint_api=?, api_usuario=?, api_password=?, porcentaje_ganancia=?, pais=?, estado=? WHERE id_proveedor=?`, [nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado || 'activo', id]);
+    await db.query(
+      `UPDATE proveedor SET nombre=?, tipo=?, endpoint_api=?, api_usuario=?, api_password=?,
+       porcentaje_ganancia=?, pais=?, estado=? WHERE id_proveedor=?`,
+      [nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado || 'activo', id]
+    );
     return ok(res, { message: 'Proveedor actualizado' });
   } catch (e) { return err(res, e.message); }
 };
-
+ 
+// Desactivar proveedor (soft delete → estado = 'inactivo')
 const eliminarProveedor = async (req, res) => {
   const { id } = req.params;
   try {
+    const [rows] = await db.query('SELECT id_proveedor, nombre, estado FROM proveedor WHERE id_proveedor = ?', [id]);
+    if (!rows.length) return err(res, 'Proveedor no encontrado', 404);
+    if (rows[0].estado === 'inactivo') return err(res, 'El proveedor ya está inactivo', 400);
+ 
     await db.query('UPDATE proveedor SET estado = "inactivo" WHERE id_proveedor = ?', [id]);
-    return ok(res, { message: 'Proveedor desactivado' });
+    return ok(res, { message: 'Proveedor desactivado correctamente' });
   } catch (e) { return err(res, e.message); }
 };
 
@@ -94,6 +120,44 @@ const cambiarRol = async (req, res) => {
     await db.query('UPDATE usuario SET rol = ? WHERE id_usuario = ?', [rol, id]);
     return ok(res, { message: `Rol actualizado a ${rol}` });
   } catch (e) { return err(res, e.message); } 
+};
+
+// NUEVO: Cambiar estado de usuario (activo / inactivo)
+const cambiarEstadoUsuario = async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+  const estadosValidos = ['activo', 'inactivo'];
+  if (!estadosValidos.includes(estado)) return err(res, 'Estado no válido. Use "activo" o "inactivo"', 400);
+  try {
+    const [rows] = await db.query('SELECT id_usuario, estado FROM usuario WHERE id_usuario = ?', [id]);
+    if (!rows.length) return err(res, 'Usuario no encontrado', 404);
+    await db.query('UPDATE usuario SET estado = ? WHERE id_usuario = ?', [estado, id]);
+    const accion = estado === 'inactivo' ? 'desactivado' : 'activado';
+    return ok(res, { message: `Usuario ${accion} correctamente` });
+  } catch (e) { return err(res, e.message); }
+};
+ 
+// NUEVO: Eliminar usuario permanentemente (hard delete — solo si no tiene reservaciones)
+const eliminarUsuario = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query('SELECT id_usuario, nombre, correo FROM usuario WHERE id_usuario = ?', [id]);
+    if (!rows.length) return err(res, 'Usuario no encontrado', 404);
+ 
+    // Verificar si tiene reservaciones asociadas
+    const [[{ total }]] = await db.query(
+      'SELECT COUNT(*) as total FROM reservacion WHERE id_usuario = ?', [id]
+    );
+    if (total > 0) {
+      return err(res,
+        `No se puede eliminar: el usuario tiene ${total} reservación(es). Use "desactivar" en su lugar.`,
+        409
+      );
+    }
+ 
+    await db.query('DELETE FROM usuario WHERE id_usuario = ?', [id]);
+    return ok(res, { message: 'Usuario eliminado permanentemente' });
+  } catch (e) { return err(res, e.message); }
 };
 
 // ----------------- Reservaciones ----------------------
@@ -132,16 +196,14 @@ const todasReservaciones = async (req, res) => {
 };
 
 // --------------------- Visuales o Vistas ----------------------------
-const usuarios = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+const usuarios      = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+const reservaciones = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/reservaciones.html'));
+const proveedores   = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
+ 
+module.exports = {
+  dashboard,
+  usuarios, reservaciones, proveedores,
+  listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor,
+  listarUsuarios, cambiarRol, cambiarEstadoUsuario, eliminarUsuario,
+  todasReservaciones,
 };
-
-const reservaciones = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/reservaciones.html'));
-};
-
-const proveedores = async (req, res) => {
-  res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
-};
-
-module.exports = { dashboard, usuarios, reservaciones, proveedores, listarProveedores, obtenerProveedor, crearProveedor, actualizarProveedor, eliminarProveedor, listarUsuarios, cambiarRol, todasReservaciones };

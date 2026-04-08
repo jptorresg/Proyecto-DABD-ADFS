@@ -1,134 +1,254 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservaciones - Admin TravelNow</title>
-    <link rel="stylesheet" href="/public/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservaciones — Admin TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-layout">
-        <!-- Sidebar -->
-        <nav class="admin-sidebar">
-            <div class="sidebar-logo">Travel<span>Now</span></div>
-            <a href="/admin/dashboard" class="sidebar-nav-item">
-                <i class="fas fa-chart-line"></i> Dashboard
-            </a>
-            <a href="/admin/usuarios" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> Usuarios
-            </a>
-            <a href="/admin/reservaciones" class="sidebar-nav-item active">
-                <i class="fas fa-plane"></i> Reservaciones
-            </a>
-            <a href="/admin/proveedores" class="sidebar-nav-item">
-                <i class="fas fa-building"></i> Proveedores
-            </a>
-        </nav>
+<div class="admin-layout">
 
-        <!-- Main -->
-        <div class="admin-main">
-            <header class="admin-topbar">
-                <h1><i class="fas fa-plane"></i> Gestión de Reservaciones</h1>
-                <div style="display:flex;gap:1rem;align-items:center;">
-                    <span>Admin Sistema</span>
-                    <a href="/auth/logout" class="btn-sm-gold">Logout</a>
-                </div>
-            </header>
+  <!-- Sidebar -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"     class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones"class="sidebar-nav-item active"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"  class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+  </nav>
 
-            <main class="admin-content">
-                <!-- Filtros -->
-                <div class="admin-filters">
-                    <select class="th-select-sm" hx-get="/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
-                        <option value="">Todos estados</option>
-                        <option value="confirmada">Confirmada</option>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="cancelada">Cancelada</option>
-                    </select>
-                    <select class="th-select-sm" hx-get="/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
-                        <option value="">Todos tipos</option>
-                        <option value="vuelo">Vuelo</option>
-                        <option value="hotel">Hotel</option>
-                    </select>
-                    <input type="date" class="th-input" hx-get="/admin/reservaciones" hx-trigger="change" hx-target="#reservaciones-table">
-                    <input type="text" class="th-input" placeholder="Buscar código reserva..." hx-get="/admin/reservaciones" hx-trigger="keyup changed delay:500ms" hx-target="#reservaciones-table">
-                </div>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-plane"></i> Gestión de Reservaciones</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
 
-                <!-- Estadísticas -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
-                    <div class="admin-stat-card">
-                        <div style="display:flex;align-items:center;gap:1rem;">
-                            <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
-                            <div>
-                                <div class="admin-stat-num" id="total-reservas">0</div>
-                                <div class="admin-stat-lbl">Total</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div style="display:flex;align-items:center;gap:1rem;">
-                            <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
-                            <div>
-                                <div class="admin-stat-num" id="confirmadas">0</div>
-                                <div class="admin-stat-lbl">Confirmadas</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="admin-stat-card">
-                        <div style="display:flex;align-items:center;gap:1rem;">
-                            <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
-                            <div>
-                                <div class="admin-stat-num" id="pendientes">0</div>
-                                <div class="admin-stat-lbl">Pendientes</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <main class="admin-content">
 
-                <!-- Tabla -->
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h2>Reservaciones Recientes</h2>
-                        <span id="reservaciones-count">Cargando...</span>
-                    </div>
-                    <div class="admin-panel-body">
-                        <div id="reservaciones-table">
-                            <div style="text-align:center;padding:2rem;color:var(--text-muted)">
-                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:1rem"></i>
-                                <p>Cargando reservaciones...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+      <!-- Filtros -->
+      <div class="admin-filters">
+        <select class="th-select-sm" id="filter-estado" onchange="cargarReservaciones()">
+          <option value="">Todos los estados</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select class="th-select-sm" id="filter-tipo" onchange="cargarReservaciones()">
+          <option value="">Todos los tipos</option>
+          <option value="vuelo">Vuelo</option>
+          <option value="hotel">Hotel</option>
+          <option value="paquete">Paquete</option>
+        </select>
+        <input type="text" class="th-select-sm" id="filter-search"
+               placeholder="Buscar código o cliente..."
+               oninput="debounceSearch()"
+               style="min-width:220px;padding:0.5rem 0.9rem;">
+      </div>
+
+      <!-- Estadísticas -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-total">0</div>
+              <div class="admin-stat-lbl">Total</div>
+            </div>
+          </div>
         </div>
-    </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-confirmadas">0</div>
+              <div class="admin-stat-lbl">Confirmadas</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-pendientes">0</div>
+              <div class="admin-stat-lbl">Pendientes</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-ingresos">$0</div>
+              <div class="admin-stat-lbl">Ingresos</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script>
-        // Headers de autenticación
-        document.body.addEventListener('htmx:configRequest', (e) => {
-            const token = localStorage.getItem('token');
-            if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
-        });
+      <!-- Tabla -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h2>Reservaciones Recientes</h2>
+          <span id="reservaciones-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
+        </div>
+        <div class="admin-panel-body" style="overflow-x:auto;">
+          <table class="th-table">
+            <thead>
+              <tr>
+                <th>Código</th><th>Cliente</th><th>Correo</th>
+                <th>Tipo</th><th>Total</th><th>Estado</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="reservaciones-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Cargando reservaciones...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
+          <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-sm-gold" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
+            <button class="btn-sm-gold" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
 
-        // Actualizar stats desde respuesta
-        document.body.addEventListener('htmx:afterRequest', (e) => {
-            if (e.detail.xhr.status === 200) {
-                try {
-                    const data = JSON.parse(e.detail.xhr.responseText);
-                    if (data.stats) {
-                        document.getElementById('total-reservas').textContent = data.stats.total || 0;
-                        document.getElementById('confirmadas').textContent = data.stats.confirmadas || 0;
-                        document.getElementById('pendientes').textContent = data.stats.pendientes || 0;
-                    }
-                } catch {}
-            }
-        });
+<script>
+  let paginaActual = 1;
+  const limit = 25;
+  let searchTimeout = null;
 
-        htmx.onLoad(function() {
-            setInterval(() => htmx.trigger('#reservaciones-table', 'reload'), 30000);
-        });
-    </script>
+  async function cargarReservaciones() {
+    paginaActual = 1;
+    await fetchReservaciones();
+  }
+
+  async function fetchReservaciones() {
+    const estado = document.getElementById('filter-estado').value;
+    const tipo   = document.getElementById('filter-tipo').value;
+    const search = document.getElementById('filter-search').value;
+
+    const params = new URLSearchParams({ page: paginaActual, limit });
+    if (estado) params.append('estado', estado);
+    if (tipo)   params.append('tipo',   tipo);
+    if (search) params.append('search', search);
+
+    const tbody = document.getElementById('reservaciones-tbody');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
+    </td></tr>`;
+
+    try {
+      const res  = await fetch(`/api/admin/reservaciones/data?${params}`, { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.ok) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+          Error: ${data.message || 'No autorizado'}
+        </td></tr>`;
+        return;
+      }
+
+      // Actualizar stats
+      const s = data.stats || {};
+      document.getElementById('stat-total').textContent       = s.total      || 0;
+      document.getElementById('stat-confirmadas').textContent = s.confirmadas || 0;
+      document.getElementById('stat-pendientes').textContent  = s.pendientes  || 0;
+      document.getElementById('stat-ingresos').textContent    = '$' + parseFloat(s.ingresos || 0).toFixed(2);
+
+      const reservaciones = data.data || [];
+      const total         = data.total || 0;
+
+      document.getElementById('reservaciones-count').textContent = `${total} reservación(es)`;
+      document.getElementById('pagination-info').textContent =
+        `Página ${paginaActual} · Mostrando ${reservaciones.length} de ${total}`;
+      document.getElementById('btn-prev').disabled = paginaActual <= 1;
+      document.getElementById('btn-next').disabled = paginaActual * limit >= total;
+
+      if (!reservaciones.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+          No se encontraron reservaciones
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = reservaciones.map(r => `
+        <tr>
+          <td><strong style="color:var(--gold);font-size:0.82rem;">${r.codigo_reserva}</strong></td>
+          <td>${r.nombre} ${r.apellido}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">${r.correo}</td>
+          <td>${badgeTipo(r.tipo)}</td>
+          <td><strong>$${parseFloat(r.total).toFixed(2)}</strong></td>
+          <td>${badgeEstado(r.estado)}</td>
+          <td style="font-size:0.78rem;color:var(--text-muted);">${formatFecha(r.fecha_reserva)}</td>
+        </tr>
+      `).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+        Error de conexión: ${e.message}
+      </td></tr>`;
+    }
+  }
+
+  function cambiarPagina(dir) {
+    paginaActual += dir;
+    fetchReservaciones();
+  }
+
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(cargarReservaciones, 400);
+  }
+
+  function badgeTipo(tipo) {
+    const map = {
+      vuelo:   '<span class="badge-custom badge-blue">Vuelo</span>',
+      hotel:   '<span class="badge-custom badge-gold">Hotel</span>',
+      paquete: '<span class="badge-custom badge-green">Paquete</span>',
+    };
+    return map[tipo] || `<span class="badge-custom">${tipo}</span>`;
+  }
+
+  function badgeEstado(estado) {
+    const map = {
+      confirmada: '<span class="badge-custom badge-green">Confirmada</span>',
+      pendiente:  '<span class="badge-custom badge-gold">Pendiente</span>',
+      cancelada:  '<span class="badge-custom badge-red">Cancelada</span>',
+    };
+    return map[estado] || `<span class="badge-custom">${estado}</span>`;
+  }
+
+  function formatFecha(f) {
+    if (!f) return '—';
+    return new Date(f).toLocaleDateString('es-GT');
+  }
+
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+  }
+
+  /* ── Inicializar ── */
+  fetchReservaciones();
+  setInterval(fetchReservaciones, 30000);
+
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario)
+        document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
+    }).catch(() => {});
+</script>
 </body>
 </html>

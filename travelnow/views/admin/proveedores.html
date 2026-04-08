@@ -1,171 +1,339 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proveedores - Admin TravelNow</title>
-    <link rel="stylesheet" href="/public/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedores — Admin TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="admin-layout">
-        <nav class="admin-sidebar">
-            <div class="sidebar-logo">Travel<span>Now</span></div>
-            <a href="/admin/dashboard" class="sidebar-nav-item">
-                <i class="fas fa-chart-line"></i> Dashboard
-            </a>
-            <a href="/admin/usuarios" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> Usuarios
-            </a>
-            <a href="/admin/reservaciones" class="sidebar-nav-item">
-                <i class="fas fa-plane"></i> Reservaciones
-            </a>
-            <a href="/admin/proveedores" class="sidebar-nav-item active">
-                <i class="fas fa-building"></i> Proveedores
-            </a>
-        </nav>
+<div class="admin-layout">
 
-        <!-- Main -->
-        <div class="admin-main">
-            <header class="admin-topbar">
-                <h1><i class="fas fa-building"></i> Gestión de Proveedores</h1>
-                <div style="display:flex;gap:1rem;align-items:center;">
-                    <button class="btn-sm-gold" hx-post="//admin/proveedores" hx-target="#proveedores-table">
-                        <i class="fas fa-plus"></i> Nuevo Proveedor
-                    </button>
-                    <span>Admin Sistema</span>
-                    <a href="/auth/logout" class="btn-sm-gold">Logout</a>
-                </div>
-            </header>
+  <!-- Sidebar -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"     class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones"class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"  class="sidebar-nav-item active"><i class="fas fa-building"></i> Proveedores</a>
+  </nav>
 
-            <main class="admin-content">
-                <!-- Filtros -->
-                <div class="admin-filters">
-                    <select class="th-select-sm" hx-get="/admin/proveedores" hx-trigger="change" hx-target="#proveedores-table">
-                        <option value="">Todos tipos</option>
-                        <option value="aerolinea">Aerolínea</option>
-                        <option value="hotel">Hotel</option>
-                    </select>
-                    <select class="th-select-sm" hx-get="/admin/proveedores" hx-trigger="change" hx-target="#proveedores-table">
-                        <option value="">Todos estados</option>
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
-                    <input type="text" class="th-input" placeholder="Buscar proveedor..." hx-get="/admin/proveedores" hx-trigger="keyup changed delay:500ms" hx-target="#proveedores-table">
-                </div>
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-building"></i> Gestión de Proveedores</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <button class="btn-sm-gold" onclick="abrirModalNuevo()"><i class="fas fa-plus"></i> Nuevo Proveedor</button>
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
 
-                <!-- Tabla -->
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h2>Lista de Proveedores</h2>
-                        <span id="proveedores-count">Cargando...</span>
-                    </div>
-                    <div class="admin-panel-body">
-                        <div id="proveedores-table">
-                            <div style="text-align:center;padding:2rem;color:var(--text-muted)">
-                                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:1rem"></i>
-                                <p>Cargando proveedores...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <main class="admin-content">
 
-                <!-- Modal Editar (HTMX) -->
-                <div id="modal-proveedor" class="modal-overlay" style="display:none;">
-                    <div class="modal-content">
-                        <div class="admin-panel-header">
-                            <h2 id="modal-title">Nuevo Proveedor</h2>
-                            <button class="btn-sm-danger" hx-post="/admin/proveedores/cancelar" hx-target="#modal-proveedor">×</button>
-                        </div>
-                        <form id="form-proveedor" hx-post="/admin/proveedores" hx-target="#proveedores-table">
-                            <input type="hidden" name="id_proveedor" id="edit-id">
-                            <div class="th-form-group">
-                                <label class="th-label">Nombre</label>
-                                <input type="text" name="nombre" class="th-input" required>
-                            </div>
-                            <div class="th-form-group">
-                                <label class="th-label">Tipo</label>
-                                <select name="tipo" class="th-input" required>
-                                    <option value="aerolinea">Aerolínea</option>
-                                    <option value="hotel">Hotel</option>
-                                </select>
-                            </div>
-                            <div class="th-form-group">
-                                <label class="th-label">Endpoint API</label>
-                                <input type="url" name="endpoint_api" class="th-input" required>
-                            </div>
-                            <div class="th-form-group">
-                                <label class="th-label">% Ganancia</label>
-                                <input type="number" name="porcentaje_ganancia" class="th-input" step="0.01" min="0" max="100">
-                            </div>
-                            <div class="th-form-group">
-                                <label class="th-label">País</label>
-                                <input type="text" name="pais" class="th-input">
-                            </div>
-                            <button type="submit" class="btn-buscar">Guardar Proveedor</button>
-                        </form>
-                    </div>
-                </div>
-            </main>
+      <!-- Filtros -->
+      <div class="admin-filters">
+        <select class="th-select-sm" id="filter-tipo" onchange="cargarProveedores()">
+          <option value="">Todos los tipos</option>
+          <option value="aerolinea">Aerolínea</option>
+          <option value="hotel">Hotel</option>
+        </select>
+        <select class="th-select-sm" id="filter-estado" onchange="cargarProveedores()">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+        <input type="text" class="th-select-sm" id="filter-search"
+               placeholder="Buscar proveedor..."
+               oninput="debounceSearch()"
+               style="min-width:220px;padding:0.5rem 0.9rem;">
+      </div>
+
+      <!-- Tabla -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h2>Lista de Proveedores</h2>
+          <span id="proveedores-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
         </div>
+        <div class="admin-panel-body" style="overflow-x:auto;">
+          <table class="th-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Tipo</th><th>Endpoint API</th>
+                <th>Ganancia %</th><th>País</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="proveedores-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Cargando proveedores...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Proveedor -->
+<div id="modal-proveedor" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,0.9);backdrop-filter:blur(10px);z-index:10000;display:none;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--navy-mid);border:1px solid var(--border-gold);border-radius:var(--radius-lg);max-width:500px;width:100%;max-height:90vh;overflow-y:auto;">
+    <div class="admin-panel-header" style="padding:1.5rem;">
+      <h2 id="modal-title">Nuevo Proveedor</h2>
+      <button class="btn-sm-danger" onclick="cerrarModal()">✕</button>
     </div>
+    <form id="form-proveedor" onsubmit="guardarProveedor(event)" style="padding:0 1.5rem 1.5rem;">
+      <input type="hidden" id="edit-id">
+      <div class="th-form-group">
+        <label class="th-label">Nombre *</label>
+        <input type="text" id="f-nombre" class="th-input" required>
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">Tipo *</label>
+        <select id="f-tipo" class="th-input" required>
+          <option value="aerolinea">Aerolínea</option>
+          <option value="hotel">Hotel</option>
+        </select>
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">Endpoint API *</label>
+        <input type="url" id="f-endpoint" class="th-input" required>
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">Usuario API</label>
+        <input type="text" id="f-apiuser" class="th-input">
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">Password / Token API</label>
+        <input type="password" id="f-apipass" class="th-input">
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">% Ganancia</label>
+        <input type="number" id="f-ganancia" class="th-input" step="0.01" min="0" max="100" value="0">
+      </div>
+      <div class="th-form-group">
+        <label class="th-label">País</label>
+        <input type="text" id="f-pais" class="th-input">
+      </div>
+      <div id="form-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius-sm);padding:0.8rem;color:#F87171;font-size:0.85rem;margin-bottom:1rem;"></div>
+      <button type="submit" class="btn-buscar" id="btn-guardar">Guardar Proveedor</button>
+    </form>
+  </div>
+</div>
 
-    <style>
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(10,22,40,0.9);
-            backdrop-filter: blur(10px);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        .modal-content {
-            background: var(--navy-mid);
-            border: 1px solid var(--border-gold);
-            border-radius: var(--radius-lg);
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-content .admin-panel-header {
-            padding: 1.5rem;
-            gap: 1rem;
-        }
-        .modal-content form { padding: 0 1.5rem 1.5rem; }
-    </style>
+<script>
+  let searchTimeout = null;
 
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script>
-        // Headers de autenticación
-        document.body.addEventListener('htmx:configRequest', (e) => {
-            const token = localStorage.getItem('token');
-            if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
-        });
+  /* ── Carga de tabla ─────────────────────────────── */
+  async function cargarProveedores() {
+    const tipo   = document.getElementById('filter-tipo').value;
+    const estado = document.getElementById('filter-estado').value;
+    const search = document.getElementById('filter-search').value;
 
-        // Modal handlers
-        document.body.addEventListener('htmx:afterRequest', (e) => {
-            if (e.detail.target.id === 'proveedores-table') {
-                document.getElementById('proveedores-count').textContent = e.detail.xhr.response.match(/(\d+)/)?.[1] || '0';
-            }
-        });
+    const params = new URLSearchParams();
+    if (tipo)   params.append('tipo',   tipo);
+    if (estado) params.append('estado', estado);
+    if (search) params.append('search', search);
 
-        // Abrir modal editar
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-edit]')) {
-                const id = e.target.dataset.edit;
-                document.getElementById('edit-id').value = id;
-                document.getElementById('modal-title').textContent = 'Editar Proveedor';
-                document.getElementById('modal-proveedor').style.display = 'flex';
-                htmx.ajax('GET', `/admin/proveedores/${id}`, { target: '#form-proveedor' });
-            }
-        });
+    const tbody = document.getElementById('proveedores-tbody');
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
+    </td></tr>`;
 
-        htmx.onLoad(function() {
-            setInterval(() => htmx.trigger('#proveedores-table', 'reload'), 30000);
-        });
-    </script>
+    try {
+      const res  = await fetch(`/api/admin/proveedores/data?${params}`, { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.ok) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
+          Error: ${data.message || 'No autorizado'}
+        </td></tr>`;
+        document.getElementById('proveedores-count').textContent = '';
+        return;
+      }
+
+      const proveedores = data.data || [];
+      document.getElementById('proveedores-count').textContent = `${data.total} proveedor(es)`;
+
+      if (!proveedores.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+          No se encontraron proveedores
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = proveedores.map(p => `
+        <tr>
+          <td style="color:var(--text-muted);font-size:0.8rem;">#${p.id_proveedor}</td>
+          <td><strong>${p.nombre}</strong></td>
+          <td>${badgeTipo(p.tipo)}</td>
+          <td style="font-size:0.78rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;">${p.endpoint_api}</td>
+          <td style="text-align:center;">${p.porcentaje_ganancia}%</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">${p.pais || '—'}</td>
+          <td>${badgeEstado(p.estado)}</td>
+          <td>
+            <button class="btn-sm-gold" onclick="abrirModalEditar(${p.id_proveedor})" style="margin-right:0.3rem;">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-sm-danger" onclick="eliminarProveedor(${p.id_proveedor}, '${p.nombre.replace(/'/g, "\\'")}')">
+              <i class="fas fa-ban"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#F87171;">
+        Error de conexión: ${e.message}
+      </td></tr>`;
+    }
+  }
+
+  /* ── Eliminar / desactivar proveedor ────────────── */
+  async function eliminarProveedor(id, nombre) {
+    if (!confirm(`¿Desactivar al proveedor "${nombre}"?\nEsta acción cambiará su estado a inactivo.`)) return;
+    try {
+      const res  = await fetch(`/api/admin/proveedores/${id}`, { method: 'DELETE', credentials: 'include' });
+      const data = await res.json();
+      if (data.ok) {
+        cargarProveedores();
+      } else {
+        alert('Error: ' + (data.message || 'No se pudo desactivar el proveedor'));
+      }
+    } catch (e) {
+      alert('Error de conexión: ' + e.message);
+    }
+  }
+
+  /* ── Modal ──────────────────────────────────────── */
+  function abrirModalNuevo() {
+    document.getElementById('edit-id').value   = '';
+    document.getElementById('modal-title').textContent = 'Nuevo Proveedor';
+    document.getElementById('f-nombre').value   = '';
+    document.getElementById('f-tipo').value     = 'aerolinea';
+    document.getElementById('f-endpoint').value = '';
+    document.getElementById('f-apiuser').value  = '';
+    document.getElementById('f-apipass').value  = '';
+    document.getElementById('f-ganancia').value = '0';
+    document.getElementById('f-pais').value     = '';
+    ocultarErrorForm();
+    document.getElementById('modal-proveedor').style.display = 'flex';
+  }
+
+  async function abrirModalEditar(id) {
+    try {
+      const res  = await fetch(`/api/admin/proveedores/${id}`, { credentials: 'include' });
+      const data = await res.json();
+      if (!data.ok) { alert('No se pudo cargar el proveedor'); return; }
+      const p = data;
+      document.getElementById('edit-id').value   = p.id_proveedor;
+      document.getElementById('modal-title').textContent = 'Editar Proveedor';
+      document.getElementById('f-nombre').value   = p.nombre   || '';
+      document.getElementById('f-tipo').value     = p.tipo     || 'aerolinea';
+      document.getElementById('f-endpoint').value = p.endpoint_api || '';
+      document.getElementById('f-apiuser').value  = p.api_usuario  || '';
+      document.getElementById('f-apipass').value  = '';
+      document.getElementById('f-ganancia').value = p.porcentaje_ganancia || 0;
+      document.getElementById('f-pais').value     = p.pais    || '';
+      ocultarErrorForm();
+      document.getElementById('modal-proveedor').style.display = 'flex';
+    } catch (e) {
+      alert('Error de conexión: ' + e.message);
+    }
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-proveedor').style.display = 'none';
+  }
+
+  async function guardarProveedor(e) {
+    e.preventDefault();
+    const id  = document.getElementById('edit-id').value;
+    const btn = document.getElementById('btn-guardar');
+    btn.disabled    = true;
+    btn.textContent = 'Guardando...';
+
+    const body = {
+      nombre:              document.getElementById('f-nombre').value,
+      tipo:                document.getElementById('f-tipo').value,
+      endpoint_api:        document.getElementById('f-endpoint').value,
+      api_usuario:         document.getElementById('f-apiuser').value,
+      api_password:        document.getElementById('f-apipass').value,
+      porcentaje_ganancia: document.getElementById('f-ganancia').value,
+      pais:                document.getElementById('f-pais').value,
+    };
+
+    const url    = id ? `/api/admin/proveedores/${id}` : '/api/admin/proveedores';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+      const res  = await fetch(url, {
+        method, credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        cerrarModal();
+        cargarProveedores();
+      } else {
+        mostrarErrorForm(data.message || 'Error al guardar');
+      }
+    } catch (err) {
+      mostrarErrorForm('Error de conexión: ' + err.message);
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Guardar Proveedor';
+    }
+  }
+
+  function mostrarErrorForm(msg) {
+    const el = document.getElementById('form-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function ocultarErrorForm() {
+    document.getElementById('form-error').style.display = 'none';
+  }
+
+  /* ── Badges ─────────────────────────────────────── */
+  function badgeTipo(tipo) {
+    return tipo === 'aerolinea'
+      ? '<span class="badge-custom badge-blue"><i class="fas fa-plane"></i> Aerolínea</span>'
+      : '<span class="badge-custom badge-gold"><i class="fas fa-building"></i> Hotel</span>';
+  }
+  function badgeEstado(estado) {
+    return estado === 'activo'
+      ? '<span class="badge-custom badge-green">Activo</span>'
+      : '<span class="badge-custom badge-red">Inactivo</span>';
+  }
+
+  /* ── Helpers ─────────────────────────────────────── */
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(cargarProveedores, 400);
+  }
+
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+  }
+
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('modal-proveedor').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+  });
+
+  /* ── Inicializar ─────────────────────────────────── */
+  cargarProveedores();
+  setInterval(cargarProveedores, 30000);
+
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario)
+        document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
+    }).catch(() => {});
+</script>
 </body>
 </html>
