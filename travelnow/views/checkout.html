@@ -8,115 +8,49 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="./public/css/styles.css">
+  <link rel="stylesheet" href="/public/css/styles.css">
   <style>
     body { background: var(--navy); }
-    /* Progress bar */
-    .checkout-progress {
-      background: rgba(10,22,40,0.8);
-      border-bottom: 1px solid var(--border-gold);
-      padding: 1rem 0;
-      backdrop-filter: blur(20px);
-    }
+    .checkout-progress { background: rgba(10,22,40,0.8); border-bottom: 1px solid var(--border-gold); padding: 1rem 0; backdrop-filter: blur(20px); }
     .progress-steps-row { display: flex; align-items: center; justify-content: center; gap: 0; }
     .prog-step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; z-index: 1; }
-    .prog-circle {
-      width: 42px; height: 42px;
-      border-radius: 50%;
-      border: 1.5px solid var(--border-gold);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      background: var(--navy);
-      transition: var(--trans);
-    }
+    .prog-circle { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--border-gold); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-muted); background: var(--navy); transition: var(--trans); }
     .prog-step.active .prog-circle { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); box-shadow: 0 0 10px rgba(212,168,67,0.2); }
-    .prog-step.done .prog-circle { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+    .prog-step.done   .prog-circle { border-color: var(--gold); background: var(--gold); color: var(--navy); }
     .prog-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
     .prog-step.active .prog-label { color: var(--gold); }
     .prog-line { flex: 1; height: 1px; background: var(--border-gold); max-width: 80px; }
-    /* Secciones del form */
-    .checkout-section {
-      background: rgba(17,34,64,0.7);
-      border: 1px solid var(--border-gold);
-      border-radius: var(--radius-md);
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      backdrop-filter: blur(10px);
-    }
-    .checkout-section-title {
-      font-family: var(--font-display);
-      font-size: 1.25rem;
-      font-weight: 400;
-      color: var(--white);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-    }
+    .checkout-section { background: rgba(17,34,64,0.7); border: 1px solid var(--border-gold); border-radius: var(--radius-md); padding: 2rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); }
+    .checkout-section-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: var(--white); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.7rem; }
     .checkout-section-title i { color: var(--gold); }
-    /* Métodos de pago */
-    .pay-method {
-      border: 1px solid var(--border-gold);
-      border-radius: var(--radius-sm);
-      padding: 1rem 1.2rem;
-      cursor: pointer;
-      transition: var(--trans);
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      color: var(--text-muted);
-      font-size: 0.88rem;
-    }
+    .pay-method { border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1rem 1.2rem; cursor: pointer; transition: var(--trans); display: flex; align-items: center; gap: 0.8rem; color: var(--text-muted); font-size: 0.88rem; }
     .pay-method:hover { border-color: var(--gold); color: var(--cream); }
     .pay-method.active { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
     .pay-method i { font-size: 1.2rem; }
-    /* Order summary */
-    .order-card {
-      background: rgba(6,15,28,0.8);
-      border: 1px solid var(--border-gold);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-      position: sticky;
-      top: 90px;
-    }
-    .order-title {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--white);
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-gold);
-    }
-    .order-item {
-      background: rgba(17,34,64,0.6);
-      border: 1px solid var(--border-gold);
-      border-radius: var(--radius-sm);
-      padding: 1.2rem;
-      margin-bottom: 1rem;
-    }
+    .order-card { background: rgba(6,15,28,0.8); border: 1px solid var(--border-gold); border-radius: var(--radius-lg); padding: 2rem; position: sticky; top: 90px; }
+    .order-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; color: var(--white); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-gold); }
+    .order-item { background: rgba(17,34,64,0.6); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 1rem; }
     .order-item-head { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.8rem; }
     .order-item-icon { width: 38px; height: 38px; background: var(--gold-dim); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1rem; flex-shrink: 0; }
     .order-item-name { font-size: 0.9rem; font-weight: 500; color: var(--cream); }
-    .order-item-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .order-item-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
     .order-info-line { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
     .order-info-line i { color: var(--gold); font-size: 0.75rem; width: 14px; }
-    .price-row-sum { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.7rem; }
+    .price-row-sum   { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.7rem; }
     .price-row-total { display: flex; justify-content: space-between; padding-top: 1rem; margin-top: 0.5rem; border-top: 1px solid var(--border-gold); font-family: var(--font-display); font-size: 1.4rem; color: var(--gold); }
-    .promo-row { display: flex; gap: 0.5rem; margin: 1rem 0; }
-    .promo-input { flex: 1; background: rgba(10,22,40,0.7); border: 1px solid var(--border-gold); color: var(--cream); border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; font-size: 0.85rem; font-family: var(--font-body); }
-    .promo-input::placeholder { color: rgba(245,240,232,0.3); }
-    .btn-promo { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer; white-space: nowrap; transition: var(--trans); }
-    .btn-promo:hover { background: var(--gold); color: var(--navy); }
-    .trust-row { display: flex; justify-content: space-around; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-gold); }
-    .trust-item { text-align: center; font-size: 0.72rem; color: var(--text-muted); }
-    .trust-item i { display: block; font-size: 1.2rem; color: var(--gold); margin-bottom: 0.3rem; }
-    .btn-back-link { color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.85rem 1.8rem; font-size: 0.88rem; cursor: pointer; transition: var(--trans); font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .btn-back-link:hover { border-color: var(--gold); color: var(--cream); }
     .security-notice { background: rgba(52,211,153,0.08); border-left: 3px solid #34D399; border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin: 1.5rem 0; display: flex; align-items: flex-start; gap: 0.8rem; }
     .security-notice i { color: #34D399; margin-top: 2px; flex-shrink: 0; }
     .security-notice p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+    .btn-back-link { color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.85rem 1.8rem; font-size: 0.88rem; cursor: pointer; transition: var(--trans); font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-back-link:hover { border-color: var(--gold); color: var(--cream); }
+    /* Alerta email fallido */
+    .email-warn { background: rgba(232,99,58,0.1); border: 1px solid rgba(232,99,58,0.35); border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin-top: 1rem; display: none; font-size: 0.85rem; color: #F09070; }
+    .email-warn.show { display: flex; gap: 0.7rem; align-items: flex-start; }
+    /* Spinner de pago */
+    .btn-auth.loading { opacity: 0.7; cursor: not-allowed; }
+    /* Loading state */
+    .skeleton { background: rgba(212,168,67,0.06); border-radius: 4px; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%,100%{opacity:0.5}50%{opacity:1} }
   </style>
 </head>
 <body>
@@ -135,11 +69,11 @@
   <div class="checkout-progress" style="margin-top:62px;">
     <div class="container">
       <div class="progress-steps-row">
-        <div class="prog-step done"><div class="prog-circle"><i class="fa-solid fa-check"></i></div><div class="prog-label">Carrito</div></div>
+        <div class="prog-step done">  <div class="prog-circle"><i class="fa-solid fa-check"></i></div><div class="prog-label">Carrito</div></div>
         <div class="prog-line"></div>
         <div class="prog-step active"><div class="prog-circle">2</div><div class="prog-label">Información</div></div>
         <div class="prog-line"></div>
-        <div class="prog-step"><div class="prog-circle">3</div><div class="prog-label">Confirmación</div></div>
+        <div class="prog-step">       <div class="prog-circle">3</div><div class="prog-label">Confirmación</div></div>
       </div>
     </div>
   </div>
@@ -151,12 +85,12 @@
         <!-- Formulario -->
         <div class="col-lg-8">
 
-          <!-- Pasajero -->
+          <!-- Pasajero principal -->
           <div class="checkout-section anim-up">
             <div class="checkout-section-title"><i class="fa-solid fa-user"></i> Información del pasajero principal</div>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-solid fa-user me-1"></i> Nombres <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">Nombres <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="nombres" placeholder="Ingresa tus nombres" required></div>
               </div>
               <div class="col-md-6">
@@ -164,19 +98,22 @@
                 <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="apellidos" placeholder="Ingresa tus apellidos" required></div>
               </div>
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-regular fa-calendar me-1"></i> Fecha de nacimiento <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">Fecha de nacimiento <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-regular fa-calendar"></i><input class="th-input-auth" type="date" id="fecha_nac" required></div>
               </div>
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-solid fa-earth-americas me-1"></i> Nacionalidad <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">Nacionalidad <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-globe"></i>
                   <select class="th-input-auth" id="nacionalidad" required>
                     <option value="">Seleccione un país</option>
-                    <option>Guatemala</option><option>México</option><option>Estados Unidos</option><option>Colombia</option><option>Argentina</option><option>España</option>
-                  </select></div>
+                    <option value="83">Guatemala</option><option value="142">México</option>
+                    <option value="236">Estados Unidos</option><option value="51">Colombia</option>
+                    <option value="10">Argentina</option><option value="67">España</option>
+                  </select>
+                </div>
               </div>
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-solid fa-passport me-1"></i> N° de pasaporte <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">N° de pasaporte <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-passport"></i><input class="th-input-auth" type="text" id="pasaporte" placeholder="Ej: A12345678" required></div>
               </div>
             </div>
@@ -187,32 +124,32 @@
             <div class="checkout-section-title"><i class="fa-regular fa-envelope"></i> Información de contacto</div>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-regular fa-envelope me-1"></i> Correo electrónico <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">Correo electrónico <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-regular fa-envelope"></i><input class="th-input-auth" type="email" id="correo_pago" placeholder="ejemplo@correo.com" required></div>
               </div>
               <div class="col-md-6">
-                <label class="th-label"><i class="fa-solid fa-phone me-1"></i> Teléfono</label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-phone"></i><input class="th-input-auth" type="tel" placeholder="+502 1234-5678"></div>
+                <label class="th-label">Teléfono</label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-phone"></i><input class="th-input-auth" type="tel" id="telefono" placeholder="+502 1234-5678"></div>
               </div>
             </div>
           </div>
 
-          <!-- Pago -->
+          <!-- Método de pago -->
           <div class="checkout-section anim-up anim-up-2">
             <div class="checkout-section-title"><i class="fa-solid fa-credit-card"></i> Método de pago</div>
             <div class="row g-2 mb-3">
-              <div class="col-4"><div class="pay-method active" onclick="selectPay(this)"><i class="fa-solid fa-credit-card"></i> Tarjeta crédito</div></div>
-              <div class="col-4"><div class="pay-method" onclick="selectPay(this)"><i class="fa-solid fa-money-bill-wave"></i> Débito</div></div>
-              <div class="col-4"><div class="pay-method" onclick="selectPay(this)"><i class="fa-brands fa-paypal"></i> PayPal</div></div>
+              <div class="col-4"><div class="pay-method active" data-method="tarjeta_credito" onclick="selectPay(this)"><i class="fa-solid fa-credit-card"></i> Tarjeta crédito</div></div>
+              <div class="col-4"><div class="pay-method" data-method="tarjeta_debito" onclick="selectPay(this)"><i class="fa-solid fa-money-bill-wave"></i> Débito</div></div>
+              <div class="col-4"><div class="pay-method" data-method="paypal" onclick="selectPay(this)"><i class="fa-brands fa-paypal"></i> PayPal</div></div>
             </div>
             <div class="row g-3">
               <div class="col-12">
-                <label class="th-label"><i class="fa-solid fa-credit-card me-1"></i> Número de tarjeta <span style="color:var(--coral)">*</span></label>
+                <label class="th-label">Número de tarjeta <span style="color:var(--coral)">*</span></label>
                 <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-credit-card"></i><input class="th-input-auth" type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" required></div>
               </div>
               <div class="col-12">
                 <label class="th-label">Nombre en la tarjeta <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" placeholder="Como aparece en la tarjeta" required></div>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="card-name" placeholder="Como aparece en la tarjeta" required></div>
               </div>
               <div class="col-5">
                 <label class="th-label">Expiración <span style="color:var(--coral)">*</span></label>
@@ -220,31 +157,11 @@
               </div>
               <div class="col-4">
                 <label class="th-label">CVV <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-lock"></i><input class="th-input-auth" type="text" placeholder="123" maxlength="3" required></div>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-lock"></i><input class="th-input-auth" type="text" id="cvv" placeholder="123" maxlength="3" required></div>
               </div>
               <div class="col-3">
-                <label class="th-label">ZIP <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-location-dot"></i><input class="th-input-auth" type="text" placeholder="01001" required></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dirección facturación -->
-          <div class="checkout-section anim-up anim-up-3">
-            <div class="checkout-section-title"><i class="fa-solid fa-location-dot"></i> Dirección de facturación</div>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="th-label">Dirección <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-house"></i><input class="th-input-auth" type="text" placeholder="Calle, número, colonia" required></div>
-              </div>
-              <div class="col-md-6">
-                <label class="th-label">Ciudad <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-city"></i><input class="th-input-auth" type="text" placeholder="Ciudad" required></div>
-              </div>
-              <div class="col-md-6">
-                <label class="th-label">País <span style="color:var(--coral)">*</span></label>
-                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-earth-americas"></i>
-                  <select class="th-input-auth" required><option>Guatemala</option><option>México</option><option>Estados Unidos</option><option>El Salvador</option></select></div>
+                <label class="th-label">ZIP</label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-location-dot"></i><input class="th-input-auth" type="text" id="zip" placeholder="01001"></div>
               </div>
             </div>
           </div>
@@ -254,82 +171,273 @@
             <p>Tus datos están protegidos con cifrado SSL de 256 bits. No almacenamos información de tarjetas en nuestros servidores.</p>
           </div>
 
-          <div class="d-flex gap-3 flex-wrap">
+          <!-- Alerta: correo no enviado (FIX #14) -->
+          <div class="email-warn" id="email-warn">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);flex-shrink:0;margin-top:2px;"></i>
+            <div>
+              <strong>Reservación confirmada</strong>, pero el correo de confirmación no pudo enviarse.
+              Por favor guarda tu código de reserva que aparece abajo.
+            </div>
+          </div>
+
+          <!-- Error general -->
+          <div class="th-alert-error" id="checkout-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="checkout-error-msg"></span>
+          </div>
+
+          <div class="d-flex gap-3 flex-wrap mt-3">
             <a href="/resultados" class="btn-back-link"><i class="fa-solid fa-arrow-left"></i> Regresar</a>
-            <button class="btn-auth" style="flex:1;min-width:200px;" onclick="confirmarPago()">
+            <button class="btn-auth" style="flex:1;min-width:200px;" id="btn-pagar" onclick="confirmarPago()">
               <i class="fa-solid fa-lock me-2"></i> Confirmar pago
             </button>
           </div>
         </div>
 
-        <!-- Resumen -->
+        <!-- Resumen del pedido -->
         <div class="col-lg-4">
           <div class="order-card anim-up anim-up-1">
             <div class="order-title"><i class="fa-solid fa-receipt me-2" style="color:var(--gold)"></i>Resumen de reservación</div>
-
-            <div class="order-item">
-              <div class="order-item-head">
-                <div class="order-item-icon"><i class="fa-solid fa-plane"></i></div>
-                <div><div class="order-item-name">Vuelo Ida y Vuelta</div><div class="order-item-sub">AeroGuatemala Airlines</div></div>
+            <div id="order-summary">
+              <!-- Se rellena desde los URL params -->
+              <div style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">
+                <i class="fa-solid fa-spinner fa-spin me-2" style="color:var(--gold);"></i>Cargando resumen...
               </div>
-              <div class="order-info-line"><i class="fa-solid fa-location-dot"></i> GUA → MIA → GUA</div>
-              <div class="order-info-line"><i class="fa-regular fa-calendar"></i> 15 Feb — 22 Feb 2026</div>
-              <div class="order-info-line"><i class="fa-solid fa-users"></i> 2 Pasajeros · Turista</div>
             </div>
-
-            <div class="promo-row">
-              <input class="promo-input" type="text" placeholder="Código promocional">
-              <button class="btn-promo">Aplicar</button>
+            <div style="margin-top:1rem;border-top:1px solid var(--border-gold);padding-top:1rem;">
+              <div class="price-row-sum"><span>Subtotal</span><span id="sum-subtotal">—</span></div>
+              <div class="price-row-sum"><span>Impuestos estimados</span><span id="sum-tax">—</span></div>
+              <div class="price-row-total"><span>Total</span><span id="sum-total">—</span></div>
             </div>
-
-            <div class="mt-2">
-              <div class="price-row-sum"><span>Subtotal (2 pasajeros)</span><span>$900.00</span></div>
-              <div class="price-row-sum"><span>Impuestos y tasas</span><span>$100.00</span></div>
-              <div class="price-row-sum"><span>Cargo por servicio</span><span>$25.00</span></div>
-              <div class="price-row-total"><span>Total</span><span>$1,025.00</span></div>
+            <div style="display:flex;justify-content:space-around;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border-gold);">
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Pago<br>seguro</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-tag"           style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Mejor<br>precio</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-headset"       style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Soporte<br>24/7</div>
             </div>
-
-            <div class="trust-row">
-              <div class="trust-item"><i class="fa-solid fa-shield-halved"></i>Pago<br>seguro</div>
-              <div class="trust-item"><i class="fa-solid fa-tag"></i>Mejor<br>precio</div>
-              <div class="trust-item"><i class="fa-solid fa-headset"></i>Soporte<br>24/7</div>
-            </div>
-
-            <p style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-top:1rem;">
-              ¿Necesitas ayuda? <a href="#" style="color:var(--gold);text-decoration:none;">Contáctanos</a>
-            </p>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // ── Leer parámetros de URL ─────────────────────────────────────────────
+    const up          = new URLSearchParams(window.location.search);
+    const tipoReserva = up.get('tipo')         || 'vuelo';    // vuelo | hotel | paquete
+    const idVuelo     = up.get('id_vuelo')     || null;
+    const idHabitacion= up.get('id_habitacion')|| null;
+    const idProveedor = up.get('id_proveedor') || null;
+    const precioBase  = parseFloat(up.get('precio') || 0);
+    const asiento     = up.get('asiento')      || 'turista';
+    const numPax      = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
+    const origen      = up.get('origen')       || '';
+    const destino     = up.get('destino')      || '';
+    const ciudad      = up.get('ciudad')       || '';
+    const fechaSalida = up.get('fecha_salida') || '';
+    const fechaCheckin= up.get('fecha_checkin')|| '';
+    const fechaCheckout=up.get('fecha_checkout')|| '';
+
+    // ── Método de pago seleccionado ────────────────────────────────────────
+    let metodoPago = 'tarjeta_credito';
     function selectPay(el) {
       document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
       el.classList.add('active');
+      metodoPago = el.dataset.method;
     }
+
+    // ── Renderizar resumen lateral ─────────────────────────────────────────
+    (function renderSummary() {
+      const TAX_RATE = 0.10; // 10% estimado
+      const subtotal  = precioBase * numPax;
+      const tax       = subtotal * TAX_RATE;
+      const total     = subtotal + tax;
+
+      document.getElementById('sum-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById('sum-tax').textContent      = `$${tax.toFixed(2)}`;
+      document.getElementById('sum-total').textContent    = `$${total.toFixed(2)}`;
+
+      let html = '';
+      if (tipoReserva === 'vuelo' || tipoReserva === 'paquete') {
+        html += `
+          <div class="order-item">
+            <div class="order-item-head">
+              <div class="order-item-icon"><i class="fa-solid fa-plane"></i></div>
+              <div>
+                <div class="order-item-name">Vuelo ${tipoReserva === 'paquete' ? '+ Hotel' : ''}</div>
+                <div class="order-item-sub">${origen && destino ? `${origen.toUpperCase()} → ${destino.toUpperCase()}` : 'Vuelo seleccionado'}</div>
+              </div>
+            </div>
+            ${fechaSalida ? `<div class="order-info-line"><i class="fa-regular fa-calendar"></i> ${fechaSalida}</div>` : ''}
+            <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} pasajero(s) · ${asiento}</div>
+            <div class="order-info-line"><i class="fa-solid fa-tag"></i> $${precioBase.toFixed(2)} / persona</div>
+          </div>`;
+      }
+      if (tipoReserva === 'hotel' || tipoReserva === 'paquete') {
+        html += `
+          <div class="order-item">
+            <div class="order-item-head">
+              <div class="order-item-icon"><i class="fa-solid fa-building"></i></div>
+              <div>
+                <div class="order-item-name">Hotel</div>
+                <div class="order-item-sub">${ciudad || 'Alojamiento seleccionado'}</div>
+              </div>
+            </div>
+            ${fechaCheckin  ? `<div class="order-info-line"><i class="fa-regular fa-calendar-check"></i> Check-in: ${fechaCheckin}</div>` : ''}
+            ${fechaCheckout ? `<div class="order-info-line"><i class="fa-regular fa-calendar-xmark"></i> Check-out: ${fechaCheckout}</div>` : ''}
+            <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} huésped(es)</div>
+          </div>`;
+      }
+      if (!html) {
+        html = `<p style="color:var(--text-muted);font-size:0.85rem;">Sin información de reserva.<br>
+          <a href="/buscar" style="color:var(--gold);">Volver a buscar</a></p>`;
+      }
+      document.getElementById('order-summary').innerHTML = html;
+    })();
+
+    // ── Pre-llenar datos del usuario si hay sesión ─────────────────────────
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('correo_pago').value = d.usuario.correo || '';
+          const [nom, ...rest] = (d.usuario.nombre || '').split(' ');
+          document.getElementById('nombres').value   = d.usuario.nombre   || '';
+          document.getElementById('apellidos').value = d.usuario.apellido || '';
+        }
+      }).catch(() => {});
+
+    // ── Validar y confirmar pago ───────────────────────────────────────────
+    async function confirmarPago() {
+      // Validación básica de campos requeridos
+      const reqs = ['nombres','apellidos','fecha_nac','nacionalidad','pasaporte','correo_pago','card-number','card-name','expiry','cvv'];
+      let valid = true;
+      reqs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || !el.value.trim()) {
+          valid = false;
+          if (el) { el.style.borderColor = 'var(--coral)'; setTimeout(() => el.style.borderColor = '', 2500); }
+        }
+      });
+      if (!valid) {
+        mostrarError('Por favor completa todos los campos requeridos.');
+        return;
+      }
+
+      const TAX_RATE = 0.10;
+      const subtotal  = precioBase * numPax;
+      const total     = (subtotal * (1 + TAX_RATE)).toFixed(2);
+
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
+
+      // Construir payload para la API de reservaciones
+      const pasajero = {
+          nombres:         document.getElementById('nombres').value.trim(),
+          apellidos:       document.getElementById('apellidos').value.trim(),
+          fecha_nacimiento:document.getElementById('fecha_nac').value,
+          id_nacionalidad: parseInt(document.getElementById('nacionalidad').value) || 83,
+          num_pasaporte:   document.getElementById('pasaporte').value.trim(),
+      };
+
+      const payload = {
+        tipo:        tipoReserva,
+        metodo_pago: metodoPago,
+        datos_cobro: {
+          // Nota: en producción real, el número de tarjeta NO debe enviarse al
+          // backend propio — debe tokenizarse con Stripe/Braintree primero.
+          // Aquí se omite; solo se guarda el método.
+          metodo:    metodoPago,
+          titular:   document.getElementById('card-name').value,
+        },
+      };
+
+      if ((tipoReserva === 'vuelo' || tipoReserva === 'paquete') && idVuelo) {
+        payload.vuelo = {
+          id_vuelo:         idVuelo,
+          id_proveedor:     parseInt(idProveedor),
+          origen:           origen,
+          destino:          destino,
+          fecha_salida:     fechaSalida,
+          tipo_asiento:     asiento,
+          precio_proveedor: precioBase,
+          pasajeros:        [pasajero],
+        };
+      }
+
+      if ((tipoReserva === 'hotel' || tipoReserva === 'paquete') && idHabitacion) {
+        payload.hotel = {
+          id_habitacion:        idHabitacion,
+          id_proveedor:         parseInt(idProveedor),
+          ciudad:               ciudad,
+          fecha_checkin:        fechaCheckin,
+          fecha_checkout:       fechaCheckout,
+          num_huespedes:        numPax,
+          precio_noche_proveedor: precioBase,
+        };
+      }
+
+      try {
+        const res  = await fetch('/api/reservaciones', {
+          method:      'POST',
+          credentials: 'include',
+          headers:     { 'Content-Type': 'application/json' },
+          body:        JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarError(data.message || 'Error al procesar la reservación.');
+          resetBtn();
+          return;
+        }
+
+        // FIX #14: si el correo no se envió, mostrar aviso antes de redirigir
+        if (!data.email_enviado) {
+          document.getElementById('email-warn').classList.add('show');
+          // Dar tiempo al usuario para leer el aviso antes de redirigir
+          await new Promise(r => setTimeout(r, 3000));
+        }
+
+        // Redirigir a confirmación con el código de reserva
+        const codigo = data.reservacion?.codigo_reserva || '';
+        const id     = data.reservacion?.id_reservacion || '';
+        window.location.href = `/confirmacion?codigo=${codigo}&id=${id}&total=${data.reservacion?.total || total}&email_ok=${data.email_enviado}`;
+
+      } catch (e) {
+        mostrarError('Error de conexión. Verifica tu internet e intenta de nuevo.');
+        resetBtn();
+      }
+    }
+
+    function mostrarError(msg) {
+      const el = document.getElementById('checkout-error');
+      document.getElementById('checkout-error-msg').textContent = msg;
+      el.classList.add('show');
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function resetBtn() {
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Confirmar pago';
+    }
+
     // Formatear número tarjeta
-    document.getElementById('card-number').addEventListener('input', function(e) {
-      let v = e.target.value.replace(/\s/g, '');
-      e.target.value = (v.match(/.{1,4}/g) || [v]).join(' ');
+    document.getElementById('card-number').addEventListener('input', function() {
+      let v = this.value.replace(/\s/g, '');
+      this.value = (v.match(/.{1,4}/g) || [v]).join(' ');
     });
     // Formatear expiración
-    document.getElementById('expiry').addEventListener('input', function(e) {
-      let v = e.target.value.replace(/\D/g, '');
+    document.getElementById('expiry').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '');
       if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4);
-      e.target.value = v;
+      this.value = v;
     });
-    function confirmarPago() {
-      const required = document.querySelectorAll('.th-input-auth[required]');
-      let valid = true;
-      required.forEach(f => {
-        if (!f.value) { valid = false; f.style.borderColor = 'var(--coral)'; setTimeout(() => f.style.borderColor = '', 2000); }
-      });
-      if (valid) window.location.href = '/confirmacion';
-      else alert('Por favor completa todos los campos requeridos');
-    }
   </script>
 </body>
 </html>

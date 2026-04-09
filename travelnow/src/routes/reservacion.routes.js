@@ -6,6 +6,10 @@ router.post('/', verifySession, ctrl.crear);
 router.get('/usuario/historial', verifySession, ctrl.historialUsuario);
 router.get('/:id', verifySession, ctrl.obtener);
 router.get('/:id/pdf', verifySession, ctrl.descargarPDF);
-router.delete('/:id', verifySession, requireRole('administrador'), ctrl.cancelar);
+
+// FIX #4: Cancelación — admins pueden cancelar cualquier reserva;
+// usuarios autenticados pueden cancelar las suyas propias.
+// El controller ya valida que un usuario solo cancele lo suyo (id_usuario check).
+router.delete('/:id', verifySession, ctrl.cancelar);
 
 module.exports = router;
