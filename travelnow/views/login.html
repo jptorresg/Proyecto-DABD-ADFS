@@ -12,6 +12,21 @@
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     </head>
     <body>
+        <!--
+         * @file login.html
+         * @brief Página de inicio de sesión de TravelHub
+         * @details Proporciona una interfaz de autenticación para usuarios registrados.
+         *          Utiliza HTMX para envío asíncrono del formulario y manejo de errores.
+         * @version 1.0
+         * @date 2025
+         * @author TravelHub Team
+        -->
+
+        <!--
+         * @brief Barra de navegación superior fija
+         * @details Incluye el logo de TravelHub y un enlace para volver al inicio.
+         *          Utiliza efecto de desenfoque (backdrop-filter) para estilo moderno.
+        -->
         <nav style="position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;background:rgba(10,22,40,0.6);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);">
             <div class="container d-flex justify-content-between align-items-center">
               <a href="/" class="th-logo" style="font-size:1.5rem;">
@@ -27,10 +42,25 @@
             <div class="container">
               <div class="row justify-content-center">
                 <div class="col-xl-10">
+                  <!--
+                   * @brief Tarjeta principal de autenticación
+                   * @details Contiene dos paneles: panel de marca (información/beneficios)
+                   *          y panel del formulario de inicio de sesión.
+                  -->
                   <div class="auth-card">
                     <div class="row g-0">
          
-                      <!-- Panel de marca -->
+                      <!--
+                       * @section brand-panel Panel de marca
+                       * @details Muestra mensaje de bienvenida, eslogan y lista de beneficios
+                       *          que los usuarios obtienen al iniciar sesión.
+                       * @list Beneficios:
+                       *   - Gestión de reservaciones
+                       *   - Ofertas exclusivas
+                       *   - Descarga de comprobantes PDF
+                       *   - Historial de viajes
+                       *   - Soporte prioritario 24/7
+                      -->
                       <div class="col-lg-5 auth-brand-panel">
                         <div class="hero-eyebrow mb-3">Bienvenido de vuelta</div>
                         <div class="brand-quote">
@@ -48,27 +78,45 @@
                         </ul>
                       </div>
          
-                      <!-- Panel de formulario -->
+                      <!--
+                       * @section form-panel Panel del formulario
+                       * @details Contiene el formulario de inicio de sesión con validación,
+                       *          visibilidad de contraseña y manejo de errores mediante HTMX.
+                      -->
                       <div class="col-lg-7 auth-form-panel">
                         <h1 class="auth-heading">Iniciar Sesión</h1>
                         <p class="auth-sub">Ingresa tus credenciales para continuar</p>
          
-                        <!-- Error inline (HTMX lo llena) -->
+                        <!--
+                         * @brief Contenedor de mensajes de error
+                         * @details Elemento que HTMX utiliza para mostrar errores de autenticación.
+                         *          Inicialmente oculto, se muestra cuando ocurre un error.
+                        -->
                         <div class="th-alert-error" id="login-error">
                           <i class="fa-solid fa-circle-exclamation"></i>
                           <span id="login-error-msg">Correo o contraseña incorrectos</span>
                         </div>
          
                         <!--
-                          HTMX: POST /api/auth/login
-                          Éxito → servidor responde HX-Redirect al home
-                          Error → servidor responde texto de error → se muestra en #login-error
+                         * @brief Formulario de inicio de sesión con HTMX
+                         * @details Realiza petición POST a /api/auth/login para autenticar al usuario.
+                         * @property {string} hx-post - Endpoint de autenticación
+                         * @property {string} hx-target - Elemento donde se mostrarán errores
+                         * @property {string} hx-swap - Modo "none" para manejo manual de respuesta
+                         * @on-success Redirige al home vía HX-Redirect
+                         * @on-error Muestra mensaje de error en #login-error
                         -->
                         <form hx-post="/api/auth/login"
                               hx-target="#login-error"
                               hx-swap="none"
                               id="loginForm">
          
+                          <!--
+                           * @brief Campo de correo electrónico
+                           * @input {email} correo - Dirección de correo del usuario
+                           * @required Sí
+                           * @autocomplete email
+                          -->
                           <div class="th-form-group">
                             <label class="th-label">
                               <i class="fa-regular fa-envelope me-1"></i> Correo electrónico
@@ -80,6 +128,13 @@
                             </div>
                           </div>
          
+                          <!--
+                           * @brief Campo de contraseña con visibilidad toggle
+                           * @input {password} contrasena - Contraseña del usuario
+                           * @required Sí
+                           * @autocomplete current-password
+                           * @see togglePass Función que muestra/oculta el texto de la contraseña
+                          -->
                           <div class="th-form-group">
                             <label class="th-label">
                               <i class="fa-solid fa-lock me-1"></i> Contraseña
@@ -93,12 +148,18 @@
                             </div>
                           </div>
          
+                          <!-- Enlace para recuperación de contraseña (placeholder) -->
                           <div class="d-flex justify-content-end mb-3">
                             <a href="#" style="color:var(--text-muted);font-size:0.82rem;text-decoration:none;">
                               <i class="fa-regular fa-circle-question me-1"></i>¿Olvidaste tu contraseña?
                             </a>
                           </div>
          
+                          <!--
+                           * @brief Botón de envío del formulario
+                           * @details Al hacer clic, envía las credenciales al servidor.
+                           *          Muestra un indicador de carga durante la petición.
+                          -->
                           <button type="submit" class="btn-auth">
                             <i class="fa-solid fa-right-to-bracket me-2"></i>
                             Iniciar sesión
@@ -108,12 +169,17 @@
                           </button>
                         </form>
          
-                        <!-- Seguridad -->
+                        <!--
+                         * @brief Indicador de seguridad
+                         * @details Informa al usuario sobre el cifrado de extremo a extremo
+                         *          para generar confianza en el sistema.
+                        -->
                         <div style="background:rgba(212,168,67,0.06);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:0.9rem 1rem;display:flex;align-items:center;gap:0.8rem;margin-top:1rem;">
                           <i class="fa-solid fa-shield-halved" style="color:var(--gold);font-size:1rem;flex-shrink:0;"></i>
                           <span style="font-size:0.8rem;color:var(--text-muted);">Tu información está protegida con cifrado de extremo a extremo.</span>
                         </div>
          
+                        <!-- Enlace para registro de nuevos usuarios -->
                         <div class="auth-link">
                           ¿No tienes cuenta? <a href="/registro">Regístrate gratis</a>
                         </div>
@@ -128,7 +194,20 @@
          
           <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
           <script>
-            // Toggle contraseña
+            /**
+             * @file login.js (inline)
+             * @brief Funcionalidades JavaScript de la página de inicio de sesión
+             * @description Contiene el toggle de visibilidad de contraseña y el manejo
+             *              de respuestas de HTMX para mostrar errores de autenticación.
+             */
+
+            /**
+             * @brief Alterna la visibilidad del campo de contraseña
+             * @function togglePasswordVisibility
+             * @description Cambia el tipo del input entre 'password' y 'text',
+             *              y actualiza el ícono correspondiente (ojo abierto/cerrado).
+             * @listens click#togglePass
+             */
             document.getElementById('togglePass').addEventListener('click', function() {
               const inp = document.getElementById('passInput');
               const isPass = inp.type === 'password';
@@ -137,7 +216,17 @@
               this.classList.toggle('fa-eye-slash', isPass);
             });
          
-            // Manejo de respuesta HTMX
+            /**
+             * @brief Maneja la respuesta después de una petición HTMX
+             * @event htmx:afterRequest
+             * @description Escucha eventos globales de HTMX. Si la petición falla
+             *              o el status HTTP es >= 400, extrae y muestra el mensaje
+             *              de error en el contenedor #login-error.
+             * @param {Event} e - Evento de HTMX con detalles de la petición
+             * @property {Object} e.detail - Detalles de la petición
+             * @property {boolean} e.detail.failed - Indica si la petición falló
+             * @property {XMLHttpRequest} e.detail.xhr - Objeto XHR con la respuesta
+             */
             document.body.addEventListener('htmx:afterRequest', function(e) {
               const errDiv = document.getElementById('login-error');
               if (e.detail.failed || e.detail.xhr.status >= 400) {

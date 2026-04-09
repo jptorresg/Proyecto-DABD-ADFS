@@ -123,9 +123,30 @@
 </div>
 
 <script>
+  /**
+   * @fileoverview Módulo de gestión de proveedores para el panel de administración de TravelNow.
+   * Permite listar, crear, editar, filtrar y desactivar proveedores (aerolíneas y hoteles).
+   * @requires fetch API para comunicación con el backend
+   * @author TravelNow Team
+   * @version 1.0.0
+   */
+
   let searchTimeout = null;
 
   /* ── Carga de tabla ─────────────────────────────── */
+  
+  /**
+   * @function cargarProveedores
+   * @description Carga la lista de proveedores desde el backend aplicando los filtros seleccionados.
+   *              Actualiza la tabla HTML con los datos recibidos.
+   * @async
+   * @returns {Promise<void>}
+   * @throws {Error} Si falla la conexión con el servidor
+   * 
+   * @example
+   * // Se ejecuta automáticamente al cargar la página y cada 30 segundos
+   * cargarProveedores();
+   */
   async function cargarProveedores() {
     const tipo   = document.getElementById('filter-tipo').value;
     const estado = document.getElementById('filter-estado').value;
@@ -191,6 +212,16 @@
   }
 
   /* ── Eliminar / desactivar proveedor ────────────── */
+  
+  /**
+   * @function eliminarProveedor
+   * @description Desactiva un proveedor cambiando su estado a 'inactivo' mediante DELETE request.
+   * @async
+   * @param {number} id - ID del proveedor a desactivar
+   * @param {string} nombre - Nombre del proveedor (para confirmación)
+   * @returns {Promise<void>}
+   * @throws {Error} Si falla la conexión o el servidor rechaza la operación
+   */
   async function eliminarProveedor(id, nombre) {
     if (!confirm(`¿Desactivar al proveedor "${nombre}"?\nEsta acción cambiará su estado a inactivo.`)) return;
     try {
@@ -207,6 +238,12 @@
   }
 
   /* ── Modal ──────────────────────────────────────── */
+  
+  /**
+   * @function abrirModalNuevo
+   * @description Abre el modal en modo "creación", limpiando todos los campos del formulario.
+   * @returns {void}
+   */
   function abrirModalNuevo() {
     document.getElementById('edit-id').value   = '';
     document.getElementById('modal-title').textContent = 'Nuevo Proveedor';
@@ -221,6 +258,14 @@
     document.getElementById('modal-proveedor').style.display = 'flex';
   }
 
+  /**
+   * @function abrirModalEditar
+   * @description Carga los datos de un proveedor existente y abre el modal en modo "edición".
+   * @async
+   * @param {number} id - ID del proveedor a editar
+   * @returns {Promise<void>}
+   * @throws {Error} Si falla la carga de datos del proveedor
+   */
   async function abrirModalEditar(id) {
     try {
       const res  = await fetch(`/api/admin/proveedores/${id}`, { credentials: 'include' });
@@ -243,10 +288,23 @@
     }
   }
 
+  /**
+   * @function cerrarModal
+   * @description Cierra el modal de proveedor ocultándolo.
+   * @returns {void}
+   */
   function cerrarModal() {
     document.getElementById('modal-proveedor').style.display = 'none';
   }
 
+  /**
+   * @function guardarProveedor
+   * @description Guarda (crea o actualiza) un proveedor enviando los datos al backend.
+   * @async
+   * @param {Event} e - Evento de submit del formulario
+   * @returns {Promise<void>}
+   * @throws {Error} Si falla la validación o la comunicación con el servidor
+   */
   async function guardarProveedor(e) {
     e.preventDefault();
     const id  = document.getElementById('edit-id').value;
@@ -288,21 +346,47 @@
     }
   }
 
+  /**
+   * @function mostrarErrorForm
+   * @description Muestra un mensaje de error en el formulario modal.
+   * @param {string} msg - Mensaje de error a mostrar
+   * @returns {void}
+   */
   function mostrarErrorForm(msg) {
     const el = document.getElementById('form-error');
     el.textContent = msg;
     el.style.display = 'block';
   }
+  
+  /**
+   * @function ocultarErrorForm
+   * @description Oculta el mensaje de error del formulario modal.
+   * @returns {void}
+   */
   function ocultarErrorForm() {
     document.getElementById('form-error').style.display = 'none';
   }
 
   /* ── Badges ─────────────────────────────────────── */
+  
+  /**
+   * @function badgeTipo
+   * @description Genera HTML para mostrar el tipo de proveedor con estilo visual.
+   * @param {string} tipo - Tipo de proveedor ('aerolinea' o 'hotel')
+   * @returns {string} HTML del badge con ícono y color correspondiente
+   */
   function badgeTipo(tipo) {
     return tipo === 'aerolinea'
       ? '<span class="badge-custom badge-blue"><i class="fas fa-plane"></i> Aerolínea</span>'
       : '<span class="badge-custom badge-gold"><i class="fas fa-building"></i> Hotel</span>';
   }
+  
+  /**
+   * @function badgeEstado
+   * @description Genera HTML para mostrar el estado del proveedor con estilo visual.
+   * @param {string} estado - Estado del proveedor ('activo' o 'inactivo')
+   * @returns {string} HTML del badge con color según el estado
+   */
   function badgeEstado(estado) {
     return estado === 'activo'
       ? '<span class="badge-custom badge-green">Activo</span>'
@@ -310,11 +394,23 @@
   }
 
   /* ── Helpers ─────────────────────────────────────── */
+  
+  /**
+   * @function debounceSearch
+   * @description Implementa debounce para la búsqueda, evitando múltiples llamadas mientras el usuario escribe.
+   *              Espera 400ms después de la última pulsación antes de ejecutar cargarProveedores.
+   * @returns {void}
+   */
   function debounceSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(cargarProveedores, 400);
   }
 
+  /**
+   * @function logout
+   * @description Cierra la sesión del usuario actual y redirige al login.
+   * @returns {void}
+   */
   function logout() {
     fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
   }
@@ -325,6 +421,13 @@
   });
 
   /* ── Inicializar ─────────────────────────────────── */
+  
+  /**
+   * @description Inicialización de la página:
+   * - Carga inicial de proveedores
+   * - Actualización automática cada 30 segundos
+   * - Carga de datos del usuario logueado
+   */
   cargarProveedores();
   setInterval(cargarProveedores, 30000);
 

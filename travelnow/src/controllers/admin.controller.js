@@ -1,8 +1,25 @@
+/**
+ * @file adminController.js
+ * @brief Controlador para el panel de administración
+ * @module adminController
+ * @description Maneja todas las operaciones administrativas incluyendo gestión de proveedores,
+ * usuarios y reservaciones
+ */
+
 const db = require('../config/db');
 const { ok, err } = require('../utils/response');
 const path = require('path');
 
 // ----------------- Dashboard ------------------
+
+/**
+ * @brief Muestra el panel de control principal (dashboard)
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Envía el archivo HTML del dashboard o un error
+ * @throws {Error} Captura errores de base de datos y los devuelve al cliente
+ */
 const dashboard = async (req, res) => {
   try {
       const [[stats]] = await db.query(`
@@ -18,6 +35,19 @@ const dashboard = async (req, res) => {
 };
  
 // ------------------ Proveedores -------------------
+
+/**
+ * @brief Lista todos los proveedores con filtros opcionales
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.query - Parámetros de consulta
+ * @param {string} [req.query.tipo] - Filtro por tipo de proveedor
+ * @param {string} [req.query.estado] - Filtro por estado (activo/inactivo)
+ * @param {string} [req.query.search] - Búsqueda por nombre o endpoint
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna lista paginada de proveedores
+ * @throws {Error} Captura errores de base de datos
+ */
 const listarProveedores = async (req, res) => {
   const { tipo, estado, search } = req.query;
   try {
@@ -45,7 +75,17 @@ const listarProveedores = async (req, res) => {
     return ok(res, { data: rows, total });
   } catch (e) { return err(res, e.message); }
 };
- 
+
+/**
+ * @brief Obtiene un proveedor específico por su ID
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del proveedor
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna los datos del proveedor
+ * @throws {Error} Captura errores de base de datos o retorna 404 si no existe
+ */
 const obtenerProveedor = async (req, res) => {
   const { id } = req.params;
   try {
@@ -54,7 +94,23 @@ const obtenerProveedor = async (req, res) => {
     return ok(res, rows[0]);
   } catch (e) { return err(res, e.message); }
 };
- 
+
+/**
+ * @brief Crea un nuevo proveedor
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.body - Datos del nuevo proveedor
+ * @param {string} req.body.nombre - Nombre del proveedor (requerido)
+ * @param {string} req.body.tipo - Tipo de proveedor (requerido)
+ * @param {string} req.body.endpoint_api - Endpoint API (requerido)
+ * @param {string} [req.body.api_usuario] - Usuario para API
+ * @param {string} [req.body.api_password] - Contraseña para API
+ * @param {number} [req.body.porcentaje_ganancia=0] - Porcentaje de ganancia
+ * @param {string} [req.body.pais] - País del proveedor
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna el ID del proveedor creado
+ * @throws {Error} Captura errores de base de datos
+ */
 const crearProveedor = async (req, res) => {
   const { nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais } = req.body;
   if (!nombre || !tipo || !endpoint_api) return err(res, 'Nombre, tipo y endpoint son requeridos', 400);
@@ -67,7 +123,18 @@ const crearProveedor = async (req, res) => {
     return ok(res, { message: 'Proveedor creado', id: result.insertId }, 201);
   } catch (e) { return err(res, e.message); }
 };
- 
+
+/**
+ * @brief Actualiza un proveedor existente
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del proveedor a actualizar
+ * @param {Object} req.body - Datos actualizados del proveedor
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna mensaje de éxito
+ * @throws {Error} Captura errores de base de datos
+ */
 const actualizarProveedor = async (req, res) => {
   const { id } = req.params;
   const { nombre, tipo, endpoint_api, api_usuario, api_password, porcentaje_ganancia, pais, estado } = req.body;
@@ -80,8 +147,18 @@ const actualizarProveedor = async (req, res) => {
     return ok(res, { message: 'Proveedor actualizado' });
   } catch (e) { return err(res, e.message); }
 };
- 
-// Desactivar proveedor (soft delete → estado = 'inactivo')
+
+/**
+ * @brief Desactiva un proveedor (soft delete)
+ * @async
+ * @description Cambia el estado del proveedor a 'inactivo' en lugar de eliminarlo físicamente
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del proveedor a desactivar
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna mensaje de éxito
+ * @throws {Error} Retorna 404 si no existe o 400 si ya está inactivo
+ */
 const eliminarProveedor = async (req, res) => {
   const { id } = req.params;
   try {
@@ -95,6 +172,21 @@ const eliminarProveedor = async (req, res) => {
 };
 
 // --------------------- Usuarios ------------------------
+
+/**
+ * @brief Lista todos los usuarios con filtros y paginación
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.query - Parámetros de consulta
+ * @param {string} [req.query.rol] - Filtro por rol (usuario/administrador/webservice)
+ * @param {string} [req.query.estado] - Filtro por estado (activo/inactivo)
+ * @param {number} [req.query.page=1] - Número de página
+ * @param {number} [req.query.limit=25] - Registros por página
+ * @param {string} [req.query.search] - Búsqueda por nombre, apellido o correo
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna lista paginada de usuarios
+ * @throws {Error} Captura errores de base de datos
+ */
 const listarUsuarios = async (req, res) => {
   const { rol, estado, page = 1, limit = 25, search } = req.query;
   const offset = (page - 1) * parseInt(limit);
@@ -111,6 +203,18 @@ const listarUsuarios = async (req, res) => {
   } catch (e) { return err(res, e.message); }
 };
 
+/**
+ * @brief Cambia el rol de un usuario
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del usuario
+ * @param {Object} req.body - Datos de actualización
+ * @param {string} req.body.rol - Nuevo rol (usuario/administrador/webservice)
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna mensaje de éxito
+ * @throws {Error} Retorna 400 si el rol no es válido
+ */
 const cambiarRol = async (req, res) => {
   const { id } = req.params;
   const { rol } = req.body;
@@ -122,7 +226,18 @@ const cambiarRol = async (req, res) => {
   } catch (e) { return err(res, e.message); } 
 };
 
-// NUEVO: Cambiar estado de usuario (activo / inactivo)
+/**
+ * @brief Cambia el estado de un usuario (activo/inactivo)
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del usuario
+ * @param {Object} req.body - Datos de actualización
+ * @param {string} req.body.estado - Nuevo estado ('activo' o 'inactivo')
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna mensaje de éxito
+ * @throws {Error} Retorna 400 si el estado no es válido o 404 si el usuario no existe
+ */
 const cambiarEstadoUsuario = async (req, res) => {
   const { id } = req.params;
   const { estado } = req.body;
@@ -137,7 +252,17 @@ const cambiarEstadoUsuario = async (req, res) => {
   } catch (e) { return err(res, e.message); }
 };
  
-// NUEVO: Eliminar usuario permanentemente (hard delete — solo si no tiene reservaciones)
+/**
+ * @brief Elimina permanentemente un usuario (hard delete)
+ * @async
+ * @description Solo permite eliminar si el usuario no tiene reservaciones asociadas
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.params - Parámetros de ruta
+ * @param {string} req.params.id - ID del usuario a eliminar
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna mensaje de éxito
+ * @throws {Error} Retorna 404 si no existe o 409 si tiene reservaciones activas
+ */
 const eliminarUsuario = async (req, res) => {
   const { id } = req.params;
   try {
@@ -161,6 +286,21 @@ const eliminarUsuario = async (req, res) => {
 };
 
 // ----------------- Reservaciones ----------------------
+
+/**
+ * @brief Obtiene todas las reservaciones con filtros y estadísticas
+ * @async
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.query - Parámetros de consulta
+ * @param {string} [req.query.estado] - Filtro por estado (confirmada/pendiente)
+ * @param {string} [req.query.tipo] - Filtro por tipo de reservación
+ * @param {number} [req.query.page=1] - Número de página
+ * @param {number} [req.query.limit=25] - Registros por página
+ * @param {string} [req.query.search] - Búsqueda por código, nombre o correo
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<void>} Retorna lista paginada de reservaciones con estadísticas
+ * @throws {Error} Captura errores de base de datos
+ */
 const todasReservaciones = async (req, res) => {
   const { estado, tipo, page = 1, limit = 25, search } = req.query;
   const offset = (page - 1) * parseInt(limit);
@@ -196,10 +336,35 @@ const todasReservaciones = async (req, res) => {
 };
 
 // --------------------- Visuales o Vistas ----------------------------
-const usuarios      = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+
+/**
+ * @brief Renderiza la vista de gestión de usuarios
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {void} Envía el archivo HTML de usuarios
+ */
+const usuarios = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/usuarios.html'));
+
+/**
+ * @brief Renderiza la vista de gestión de reservaciones
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {void} Envía el archivo HTML de reservaciones
+ */
 const reservaciones = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/reservaciones.html'));
-const proveedores   = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
+
+/**
+ * @brief Renderiza la vista de gestión de proveedores
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {void} Envía el archivo HTML de proveedores
+ */
+const proveedores = async (req, res) => res.sendFile(path.join(__dirname, '../../views/admin/proveedores.html'));
  
+/**
+ * @exports adminController
+ * @description Exporta todas las funciones del controlador administrativo
+ */
 module.exports = {
   dashboard,
   usuarios, reservaciones, proveedores,

@@ -10,6 +10,21 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/public/css/styles.css">
   <style>
+    /*!
+     * \file checkout.html
+     * \brief Página de checkout/pago de TravelHub
+     * \version 1.0
+     * \date 2026
+     * \author TravelHub Team
+     * 
+     * Esta página maneja el proceso de pago para reservas de vuelos, hoteles y paquetes.
+     * Incluye formulario de datos del pasajero, método de pago y resumen de la reserva.
+     */
+     
+    /*!
+     * \brief Estilos específicos para la página de checkout
+     * Estos estilos sobrescriben o extienden los estilos base del sistema
+     */
     body { background: var(--navy); }
     .checkout-progress { background: rgba(10,22,40,0.8); border-bottom: 1px solid var(--border-gold); padding: 1rem 0; backdrop-filter: blur(20px); }
     .progress-steps-row { display: flex; align-items: center; justify-content: center; gap: 0; }
@@ -43,19 +58,20 @@
     .security-notice p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
     .btn-back-link { color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.85rem 1.8rem; font-size: 0.88rem; cursor: pointer; transition: var(--trans); font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
     .btn-back-link:hover { border-color: var(--gold); color: var(--cream); }
-    /* Alerta email fallido */
     .email-warn { background: rgba(232,99,58,0.1); border: 1px solid rgba(232,99,58,0.35); border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin-top: 1rem; display: none; font-size: 0.85rem; color: #F09070; }
     .email-warn.show { display: flex; gap: 0.7rem; align-items: flex-start; }
-    /* Spinner de pago */
     .btn-auth.loading { opacity: 0.7; cursor: not-allowed; }
-    /* Loading state */
     .skeleton { background: rgba(212,168,67,0.06); border-radius: 4px; animation: shimmer 1.5s infinite; }
     @keyframes shimmer { 0%,100%{opacity:0.5}50%{opacity:1} }
   </style>
 </head>
 <body>
 
-  <!-- Navbar mínima -->
+  <!--!
+   * \brief Barra de navegación superior
+   * \details Muestra el logo de TravelHub y un indicador de pago seguro
+   * Es fija en la parte superior con efecto blur
+  -->
   <nav style="position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);padding:1rem 0;">
     <div class="container d-flex justify-content-between align-items-center">
       <a href="/" class="th-logo" style="font-size:1.5rem;"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span></a>
@@ -65,7 +81,11 @@
     </div>
   </nav>
 
-  <!-- Progress -->
+  <!--!
+   * \brief Barra de progreso del checkout
+   * \details Muestra los 3 pasos del proceso: Carrito, Información y Confirmación
+   * El paso actual se marca como "active" y los completados como "done"
+  -->
   <div class="checkout-progress" style="margin-top:62px;">
     <div class="container">
       <div class="progress-steps-row">
@@ -82,10 +102,21 @@
     <div class="container">
       <div class="row g-4">
 
-        <!-- Formulario -->
+        <!--!
+         * \brief Columna izquierda: Formularios de checkout
+         * \details Contiene todos los formularios necesarios para completar la reserva:
+         * - Información del pasajero principal
+         * - Información de contacto
+         * - Método de pago
+         * - Botones de acción
+        -->
         <div class="col-lg-8">
 
-          <!-- Pasajero principal -->
+          <!--!
+           * \brief Sección: Datos del pasajero principal
+           * \details Campos obligatorios: nombres, apellidos, fecha de nacimiento,
+           * nacionalidad y número de pasaporte
+          -->
           <div class="checkout-section anim-up">
             <div class="checkout-section-title"><i class="fa-solid fa-user"></i> Información del pasajero principal</div>
             <div class="row g-3">
@@ -119,7 +150,11 @@
             </div>
           </div>
 
-          <!-- Contacto -->
+          <!--!
+           * \brief Sección: Información de contacto
+           * \details Correo electrónico (obligatorio para enviar confirmación)
+           * y teléfono opcional
+          -->
           <div class="checkout-section anim-up anim-up-1">
             <div class="checkout-section-title"><i class="fa-regular fa-envelope"></i> Información de contacto</div>
             <div class="row g-3">
@@ -134,7 +169,11 @@
             </div>
           </div>
 
-          <!-- Método de pago -->
+          <!--!
+           * \brief Sección: Método de pago
+           * \details Permite seleccionar entre tarjeta de crédito, débito o PayPal
+           * Incluye campos para datos de tarjeta (número, nombre, expiración, CVV, ZIP)
+          -->
           <div class="checkout-section anim-up anim-up-2">
             <div class="checkout-section-title"><i class="fa-solid fa-credit-card"></i> Método de pago</div>
             <div class="row g-2 mb-3">
@@ -166,12 +205,20 @@
             </div>
           </div>
 
+          <!--!
+           * \brief Aviso de seguridad SSL
+           * \details Informa al usuario que los datos están protegidos con cifrado
+          -->
           <div class="security-notice">
             <i class="fa-solid fa-shield-halved"></i>
             <p>Tus datos están protegidos con cifrado SSL de 256 bits. No almacenamos información de tarjetas en nuestros servidores.</p>
           </div>
 
-          <!-- Alerta: correo no enviado (FIX #14) -->
+          <!--!
+           * \brief Alerta de correo no enviado (FIX #14)
+           * \details Se muestra cuando la reserva se confirma pero el envío de correo falla
+           * Permite al usuario guardar manualmente el código de reserva
+          -->
           <div class="email-warn" id="email-warn">
             <i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);flex-shrink:0;margin-top:2px;"></i>
             <div>
@@ -180,7 +227,10 @@
             </div>
           </div>
 
-          <!-- Error general -->
+          <!--!
+           * \brief Contenedor de errores generales
+           * \details Muestra mensajes de error de validación o de conexión
+          -->
           <div class="th-alert-error" id="checkout-error">
             <i class="fa-solid fa-circle-exclamation"></i>
             <span id="checkout-error-msg"></span>
@@ -194,12 +244,15 @@
           </div>
         </div>
 
-        <!-- Resumen del pedido -->
+        <!--!
+         * \brief Columna derecha: Resumen del pedido
+         * \details Muestra un resumen de la reserva seleccionada con precios,
+         * impuestos y total. Es sticky para mantener visibilidad durante el scroll.
+        -->
         <div class="col-lg-4">
           <div class="order-card anim-up anim-up-1">
             <div class="order-title"><i class="fa-solid fa-receipt me-2" style="color:var(--gold)"></i>Resumen de reservación</div>
             <div id="order-summary">
-              <!-- Se rellena desde los URL params -->
               <div style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">
                 <i class="fa-solid fa-spinner fa-spin me-2" style="color:var(--gold);"></i>Cargando resumen...
               </div>
@@ -223,33 +276,67 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ── Leer parámetros de URL ─────────────────────────────────────────────
-    const up          = new URLSearchParams(window.location.search);
-    const tipoReserva = up.get('tipo')         || 'vuelo';    // vuelo | hotel | paquete
-    const idVuelo     = up.get('id_vuelo')     || null;
-    const idHabitacion= up.get('id_habitacion')|| null;
-    const idProveedor = up.get('id_proveedor') || null;
-    const precioBase  = parseFloat(up.get('precio') || 0);
-    const asiento     = up.get('asiento')      || 'turista';
-    const numPax      = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
-    const origen      = up.get('origen')       || '';
-    const destino     = up.get('destino')      || '';
-    const ciudad      = up.get('ciudad')       || '';
-    const fechaSalida = up.get('fecha_salida') || '';
-    const fechaCheckin= up.get('fecha_checkin')|| '';
-    const fechaCheckout=up.get('fecha_checkout')|| '';
+    /**
+     * \file checkout.html (JavaScript)
+     * \brief Lógica de cliente para la página de checkout
+     * 
+     * Este script maneja:
+     * - Extracción de parámetros de URL para la reserva
+     * - Renderizado dinámico del resumen
+     * - Validación de formularios
+     * - Envío de datos al backend
+     * - Manejo de errores y estados de carga
+     */
 
-    // ── Método de pago seleccionado ────────────────────────────────────────
-    let metodoPago = 'tarjeta_credito';
+    /*! \defgroup URLParams Parámetros de URL
+     *  \brief Parámetros recibidos desde la página anterior (resultados de búsqueda)
+     *  @{
+     */
+    const up          = new URLSearchParams(window.location.search);
+    const tipoReserva = up.get('tipo')         || 'vuelo';    /**< Tipo de reserva: vuelo, hotel o paquete */
+    const idVuelo     = up.get('id_vuelo')     || null;       /**< ID del vuelo seleccionado */
+    const idHabitacion= up.get('id_habitacion')|| null;       /**< ID de la habitación seleccionada */
+    const idProveedor = up.get('id_proveedor') || null;       /**< ID del proveedor (aerolínea/hotel) */
+    const precioBase  = parseFloat(up.get('precio') || 0);    /**< Precio base por persona/noche */
+    const asiento     = up.get('asiento')      || 'turista';  /**< Tipo de asiento para vuelos */
+    const numPax      = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1); /**< Número de pasajeros/huéspedes */
+    const origen      = up.get('origen')       || '';         /**< Ciudad origen (vuelos) */
+    const destino     = up.get('destino')      || '';         /**< Ciudad destino (vuelos) */
+    const ciudad      = up.get('ciudad')       || '';         /**< Ciudad del hotel */
+    const fechaSalida = up.get('fecha_salida') || '';         /**< Fecha de salida del vuelo */
+    const fechaCheckin= up.get('fecha_checkin')|| '';         /**< Fecha de check-in del hotel */
+    const fechaCheckout=up.get('fecha_checkout')|| '';        /**< Fecha de check-out del hotel */
+    /*! @} */
+
+    /*! \defgroup PaymentMethods Métodos de pago
+     *  \brief Manejo de selección de método de pago
+     *  @{
+     */
+    let metodoPago = 'tarjeta_credito'; /**< Método de pago seleccionado actualmente */
+    
+    /**
+     * \brief Selecciona un método de pago y actualiza la UI
+     * \param el Elemento DOM del método de pago clickeado
+     */
     function selectPay(el) {
       document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
       el.classList.add('active');
       metodoPago = el.dataset.method;
     }
+    /*! @} */
 
-    // ── Renderizar resumen lateral ─────────────────────────────────────────
+    /*! \defgroup SummaryRender Renderizado del resumen
+     *  \brief Renderiza el resumen de la reserva en la columna derecha
+     *  @{
+     */
+    const TAX_RATE = 0.10; /**< Tasa de impuestos (10% estimado) */
+    
+    /**
+     * \brief Renderiza el resumen de la reserva y los precios
+     * \details Calcula subtotal, impuestos y total, y genera HTML con los detalles
+     * de la reserva según el tipo (vuelo, hotel o paquete)
+     */
     (function renderSummary() {
-      const TAX_RATE = 0.10; // 10% estimado
       const subtotal  = precioBase * numPax;
       const tax       = subtotal * TAX_RATE;
       const total     = subtotal + tax;
@@ -295,8 +382,12 @@
       }
       document.getElementById('order-summary').innerHTML = html;
     })();
+    /*! @} */
 
-    // ── Pre-llenar datos del usuario si hay sesión ─────────────────────────
+    /*! \defgroup UserData Pre-carga de datos de usuario
+     *  \brief Intenta cargar datos del usuario autenticado desde la sesión
+     *  @{
+     */
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.json())
       .then(d => {
@@ -307,8 +398,20 @@
           document.getElementById('apellidos').value = d.usuario.apellido || '';
         }
       }).catch(() => {});
+    /*! @} */
 
-    // ── Validar y confirmar pago ───────────────────────────────────────────
+    /*! \defgroup PaymentConfirm Confirmación de pago
+     *  \brief Funciones para validar y enviar la reserva al backend
+     *  @{
+     */
+    
+    /**
+     * \brief Valida los campos del formulario y envía la reserva al servidor
+     * \details Realiza validación de campos obligatorios, construye el payload
+     * según el tipo de reserva, envía la petición POST a /api/reservaciones
+     * y maneja la respuesta (éxito o error)
+     * \async
+     */
     async function confirmarPago() {
       // Validación básica de campos requeridos
       const reqs = ['nombres','apellidos','fecha_nac','nacionalidad','pasaporte','correo_pago','card-number','card-name','expiry','cvv'];
@@ -325,7 +428,6 @@
         return;
       }
 
-      const TAX_RATE = 0.10;
       const subtotal  = precioBase * numPax;
       const total     = (subtotal * (1 + TAX_RATE)).toFixed(2);
 
@@ -347,9 +449,6 @@
         tipo:        tipoReserva,
         metodo_pago: metodoPago,
         datos_cobro: {
-          // Nota: en producción real, el número de tarjeta NO debe enviarse al
-          // backend propio — debe tokenizarse con Stripe/Braintree primero.
-          // Aquí se omite; solo se guarda el método.
           metodo:    metodoPago,
           titular:   document.getElementById('card-name').value,
         },
@@ -398,11 +497,9 @@
         // FIX #14: si el correo no se envió, mostrar aviso antes de redirigir
         if (!data.email_enviado) {
           document.getElementById('email-warn').classList.add('show');
-          // Dar tiempo al usuario para leer el aviso antes de redirigir
           await new Promise(r => setTimeout(r, 3000));
         }
 
-        // Redirigir a confirmación con el código de reserva
         const codigo = data.reservacion?.codigo_reserva || '';
         const id     = data.reservacion?.id_reservacion || '';
         window.location.href = `/confirmacion?codigo=${codigo}&id=${id}&total=${data.reservacion?.total || total}&email_ok=${data.email_enviado}`;
@@ -413,6 +510,10 @@
       }
     }
 
+    /**
+     * \brief Muestra un mensaje de error en la interfaz
+     * \param msg Mensaje de error a mostrar
+     */
     function mostrarError(msg) {
       const el = document.getElementById('checkout-error');
       document.getElementById('checkout-error-msg').textContent = msg;
@@ -420,24 +521,33 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    /**
+     * \brief Restablece el botón de pago a su estado original
+     * \details Habilita el botón, remueve la clase de carga y restaura el texto
+     */
     function resetBtn() {
       const btn = document.getElementById('btn-pagar');
       btn.disabled = false;
       btn.classList.remove('loading');
       btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Confirmar pago';
     }
+    /*! @} */
 
-    // Formatear número tarjeta
+    /*! \defgroup InputFormatters Formateadores de inputs
+     *  \brief Event listeners para dar formato automático a los campos de tarjeta
+     *  @{
+     */
     document.getElementById('card-number').addEventListener('input', function() {
       let v = this.value.replace(/\s/g, '');
       this.value = (v.match(/.{1,4}/g) || [v]).join(' ');
     });
-    // Formatear expiración
+    
     document.getElementById('expiry').addEventListener('input', function() {
       let v = this.value.replace(/\D/g, '');
       if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4);
       this.value = v;
     });
+    /*! @} */
   </script>
 </body>
 </html>

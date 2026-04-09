@@ -1,49 +1,218 @@
 <!DOCTYPE html>
+<!--!
+ * @file dashboard.html
+ * @brief Panel de administración principal del sistema TravelNow
+ * @version 1.0.0
+ * @date 2024
+ * 
+ * @section description Descripción
+ * Este archivo contiene la interfaz de usuario del dashboard administrativo,
+ * mostrando métricas clave y acceso a los módulos de gestión del sistema.
+ * 
+ * @section dependencies Dependencias
+ * - HTMX 1.9.10: Para actualizaciones dinámicas sin recarga completa
+ * - Font Awesome 6.4.0: Para iconografía de la interfaz
+ * - styles.css: Estilos personalizados del admin
+ * 
+ * @author Equipo TravelNow
+ * @copyright &copy; 2024 TravelNow - Todos los derechos reservados
+ -->
 <html>
-<head><title>Dashboard Admin</title>
-<link rel="stylesheet" href="/public/css/styles.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<head>
+    <title>Dashboard Admin</title>
+    <!--!
+     * @brief Hoja de estilos principal del panel administrativo
+     * @see /public/css/styles.css
+     -->
+    <link rel="stylesheet" href="/public/css/styles.css">
+    
+    <!--!
+     * @brief Font Awesome CDN para iconografía
+     * @see https://fontawesome.com/icons
+     -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<!--!
+ * @class admin-layout
+ * @brief Contenedor principal que estructura el layout administrativo
+ * @details Implementa un diseño de dos columnas: sidebar (navegación) + main (contenido)
+ -->
 <div class="admin-layout">
+    
+    <!--!
+     * @class admin-sidebar
+     * @brief Barra lateral de navegación administrativa
+     * @details Contiene el logo del sistema y los enlaces a los diferentes módulos
+     * @note El elemento con clase 'active' indica la sección actual
+     -->
     <nav class="admin-sidebar">
+        <!--!
+         * @brief Logo del sistema en el panel administrativo
+         * @var sidebar-logo
+         * @details El span con clase 'Now' resalta la segunda parte del nombre
+         -->
         <div class="sidebar-logo">Travel<span>Now</span></div>
-        <a href="/admin/dashboard" class="sidebar-nav-item active"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="/admin/usuarios" class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
-        <a href="/admin/reservaciones" class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
-        <a href="/admin/proveedores" class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+        
+        <!--!
+         * @fn Enlace a Dashboard
+         * @brief Acceso al panel principal de estadísticas
+         * @param active Clase CSS que indica elemento activo
+         * @see /admin/dashboard
+         -->
+        <a href="/admin/dashboard" class="sidebar-nav-item active">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        
+        <!--!
+         * @fn Enlace a Usuarios
+         * @brief Gestión de usuarios del sistema (CRUD)
+         * @see /admin/usuarios
+         -->
+        <a href="/admin/usuarios" class="sidebar-nav-item">
+            <i class="fas fa-users"></i> Usuarios
+        </a>
+        
+        <!--!
+         * @fn Enlace a Reservaciones
+         * @brief Gestión de reservaciones de vuelos y paquetes
+         * @see /admin/reservaciones
+         -->
+        <a href="/admin/reservaciones" class="sidebar-nav-item">
+            <i class="fas fa-plane"></i> Reservaciones
+        </a>
+        
+        <!--!
+         * @fn Enlace a Proveedores
+         * @brief Gestión de proveedores (aerolíneas, hoteles, etc.)
+         * @see /admin/proveedores
+         -->
+        <a href="/admin/proveedores" class="sidebar-nav-item">
+            <i class="fas fa-building"></i> Proveedores
+        </a>
     </nav>
+    
+    <!--!
+     * @class admin-main
+     * @brief Área principal de contenido del panel administrativo
+     * @details Contiene el topbar y el contenido dinámico de cada sección
+     -->
     <div class="admin-main">
+        
+        <!--!
+         * @class admin-topbar
+         * @brief Barra superior con título de sección y controles de usuario
+         * @details Incluye el título de la página actual y botón de logout
+         -->
         <header class="admin-topbar">
+            <!--!
+             * @brief Título de la página actual con iconografía
+             * @note El título cambia según la sección donde se encuentre el admin
+             -->
             <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+            
+            <!--!
+             * @brief Botón para cerrar sesión
+             * @see /auth/logout
+             * @warning Esta acción destruye la sesión actual del usuario
+             -->
             <div><a href="/auth/logout" class="btn-sm-gold">Logout</a></div>
         </header>
+        
+        <!--!
+         * @class admin-content
+         * @brief Contenedor del contenido principal dinámico
+         * @details Aquí se renderizan las diferentes vistas según la navegación
+         -->
         <main class="admin-content">
+            <!--!
+             * @brief Mensaje de bienvenida personalizado para el administrador
+             * @todo Implementar nombre de usuario dinámico desde la sesión
+             -->
             <h2>¡Bienvenido Admin!</h2>
             <p>Panel de administración funcionando correctamente.</p>
+            
+            <!--!
+             * @section stats-section
+             * @brief Sección de tarjetas estadísticas del dashboard
+             * @details Muestra métricas clave del sistema (usuarios, reservas, etc.)
+             * @note Las tarjetas se actualizan dinámicamente mediante JavaScript/HTMX
+             -->
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem;margin-top:2rem;">
+                
+                <!--!
+                 * @class admin-stat-card
+                 * @brief Tarjeta estadística de usuarios
+                 * @var total-usuarios Elemento que muestra el número total de usuarios registrados
+                 * @note Los datos se cargan asíncronamente desde el backend
+                 -->
                 <div class="admin-stat-card">
                     <div style="display:flex;align-items:center;gap:1rem;">
                         <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
                         <div>
+                            <!--!
+                             * @brief Contenedor dinámico para el total de usuarios
+                             * @see /api/admin/total-usuarios Endpoint que provee este dato
+                             * @todo Conectar con API real para obtener datos actualizados
+                             -->
                             <div class="admin-stat-num" id="total-usuarios">0</div>
                             <div class="admin-stat-lbl">Usuarios</div>
                         </div>
                     </div>
                 </div>
+                
+                <!--!
+                 * @class admin-stat-card
+                 * @brief Tarjeta estadística de reservaciones
+                 * @var total-reservas Elemento que muestra el número total de reservas realizadas
+                 * @note Incluye reservas activas, canceladas y completadas
+                 -->
                 <div class="admin-stat-card">
                     <div style="display:flex;align-items:center;gap:1rem;">
                         <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
                         <div>
+                            <!--!
+                             * @brief Contenedor dinámico para el total de reservas
+                             * @see /api/admin/total-reservas Endpoint que provee este dato
+                             * @todo Implementar actualización en tiempo real con WebSockets
+                             -->
                             <div class="admin-stat-num" id="total-reservas">0</div>
                             <div class="admin-stat-lbl">Reservaciones</div>
                         </div>
                     </div>
                 </div>
+                
+                <!--!
+                 * @todo Agregar tarjeta de ingresos totales
+                 * @todo Agregar tarjeta de usuarios activos hoy
+                 * @todo Agregar gráfico de tendencia de reservas
+                 -->
             </div>
         </main>
     </div>
 </div>
+
+<!--!
+ * @section scripts
+ * @brief Scripts JavaScript para funcionalidades dinámicas
+ * @see https://htmx.org/ Documentación oficial de HTMX
+ * @note HTMX permite actualizaciones parciales del DOM sin recargar toda la página
+ -->
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+<!--!
+ * @section javascript-custom
+ * @brief Scripts personalizados para el dashboard
+ * @note Actualmente placeholder para futura implementación de carga dinámica de datos
+ * @todo Implementar fetch a API para cargar total de usuarios y reservas
+ * @example
+ * fetch('/api/admin/stats')
+ *   .then(response => response.json())
+ *   .then(data => {
+ *     document.getElementById('total-usuarios').innerText = data.totalUsuarios;
+ *     document.getElementById('total-reservas').innerText = data.totalReservas;
+ *   });
+ */
+-->
 </body>
 </html>

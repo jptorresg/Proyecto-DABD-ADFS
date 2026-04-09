@@ -4,6 +4,28 @@ const cron = require('node-cron');
 const db   = require('../config/db');
 const proveedorService = require('./proveedor.service');
 
+/**
+ * @file proveedor.cron.js
+ * @brief Módulo de tareas programadas para actualización de caché de destinos
+ * @author Sistema de Reservas
+ * @version 1.0.0
+ */
+
+/**
+ * Actualiza la caché de destinos para todos los proveedores activos
+ * @async
+ * @function actualizarCacheDestinos
+ * @description Recorre todos los proveedores activos (aerolíneas y hoteles) y actualiza
+ *              sus respectivas cachés de destinos en la base de datos.
+ *              Para aerolíneas: actualiza orígenes y destinos
+ *              Para hoteles: actualiza ciudades
+ * @returns {Promise<void>} Promesa que se resuelve cuando la actualización completa
+ * @throws {Error} Error general en la actualización (no interrumpe actualización por proveedor)
+ * 
+ * @example
+ * // Ejecutar actualización manual
+ * await actualizarCacheDestinos();
+ */
 const actualizarCacheDestinos = async () => {
     console.log('[Cron] Iniciando actualización de caché de destinos...');
     try {
@@ -36,6 +58,24 @@ const actualizarCacheDestinos = async () => {
     }
 };
 
+/**
+ * Guarda en caché los datos de orígenes y destinos de una aerolínea
+ * @async
+ * @function _guardarCacheAerolinea
+ * @private
+ * @param {number} idProveedor - ID del proveedor aerolínea
+ * @param {Object} datos - Datos de orígenes y destinos
+ * @param {Array<Object>} [datos.origenes] - Lista de orígenes
+ * @param {string} datos.origenes[].nombre - Nombre del origen
+ * @param {string} datos.origenes[].codigo - Código IATA del origen
+ * @param {Array<Object>} [datos.destinos] - Lista de destinos
+ * @param {string} datos.destinos[].nombre - Nombre del destino
+ * @param {string} datos.destinos[].codigo - Código IATA del destino
+ * @returns {Promise<void>} Promesa que se resuelve cuando se guarda la caché
+ * 
+ * @note Esta función elimina los registros existentes del proveedor antes de insertar los nuevos
+ * @see cache_destinos Tabla donde se almacenan los datos
+ */
 const _guardarCacheAerolinea = async (idProveedor, datos) => {
     await db.query('DELETE FROM cache_destinos WHERE id_proveedor = ?', [idProveedor]);
     const rows = [];
@@ -53,6 +93,22 @@ const _guardarCacheAerolinea = async (idProveedor, datos) => {
     }
 };
 
+/**
+ * Guarda en caché los datos de ciudades de un hotel
+ * @async
+ * @function _guardarCacheHotel
+ * @private
+ * @param {number} idProveedor - ID del proveedor hotel
+ * @param {Object|Array} datos - Datos de ciudades
+ * @param {Array<Object>} [datos.ciudades] - Lista de ciudades (formato con propiedad ciudades)
+ *                                           Si es un array directo, se usa como lista de ciudades
+ * @param {string} ciudad.nombre - Nombre de la ciudad
+ * @param {string} [ciudad.pais] - País de la ciudad (opcional)
+ * @returns {Promise<void>} Promesa que se resuelve cuando se guarda la caché
+ * 
+ * @note Solo elimina registros existentes del tipo 'ciudad' para el proveedor
+ * @note Mantiene otros tipos de registros (origen, destino) si existieran
+ */
 const _guardarCacheHotel = async (idProveedor, datos) => {
     await db.query(
         'DELETE FROM cache_destinos WHERE id_proveedor = ? AND tipo = "ciudad"',
@@ -70,6 +126,23 @@ const _guardarCacheHotel = async (idProveedor, datos) => {
     }
 };
 
+/**
+ * Inicia el servicio de tareas programadas para actualización de caché
+ * @function iniciarCron
+ * @description Configura y registra el job cron que ejecuta actualizarCacheDestinos
+ *              cada hora en punto. También ejecuta una actualización inicial
+ *              si la tabla cache_destinos está vacía al momento del arranque.
+ * 
+ * @returns {void} No retorna valor
+ * 
+ * @note El cron job se ejecuta automáticamente mientras la aplicación esté corriendo
+ * @see actualizarCacheDestinos Función que ejecuta el job programado
+ * 
+ * @example
+ * // Iniciar el servicio de tareas programadas
+ * iniciarCron();
+ * // A partir de ahora, la caché se actualizará automáticamente cada hora
+ */
 const iniciarCron = () => {
     // FIX #13: la expresión '0 * * * *' ejecuta el job cada hora en punto,
     // NO semanalmente. Corregimos el mensaje de log para que refleje la realidad.

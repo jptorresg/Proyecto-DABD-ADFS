@@ -1,8 +1,28 @@
 'use strict';
+
 const db = require('../config/db');
 const proveedorService = require('../services/proveedor.service');
 const { ok, err } = require('../utils/response');
 
+/**
+ * @file Controlador de búsquedas para vuelos, hoteles y destinos
+ * @module controllers/searchController
+ * @requires ../config/db
+ * @requires ../services/proveedor.service
+ * @requires ../utils/response
+ */
+
+/**
+ * Obtiene todos los orígenes y destinos disponibles de proveedores activos
+ * @async
+ * @function getOrigins
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<Object>} Respuesta HTTP con lista de orígenes/destinos
+ * @example
+ * // GET /api/origins
+ * // Respuesta: { data: [{ id_cache_destino, valor, codigo, proveedor, ... }] }
+ */
 const getOrigins = async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -18,6 +38,17 @@ const getOrigins = async (req, res) => {
     }
 };
 
+/**
+ * Obtiene todas las ciudades disponibles de proveedores activos
+ * @async
+ * @function getCities
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<Object>} Respuesta HTTP con lista de ciudades
+ * @example
+ * // GET /api/cities
+ * // Respuesta: { data: [{ id_cache_destino, valor, codigo, proveedor, ... }] }
+ */
 const getCities = async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -33,6 +64,23 @@ const getCities = async (req, res) => {
     }
 };
 
+/**
+ * Busca vuelos en todos los proveedores activos de tipo aerolínea
+ * @async
+ * @function searchFlights
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.query - Parámetros de consulta
+ * @param {string} req.query.origen - Código IATA o nombre del origen
+ * @param {string} req.query.destino - Código IATA o nombre del destino
+ * @param {string} req.query.fecha_salida - Fecha de salida (YYYY-MM-DD)
+ * @param {string} [req.query.fecha_regreso] - Fecha de regreso (YYYY-MM-DD)
+ * @param {string} [req.query.tipo_asiento] - Tipo de asiento (economy, business, etc.)
+ * @param {number} [req.query.num_pasajeros] - Número de pasajeros
+ * @param {string} [req.query.tipo_vuelo] - Tipo de vuelo (ida, ida_vuelta)
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<Object>} Respuesta HTTP con lista de vuelos ordenados por precio
+ * @throws {Error} Si faltan parámetros requeridos
+ */
 const searchFlights = async (req, res) => {
     const {
         origen,
@@ -103,6 +151,20 @@ const searchFlights = async (req, res) => {
     }
 };
 
+/**
+ * Busca hoteles en todos los proveedores activos de tipo hotel
+ * @async
+ * @function searchHotels
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} req.query - Parámetros de consulta
+ * @param {string} req.query.ciudad - Ciudad de destino
+ * @param {string} req.query.fecha_checkin - Fecha de check-in (YYYY-MM-DD)
+ * @param {string} req.query.fecha_checkout - Fecha de check-out (YYYY-MM-DD)
+ * @param {number} [req.query.num_huespedes] - Número de huéspedes
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<Object>} Respuesta HTTP con lista de hoteles ordenados por precio
+ * @throws {Error} Si faltan parámetros requeridos
+ */
 const searchHotels = async (req, res) => {
     const { ciudad, fecha_checkin, fecha_checkout, num_huespedes } = req.query;
 
@@ -153,11 +215,29 @@ const searchHotels = async (req, res) => {
     }
 };
 
+/**
+ * Busca paquetes turísticos (vuelo ida y vuelta)
+ * @async
+ * @function searchPackages
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {Object} res - Objeto de respuesta HTTP
+ * @returns {Promise<Object>} Redirige la búsqueda a searchFlights con tipo_vuelo="ida_vuelta"
+ */
 const searchPackages = async (req, res) => {
     req.query.tipo_vuelo = 'ida_vuelta';
     return searchFlights(req, res);
 };
 
+/**
+ * Resuelve un nombre de ciudad a su código IATA
+ * @private
+ * @async
+ * @function _resolverIata
+ * @param {string} valor - Nombre de ciudad o código IATA
+ * @returns {Promise<string>} Código IATA normalizado en mayúsculas
+ * @description Si el valor es un código IATA válido (2-4 letras), lo devuelve directamente.
+ * Si no, busca en la base de datos el código asociado a ese nombre de ciudad.
+ */
 const _resolverIata = async (valor) => {
     if (!valor) return valor;
     const trimmed = valor.trim();
@@ -174,6 +254,24 @@ const _resolverIata = async (valor) => {
     return trimmed.toUpperCase();
 };
 
+/**
+ * Registra una búsqueda en el historial
+ * @private
+ * @async
+ * @function _registrarBusqueda
+ * @param {Object} req - Objeto de solicitud HTTP
+ * @param {string} tipo - Tipo de búsqueda ('vuelo' o 'hotel')
+ * @param {Object} datos - Datos de la búsqueda
+ * @param {string} [datos.origen] - Origen del vuelo
+ * @param {string} [datos.destino] - Destino del vuelo
+ * @param {string} [datos.ciudad] - Ciudad para hotel
+ * @param {string} [datos.fecha_inicio] - Fecha de inicio
+ * @param {string} [datos.fecha_fin] - Fecha de fin
+ * @param {number} [datos.num_pasajeros] - Número de pasajeros/huéspedes
+ * @returns {Promise<void>}
+ * @description Registra la búsqueda en la tabla historial_busqueda.
+ * No lanza errores que interrumpan la ejecución principal.
+ */
 const _registrarBusqueda = async (req, tipo, datos) => {
     try {
         const idUsuario  = req.session?.user?.id_usuario ?? null;

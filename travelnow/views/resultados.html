@@ -10,6 +10,17 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./public/css/styles.css">
   <style>
+    /*!
+     * \file resultados.html
+     * \brief Página de resultados de búsqueda de TravelHub
+     * \author TravelHub Team
+     * \version 1.0
+     * \date 2024
+     * 
+     * Esta página muestra los resultados de búsqueda de vuelos, hoteles o paquetes.
+     * Permite filtrar y ordenar los resultados, y redirige a las páginas de detalle o checkout.
+     */
+     
     body { background: var(--navy); }
     .filter-sidebar {
       background: rgba(17,34,64,0.85);
@@ -217,15 +228,31 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ── Estado global ─────────────────────────────────────
-    let todosLosVuelos = [];   // resultado original de la API
-    let vuelosFiltrados = [];  // después de aplicar filtros
+    /**
+     * @file resultados.html (JavaScript)
+     * @brief Lógica de búsqueda, filtrado y renderizado de resultados
+     * @author TravelHub Team
+     * @version 1.0
+     */
 
-    // ── Leer params de la URL ─────────────────────────────
-    const urlParams = new URLSearchParams(window.location.search);
-    const tipoResultado = urlParams.get('tipo') || 'flights'; // flights | hotels | packages
+    /*!
+     * \var todosLosVuelos
+     * \brief Array que almacena todos los resultados obtenidos de la API
+     */
+    let todosLosVuelos = [];
 
-    // Mostrar parámetros de búsqueda en el hero
+    /*!
+     * \var vuelosFiltrados
+     * \brief Array que almacena los resultados después de aplicar filtros
+     */
+    let vuelosFiltrados = [];
+
+    /*!
+     * \brief Lee los parámetros de la URL y renderiza la barra de parámetros de búsqueda
+     * 
+     * Esta función se ejecuta inmediatamente y extrae los parámetros como origen,
+     * destino, fechas, pasajeros, etc., mostrándolos en el hero de la página.
+     */
     (function renderParamsBar() {
       const bar = document.getElementById('params-bar');
       const items = [];
@@ -266,12 +293,20 @@
       document.getElementById('search-title').textContent = titleMap[tipoResultado] || 'disponibles';
     })();
 
-    // ── Llamada a la API ──────────────────────────────────
+    /*!
+     * \brief Realiza la llamada a la API para obtener los resultados de búsqueda
+     * 
+     * Esta función asincrónica obtiene los datos del endpoint correspondiente
+     * (flights, hotels, packages) según el tipo de resultado.
+     * 
+     * \async
+     * \throws {Error} Si hay problemas de conexión o respuesta inválida
+     */
     async function buscarResultados() {
       const endpointMap = { flights: 'flights', hotels: 'hotels', packages: 'packages' };
       const endpoint = endpointMap[tipoResultado] || 'flights';
 
-      const params = new URLSearchParams(urlParams); // reusar todos los params de la URL
+      const params = new URLSearchParams(urlParams);
 
       try {
         const res  = await fetch(`/api/search/${endpoint}?${params.toString()}`);
@@ -292,7 +327,12 @@
       }
     }
 
-    // ── Construir checkboxes de proveedores dinámicamente ──
+    /*!
+     * \brief Construye dinámicamente los checkboxes de filtro por proveedor
+     * 
+     * Extrae la lista única de nombres de proveedores de los resultados
+     * y crea un checkbox para cada uno.
+     */
     function construirFiltrosProveedores() {
       const proveedores = [...new Set(todosLosVuelos.map(v => v.nombre_proveedor).filter(Boolean))];
       const container   = document.getElementById('filter-proveedores');
@@ -301,7 +341,14 @@
       ).join('') || '<span style="font-size:0.82rem;color:var(--text-muted);">Sin proveedores</span>';
     }
 
-    // ── Aplicar filtros ───────────────────────────────────
+    /*!
+     * \brief Aplica los filtros seleccionados por el usuario
+     * 
+     * Filtra los resultados según precio mínimo/máximo, tipo de asiento
+     * y proveedores seleccionados. Actualiza vuelosFiltrados y renderiza.
+     * 
+     * \see ordenarYRenderizar
+     */
     function aplicarFiltros() {
       const minPrecio  = parseFloat(document.getElementById('precio-min').value) || 0;
       const maxPrecio  = parseFloat(document.getElementById('precio-max').value) || Infinity;
@@ -319,7 +366,14 @@
       ordenarYRenderizar();
     }
 
-    // ── Ordenar y renderizar ──────────────────────────────
+    /*!
+     * \brief Ordena los resultados según la selección y los renderiza
+     * 
+     * Lee el valor del selector de ordenamiento (precio ascendente o descendente)
+     * y aplica la ordenación correspondiente antes de llamar a renderResultados.
+     * 
+     * \see renderResultados
+     */
     function ordenarYRenderizar() {
       const sort = document.getElementById('sort-select').value;
       const campoP = tipoResultado === 'hotels' ? 'precio_noche_agencia' : 'precio_agencia';
@@ -333,7 +387,14 @@
       renderResultados(sorted);
     }
 
-    // ── Renderizar cards ──────────────────────────────────
+    /*!
+     * \brief Renderiza las tarjetas de resultados en el DOM
+     * 
+     * Según el tipo de resultado (vuelos u hoteles), utiliza la función
+     * correspondiente para generar el HTML y lo inserta en el contenedor.
+     * 
+     * \param items Array de objetos (vuelos u hoteles) a renderizar
+     */
     function renderResultados(items) {
       const container = document.getElementById('resultados-container');
       const count     = document.getElementById('results-count');
@@ -356,6 +417,13 @@
       ).join('');
     }
 
+    /*!
+     * \brief Genera el HTML para una tarjeta de vuelo
+     * 
+     * \param v Objeto con los datos del vuelo
+     * \param idx Índice del elemento para animaciones
+     * \returns string HTML de la tarjeta de vuelo
+     */
     function renderVuelo(v, idx) {
       const precio  = v.precio_agencia || 0;
       const asiento = v.tipo_asiento   || '—';
@@ -407,6 +475,13 @@
         </div>`;
     }
 
+    /*!
+     * \brief Genera el HTML para una tarjeta de hotel
+     * 
+     * \param h Objeto con los datos del hotel/habitación
+     * \param idx Índice del elemento para animaciones
+     * \returns string HTML de la tarjeta de hotel
+     */
     function renderHotel(h, idx) {
       const precio      = h.precio_noche_agencia || 0;
       const detalleUrl  = `/detalle-hotel?id=${h.id_habitacion || ''}&proveedor=${h.id_proveedor || ''}`;
@@ -438,6 +513,11 @@
         </div>`;
     }
 
+    /*!
+     * \brief Muestra un mensaje de error en el contenedor de resultados
+     * 
+     * \param msg Mensaje de error a mostrar
+     */
     function mostrarError(msg) {
       document.getElementById('resultados-container').innerHTML = `
         <div class="empty-state">
@@ -449,7 +529,14 @@
       document.getElementById('results-count').textContent = 'Error al cargar resultados';
     }
 
-    // ── Nav usuario ───────────────────────────────────────
+    /*!
+     * \brief Obtiene la información del usuario autenticado y actualiza la navbar
+     * 
+     * Realiza una petición a /api/auth/me para verificar si hay un usuario logueado.
+     * Si existe, muestra su nombre en lugar del botón de inicio de sesión.
+     * 
+     * \async
+     */
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       if (d?.ok && d.usuario) {
         document.getElementById('nav-user-area').innerHTML =
@@ -457,7 +544,11 @@
       }
     }).catch(() => {});
 
-    // ── Arrancar búsqueda ─────────────────────────────────
+    /*!
+     * \brief Inicia la búsqueda de resultados al cargar la página
+     * 
+     * Punto de entrada principal de la aplicación.
+     */
     buscarResultados();
   </script>
 </body>

@@ -1,15 +1,31 @@
 <!DOCTYPE html>
+/** @file reservation_confirmation.html
+ *  @brief Página de confirmación de reservación de vuelos para TravelHub.
+ *  @author TravelHub Development Team
+ *  @date 2026-04-09
+ *  @version 1.0
+ *  
+ *  @details Esta página se muestra al usuario después de completar una reservación exitosa.
+ *  Presenta todos los detalles del viaje, información de pasajeros, resumen de pago,
+ *  pasos a seguir y opciones de contacto. Es responsiva y utiliza Bootstrap 5 junto con
+ *  estilos personalizados.
+ */
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reservación Confirmada — TravelHub</title>
+  <!-- Fuentes y librerías externas -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./public/css/styles.css">
   <style>
+    /** @brief Estilos específicos para la página de confirmación.
+     *  Estos estilos complementan la hoja de estilos principal y definen la apariencia
+     *  del banner de éxito, tarjetas de detalle, pasajeros, resumen de pago y botones.
+     */
     body { background: var(--navy); }
     /* Banner éxito */
     .success-banner {
@@ -195,14 +211,22 @@
 </head>
 <body>
 
-  <!-- Navbar mínima -->
+  <!--
+    @brief Barra de navegación superior fija.
+    @details Muestra el logo de TravelHub con efecto de desenfoque y borde dorado.
+    Permite al usuario regresar a la página de inicio en cualquier momento.
+  -->
   <nav style="position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);padding:1rem 0;">
     <div class="container d-flex justify-content-center">
       <a href="/" class="th-logo" style="font-size:1.5rem;"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span></a>
     </div>
   </nav>
 
-  <!-- Banner éxito -->
+  <!--
+    @brief Banner principal de confirmación.
+    @details Muestra un ícono de check animado, mensaje de éxito y código de reservación.
+    Este bloque es el primer elemento visual después del navbar.
+  -->
   <div style="padding-top:62px;">
     <div class="success-banner anim-up">
       <div class="success-circle"><i class="fa-solid fa-check"></i></div>
@@ -217,7 +241,11 @@
   <div style="padding:3rem 0 5rem;">
     <div class="container">
 
-      <!-- Botones de acción -->
+      <!--
+        @brief Botones de acción principal.
+        @details Permiten descargar la reservación en PDF o reenviar el correo de confirmación.
+        Actualmente utilizan alertas simuladas; en producción se integrarían con lógica real.
+      -->
       <div class="d-flex justify-content-center gap-3 flex-wrap mb-4 anim-up">
         <button class="btn-dl" onclick="alert('Descargando PDF...')">
           <i class="fa-regular fa-file-pdf"></i> Descargar PDF
@@ -227,7 +255,11 @@
         </button>
       </div>
 
-      <!-- Detalles de reservación -->
+      <!--
+        @brief Tarjeta de detalles del vuelo de ida.
+        @description Muestra horarios, aeropuertos, duración, tipo de vuelo, aerolínea,
+        número de vuelo, clase y equipaje permitido. Utiliza una cuadrícula visual para rutas.
+      -->
       <div class="detail-card anim-up">
         <div class="detail-card-header"><i class="fa-solid fa-plane-departure"></i><h3>Vuelo de ida</h3></div>
         <div class="detail-card-body">
@@ -259,6 +291,11 @@
         </div>
       </div>
 
+      <!--
+        @brief Tarjeta de detalles del vuelo de regreso.
+        @description Similar a la de ida pero con horarios de vuelta y fecha de retorno.
+        Proporciona la información completa del viaje redondo.
+      -->
       <div class="detail-card anim-up anim-up-1">
         <div class="detail-card-header"><i class="fa-solid fa-plane-arrival"></i><h3>Vuelo de vuelta</h3></div>
         <div class="detail-card-body">
@@ -276,7 +313,11 @@
         </div>
       </div>
 
-      <!-- Pasajeros -->
+      <!--
+        @brief Sección de pasajeros.
+        @details Lista los datos de cada viajero: nombre, fecha de nacimiento, pasaporte y nacionalidad.
+        Se presentan en tarjetas individuales con avatar numerado.
+      -->
       <div class="detail-card anim-up anim-up-2">
         <div class="detail-card-header"><i class="fa-solid fa-users"></i><h3>Pasajeros</h3></div>
         <div class="detail-card-body">
@@ -301,7 +342,11 @@
         </div>
       </div>
 
-      <!-- Pago -->
+      <!--
+        @brief Resumen de pago.
+        @description Muestra el desglose de costos: subtotal, impuestos, cargos y total pagado.
+        También indica el método de pago utilizado (Visa terminación 4242).
+      -->
       <div class="detail-card anim-up anim-up-3">
         <div class="detail-card-header"><i class="fa-solid fa-credit-card"></i><h3>Resumen de pago</h3></div>
         <div class="detail-card-body">
@@ -313,7 +358,12 @@
         </div>
       </div>
 
-      <!-- Notas importantes -->
+      <!--
+        @brief Notas importantes para el viajero.
+        @description Contiene una lista de recomendaciones y advertencias útiles:
+        anticipación en aeropuerto, validez de pasaporte, check-in online, restricciones de equipaje,
+        y el código de confirmación para referencia.
+      -->
       <div class="notes-card anim-up">
         <div class="notes-title"><i class="fa-solid fa-triangle-exclamation"></i> Información importante</div>
         <ul class="notes-list">
@@ -325,7 +375,11 @@
         </ul>
       </div>
 
-      <!-- Próximos pasos -->
+      <!--
+        @brief Próximos pasos recomendados.
+        @description Una cuadrícula de 4 pasos con íconos y descripciones para guiar al usuario
+        después de la reservación: revisar email, hacer check-in, preparar equipaje y desear un buen viaje.
+      -->
       <div class="detail-card anim-up">
         <div class="detail-card-header"><i class="fa-solid fa-list-check"></i><h3>Próximos pasos</h3></div>
         <div class="detail-card-body">
@@ -338,7 +392,11 @@
         </div>
       </div>
 
-      <!-- Ayuda -->
+      <!--
+        @brief Sección de ayuda y contacto.
+        @description Ofrece información de soporte 24/7: teléfono, correo electrónico y chat en vivo.
+        Incluye un botón destacado para volver al inicio.
+      -->
       <div class="help-section anim-up">
         <div class="section-eyebrow justify-content-center">¿Necesitas ayuda?</div>
         <h2 class="section-title mb-3" style="font-size:1.8rem;">Estamos <em>aquí para ti</em></h2>
@@ -354,6 +412,7 @@
     </div>
   </div>
 
+  <!-- Librería de Bootstrap para componentes interactivos (opcional, no se utilizan componentes JS en esta página) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

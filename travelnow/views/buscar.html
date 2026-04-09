@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+/**
+ * @file index.html
+ * @brief Página principal de búsqueda avanzada para TravelHub.
+ * @version 1.0
+ * @date 2026
+ * 
+ * @section descripcion Descripción
+ * Esta página proporciona una interfaz de usuario para buscar vuelos, hoteles y paquetes turísticos.
+ * Incluye filtros avanzados, pestañas de búsqueda y resultados dinámicos mediante fetch API.
+ * 
+ * @author TravelHub Team
+ * @copyright © 2026 TravelHub. Todos los derechos reservados.
+ */
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -143,7 +156,11 @@
 </head>
 <body>
 
-  <!-- Navbar -->
+  <!-- 
+   * @brief Barra de navegación principal
+   * @details Contiene el logo, enlaces de navegación y área de usuario.
+   *          La clase 'scrolled' se activa automáticamente con JavaScript.
+   -->
   <nav class="th-navbar scrolled" id="mainNav">
     <div class="container">
       <div class="d-flex align-items-center justify-content-between">
@@ -165,7 +182,10 @@
     </div>
   </nav>
 
-  <!-- Hero mini -->
+  <!-- 
+   * @section hero Hero section
+   * @brief Encabezado con título y descripción de la página de búsqueda
+   -->
   <div style="padding-top:80px;background:linear-gradient(160deg,#0A1628 0%,#112240 100%);padding-bottom:2.5rem;">
     <div class="container pt-4">
       <div class="hero-eyebrow">
@@ -178,12 +198,19 @@
     </div>
   </div>
 
-  <!-- Contenido principal -->
+  <!-- 
+   * @brief Contenido principal con sidebar y panel de búsqueda
+   * @details Organización en dos columnas: filtros a la izquierda y formularios a la derecha
+   -->
   <div class="main-container" style="background:var(--navy);">
     <div class="container">
       <div class="row g-4">
 
-        <!-- Sidebar de filtros -->
+        <!-- 
+         * @brief Sidebar de filtros
+         * @details Controles para filtrar por proveedor, precio, calificación y destinos populares.
+         *          Los filtros se aplican junto con la búsqueda principal.
+         -->
         <div class="col-lg-3">
           <div class="filter-sidebar anim-up">
             <div class="filter-title">
@@ -224,11 +251,18 @@
           </div>
         </div>
 
-        <!-- Panel de búsqueda -->
+        <!-- 
+         * @brief Panel de búsqueda con pestañas y formularios
+         * @details Contiene tres pestañas (Vuelos, Hoteles, Paquetes) con formularios específicos.
+         *          Los resultados se muestran en el contenedor #search-results.
+         -->
         <div class="col-lg-9">
           <div class="search-panel anim-up anim-up-1">
 
-            <!-- Tabs -->
+            <!-- 
+             * @brief Pestañas de selección de tipo de búsqueda
+             * @var s-tab Botones que alternan entre los formularios de vuelos, hoteles y paquetes
+             -->
             <div class="search-tabs-custom mb-4">
               <button class="s-tab active" data-tab="vuelos"><i class="fa-solid fa-plane me-1"></i> Vuelos</button>
               <button class="s-tab" data-tab="hoteles"><i class="fa-solid fa-building me-1"></i> Hoteles</button>
@@ -236,6 +270,11 @@
             </div>
 
             <!-- FORM VUELOS -->
+            <!-- 
+             * @brief Formulario de búsqueda de vuelos
+             * @details Campos para origen, destino, fechas, pasajeros, clase y preferencias.
+             *          Utiliza hx-target para actualizar resultados dinámicamente.
+             -->
             <div class="search-form-content" id="tab-vuelos"
                  hx-target="#search-results"
                  hx-swap="innerHTML">
@@ -276,6 +315,10 @@
             </div>
 
             <!-- FORM HOTELES -->
+            <!-- 
+             * @brief Formulario de búsqueda de hoteles
+             * @details Campos para destino, huéspedes, fechas, tipo de habitación y amenidades.
+             -->
             <div class="search-form-content d-none" id="tab-hoteles">
               <div class="section-heading"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Información del hotel</div>
               <div class="row g-3 mb-3">
@@ -308,6 +351,10 @@
             </div>
 
             <!-- FORM PAQUETES -->
+            <!-- 
+             * @brief Formulario de búsqueda de paquetes turísticos
+             * @details Campos para origen, destino, fechas, pasajeros y preferencias del paquete.
+             -->
             <div class="search-form-content d-none" id="tab-paquetes">
               <div class="section-heading"><i class="fa-solid fa-circle-info" style="font-size:0.9rem;"></i> Información del paquete</div>
               <div class="row g-3 mb-3">
@@ -340,14 +387,20 @@
             </div>
           </div>
 
-          <!-- Resultados -->
+          <!-- 
+           * @brief Contenedor de resultados de búsqueda
+           * @details Aquí se renderizan dinámicamente los resultados devueltos por la API.
+           *          Actualizado mediante HTMX o fetch manual.
+           -->
           <div id="search-results" class="mt-4"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer mínimo -->
+  <!-- 
+   * @brief Pie de página minimalista
+   -->
   <footer class="th-footer" style="padding:2rem 0;">
     <div class="container">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -359,48 +412,106 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Tabs
+    /**
+     * @fileoverview Funcionalidad JavaScript para la página de búsqueda avanzada.
+     * Controla pestañas, radio buttons, destinos populares y búsqueda asíncrona.
+     */
+
+    /**
+     * @description Maneja el cambio entre pestañas de búsqueda (Vuelos, Hoteles, Paquetes).
+     * @listens click
+     */
     document.querySelectorAll('.s-tab').forEach(tab => {
       tab.addEventListener('click', () => {
+        // Remover clase active de todas las pestañas
         document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+        // Ocultar todos los formularios
         document.querySelectorAll('.search-form-content').forEach(f => f.classList.add('d-none'));
+        // Activar pestaña clickeada
         tab.classList.add('active');
+        // Mostrar el formulario correspondiente
         document.getElementById('tab-' + tab.dataset.tab).classList.remove('d-none');
+        // Limpiar resultados previos
         document.getElementById('search-results').innerHTML = '';
       });
     });
-    // Radio vuelo
+
+    /**
+     * @description Controla la visibilidad del campo "Fecha de vuelta"
+     *              según si se selecciona "Ida y vuelta" o "Solo ida".
+     * @listens change
+     */
     document.querySelectorAll('input[name="tipo_vuelo"]').forEach(r => {
       r.addEventListener('change', e => {
+        // Si es solo ida, reduce opacidad del campo de regreso
         document.getElementById('regreso-col').style.opacity = e.target.value === 'solo_ida' ? '0.35' : '1';
       });
     });
-    // Destinos populares → rellena el campo activo
+
+    /**
+     * @description Rellena automáticamente el campo de destino activo
+     *              al hacer clic en un destino popular.
+     * @listens click
+     */
     document.querySelectorAll('.dest-pop-card').forEach(card => {
       card.addEventListener('click', () => {
         const name = card.dataset.dest;
         const activeTab = document.querySelector('.s-tab.active').dataset.tab;
+        // Mapeo de IDs de destino según pestaña activa
         const targets = { vuelos: 'vuelo-destino', hoteles: 'hotel-destino', paquetes: 'paquete-destino' };
         const el = document.getElementById(targets[activeTab]);
         if (el) el.value = name;
       });
     });
-    // Función buscar
+
+    /**
+     * @brief Realiza la búsqueda asíncrona a la API según el tipo seleccionado.
+     * 
+     * @param {string} tipo - Tipo de búsqueda: 'flights', 'hotels' o 'packages'
+     * 
+     * @description Recopila los datos del formulario activo, construye la URL con
+     *              parámetros, ejecuta fetch y renderiza los resultados.
+     */
     function buscar(tipo) {
       const params = new URLSearchParams();
+      // Obtener el formulario activo según el tipo de búsqueda
       const activeForm = document.getElementById('tab-' + (tipo === 'flights' ? 'vuelos' : tipo === 'hotels' ? 'hoteles' : 'paquetes'));
+      // Recopilar todos los campos input y select con nombre y valor
       activeForm.querySelectorAll('input[name],select[name]').forEach(el => {
-        if (el.name && el.value && (el.type !== 'radio' || el.checked)) params.append(el.name, el.value);
+        if (el.name && el.value && (el.type !== 'radio' || el.checked)) {
+          params.append(el.name, el.value);
+        }
       });
+      // Construir URL de la API
       const url = `/api/search/${tipo}?${params.toString()}`;
-      fetch(url).then(r => r.json()).then(data => {
-        document.getElementById('search-results').innerHTML = renderResultados(data, tipo);
-      }).catch(() => {
-        document.getElementById('search-results').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Error al buscar. Verifica que el servidor esté corriendo.</p>';
-      });
+      
+      // Realizar petición fetch
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          // Renderizar resultados
+          document.getElementById('search-results').innerHTML = renderResultados(data, tipo);
+        })
+        .catch(() => {
+          // Mostrar mensaje de error si falla la conexión
+          document.getElementById('search-results').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Error al buscar. Verifica que el servidor esté corriendo.</p>';
+        });
     }
+
+    /**
+     * @brief Renderiza los resultados de búsqueda en formato HTML.
+     * 
+     * @param {Object} data - Respuesta de la API con formato { ok: boolean, total: number, data: Array }
+     * @param {string} tipo - Tipo de búsqueda: 'flights', 'hotels' o 'packages'
+     * @returns {string} HTML con la lista de resultados o mensaje de no resultados.
+     */
     function renderResultados(data, tipo) {
-      if (!data.ok || !data.data?.length) return '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-magnifying-glass" style="font-size:2rem;color:var(--gold);margin-bottom:1rem;display:block;"></i><p>No se encontraron resultados para tu búsqueda.</p></div>';
+      // Validar si no hay resultados
+      if (!data.ok || !data.data?.length) {
+        return '<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i class="fa-solid fa-magnifying-glass" style="font-size:2rem;color:var(--gold);margin-bottom:1rem;display:block;"></i><p>No se encontraron resultados para tu búsqueda.</p></div>';
+      }
+      
+      // Construir HTML de resultados
       return `<div style="margin-bottom:1rem;color:var(--text-muted);font-size:0.88rem;">${data.total} resultados encontrados</div>` +
         data.data.map(item => `
           <div class="result-card mb-3">
@@ -424,10 +535,20 @@
             </div>
           </div>`).join('');
     }
-    // Nav user
-    fetch('/api/auth/me').then(r=>r.json()).then(d=>{
-      if(d?.ok && d.usuario) document.getElementById('nav-user-area').innerHTML = `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
-    }).catch(()=>{});
+
+    /**
+     * @description Obtiene y muestra la información del usuario autenticado en el navbar.
+     *              Si el usuario está logueado, muestra su nombre; si no, muestra el botón de login.
+     */
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          // Usuario autenticado: mostrar nombre y avatar
+          document.getElementById('nav-user-area').innerHTML = `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+        }
+      })
+      .catch(() => {});
   </script>
 </body>
 </html>

@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  /**
+   * @file register.html
+   * @brief Página de creación de cuenta para TravelHub.
+   * @description Formulario multi-paso con validaciones, captcha y fuerza de contraseña.
+   * @author TravelHub Team
+   * @version 1.0
+   * @date 2025
+   */
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear Cuenta — TravelHub</title>
@@ -12,7 +20,9 @@
 </head>
 <body>
 
-  <!-- Navbar mínima -->
+  <!-- =========================================================================
+    BARRA DE NAVEGACIÓN SUPERIOR (Fija y translúcida)
+    ========================================================================= -->
   <nav style="position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;background:rgba(10,22,40,0.6);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);">
     <div class="container d-flex justify-content-between align-items-center">
       <a href="/" class="th-logo" style="font-size:1.5rem;">
@@ -31,7 +41,7 @@
           <div class="auth-card">
             <div class="row g-0">
 
-              <!-- Panel de marca -->
+              <!-- PANEL DE MARCA (Lado izquierdo) -->
               <div class="col-lg-4 auth-brand-panel">
                 <div class="hero-eyebrow mb-3">Únete hoy</div>
                 <div class="brand-quote" style="font-size:1.8rem;">
@@ -48,12 +58,12 @@
                 </ul>
               </div>
 
-              <!-- Panel de formulario -->
+              <!-- PANEL DEL FORMULARIO (Lado derecho) -->
               <div class="col-lg-8 auth-form-panel" style="padding:2.5rem;">
                 <h1 class="auth-heading">Crear cuenta</h1>
                 <p class="auth-sub">Completa los pasos para registrarte</p>
 
-                <!-- Progress Steps -->
+                <!-- Indicadores de pasos (progreso) -->
                 <div class="reg-steps mb-4">
                   <div class="reg-step active" id="step-indicator-1">
                     <div class="step-circle-custom"><i class="fa-solid fa-user"></i></div>
@@ -71,7 +81,7 @@
                   </div>
                 </div>
 
-                <!-- Error -->
+                <!-- Contenedor de errores globales -->
                 <div class="th-alert-error" id="reg-error">
                   <i class="fa-solid fa-circle-exclamation"></i>
                   <span id="reg-error-msg"></span>
@@ -79,7 +89,10 @@
 
                 <form id="registerForm">
 
-                  <!-- PASO 1: Datos personales -->
+                  /** 
+                   * @section step1 Datos personales
+                   * @description Recopila nombres, apellidos, fecha de nacimiento, país, nacionalidad y pasaporte.
+                   */
                   <div class="form-step" id="step-1">
                     <div class="row g-3">
                       <div class="col-md-6">
@@ -146,7 +159,10 @@
                     </div>
                   </div>
 
-                  <!-- PASO 2: Seguridad -->
+                  /** 
+                   * @section step2 Seguridad y credenciales
+                   * @description Correo, contraseña con validador de fuerza y confirmación.
+                   */
                   <div class="form-step d-none" id="step-2">
                     <div class="row g-3">
                       <div class="col-12">
@@ -163,7 +179,7 @@
                           <input class="th-input-auth" type="password" name="contrasena" id="regPass"
                                  placeholder="Mínimo 8 caracteres" required minlength="8">
                         </div>
-                        <!-- Barra de fuerza -->
+                        <!-- Barra de fuerza de contraseña -->
                         <div style="margin-top:0.5rem;height:3px;background:var(--border-gold);border-radius:2px;overflow:hidden;">
                           <div id="strength-bar" style="height:100%;width:0;transition:all 0.3s;background:var(--gold);"></div>
                         </div>
@@ -190,7 +206,10 @@
                     </div>
                   </div>
 
-                  <!-- PASO 3: Captcha + submit -->
+                  /** 
+                   * @section step3 Verificación final
+                   * @description Captcha humano + aceptación de términos + envío final.
+                   */
                   <div class="form-step d-none" id="step-3">
                     <div style="background:rgba(10,22,40,0.5);border:1px solid var(--border-gold);border-radius:var(--radius-md);padding:1.5rem;margin-bottom:1.5rem;">
                       <label class="th-label mb-3">
@@ -231,7 +250,7 @@
                   </div>
                 </form>
 
-                <!-- Éxito -->
+                <!-- Mensaje de éxito post-registro -->
                 <div class="d-none" id="successMsg" style="text-align:center;padding:2rem;">
                   <div style="width:80px;height:80px;background:var(--gold-dim);border:1px solid var(--border-gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;color:var(--gold);">
                     <i class="fa-solid fa-check"></i>
@@ -256,18 +275,42 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // ============================== VARIABLES GLOBALES ===============================
+    /**
+     * @var currentStep
+     * @brief Controla el paso actual del formulario (1, 2 o 3).
+     */
     let currentStep = 1;
+
+    /**
+     * @var captchaCode
+     * @brief Almacena el código CAPTCHA generado aleatoriamente.
+     */
     let captchaCode = 'AB7K3';
 
+    // ============================== FUNCIONES DE NAVEGACIÓN ==============================
+
+    /**
+     * @brief Avanza al siguiente paso si la validación del paso actual es exitosa.
+     * @return void
+     */
     function nextStep() {
       if (!validateStep(currentStep)) return;
       currentStep++;
       updateUI();
     }
+
+    /**
+     * @brief Retrocede al paso anterior.
+     */
     function prevStep() {
       currentStep--;
       updateUI();
     }
+
+    /**
+     * @brief Actualiza la interfaz: muestra/oculta pasos y actualiza indicadores de progreso.
+     */
     function updateUI() {
       for (let i = 1; i <= 3; i++) {
         document.getElementById('step-' + i).classList.toggle('d-none', i !== currentStep);
@@ -277,6 +320,14 @@
         else if (i === currentStep) ind.classList.add('active');
       }
     }
+
+    // ============================== VALIDACIÓN POR PASO ===============================
+
+    /**
+     * @brief Valida los campos requeridos del paso actual.
+     * @param step Número de paso (1,2,3)
+     * @return boolean true si todos los campos obligatorios están llenos y las condiciones especiales se cumplen.
+     */
     function validateStep(step) {
       const container = document.getElementById('step-' + step);
       const required  = container.querySelectorAll('[required]');
@@ -297,13 +348,30 @@
       clearError();
       return true;
     }
+
+    // ============================== MANEJO DE ERRORES ===============================
+
+    /**
+     * @brief Muestra un mensaje de error en el contenedor global.
+     * @param msg Texto del error.
+     */
     function showError(msg) {
       document.getElementById('reg-error-msg').textContent = msg;
       document.getElementById('reg-error').classList.add('show');
     }
+
+    /**
+     * @brief Oculta el mensaje de error.
+     */
     function clearError() {
       document.getElementById('reg-error').classList.remove('show');
     }
+
+    // ============================== CAPTCHA ===============================
+
+    /**
+     * @brief Genera un nuevo código CAPTCHA de 5 caracteres alfanuméricos.
+     */
     function refreshCaptcha() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       captchaCode = '';
@@ -311,7 +379,12 @@
       document.getElementById('captchaText').textContent = captchaCode;
       document.getElementById('captchaInput').value = '';
     }
-    // Fuerza contraseña
+
+    // ============================== MEDIDOR DE FORTALEZA DE CONTRASEÑA ===============================
+
+    /**
+     * @brief Evento que evalúa la fortaleza de la contraseña en tiempo real y actualiza la barra visual.
+     */
     document.getElementById('regPass').addEventListener('input', function() {
       const v = this.value;
       let s = 0;
@@ -326,7 +399,14 @@
       document.getElementById('strength-bar').style.background = colors[s] || 'var(--gold)';
       document.getElementById('strength-label').textContent  = labels[s] || '';
     });
-    // Submit
+
+    // ============================== ENVÍO DEL FORMULARIO (REGISTRO) ===============================
+
+    /**
+     * @brief Maneja el envío asíncrono del formulario hacia /api/auth/register.
+     * @description Valida CAPTCHA, términos, envía los datos y muestra éxito o error.
+     * @event submit
+     */
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const captchaVal = document.getElementById('captchaInput').value.toUpperCase();

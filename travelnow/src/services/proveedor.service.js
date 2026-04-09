@@ -1,3 +1,16 @@
+/**
+ * @file integracion.proveedores.js
+ * @brief Módulo de integración con proveedores de aerolíneas y hoteles
+ * @author Sistema de Reservas
+ * @version 1.0.0
+ * @date 2024
+ * 
+ * @details Este módulo maneja la comunicación con APIs externas de aerolíneas y hoteles,
+ * incluyendo autenticación, gestión de sesiones, búsqueda de disponibilidad,
+ * reservas y cancelaciones. Implementa caché de sesiones, reintentos automáticos
+ * y cálculo de precios con ganancia.
+ */
+
 // Control de integracion con aerolinea y hotel
 const axios = require('axios');
 const db    = require('../config/db');
@@ -6,6 +19,15 @@ const db    = require('../config/db');
 //  CONFIGURACION DEL PROVEEDOR (desde BD)
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Obtiene la configuración de un proveedor desde la base de datos
+ * @param {number} idProveedor - ID del proveedor a consultar
+ * @returns {Promise<Object>} Configuración del proveedor
+ * @throws {Error} Si el proveedor no existe o está inactivo
+ * 
+ * @details Consulta la tabla 'proveedor' filtrando por ID y estado activo.
+ * La configuración incluye endpoint, credenciales y porcentaje de ganancia.
+ */
 const getConfig = async (idProveedor) => {
     const [rows] = await db.query(
         'SELECT * FROM proveedor WHERE id_proveedor = ? AND estado = "activo"',
@@ -21,9 +43,34 @@ const getConfig = async (idProveedor) => {
 //  CLIENTES HTTP
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Cache de sesiones HTTP para aerolíneas
+ * @type {Object.<number, {cookie: string, ts: number}>}
+ * @description Almacena cookies de sesión por ID de proveedor
+ */
 const _sessionCache = {};
+
+/**
+ * @brief Tiempo de vida de la sesión en milisegundos
+ * @constant {number}
+ * @default 3000000 (50 minutos)
+ */
 const SESSION_TTL_MS = 50 * 60 * 1000;
 
+/**
+ * @brief Realiza login en el sistema de aerolínea y obtiene cookie de sesión
+ * @param {Object} prov - Configuración del proveedor
+ * @param {string} prov.id_proveedor - ID del proveedor
+ * @param {string} prov.endpoint_api - URL base de la API
+ * @param {string} prov.api_usuario - Usuario para autenticación
+ * @param {string} prov.api_password - Contraseña para autenticación
+ * @param {string} prov.nombre - Nombre del proveedor
+ * @returns {Promise<string>} Cookie de sesión para usar en requests
+ * @throws {Error} Si falla la conexión o el login
+ * 
+ * @details Utiliza caché para evitar múltiples logins.
+ * La cookie se almacena con timestamp para control de expiración.
+ */
 const _loginAerolinea = async (prov) => {
     const cached = _sessionCache[prov.id_proveedor];
     if (cached && Date.now() - cached.ts < SESSION_TTL_MS) {
@@ -67,10 +114,21 @@ const _loginAerolinea = async (prov) => {
     return cookie;
 };
 
+/**
+ * @brief Invalida la sesión en caché para un proveedor
+ * @param {number} idProveedor - ID del proveedor
+ * @description Elimina la cookie almacenada, forzando nuevo login en próxima request
+ */
 const _invalidarSession = (idProveedor) => {
     delete _sessionCache[idProveedor];
 };
 
+/**
+ * @brief Crea un cliente HTTP autenticado para aerolínea
+ * @param {Object} prov - Configuración del proveedor
+ * @returns {Promise<Object>} Cliente Axios configurado con cookie de sesión
+ * @description Realiza login automáticamente y configura el cliente con la cookie
+ */
 const _crearClienteAerolinea = async (prov) => {
     const cookie = await _loginAerolinea(prov);
     return axios.create({
@@ -84,6 +142,13 @@ const _crearClienteAerolinea = async (prov) => {
     });
 };
 
+/**
+ * @brief Ejecuta una función con reintento automático en caso de sesión expirada
+ * @param {Object} prov - Configuración del proveedor
+ * @param {Function} fn - Función asíncrona que recibe el cliente autenticado
+ * @returns {Promise<any>} Resultado de la función
+ * @description Si la función falla con error 401/403, invalida sesión, relogin y reintenta
+ */
 const _withRetry = async (prov, fn) => {
     try {
         const client = await _crearClienteAerolinea(prov);
@@ -101,7 +166,13 @@ const _withRetry = async (prov, fn) => {
     }
 };
 
-// Cliente axios para hotel (Bearer token = api_password)
+/**
+ * @brief Crea un cliente HTTP para API de hotel con autenticación Bearer
+ * @param {Object} prov - Configuración del proveedor
+ * @param {string} prov.endpoint_api - URL base de la API
+ * @param {string} prov.api_password - Token Bearer para autenticación
+ * @returns {Object} Cliente Axios configurado con Bearer token
+ */
 const clienteHotel = (prov) => axios.create({
     baseURL: prov.endpoint_api,
     timeout: 10000,
@@ -115,6 +186,19 @@ const clienteHotel = (prov) => axios.create({
 //  Aerolinea
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Busca vuelos disponibles en aerolínea
+ * @param {number} idProveedor - ID del proveedor de aerolínea
+ * @param {Object} params - Parámetros de búsqueda
+ * @param {string} [params.origen] - Código IATA de origen
+ * @param {string} [params.destino] - Código IATA de destino
+ * @param {string} [params.fecha_salida] - Fecha de salida (YYYY-MM-DD)
+ * @param {string} [params.tipo_asiento] - Tipo de asiento (economy, business, etc)
+ * @returns {Promise<Array>} Lista de vuelos disponibles con precios calculados
+ * 
+ * @details Convierte la respuesta del proveedor al formato interno de la agencia.
+ * Calcula el precio de agencia aplicando el porcentaje de ganancia.
+ */
 const buscarVuelos = async (idProveedor, params) => {
     const prov = await getConfig(idProveedor);
     const queryParams = {};
@@ -157,6 +241,17 @@ const buscarVuelos = async (idProveedor, params) => {
     }));
 };
 
+/**
+ * @brief Realiza una reserva de vuelo en el sistema de aerolínea
+ * @param {number} idProveedor - ID del proveedor de aerolínea
+ * @param {Object} payload - Datos de la reserva
+ * @param {string} payload.id_vuelo - ID del vuelo a reservar
+ * @param {Array} payload.pasajeros - Lista de pasajeros
+ * @param {string} payload.metodo_pago - Método de pago (tarjeta, transferencia, etc)
+ * @param {number} payload.id_usuario_externo - ID del usuario en sistema externo
+ * @returns {Promise<Object>} Datos de la reservación creada
+ * @throws {Error} Si falta id_vuelo o la lista de pasajeros
+ */
 const reservarVuelo = async (idProveedor, payload) => {
     const prov = await getConfig(idProveedor);
     if (!payload.id_vuelo)        throw new Error('[Aerolinea] Falta id_vuelo en el payload');
@@ -192,6 +287,12 @@ const reservarVuelo = async (idProveedor, payload) => {
     return reservacion;
 };
 
+/**
+ * @brief Cancela una reserva de vuelo existente
+ * @param {number} idProveedor - ID del proveedor de aerolínea
+ * @param {string} idReservacionProveedor - ID de la reservación en sistema del proveedor
+ * @returns {Promise<Object>} Confirmación de cancelación
+ */
 const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
     const prov = await getConfig(idProveedor);
     const raw  = await _withRetry(prov, async (client) => {
@@ -201,6 +302,12 @@ const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
     return raw?.data ?? raw;
 };
 
+/**
+ * @brief Obtiene listados de orígenes y destinos disponibles
+ * @param {number} idProveedor - ID del proveedor de aerolínea
+ * @returns {Promise<Object>} Objeto con arrays 'origenes' y 'destinos'
+ * @description Extrae países/ciudades desde el endpoint /api/paises
+ */
 const obtenerOrigenesDestinos = async (idProveedor) => {
     const prov = await getConfig(idProveedor);
     try {
@@ -229,6 +336,15 @@ const obtenerOrigenesDestinos = async (idProveedor) => {
 //  Hotel
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Busca hoteles disponibles según fechas y capacidad
+ * @param {number} idProveedor - ID del proveedor de hotel
+ * @param {Object} params - Parámetros de búsqueda
+ * @param {string} params.fecha_checkin - Fecha de entrada (YYYY-MM-DD)
+ * @param {string} params.fecha_checkout - Fecha de salida (YYYY-MM-DD)
+ * @param {number} params.num_huespedes - Número de huéspedes (default: 1)
+ * @returns {Promise<Array>} Lista de habitaciones disponibles con precios calculados
+ */
 const buscarHoteles = async (idProveedor, params) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -262,6 +378,19 @@ const buscarHoteles = async (idProveedor, params) => {
     }));
 };
 
+/**
+ * @brief Realiza una reserva de hotel
+ * @param {number} idProveedor - ID del proveedor de hotel
+ * @param {Object} payload - Datos de la reserva
+ * @param {string} payload.id_habitacion - ID de la habitación a reservar
+ * @param {string} payload.fecha_checkin - Fecha de entrada
+ * @param {string} payload.fecha_checkout - Fecha de salida
+ * @param {number} payload.num_huespedes - Número de huéspedes
+ * @param {number} payload.id_usuario_externo - ID del usuario en sistema externo
+ * @param {string} payload.metodo_pago - Método de pago
+ * @param {string} [payload.notas] - Notas especiales
+ * @returns {Promise<Object>} Datos de la reservación creada
+ */
 const reservarHotel = async (idProveedor, payload) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -280,6 +409,12 @@ const reservarHotel = async (idProveedor, payload) => {
     return data.data || data;
 };
 
+/**
+ * @brief Cancela una reserva de hotel existente
+ * @param {number} idProveedor - ID del proveedor de hotel
+ * @param {string} idReservacionProveedor - ID de la reservación en sistema del proveedor
+ * @returns {Promise<Object>} Confirmación de cancelación
+ */
 const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -287,6 +422,12 @@ const cancelarHotel = async (idProveedor, idReservacionProveedor) => {
     return data.data || data;
 };
 
+/**
+ * @brief Obtiene lista de ciudades disponibles desde el proveedor hotelero
+ * @param {number} idProveedor - ID del proveedor de hotel
+ * @returns {Promise<Object>} Objeto con array 'ciudades' de {nombre}
+ * @description Extrae ciudades únicas del listado de habitaciones
+ */
 const obtenerCiudades = async (idProveedor) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
@@ -302,6 +443,15 @@ const obtenerCiudades = async (idProveedor) => {
 //  UTILIDAD DE PRECIO
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @brief Calcula el precio final incluyendo porcentaje de ganancia de la agencia
+ * @param {number|string} precioBase - Precio base del proveedor
+ * @param {number|string} porcentaje - Porcentaje de ganancia (ej: 15 para 15%)
+ * @returns {number} Precio final redondeado a 2 decimales
+ * 
+ * @example
+ * calcularPrecioConGanancia(100, 15) // Retorna 115.00
+ */
 const calcularPrecioConGanancia = (precioBase, porcentaje) => {
     const base = parseFloat(precioBase) || 0;
     const pct  = parseFloat(porcentaje) || 0;
@@ -312,15 +462,19 @@ const calcularPrecioConGanancia = (precioBase, porcentaje) => {
 //  EXPORTS
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * @module integracion.proveedores
+ * @description Módulo principal de integración con proveedores externos
+ */
 module.exports = {
-    buscarVuelos,
-    reservarVuelo,
-    cancelarVuelo,
-    obtenerOrigenesDestinos,
-    buscarHoteles,
-    reservarHotel,
-    cancelarHotel,
-    obtenerCiudades,
-    calcularPrecioConGanancia,
-    buscarConfig: getConfig,
+    buscarVuelos,           /**< Busca vuelos disponibles */
+    reservarVuelo,          /**< Reserva un vuelo */
+    cancelarVuelo,          /**< Cancela reserva de vuelo */
+    obtenerOrigenesDestinos,/**< Obtiene orígenes/destinos disponibles */
+    buscarHoteles,          /**< Busca hoteles disponibles */
+    reservarHotel,          /**< Reserva un hotel */
+    cancelarHotel,          /**< Cancela reserva de hotel */
+    obtenerCiudades,        /**< Obtiene ciudades disponibles */
+    calcularPrecioConGanancia, /**< Calcula precio con ganancia */
+    buscarConfig: getConfig,    /**< Obtiene configuración de proveedor */
 };

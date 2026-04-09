@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+/**
+ * @file hotel_detail.html
+ * @brief Página de detalle de hotel para TravelHub.
+ * @details Muestra la información completa de un hotel, incluyendo galería, servicios,
+ *          tipos de habitación, ubicación, reseñas y un sidebar para reservas.
+ * @version 1.0.0
+ * @author TravelHub Team
+ * @date 2024
+ * @section license Licencia
+ * Código propietario de TravelHub.
+ */
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -10,8 +21,22 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./public/css/styles.css">
   <style>
+    /**
+     * @brief Estilos específicos para la página de detalle de hotel.
+     * @details Sobrescribe o extiende los estilos globales de TravelHub.
+     * @section colors Paleta de colores TravelHub
+     * - @var navy: #0A1628 (fondo principal)
+     * - @var gold: #D4A843 (acentos dorados)
+     * - @var cream: #F5F0E8 (texto claro)
+     */
+     
     body { background: var(--navy); }
-    /* Galería */
+    
+    /* @section gallery Galería de imágenes */
+    /**
+     * @brief Grid de la galería principal.
+     * @details Define una cuadrícula de 3 columnas (2fr, 1fr, 1fr) y 2 filas de 220px.
+     */
     .gallery-grid {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
@@ -20,13 +45,74 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
     }
-    .gallery-item { background: var(--navy-light); overflow: hidden; position: relative; cursor: pointer; }
+    
+    /**
+     * @brief Contenedor de cada item de la galería.
+     * @details Fondo azul marino claro y cursor tipo pointer.
+     */
+    .gallery-item { 
+      background: var(--navy-light); 
+      overflow: hidden; 
+      position: relative; 
+      cursor: pointer; 
+    }
+    
+    /**
+     * @brief Primer elemento de la galería.
+     * @details Ocupa ambas filas del grid.
+     */
     .gallery-item:first-child { grid-row: 1 / 3; }
-    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    
+    /**
+     * @brief Imagen dentro del item de galería.
+     * @details Efecto de escala al hacer hover.
+     */
+    .gallery-item img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: transform 0.5s ease; 
+    }
     .gallery-item:hover img { transform: scale(1.05); }
-    .gallery-item-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: linear-gradient(135deg, #112240, #1B3460); color: var(--gold); }
-    .gallery-all-btn { position: absolute; bottom: 12px; right: 12px; background: rgba(10,22,40,0.85); border: 1px solid var(--border-gold); color: var(--cream); padding: 0.4rem 1rem; border-radius: var(--radius-sm); font-size: 0.78rem; cursor: pointer; backdrop-filter: blur(10px); }
-    /* Secciones */
+    
+    /**
+     * @brief Placeholder para imágenes no cargadas.
+     * @details Gradiente azul oscuro con ícono dorado.
+     */
+    .gallery-item-placeholder { 
+      width: 100%; 
+      height: 100%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 3rem; 
+      background: linear-gradient(135deg, #112240, #1B3460); 
+      color: var(--gold); 
+    }
+    
+    /**
+     * @brief Botón "Ver todas las fotos".
+     * @details Posicionado en la esquina inferior derecha con efecto blur.
+     */
+    .gallery-all-btn { 
+      position: absolute; 
+      bottom: 12px; 
+      right: 12px; 
+      background: rgba(10,22,40,0.85); 
+      border: 1px solid var(--border-gold); 
+      color: var(--cream); 
+      padding: 0.4rem 1rem; 
+      border-radius: var(--radius-sm); 
+      font-size: 0.78rem; 
+      cursor: pointer; 
+      backdrop-filter: blur(10px); 
+    }
+    
+    /* @section sections Secciones de contenido */
+    /**
+     * @brief Tarjeta/sección principal de contenido.
+     * @details Fondo semitransparente con borde dorado y efecto blur.
+     */
     .hotel-section {
       background: rgba(17,34,64,0.7);
       border: 1px solid var(--border-gold);
@@ -35,27 +121,86 @@
       margin-bottom: 1.5rem;
       backdrop-filter: blur(10px);
     }
+    
+    /**
+     * @brief Cabecera de cada sección.
+     * @details Contiene ícono dorado y título.
+     */
     .hotel-section-header {
       background: rgba(10,22,40,0.5);
       border-bottom: 1px solid var(--border-gold);
       padding: 1.2rem 2rem;
-      display: flex; align-items: center; gap: 0.8rem;
+      display: flex; 
+      align-items: center; 
+      gap: 0.8rem;
     }
-    .hotel-section-header h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; color: var(--white); margin: 0; }
+    
+    .hotel-section-header h2 { 
+      font-family: var(--font-display); 
+      font-size: 1.3rem; 
+      font-weight: 400; 
+      color: var(--white); 
+      margin: 0; 
+    }
     .hotel-section-header i { color: var(--gold); }
     .hotel-section-body { padding: 2rem; }
-    /* Header hotel */
-    .hotel-header-info h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 600; color: var(--white); margin-bottom: 0.5rem; }
-    .hotel-location { color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
-    .chain-pill { display: inline-block; background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-top: 0.6rem; }
+    
+    /* @section hotel-header Header del hotel */
+    .hotel-header-info h1 { 
+      font-family: var(--font-display); 
+      font-size: clamp(2rem, 4vw, 2.8rem); 
+      font-weight: 600; 
+      color: var(--white); 
+      margin-bottom: 0.5rem; 
+    }
+    .hotel-location { 
+      color: var(--text-muted); 
+      font-size: 0.9rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+    }
+    
+    /**
+     * @brief Pill badge para mostrar la cadena hotelera.
+     */
+    .chain-pill { 
+      display: inline-block; 
+      background: var(--gold-dim); 
+      border: 1px solid var(--border-gold); 
+      color: var(--gold); 
+      font-size: 0.72rem; 
+      font-weight: 600; 
+      letter-spacing: 0.06em; 
+      text-transform: uppercase; 
+      padding: 3px 12px; 
+      border-radius: 20px; 
+      margin-top: 0.6rem; 
+    }
+    
     .rating-display { display: flex; align-items: center; gap: 0.5rem; }
-    .rating-score-big { font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .rating-score-big { 
+      font-family: var(--font-display); 
+      font-size: 2.5rem; 
+      font-weight: 700; 
+      color: var(--gold); 
+      line-height: 1; 
+    }
     .rating-stars-gold { color: var(--gold); font-size: 1.1rem; }
     .rating-count { font-size: 0.75rem; color: var(--text-muted); }
-    /* Amenidades */
-    .amenity-item { display: flex; align-items: center; gap: 0.8rem; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    
+    /* @section amenities Amenidades */
+    .amenity-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.8rem; 
+      font-size: 0.88rem; 
+      color: var(--text-muted); 
+      margin-bottom: 0.5rem; 
+    }
     .amenity-item i { color: var(--gold); width: 20px; text-align: center; font-size: 0.85rem; }
-    /* Room cards */
+    
+    /* @section rooms Tarjetas de habitaciones */
     .room-card {
       background: rgba(10,22,40,0.5);
       border: 1px solid var(--border-gold);
@@ -67,31 +212,115 @@
     .room-card:hover { border-color: rgba(212,168,67,0.5); box-shadow: var(--shadow-gold); }
     .room-name { font-family: var(--font-display); font-size: 1.2rem; color: var(--white); }
     .room-specs { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
-    .room-price-big { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .room-price-big { 
+      font-family: var(--font-display); 
+      font-size: 2rem; 
+      font-weight: 700; 
+      color: var(--gold); 
+      line-height: 1; 
+    }
     .room-price-label { font-size: 0.72rem; color: var(--text-muted); }
-    .room-feature { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); }
+    .room-feature { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      font-size: 0.8rem; 
+      color: var(--text-muted); 
+    }
     .room-feature i { color: var(--gold); font-size: 0.75rem; }
-    /* Alrededores */
-    .nearby-item { display: flex; justify-content: space-between; align-items: center; background: rgba(10,22,40,0.4); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); padding: 0.8rem 1rem; margin-bottom: 0.5rem; }
+    
+    /* @section nearby Lugares cercanos */
+    .nearby-item { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      background: rgba(10,22,40,0.4); 
+      border: 1px solid rgba(212,168,67,0.1); 
+      border-radius: var(--radius-sm); 
+      padding: 0.8rem 1rem; 
+      margin-bottom: 0.5rem; 
+    }
     .nearby-name { font-size: 0.88rem; color: var(--cream); }
     .nearby-dist { font-size: 0.78rem; color: var(--gold); font-weight: 500; }
-    /* Comentarios */
-    .comment-card { background: rgba(10,22,40,0.5); border: 1px solid rgba(212,168,67,0.12); border-radius: var(--radius-sm); padding: 1.3rem; margin-bottom: 0.8rem; }
-    .comment-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
+    
+    /* @section comments Sección de comentarios/reseñas */
+    .comment-card { 
+      background: rgba(10,22,40,0.5); 
+      border: 1px solid rgba(212,168,67,0.12); 
+      border-radius: var(--radius-sm); 
+      padding: 1.3rem; 
+      margin-bottom: 0.8rem; 
+    }
+    .comment-head { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      margin-bottom: 0.8rem; 
+    }
     .comment-author { display: flex; align-items: center; gap: 0.8rem; }
-    .comment-avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--gold-dim), rgba(212,168,67,0.25)); border: 1px solid var(--border-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.88rem; color: var(--gold); font-weight: 600; }
+    .comment-avatar { 
+      width: 38px; 
+      height: 38px; 
+      background: linear-gradient(135deg, var(--gold-dim), rgba(212,168,67,0.25)); 
+      border: 1px solid var(--border-gold); 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-family: var(--font-display); 
+      font-size: 0.88rem; 
+      color: var(--gold); 
+      font-weight: 600; 
+    }
     .comment-name { font-size: 0.9rem; color: var(--cream); font-weight: 500; }
     .comment-date { font-size: 0.72rem; color: var(--text-muted); }
     .stars-sm { color: var(--gold); font-size: 0.85rem; }
-    .comment-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 0.6rem; }
-    .comment-action { font-size: 0.78rem; color: var(--text-muted); cursor: pointer; transition: var(--trans); display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 1rem; }
+    .comment-text { 
+      font-size: 0.85rem; 
+      color: var(--text-muted); 
+      line-height: 1.7; 
+      margin-bottom: 0.6rem; 
+    }
+    .comment-action { 
+      font-size: 0.78rem; 
+      color: var(--text-muted); 
+      cursor: pointer; 
+      transition: var(--trans); 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 0.3rem; 
+      margin-right: 1rem; 
+    }
     .comment-action:hover { color: var(--gold); }
-    .star-btn { background: none; border: none; color: rgba(212,168,67,0.3); font-size: 1.6rem; cursor: pointer; transition: var(--trans); padding: 0 0.1rem; }
+    
+    /* @section rating-stars Estrellas de calificación */
+    .star-btn { 
+      background: none; 
+      border: none; 
+      color: rgba(212,168,67,0.3); 
+      font-size: 1.6rem; 
+      cursor: pointer; 
+      transition: var(--trans); 
+      padding: 0 0.1rem; 
+    }
     .star-btn.active { color: var(--gold); }
-    .th-textarea { background: rgba(10,22,40,0.7); border: 1px solid var(--border-gold); color: var(--cream); border-radius: var(--radius-sm); padding: 0.9rem 1rem; font-family: var(--font-body); font-size: 0.9rem; width: 100%; resize: vertical; min-height: 100px; }
+    
+    .th-textarea { 
+      background: rgba(10,22,40,0.7); 
+      border: 1px solid var(--border-gold); 
+      color: var(--cream); 
+      border-radius: var(--radius-sm); 
+      padding: 0.9rem 1rem; 
+      font-family: var(--font-body); 
+      font-size: 0.9rem; 
+      width: 100%; 
+      resize: vertical; 
+      min-height: 100px; 
+    }
     .th-textarea::placeholder { color: rgba(245,240,232,0.3); }
     .th-textarea:focus { outline: none; border-color: var(--gold); }
-    /* Sidebar reserva */
+    
+    /* @section sidebar Sidebar de reserva */
     .booking-sidebar {
       background: rgba(6,15,28,0.9);
       border: 1px solid var(--border-gold);
@@ -100,20 +329,69 @@
       position: sticky;
       top: 90px;
     }
-    .booking-sidebar-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--white); margin-bottom: 1.5rem; }
-    .pb-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
-    .pb-total { display: flex; justify-content: space-between; padding-top: 0.8rem; margin-top: 0.4rem; border-top: 1px solid var(--border-gold); font-weight: 600; color: var(--white); }
-    .contact-info-sidebar { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(212,168,67,0.1); }
-    .contact-info-sidebar h4 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 0.8rem; }
-    .contact-info-line { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+    .booking-sidebar-title { 
+      font-family: var(--font-display); 
+      font-size: 1.3rem; 
+      color: var(--white); 
+      margin-bottom: 1.5rem; 
+    }
+    .pb-row { 
+      display: flex; 
+      justify-content: space-between; 
+      font-size: 0.85rem; 
+      color: var(--text-muted); 
+      margin-bottom: 0.6rem; 
+    }
+    .pb-total { 
+      display: flex; 
+      justify-content: space-between; 
+      padding-top: 0.8rem; 
+      margin-top: 0.4rem; 
+      border-top: 1px solid var(--border-gold); 
+      font-weight: 600; 
+      color: var(--white); 
+    }
+    .contact-info-sidebar { 
+      margin-top: 1.5rem; 
+      padding-top: 1.5rem; 
+      border-top: 1px solid rgba(212,168,67,0.1); 
+    }
+    .contact-info-sidebar h4 { 
+      font-size: 0.78rem; 
+      text-transform: uppercase; 
+      letter-spacing: 0.1em; 
+      color: var(--gold); 
+      margin-bottom: 0.8rem; 
+    }
+    .contact-info-line { 
+      font-size: 0.82rem; 
+      color: var(--text-muted); 
+      margin-bottom: 0.4rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+    }
     .contact-info-line i { color: var(--gold); font-size: 0.78rem; }
-    .btn-back-res { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.6rem 1.3rem; font-size: 0.82rem; text-decoration: none; transition: var(--trans); }
+    .btn-back-res { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      color: var(--text-muted); 
+      background: transparent; 
+      border: 1px solid var(--border-gold); 
+      border-radius: var(--radius-sm); 
+      padding: 0.6rem 1.3rem; 
+      font-size: 0.82rem; 
+      text-decoration: none; 
+      transition: var(--trans); 
+    }
     .btn-back-res:hover { border-color: var(--gold); color: var(--gold); }
   </style>
 </head>
 <body>
 
-  <!-- Navbar -->
+  <!-- @section navbar Barra de navegación -->
+  <!-- @brief Navbar fija con logo, botón de volver y área de usuario -->
   <nav class="th-navbar scrolled">
     <div class="container">
       <div class="d-flex align-items-center justify-content-between">
@@ -127,7 +405,7 @@
   </nav>
 
   <div style="padding:90px 0 5rem;">
-    <!-- Galería -->
+    <!-- @section gallery Galería de imágenes del hotel -->
     <div class="container mb-4">
       <div class="gallery-grid anim-up">
         <div class="gallery-item"><div class="gallery-item-placeholder"><i class="fa-solid fa-building"></i></div>
@@ -142,10 +420,10 @@
     <div class="container">
       <div class="row g-4">
 
-        <!-- Contenido principal -->
+        <!-- @section main-content Contenido principal (columna izquierda) -->
         <div class="col-lg-8">
 
-          <!-- Header hotel -->
+          <!-- @subsection hotel-header Información principal del hotel -->
           <div class="hotel-section anim-up">
             <div class="hotel-section-body">
               <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -167,7 +445,7 @@
             </div>
           </div>
 
-          <!-- Amenidades -->
+          <!-- @subsection amenities Lista de servicios y comodidades -->
           <div class="hotel-section anim-up anim-up-1">
             <div class="hotel-section-header"><i class="fa-solid fa-concierge-bell"></i><h2>Servicios y comodidades</h2></div>
             <div class="hotel-section-body">
@@ -186,11 +464,12 @@
             </div>
           </div>
 
-          <!-- Habitaciones -->
+          <!-- @subsection rooms Tipos de habitación disponibles -->
           <div class="hotel-section anim-up anim-up-2">
             <div class="hotel-section-header"><i class="fa-solid fa-bed"></i><h2>Tipos de habitación</h2></div>
             <div class="hotel-section-body">
 
+              <!-- @class room-card Habitación Doble Deluxe -->
               <div class="room-card">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                   <div><div class="room-name">Habitación Doble Deluxe</div><div class="room-specs">35 m² · Cama King Size · Vista al mar</div></div>
@@ -207,6 +486,7 @@
                 </a>
               </div>
 
+              <!-- @class room-card Junior Suite -->
               <div class="room-card">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                   <div><div class="room-name">Junior Suite</div><div class="room-specs">50 m² · King + Sofá cama · Vista panorámica</div></div>
@@ -223,6 +503,7 @@
                 </a>
               </div>
 
+              <!-- @class room-card Suite Presidencial -->
               <div class="room-card">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                   <div><div class="room-name">Suite Presidencial</div><div class="room-specs">120 m² · 2 Recámaras · Vista 360° al océano</div></div>
@@ -241,7 +522,7 @@
             </div>
           </div>
 
-          <!-- Ubicación -->
+          <!-- @subsection location Ubicación y lugares cercanos -->
           <div class="hotel-section anim-up anim-up-3">
             <div class="hotel-section-header"><i class="fa-solid fa-location-dot"></i><h2>Ubicación y alrededores</h2></div>
             <div class="hotel-section-body">
@@ -253,10 +534,11 @@
             </div>
           </div>
 
-          <!-- Reseñas -->
+          <!-- @subsection reviews Sección de reseñas y calificaciones -->
           <div class="hotel-section">
             <div class="hotel-section-header"><i class="fa-solid fa-star"></i><h2>Reseñas de huéspedes</h2></div>
             <div class="hotel-section-body">
+              <!-- Formulario para nueva reseña -->
               <div style="background:rgba(10,22,40,0.5);border:1px solid var(--border-gold);border-radius:var(--radius-sm);padding:1.5rem;margin-bottom:1.5rem;">
                 <label class="th-label mb-2">Tu calificación</label>
                 <div class="mb-3">
@@ -270,6 +552,7 @@
                 <button class="btn-auth" style="width:auto;padding:0.7rem 2rem;font-size:0.85rem;"><i class="fa-solid fa-paper-plane me-2"></i> Publicar reseña</button>
               </div>
 
+              <!-- @var comment-card Ejemplo de reseña de huésped -->
               <div class="comment-card">
                 <div class="comment-head"><div class="comment-author"><div class="comment-avatar">SC</div><div><div class="comment-name">Sofía Contreras</div><div class="comment-date">Hace 3 días</div></div></div><span class="stars-sm">★★★★★</span></div>
                 <p class="comment-text">Una experiencia absolutamente maravillosa. Las instalaciones son impecables, el personal extremadamente amable. La habitación era espaciosa con vista espectacular al mar. Sin duda volveríamos.</p>
@@ -287,7 +570,7 @@
           </div>
         </div>
 
-        <!-- Sidebar reserva -->
+        <!-- @section booking-sidebar Sidebar de reserva (columna derecha) -->
         <div class="col-lg-4">
           <div class="booking-sidebar anim-up anim-up-1">
             <div class="booking-sidebar-title"><i class="fa-solid fa-calendar-check me-2" style="color:var(--gold)"></i>Reserva tu estadía</div>
@@ -301,12 +584,14 @@
             <a href="/checkout" class="btn-buscar" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
               <i class="fa-solid fa-check"></i> Verificar disponibilidad
             </a>
+            <!-- @subsection price-breakdown Desglose de precios -->
             <div style="background:rgba(10,22,40,0.5);border:1px solid rgba(212,168,67,0.1);border-radius:var(--radius-sm);padding:1.2rem;margin-top:1.2rem;">
               <div class="pb-row"><span>$180 x 7 noches</span><span>$1,260</span></div>
               <div class="pb-row"><span>Limpieza</span><span>$70</span></div>
               <div class="pb-row"><span>Impuestos</span><span>$95</span></div>
               <div class="pb-total"><span>Total</span><span>$1,425</span></div>
             </div>
+            <!-- @subsection contact-info Información de contacto del hotel -->
             <div class="contact-info-sidebar">
               <h4><i class="fa-solid fa-headset me-1"></i> ¿Tienes preguntas?</h4>
               <div class="contact-info-line"><i class="fa-solid fa-phone"></i> +1 (305) 555-0123</div>
@@ -321,13 +606,41 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    /**
+     * @fileoverview Scripts de interacción para la página de detalle de hotel.
+     * @author TravelHub Team
+     * @version 1.0.0
+     */
+    
+    /**
+     * @var {number} selectedRating - Calificación seleccionada por el usuario (1-5).
+     * @description Almacena la puntuación elegida en el widget de estrellas.
+     * @default 0
+     */
     let selectedRating = 0;
+    
+    /**
+     * @function initStarRating
+     * @brief Inicializa el sistema de calificación con estrellas.
+     * @details Agrega event listeners a cada botón de estrella para actualizar
+     *          la calificación visual y almacenar el valor seleccionado.
+     * @listens click
+     */
     document.querySelectorAll('.star-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         selectedRating = parseInt(this.dataset.r);
         document.querySelectorAll('.star-btn').forEach((b, i) => b.classList.toggle('active', i < selectedRating));
       });
     });
+    
+    /**
+     * @function fetchUserData
+     * @brief Obtiene los datos del usuario autenticado desde la API.
+     * @details Realiza una petición GET a '/api/auth/me' y actualiza el área de navegación
+     *          con el nombre del usuario si la autenticación es exitosa.
+     * @returns {Promise<void>}
+     * @throws {Error} Silencia errores de red o autenticación.
+     */
     fetch('/api/auth/me').then(r=>r.json()).then(d=>{
       if(d?.ok && d.usuario) document.getElementById('nav-user-area').innerHTML=`<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
     }).catch(()=>{});

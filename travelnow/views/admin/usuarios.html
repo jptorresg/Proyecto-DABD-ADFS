@@ -8,7 +8,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+<!--
+  @file admin_usuarios.html
+  @brief Página de administración de usuarios del panel TravelNow.
+  @details Permite listar, filtrar, cambiar rol, activar/desactivar y eliminar usuarios.
+  @version 1.0
+  @date 2024
+  @author Equipo TravelNow
+-->
+
+<!--
+  @class AdminLayout
+  @brief Contenedor principal del layout administrativo con sidebar y área de contenido.
+-->
 <div class="admin-layout">
+  <!--
+    @class AdminSidebar
+    @brief Barra lateral de navegación con enlaces a las secciones de administración.
+  -->
   <nav class="admin-sidebar">
     <div class="sidebar-logo">Travel<span>Now</span></div>
     <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
@@ -17,7 +34,15 @@
     <a href="/admin/proveedores"  class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
   </nav>
 
+  <!--
+    @class AdminMain
+    @brief Área principal que contiene el topbar y el contenido dinámico.
+  -->
   <div class="admin-main">
+    <!--
+      @class AdminTopbar
+      @brief Barra superior que muestra información del usuario administrador y botón de logout.
+    -->
     <header class="admin-topbar">
       <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
       <div style="display:flex;gap:1rem;align-items:center;">
@@ -26,7 +51,15 @@
       </div>
     </header>
 
+    <!--
+      @class AdminContent
+      @brief Contenedor del contenido principal con filtros, tabla de usuarios y paginación.
+    -->
     <main class="admin-content">
+      <!--
+        @class AdminFilters
+        @brief Panel de filtros para limitar la lista de usuarios (rol, estado, búsqueda por texto).
+      -->
       <div class="admin-filters">
         <select class="th-select-sm" id="filter-rol" onchange="cargarUsuarios()">
           <option value="">Todos los roles</option>
@@ -45,27 +78,34 @@
                style="min-width:220px;padding:0.5rem 0.9rem;">
       </div>
 
+      <!--
+        @class AdminPanel
+        @brief Panel que contiene la tabla de usuarios y la paginación.
+      -->
       <div class="admin-panel">
         <div class="admin-panel-header">
           <h2>Lista de Usuarios</h2>
           <span id="usuarios-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
         </div>
         <div class="admin-panel-body" style="overflow-x:auto;">
+          <!--
+            @class ThTable
+            @brief Tabla HTML que muestra los datos de los usuarios. El cuerpo se llena dinámicamente.
+          -->
           <table class="th-table" id="usuarios-table">
             <thead>
-              <tr>
-                <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
+             <th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th>
                 <th>Estado</th><th>País</th><th>Registro</th><th>Acciones</th>
-              </tr>
             </thead>
             <tbody id="usuarios-tbody">
-              <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
+              <td><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">
                 <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
                 Cargando usuarios...
               </td></tr>
             </tbody>
           </table>
         </div>
+        <!-- Panel de paginación -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
           <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
           <div style="display:flex;gap:0.5rem;">
@@ -79,15 +119,51 @@
 </div>
 
 <script>
+  /*!
+   * @file admin_usuarios.js (embedded)
+   * @brief Lógica completa para gestión de usuarios en el panel de administración.
+   * @description Maneja carga de datos con filtros, paginación, cambios de rol/estado y eliminación.
+   */
+
+  /**
+   * @var {number} paginaActual
+   * @brief Número de página actual en la tabla de usuarios.
+   * @details Se incrementa/decrementa al navegar entre páginas.
+   */
   let paginaActual = 1;
+
+  /**
+   * @var {number} limit
+   * @brief Cantidad de usuarios por página.
+   * @const
+   */
   const limit = 25;
+
+  /**
+   * @var {number|null} searchTimeout
+   * @brief Timeout para la función de búsqueda con debounce.
+   */
   let searchTimeout = null;
 
+  /**
+   * @brief Recarga la lista de usuarios desde la primera página.
+   * @details Resetea `paginaActual` a 1 y luego invoca la carga de datos.
+   * @function cargarUsuarios
+   */
   async function cargarUsuarios() {
     paginaActual = 1;
     await fetchUsuarios();
   }
 
+  /**
+   * @brief Obtiene la lista de usuarios desde el backend aplicando filtros y paginación.
+   * @details Realiza una petición GET a `/api/admin/usuarios/data` con los parámetros:
+   *          página, límite, rol, estado y término de búsqueda. Renderiza la tabla y actualiza
+   *          la paginación y el contador.
+   * @async
+   * @function fetchUsuarios
+   * @throws {Error} En caso de error de conexión o respuesta no exitosa.
+   */
   async function fetchUsuarios() {
     const rol    = document.getElementById('filter-rol').value;
     const estado = document.getElementById('filter-estado').value;
@@ -168,7 +244,15 @@
     }
   }
 
-  /* ── Acciones ─────────────────────────────────── */
+  /* ── Acciones sobre usuarios ─────────────────────────────────── */
+
+  /**
+   * @brief Cambia el rol de un usuario mediante petición PUT al backend.
+   * @async
+   * @param {number} id - Identificador del usuario.
+   * @param {string} rol - Nuevo rol ('usuario', 'administrador', 'webservice').
+   * @returns {Promise<void>}
+   */
   async function cambiarRol(id, rol) {
     if (!rol) return;
     try {
@@ -186,6 +270,14 @@
     } catch (e) { alert('Error de conexión: ' + e.message); }
   }
 
+  /**
+   * @brief Activa o desactiva un usuario mediante petición PUT.
+   * @async
+   * @param {number} id - Identificador del usuario.
+   * @param {string} nuevoEstado - 'activo' o 'inactivo'.
+   * @param {string} nombre - Nombre completo del usuario (para confirmación visual).
+   * @returns {Promise<void>}
+   */
   async function cambiarEstado(id, nuevoEstado, nombre) {
     const accion = nuevoEstado === 'inactivo' ? 'desactivar' : 'activar';
     if (!confirm(`¿Deseas ${accion} al usuario "${nombre}"?`)) return;
@@ -204,6 +296,15 @@
     } catch (e) { alert('Error de conexión: ' + e.message); }
   }
 
+  /**
+   * @brief Elimina permanentemente un usuario (DELETE).
+   * @details Muestra un diálogo de confirmación antes de ejecutar la eliminación.
+   * @warning Esta acción no se puede deshacer. Para usuarios con reservaciones es preferible desactivarlos.
+   * @async
+   * @param {number} id - Identificador del usuario.
+   * @param {string} nombre - Nombre completo del usuario.
+   * @returns {Promise<void>}
+   */
   async function eliminarUsuario(id, nombre) {
     if (!confirm(`¿Eliminar PERMANENTEMENTE al usuario "${nombre}"?\n\nEsta acción no se puede deshacer.\nSi el usuario tiene reservaciones, usa "Desactivar" en su lugar.`)) return;
     try {
@@ -219,17 +320,31 @@
     } catch (e) { alert('Error de conexión: ' + e.message); }
   }
 
-  /* ── Helpers ─────────────────────────────────── */
+  /* ── Funciones auxiliares y helpers ─────────────────────────────────── */
+
+  /**
+   * @brief Cambia la página actual y recarga los usuarios.
+   * @param {number} dir - Dirección del cambio: +1 para avanzar, -1 para retroceder.
+   */
   function cambiarPagina(dir) {
     paginaActual += dir;
     fetchUsuarios();
   }
 
+  /**
+   * @brief Función con debounce para evitar múltiples llamadas mientras el usuario escribe.
+   * @details Resetea el timeout existente y programa la recarga de usuarios después de 400ms.
+   */
   function debounceSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(cargarUsuarios, 400);
   }
 
+  /**
+   * @brief Genera el HTML de una badge según el rol del usuario.
+   * @param {string} rol - Rol del usuario ('administrador', 'usuario', 'webservice' u otro).
+   * @returns {string} Cadena HTML con la clase CSS correspondiente.
+   */
   function badgeRol(rol) {
     const map = {
       administrador: '<span class="badge-custom badge-gold">Administrador</span>',
@@ -239,24 +354,42 @@
     return map[rol] || `<span class="badge-custom">${rol}</span>`;
   }
 
+  /**
+   * @brief Genera el HTML de una badge según el estado del usuario.
+   * @param {string} estado - 'activo' o 'inactivo'.
+   * @returns {string} Cadena HTML con badge verde (activo) o roja (inactivo).
+   */
   function badgeEstado(estado) {
     return estado === 'activo'
       ? '<span class="badge-custom badge-green">Activo</span>'
       : '<span class="badge-custom badge-red">Inactivo</span>';
   }
 
+  /**
+   * @brief Formatea una fecha en formato local de Guatemala (es-GT).
+   * @param {string} f - Fecha en formato ISO o string reconocible por Date.
+   * @returns {string} Fecha formateada o '—' si no es válida.
+   */
   function formatFecha(f) {
     if (!f) return '—';
     return new Date(f).toLocaleDateString('es-GT');
   }
 
+  /**
+   * @brief Cierra la sesión del administrador.
+   * @details Realiza POST a `/api/auth/logout` y redirige al login.
+   */
   function logout() {
     fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
   }
 
-  /* ── Inicializar ── */
+  /* ── Inicialización de la página ── */
+  /**
+   * @brief Punto de entrada: carga los usuarios y obtiene los datos del usuario logueado.
+   */
   fetchUsuarios();
 
+  // Obtiene información del usuario autenticado para mostrarla en el topbar
   fetch('/api/auth/me', { credentials: 'include' })
     .then(r => r.json())
     .then(d => {
