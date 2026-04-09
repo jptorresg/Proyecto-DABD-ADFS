@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['webpalphaquality_0',['webpAlphaQuality',['../struct_pipeline_baton.html#a0ac28996efa2413966422f59778b4194',1,'PipelineBaton']]],
+  ['webpeffort_1',['webpEffort',['../struct_pipeline_baton.html#a739a2092a8fd35c29248ae4a0befcd88',1,'PipelineBaton']]],
+  ['webplossless_2',['webpLossless',['../struct_pipeline_baton.html#a3469f541f15306f9f8dc41debbe238e3',1,'PipelineBaton']]],
+  ['webpminsize_3',['webpMinSize',['../struct_pipeline_baton.html#a9a73bf7baf4c9e325f1869d7df7270d7',1,'PipelineBaton']]],
+  ['webpmixed_4',['webpMixed',['../struct_pipeline_baton.html#adad2fcafa9b4275924d034945e50e0e3',1,'PipelineBaton']]],
+  ['webpnearlossless_5',['webpNearLossless',['../struct_pipeline_baton.html#ad2fa36a872138ecbf658aef172870e10',1,'PipelineBaton']]],
+  ['webppreset_6',['webpPreset',['../struct_pipeline_baton.html#a1d590740c5b68e0d7b8ecbb16e49b426',1,'PipelineBaton']]],
+  ['webpquality_7',['webpQuality',['../struct_pipeline_baton.html#ac4ace7e837c523fd1733da24797f2a34',1,'PipelineBaton']]],
+  ['webpsmartdeblock_8',['webpSmartDeblock',['../struct_pipeline_baton.html#ab0b49d28dc5849ad97cc3089bbfdfa62',1,'PipelineBaton']]],
+  ['webpsmartsubsample_9',['webpSmartSubsample',['../struct_pipeline_baton.html#a2f25a6df9034339ef0a186866395af29',1,'PipelineBaton']]],
+  ['width_10',['width',['../struct_metadata_baton.html#a220f8ad8395f48a77c136e62331c58c1',1,'MetadataBaton::width'],['../struct_pipeline_baton.html#a5b0661ea4ff66407ddb7aebbe2091e25',1,'PipelineBaton::width']]],
+  ['widthpost_11',['widthPost',['../struct_pipeline_baton.html#a008426e015f202a18a88c2f448befb1a',1,'PipelineBaton']]],
+  ['widthpre_12',['widthPre',['../struct_pipeline_baton.html#a83fb37d15d708df3b64c7e3ec6be08a4',1,'PipelineBaton']]],
+  ['withexif_13',['withExif',['../struct_pipeline_baton.html#a6aabaab899cff08b063e05a220ab420c',1,'PipelineBaton']]],
+  ['withexifmerge_14',['withExifMerge',['../struct_pipeline_baton.html#abbf946513ae5db011ee645a8605d56e3',1,'PipelineBaton']]],
+  ['withiccprofile_15',['withIccProfile',['../struct_pipeline_baton.html#aa6b9f0738d14d9a7a4948b7236a0f9f2',1,'PipelineBaton']]],
+  ['withmetadatadensity_16',['withMetadataDensity',['../struct_pipeline_baton.html#a92ff7f2e864b56f182f7b28e9c1c33d6',1,'PipelineBaton']]],
+  ['withmetadataorientation_17',['withMetadataOrientation',['../struct_pipeline_baton.html#a3a60d796fe52d9d3abfd820bb5b7defb',1,'PipelineBaton']]],
+  ['withoutenlargement_18',['withoutEnlargement',['../struct_pipeline_baton.html#a12d142565e8463bd55b7de3d5f077cc3',1,'PipelineBaton']]],
+  ['withoutreduction_19',['withoutReduction',['../struct_pipeline_baton.html#a791beb008ffcae0a4c00f6caf0c64097',1,'PipelineBaton']]],
+  ['withxmp_20',['withXmp',['../struct_pipeline_baton.html#acab9a1a99a3fb9f705b0f88d2ea3ca5f',1,'PipelineBaton']]]
+];

@@ -1,0 +1,26 @@
+var dir_fe36c272442d9f93eac60ef8ad1507d5 =
+[
+    [ "bmp.js", "bmp_8js.html", null ],
+    [ "cur.js", "cur_8js.html", null ],
+    [ "dds.js", "dds_8js.html", null ],
+    [ "gif.js", "gif_8js.html", null ],
+    [ "heif.js", "heif_8js.html", null ],
+    [ "icns.js", "icns_8js.html", null ],
+    [ "ico.js", "ico_8js.html", null ],
+    [ "index.js", "node__modules_2astro_2dist_2assets_2utils_2vendor_2image-size_2types_2index_8js.html", null ],
+    [ "interface.js", "astro_2dist_2assets_2utils_2vendor_2image-size_2types_2interface_8js.html", null ],
+    [ "j2c.js", "j2c_8js.html", null ],
+    [ "jp2.js", "jp2_8js.html", null ],
+    [ "jpg.js", "jpg_8js.html", null ],
+    [ "jxl-stream.js", "jxl-stream_8js.html", null ],
+    [ "jxl.js", "jxl_8js.html", null ],
+    [ "ktx.js", "ktx_8js.html", null ],
+    [ "png.js", "astro_2dist_2assets_2utils_2vendor_2image-size_2types_2png_8js.html", null ],
+    [ "pnm.js", "pnm_8js.html", null ],
+    [ "psd.js", "psd_8js.html", null ],
+    [ "svg.js", "astro_2dist_2assets_2utils_2vendor_2image-size_2types_2svg_8js.html", null ],
+    [ "tga.js", "tga_8js.html", null ],
+    [ "tiff.js", "tiff_8js.html", null ],
+    [ "utils.js", "astro_2dist_2assets_2utils_2vendor_2image-size_2types_2utils_8js.html", null ],
+    [ "webp.js", "webp_8js.html", null ]
+];

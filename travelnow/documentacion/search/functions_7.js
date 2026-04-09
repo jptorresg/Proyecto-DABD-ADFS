@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['gamma_0',['Gamma',['../namespacesharp.html#a19a235cf0741db74b1b72887a17578ef',1,'sharp']]],
+  ['get_1',['Get',['../class_napi_1_1_object.html#a4cc2ecc864b3e98b3b1f13393a7cdfdf',1,'Napi::Object::Get(napi_value key) const'],['../class_napi_1_1_object.html#a60d522cfdbc98ff5c07c0ee35aa3ed95',1,'Napi::Object::Get(Value key) const'],['../class_napi_1_1_object.html#a09f94a94bb6e81f5dbbb8e79e6d44bfc',1,'Napi::Object::Get(const char *utf8name) const'],['../class_napi_1_1_object.html#ad9cc6c50537a40bfd775cca0c1b4aeb9',1,'Napi::Object::Get(const std::string &amp;utf8name) const'],['../class_napi_1_1_object.html#a5dd0e551211dade3d99491d49f8ce328',1,'Napi::Object::Get(uint32_t index) const'],['../class_napi_1_1_object_reference.html#a774cf64f19ae5ddf2ab24efa1927eeea',1,'Napi::ObjectReference::Get(const char *utf8name) const'],['../class_napi_1_1_object_reference.html#adec6b3ead540701f0da36bc623a029d1',1,'Napi::ObjectReference::Get(const std::string &amp;utf8name) const'],['../class_napi_1_1_object_reference.html#aae16888931b5cda98e16dbaa0bf5a297',1,'Napi::ObjectReference::Get(uint32_t index) const']]],
+  ['getandclearpendingexception_2',['GetAndClearPendingException',['../class_napi_1_1_env.html#a022b0d253eeea0f9ffbdc8de503b44fb',1,'Napi::Env']]],
+  ['getdensity_3',['GetDensity',['../namespacesharp.html#a2d7f45d8d04e0e10a7782fbadf5ada8d',1,'sharp']]],
+  ['getfloat32_4',['GetFloat32',['../class_napi_1_1_data_view.html#ad4231947c2b26c89964b4c16c0b3e1e0',1,'Napi::DataView']]],
+  ['getfloat64_5',['GetFloat64',['../class_napi_1_1_data_view.html#a0d90b76712c8f45c8b0153eacad11e27',1,'Napi::DataView']]],
+  ['getint16_6',['GetInt16',['../class_napi_1_1_data_view.html#ae53e6edc1023dffffe97765f4997e718',1,'Napi::DataView']]],
+  ['getint32_7',['GetInt32',['../class_napi_1_1_data_view.html#a22e36107c243dd86157faae08a1c5e2f',1,'Napi::DataView']]],
+  ['getint8_8',['GetInt8',['../class_napi_1_1_data_view.html#a1b834981418760de0bf441c0d4007423',1,'Napi::DataView']]],
+  ['getnapiversion_9',['GetNapiVersion',['../class_napi_1_1_version_management.html#a0cdf730a082aa9afbf9164b12c39ec41',1,'Napi::VersionManagement']]],
+  ['getnodeversion_10',['GetNodeVersion',['../class_napi_1_1_version_management.html#ab5463d6d6f8d383a639879dd742d3d7c',1,'Napi::VersionManagement']]],
+  ['getoptionsforimagetype_11',['GetOptionsForImageType',['../namespacesharp.html#a992a5e1b33ecccb876939d15de9f2bdf',1,'sharp']]],
+  ['getpageheight_12',['GetPageHeight',['../namespacesharp.html#a8632476cea54ea969bd2f50a9a686844',1,'sharp']]],
+  ['getprofile_13',['GetProfile',['../namespacesharp.html#ae4bac0d0306f53f3cb4d1e7fec45848c',1,'sharp']]],
+  ['getpropertynames_14',['GetPropertyNames',['../class_napi_1_1_object.html#a1e8b87c148b5e4973c8a24dfca336531',1,'Napi::Object']]],
+  ['getprototype_15',['GetPrototype',['../class_napi_1_1_object.html#a4b8976f6b050cda1fcb0cd1359f0f75d',1,'Napi::Object']]],
+  ['getresult_16',['GetResult',['../class_napi_1_1_async_worker.html#af8a79abb24a764f95150f0f052b635f0',1,'Napi::AsyncWorker']]],
+  ['getrgbaascolourspace_17',['GetRgbaAsColourspace',['../namespacesharp.html#acdc685a5ab95d4fa681739d25fd39748',1,'sharp']]],
+  ['getterwrapper_18',['GetterWrapper',['../struct_napi_1_1details_1_1_accessor_callback_data.html#a9c458da2e6d91bc45f401cb51e729a94',1,'Napi::details::AccessorCallbackData']]],
+  ['getuint16_19',['GetUint16',['../class_napi_1_1_data_view.html#a9813b0a974f7d43d785cbb0a0346c07d',1,'Napi::DataView']]],
+  ['getuint32_20',['GetUint32',['../class_napi_1_1_data_view.html#ae88432077139f319b93fa8034b95da66',1,'Napi::DataView']]],
+  ['getuint8_21',['GetUint8',['../class_napi_1_1_data_view.html#aad4415b1921816376847bc2b8f36c5a5',1,'Napi::DataView']]],
+  ['global_22',['Global',['../class_napi_1_1_env.html#a06f210136f1381a31046e1118dbc5c90',1,'Napi::Env']]]
+];

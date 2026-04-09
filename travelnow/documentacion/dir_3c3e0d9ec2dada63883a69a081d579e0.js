@@ -1,0 +1,26 @@
+var dir_3c3e0d9ec2dada63883a69a081d579e0 =
+[
+    [ "auth_plugins", "dir_f2520dcaa94b278bc3cc0e85b66328f9.html", "dir_f2520dcaa94b278bc3cc0e85b66328f9" ],
+    [ "base", "dir_e35c8f9362847fd98253e02fd7e49472.html", "dir_e35c8f9362847fd98253e02fd7e49472" ],
+    [ "commands", "dir_da6b9418932bd92b677ab133b6510448.html", "dir_da6b9418932bd92b677ab133b6510448" ],
+    [ "constants", "dir_3a83ad1d4566f1ff1b243a40bed530f3.html", "dir_3a83ad1d4566f1ff1b243a40bed530f3" ],
+    [ "packets", "dir_6e4cadddbe046b67412e7b80ccdc7ad3.html", "dir_6e4cadddbe046b67412e7b80ccdc7ad3" ],
+    [ "parsers", "dir_b0f523b22097c067330f295631bb9797.html", "dir_b0f523b22097c067330f295631bb9797" ],
+    [ "promise", "dir_c0be154ab108690c275da7a744c1dea4.html", "dir_c0be154ab108690c275da7a744c1dea4" ],
+    [ "auth_41.js", "auth__41_8js.html", null ],
+    [ "compressed_protocol.js", "compressed__protocol_8js.html", null ],
+    [ "connection.js", "connection_8js.html", null ],
+    [ "connection_config.js", "connection__config_8js.html", null ],
+    [ "create_connection.js", "create__connection_8js.html", null ],
+    [ "create_pool.js", "create__pool_8js.html", null ],
+    [ "create_pool_cluster.js", "create__pool__cluster_8js.html", null ],
+    [ "helpers.js", "mysql2_2lib_2helpers_8js.html", null ],
+    [ "packet_parser.js", "packet__parser_8js.html", null ],
+    [ "pool.js", "mysql2_2lib_2pool_8js.html", null ],
+    [ "pool_cluster.js", "pool__cluster_8js.html", null ],
+    [ "pool_config.js", "pool__config_8js.html", null ],
+    [ "pool_connection.js", "pool__connection_8js.html", null ],
+    [ "results_stream.js", "results__stream_8js.html", null ],
+    [ "server.js", "mysql2_2lib_2server_8js.html", null ],
+    [ "tracing.js", "tracing_8js.html", null ]
+];

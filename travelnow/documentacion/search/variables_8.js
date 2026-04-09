@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['hasalpha_0',['hasAlpha',['../struct_metadata_baton.html#a7f1aa0cde22617a56cba47c6d139cb18',1,'MetadataBaton']]],
+  ['hasattentioncenter_1',['hasAttentionCenter',['../struct_pipeline_baton.html#afaee54792dd1d4904fa815e14764154a',1,'PipelineBaton']]],
+  ['hascropoffset_2',['hasCropOffset',['../struct_pipeline_baton.html#a2fb04a1bead6d57e974d8569c6fbb65e',1,'PipelineBaton']]],
+  ['hasoffset_3',['hasOffset',['../struct_composite.html#abb91e8bcff0075e84db6558e6185c1e3',1,'Composite']]],
+  ['hasprofile_4',['hasProfile',['../struct_metadata_baton.html#a670b6df1ea2a17335f91c27a962ab86a',1,'MetadataBaton']]],
+  ['heifbitdepth_5',['heifBitdepth',['../struct_pipeline_baton.html#ad5c427c8b50595b9a29c3ec16c69ca32',1,'PipelineBaton']]],
+  ['heifchromasubsampling_6',['heifChromaSubsampling',['../struct_pipeline_baton.html#ab9d6e6f4b8fce3ff5238165068dfd576',1,'PipelineBaton']]],
+  ['heifcompression_7',['heifCompression',['../struct_pipeline_baton.html#a79135a464310c36e473e2f5dcceba11f',1,'PipelineBaton']]],
+  ['heifeffort_8',['heifEffort',['../struct_pipeline_baton.html#a2a4dd4ee0dfc18277bf634d7a7d356ea',1,'PipelineBaton']]],
+  ['heiflossless_9',['heifLossless',['../struct_pipeline_baton.html#a371bed76d655b7545c6b2dea8da66958',1,'PipelineBaton']]],
+  ['heifquality_10',['heifQuality',['../struct_pipeline_baton.html#abf25af170166ba9fb7827a502c4426ba',1,'PipelineBaton']]],
+  ['height_11',['height',['../struct_metadata_baton.html#a75ce78f7841e9b38cb6524920c5a18b5',1,'MetadataBaton::height'],['../struct_pipeline_baton.html#abcf171b03c9f79945e0a914228ddcd04',1,'PipelineBaton::height']]],
+  ['heightpost_12',['heightPost',['../struct_pipeline_baton.html#aa853b4029b6b751dd8877386dca6ee35',1,'PipelineBaton']]],
+  ['heightpre_13',['heightPre',['../struct_pipeline_baton.html#ad1e5d546d03a7b0b99021c3e3b4a2a38',1,'PipelineBaton']]],
+  ['hint_14',['hint',['../struct_napi_1_1details_1_1_finalize_data.html#a44ffbd8f74391668a668c36013a530dd',1,'Napi::details::FinalizeData']]],
+  ['hue_15',['hue',['../struct_pipeline_baton.html#a238697c425cd3bedd909c68c1521329c',1,'PipelineBaton']]]
+];
