@@ -1,19 +1,4 @@
 <!DOCTYPE html>
-/**
- * @file reservaciones.html
- * @brief Página de administración de reservaciones para TravelNow
- * @version 1.0
- * @date 2024
- * 
- * @section description Descripción
- * Interfaz administrativa para gestionar reservaciones de vuelos, hoteles y paquetes.
- * Incluye filtros, estadísticas en tiempo real, tabla paginada y actualización automática.
- * 
- * @section dependencies Dependencias
- * - Font Awesome 6.4.0 (iconos)
- * - CSS interno: /public/css/styles.css
- * - API endpoints: /api/admin/reservaciones/data, /api/auth/me, /api/auth/logout
- */
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -25,9 +10,6 @@
 <body>
 <div class="admin-layout">
 
-  <!-- Sidebar -->
-  /// @brief Barra lateral de navegación del panel administrativo
-  /// @details Contiene enlaces a las secciones principales: Dashboard, Usuarios, Reservaciones y Proveedores
   <nav class="admin-sidebar">
     <div class="sidebar-logo">Travel<span>Now</span></div>
     <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
@@ -48,11 +30,6 @@
     <main class="admin-content">
 
       <!-- Filtros -->
-      /**
-       * @brief Panel de filtros para la tabla de reservaciones
-       * @details Permite filtrar por estado, tipo de servicio y búsqueda por texto (código/cliente)
-       * @note Los filtros disparan la recarga automática de datos
-       */
       <div class="admin-filters">
         <select class="th-select-sm" id="filter-estado" onchange="cargarReservaciones()">
           <option value="">Todos los estados</option>
@@ -73,11 +50,6 @@
       </div>
 
       <!-- Estadísticas -->
-      /**
-       * @brief Tarjetas de estadísticas resumidas
-       * @details Muestra total de reservaciones, confirmadas, pendientes e ingresos acumulados
-       * @see fetchReservaciones() Actualiza estos valores desde la API
-       */
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
         <div class="admin-stat-card">
           <div style="display:flex;align-items:center;gap:1rem;">
@@ -118,14 +90,9 @@
       </div>
 
       <!-- Tabla -->
-      /**
-       * @brief Tabla principal de reservaciones
-       * @details Muestra código, cliente, correo, tipo, total, estado y fecha
-       * @note Implementa paginación con 25 registros por página
-       */
       <div class="admin-panel">
         <div class="admin-panel-header">
-          <h2>Reservaciones Recientes</h2>
+          <h2>Reservaciones</h2>
           <span id="reservaciones-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
         </div>
         <div class="admin-panel-body" style="overflow-x:auto;">
@@ -157,38 +124,15 @@
 </div>
 
 <script>
-  /// @brief Variable global que almacena el número de página actual
-  /// @see fetchReservaciones()
   let paginaActual = 1;
-  
-  /// @brief Cantidad de registros por página
-  /// @see fetchReservaciones()
   const limit = 25;
-  
-  /// @brief Timeout para debounce en búsqueda
-  /// @see debounceSearch()
   let searchTimeout = null;
 
-  /**
-   * @brief Recarga la primera página de reservaciones aplicando filtros
-   * @details Reinicia paginaActual a 1 y luego llama a fetchReservaciones()
-   * @see fetchReservaciones()
-   */
   async function cargarReservaciones() {
     paginaActual = 1;
     await fetchReservaciones();
   }
 
-  /**
-   * @brief Obtiene y renderiza reservaciones desde la API con filtros y paginación
-   * @details Realiza una petición GET a /api/admin/reservaciones/data con los parámetros:
-   *          - page, limit, estado, tipo, search
-   *          Actualiza tabla, estadísticas, información de paginación y controles
-   * @async
-   * @throws {Error} Si la conexión falla o la API retorna error
-   * @see cargarReservaciones()
-   * @see cambiarPagina()
-   */
   async function fetchReservaciones() {
     const estado = document.getElementById('filter-estado').value;
     const tipo   = document.getElementById('filter-tipo').value;
@@ -215,14 +159,13 @@
         return;
       }
 
-      // Actualizar stats
       const s = data.stats || {};
-      document.getElementById('stat-total').textContent       = s.total      || 0;
+      document.getElementById('stat-total').textContent       = s.total       || 0;
       document.getElementById('stat-confirmadas').textContent = s.confirmadas || 0;
       document.getElementById('stat-pendientes').textContent  = s.pendientes  || 0;
       document.getElementById('stat-ingresos').textContent    = '$' + parseFloat(s.ingresos || 0).toFixed(2);
 
-      const reservaciones = data.data || [];
+      const reservaciones = data.data  || [];
       const total         = data.total || 0;
 
       document.getElementById('reservaciones-count').textContent = `${total} reservación(es)`;
@@ -257,31 +200,16 @@
     }
   }
 
-  /**
-   * @brief Cambia la página actual en la navegación de la tabla
-   * @param dir Dirección del cambio: +1 para avanzar, -1 para retroceder
-   * @see fetchReservaciones()
-   */
   function cambiarPagina(dir) {
     paginaActual += dir;
     fetchReservaciones();
   }
 
-  /**
-   * @brief Aplica debounce al evento de búsqueda
-   * @details Espera 400ms después de la última pulsación antes de ejecutar cargarReservaciones()
-   * @see cargarReservaciones()
-   */
   function debounceSearch() {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(cargarReservaciones, 400);
   }
 
-  /**
-   * @brief Genera el HTML del badge visual según el tipo de reservación
-   * @param tipo String con el tipo: 'vuelo', 'hotel' o 'paquete'
-   * @returns {string} HTML con la clase CSS correspondiente
-   */
   function badgeTipo(tipo) {
     const map = {
       vuelo:   '<span class="badge-custom badge-blue">Vuelo</span>',
@@ -291,11 +219,6 @@
     return map[tipo] || `<span class="badge-custom">${tipo}</span>`;
   }
 
-  /**
-   * @brief Genera el HTML del badge visual según el estado de la reservación
-   * @param estado String con el estado: 'confirmada', 'pendiente' o 'cancelada'
-   * @returns {string} HTML con la clase CSS correspondiente
-   */
   function badgeEstado(estado) {
     const map = {
       confirmada: '<span class="badge-custom badge-green">Confirmada</span>',
@@ -305,32 +228,19 @@
     return map[estado] || `<span class="badge-custom">${estado}</span>`;
   }
 
-  /**
-   * @brief Formatea una fecha ISO a formato local de Guatemala (es-GT)
-   * @param f String de fecha en formato ISO o null/undefined
-   * @returns {string} Fecha formateada o '—' si no existe
-   */
   function formatFecha(f) {
     if (!f) return '—';
     return new Date(f).toLocaleDateString('es-GT');
   }
 
-  /**
-   * @brief Cierra la sesión del administrador
-   * @details Llama al endpoint /api/auth/logout y redirige a /login
-   */
   function logout() {
-    fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      .then(() => window.location.href = '/login');
   }
 
-  /* ── Inicialización ── */
-  /// @brief Carga inicial de reservaciones
   fetchReservaciones();
-  
-  /// @brief Actualización automática cada 30 segundos
   setInterval(fetchReservaciones, 30000);
 
-  /// @brief Obtiene y muestra información del usuario autenticado en la barra superior
   fetch('/api/auth/me', { credentials: 'include' })
     .then(r => r.json())
     .then(d => {
