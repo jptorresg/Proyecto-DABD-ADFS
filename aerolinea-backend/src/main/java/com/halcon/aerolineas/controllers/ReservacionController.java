@@ -23,10 +23,34 @@ import com.halcon.aerolineas.models.Reservacion;
 import com.halcon.aerolineas.services.ReservacionService;
 import com.halcon.aerolineas.utils.JsonResponse;
 
+/**
+ * Controlador para la gestión de reservaciones de vuelos.
+ * <p>
+ * Maneja las peticiones HTTP dirigidas a {@code /api/reservaciones/*} y proporciona
+ * endpoints para consultar, crear y cancelar reservaciones.
+ * </p>
+ * <p>
+ * Métodos soportados:
+ * <ul>
+ *   <li>GET  /api/reservaciones            - Obtiene las reservaciones del usuario.</li>
+ *   <li>POST /api/reservaciones            - Crea una nueva reservación.</li>
+ *   <li>PUT  /api/reservaciones/{id}/cancelar - Cancela una reservación existente.</li>
+ * </ul>
+ * 
+ */
 @WebServlet("/api/reservaciones/*")
 public class ReservacionController extends HttpServlet {
     private ReservacionService reservacionService;
     
+    /**
+     * Inicializa el servicio de reservaciones.
+     * <p>
+     * Este método es invocado automáticamente por el contenedor de servlets
+     * cuando se carga el servlet.
+     * </p>
+     *
+     * @throws ServletException si ocurre un error durante la inicialización.
+     */
     @Override
     public void init() throws ServletException {
         this.reservacionService = new ReservacionService();
@@ -62,6 +86,18 @@ public class ReservacionController extends HttpServlet {
     */
 
     //VERSIÓN DE DESARROLLO
+    /**
+     * Maneja las peticiones HTTP GET para obtener las reservaciones de un usuario.
+     * <p>
+     * En entorno de desarrollo, se espera el ID de usuario en la cabecera
+     * {@code x-usuario-id}. Devuelve un JSON con la lista de reservaciones.
+     * </p>
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws ServletException Si ocurre un error al procesar la solicitud.
+     * @throws IOException      Si ocurre un error de entrada/salida.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -98,6 +134,52 @@ public class ReservacionController extends HttpServlet {
         }
     }
     
+    /**
+     * Crea una nueva reservación.
+     * <p>
+     * Endpoint: {@code POST /api/reservaciones}
+     * </p>
+     * <p>
+     * Cabeceras requeridas:
+     * <ul>
+     *   <li>{@code x-usuario-id} - ID del usuario que realiza la reserva.</li>
+     * </ul>
+     * 
+     * <p>
+     * Cuerpo de la solicitud (JSON):
+     * <pre>
+     * {
+     *   "idVuelo": "1" o "1-2" para múltiples tramos,
+     *   "pasajeros": [
+     *     {
+     *       "nombres": "Juan",
+     *       "apellidos": "Pérez",
+     *       "fechaNacimiento": "1990-01-01",
+     *       "idNacionalidad": 12345678,
+     *       "numPasaporte": "XYZ123"
+     *     },
+     *     ...
+     *   ],
+     *   "metodoPago": "TARJETA"
+     * }
+     * </pre>
+     * 
+     * <p>
+     * Respuesta exitosa (201 Created):
+     * <pre>
+     * {
+     *   "status": "success",
+     *   "message": "Reservaciones creadas",
+     *   "data": [ ... lista de reservaciones ... ]
+     * }
+     * </pre>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws ServletException Si ocurre un error al procesar la solicitud.
+     * @throws IOException      Si ocurre un error de entrada/salida.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -168,9 +250,40 @@ public class ReservacionController extends HttpServlet {
         }
     }
 
+    /**
+     * Cancela una reservación existente.
+     * <p>
+     * Endpoint: {@code PUT /api/reservaciones/{id}/cancelar}
+     * </p>
+     * <p>
+     * Parámetros de ruta:
+     * <ul>
+     *   <li>{@code id} - ID de la reservación a cancelar.</li>
+     * </ul>
+     * 
+     * <p>
+     * Respuesta exitosa (200 OK):
+     * <pre>
+     * {
+     *   "mensaje": "Reservación cancelada"
+     * }
+     * </pre>
+     * En caso de error (400 Bad Request):
+     * <pre>
+     * {
+     *   "error": "mensaje de error"
+     * }
+     * </pre>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws ServletException Si ocurre un error al procesar la solicitud.
+     * @throws IOException      Si ocurre un error de entrada/salida.
+     */
     @Override
-protected void doPut(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         String pathInfo = request.getPathInfo(); 
         // /{id}/cancelar
@@ -192,6 +305,13 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response)
         }
     }
     
+    /**
+     * Parsea el cuerpo de la solicitud HTTP en un objeto JSON.
+     *
+     * @param request La solicitud HTTP.
+     * @return Un objeto {@code JsonObject} que representa el cuerpo de la solicitud.
+     * @throws IOException si ocurre un error durante la lectura del cuerpo.
+     */
     private JsonObject parseRequestBody(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();

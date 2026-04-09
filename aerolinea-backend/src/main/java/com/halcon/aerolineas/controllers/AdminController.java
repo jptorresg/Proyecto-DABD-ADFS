@@ -20,17 +20,53 @@ import com.google.gson.JsonParser;
 import com.halcon.aerolineas.services.AdminService;
 import com.halcon.aerolineas.utils.JsonResponse;
 
-
+/**
+ * Controlador para las operaciones de administración.
+ * <p>
+ * Maneja las peticiones HTTP dirigidas a {@code /api/admin/*} y proporciona
+ * endpoints para obtener estadísticas de la aplicación, listar usuarios y
+ * actualizar roles de usuario.
+ * </p>
+ * <p>
+ * Métodos soportados:
+ * <ul>
+ *   <li>GET  /api/admin/stats      - Obtiene estadísticas generales</li>
+ *   <li>GET  /api/admin/usuarios   - Obtiene lista de usuarios</li>
+ *   <li>PUT  /api/admin/usuarios/{id}/rol - Actualiza el rol de un usuario</li>
+ * </ul>
+ * 
+ */
 @WebServlet("/api/admin/*")
 public class AdminController extends HttpServlet {
 
     private AdminService adminService;
 
+    /**
+     * Inicializa el servicio de administración.
+     * <p>
+     * Este método es invocado automáticamente por el contenedor de servlets
+     * cuando se carga el servlet.
+     * </p>
+     */
     @Override
     public void init() {
         adminService = new AdminService();
     }
 
+    /**
+     * Maneja las peticiones HTTP GET.
+     * <p>
+     * Endpoints disponibles:
+     * <ul>
+     *   <li>{@code /api/admin/stats}    - Devuelve estadísticas de la aplicación.</li>
+     *   <li>{@code /api/admin/usuarios} - Devuelve la lista de usuarios registrados.</li>
+     * </ul>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws IOException Si ocurre un error de entrada/salida al escribir la respuesta.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -62,6 +98,22 @@ public class AdminController extends HttpServlet {
         }
     }
 
+    /**
+     * Maneja las peticiones HTTP PUT.
+     * <p>
+     * Endpoint disponible:
+     * <ul>
+     *   <li>{@code /api/admin/usuarios/{id}/rol} - Actualiza el rol de un usuario
+     *       específico. El cuerpo de la solicitud debe contener un JSON con el campo
+     *       {@code tipoUsuario} con el nuevo rol.</li>
+     * </ul>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} que contiene la ruta con el ID
+     *                 del usuario y el JSON con el nuevo rol.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws IOException Si ocurre un error de entrada/salida al leer el cuerpo o escribir la respuesta.
+     */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws IOException {

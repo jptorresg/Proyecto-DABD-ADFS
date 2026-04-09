@@ -21,15 +21,60 @@ import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.services.VueloService;
 import com.halcon.aerolineas.utils.JsonResponse;
 
+/**
+ * Controlador para la gestión de vuelos.
+ * <p>
+ * Maneja las peticiones HTTP dirigidas a {@code /api/vuelos/*} y proporciona
+ * endpoints para buscar, listar, crear, actualizar y eliminar vuelos.
+ * </p>
+ * <p>
+ * Métodos soportados:
+ * <ul>
+ *   <li>GET    /api/vuelos                 - Buscar vuelos según parámetros.</li>
+ *   <li>GET    /api/vuelos/admin           - Listar todos los vuelos (administrador).</li>
+ *   <li>GET    /api/vuelos/{id}            - Obtener un vuelo por su ID.</li>
+ *   <li>GET    /api/vuelos/{id1}-{id2}     - Obtener vuelo con escalas (múltiples IDs).</li>
+ *   <li>POST   /api/vuelos                 - Crear un nuevo vuelo.</li>
+ *   <li>PUT    /api/vuelos/{id}            - Actualizar un vuelo existente.</li>
+ *   <li>DELETE /api/vuelos/{id}            - Eliminar un vuelo.</li>
+ * </ul>
+ * 
+ */
 @WebServlet("/api/vuelos/*")
 public class VueloController extends HttpServlet {
     private VueloService vueloService;
     
+    /**
+     * Inicializa el servicio de vuelos.
+     * <p>
+     * Este método es invocado automáticamente por el contenedor de servlets
+     * cuando se carga el servlet.
+     * </p>
+     * 
+     * @throws ServletException si ocurre un error durante la inicialización.
+     */
     @Override
     public void init() throws ServletException {
         this.vueloService = new VueloService();
     }
     
+    /**
+     * Maneja las peticiones HTTP GET.
+     * <p>
+     * Endpoints disponibles:
+     * <ul>
+     *   <li>{@code GET /api/vuelos} - Búsqueda con parámetros (origen, destino, fechaSalida, tipoAsiento).</li>
+     *   <li>{@code GET /api/vuelos/admin} - Listado completo de vuelos (acceso administrativo).</li>
+     *   <li>{@code GET /api/vuelos/{idVuelo}} - Detalle de un vuelo por su ID.</li>
+     *   <li>{@code GET /api/vuelos/{idVuelo}-{idEscalera}} - Detalle de un vuelo con escalas.</li>
+     * </ul>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws ServletException Si ocurre un error durante el procesamiento.
+     * @throws IOException      Si ocurre un error de entrada/salida al escribir la respuesta.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -79,6 +124,37 @@ public class VueloController extends HttpServlet {
         }
     }
     
+    /**
+     * Maneja las peticiones HTTP POST para crear un nuevo vuelo.
+     * <p>
+     * Endpoint: {@code POST /api/vuelos}
+     * </p>
+     * <p>
+     * Cuerpo de la solicitud esperado (JSON):
+     * <pre>
+     * {
+     *   "idUsuarioCreador": 1,
+     *   "codigoVuelo": "AV123",
+     *   "origenCiudad": "Ciudad de México",
+     *   "origenIata": "MEX",
+     *   "destinoCiudad": "Cancún",
+     *   "destinoIata": "CUN",
+     *   "fechaSalida": "2026-04-10",
+     *   "horaSalida": "08:00",
+     *   "fechaLlegada": "2026-04-10",
+     *   "horaLlegada": "10:30",
+     *   "tipoAsiento": "Económico",
+     *   "precioBase": "150.00",
+     *   "asientosTotales": 180
+     * }
+     * </pre>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws ServletException Si ocurre un error durante el procesamiento.
+     * @throws IOException      Si ocurre un error de entrada/salida al escribir la respuesta.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -141,6 +217,20 @@ public class VueloController extends HttpServlet {
         }
     }
     
+    /**
+     * Actualiza un vuelo existente.
+     * <p>
+     * Endpoint: {@code PUT /api/vuelos/{id}}
+     * </p>
+     * <p>
+     * El cuerpo de la solicitud debe contener los campos del vuelo a modificar en formato JSON.
+     * </p>
+     *
+     * @param request  Petición con el ID del vuelo en la ruta y los campos a actualizar en el cuerpo.
+     * @param response Respuesta con el estado de la operación y el vuelo actualizado.
+     * @throws ServletException Si no se puede procesar la petición.
+     * @throws IOException      Si no se puede serializar la respuesta.
+     */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -191,6 +281,17 @@ public class VueloController extends HttpServlet {
         }
     }
     
+    /**
+     * Elimina un vuelo por su ID.
+     * <p>
+     * Endpoint: {@code DELETE /api/vuelos/{id}}
+     * </p>
+     *
+     * @param request  Petición con el ID del vuelo en la ruta.
+     * @param response Respuesta con el estado de la operación.
+     * @throws ServletException Si no se puede procesar la petición.
+     * @throws IOException      Si no se puede serializar la respuesta.
+     */
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -218,6 +319,13 @@ public class VueloController extends HttpServlet {
         }
     }
     
+    /**
+     * Busca vuelos disponibles según los parámetros proporcionados.
+     *
+     * @param request Petición con los parámetros de búsqueda (origen, destino, fechaSalida, tipoAsiento).
+     * @param out     {@code PrintWriter} para escribir la respuesta JSON.
+     * @throws Exception Si ocurre un error al procesar la búsqueda.
+     */
     private void handleBuscarVuelos(HttpServletRequest request, PrintWriter out) throws Exception {
         String origen = request.getParameter("origen");
         String destino = request.getParameter("destino");
@@ -230,6 +338,17 @@ public class VueloController extends HttpServlet {
         out.print(JsonResponse.success(vuelos));
     }
 
+    /**
+     * Lista todos los vuelos (acceso exclusivo para administradores).
+     * <p>
+     * Actualmente el control de acceso está comentado, pero se mantiene la lógica
+     * de obtención de vuelos.
+     * </p>
+     *
+     * @param request Petición con la sesión del usuario.
+     * @param out     {@code PrintWriter} para escribir la respuesta JSON.
+     * @throws Exception Si ocurre un error al obtener los vuelos.
+     */
     private void handleListarVuelosAdmin(HttpServletRequest request, PrintWriter out) throws Exception {
 
         System.out.println("=== Entrando a handleListarVuelosAdmin ===");
@@ -248,6 +367,12 @@ public class VueloController extends HttpServlet {
         out.print(JsonResponse.success(vuelos));
     }
     
+    /**
+     * Verifica si el usuario en la sesión actual tiene rol de administrador.
+     *
+     * @param request Petición con la sesión del usuario.
+     * @return {@code true} si el usuario es administrador, {@code false} en caso contrario.
+     */
     private boolean esAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
             if (session == null) {
@@ -259,6 +384,12 @@ public class VueloController extends HttpServlet {
         return "ADMIN".equals(tipo);
     }
     
+    /**
+     * Obtiene el ID del usuario desde la sesión actual.
+     *
+     * @param request Petición con la sesión del usuario.
+     * @return El ID del usuario en la sesión, o {@code null} si no hay sesión activa.
+     */
     private Long getUsuarioIdFromSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
@@ -271,6 +402,13 @@ public class VueloController extends HttpServlet {
         }
     }
     
+    /**
+     * Parsea el cuerpo de la solicitud HTTP en un objeto JSON.
+     *
+     * @param request La solicitud HTTP.
+     * @return Un objeto {@code JsonObject} que representa el cuerpo de la solicitud.
+     * @throws IOException Si ocurre un error durante la lectura del cuerpo.
+     */
     private JsonObject parseRequestBody(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();

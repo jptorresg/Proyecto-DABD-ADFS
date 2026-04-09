@@ -1,0 +1,37 @@
+services:
+  app1:
+    build: .
+    container_name: aerolinea_app1
+    ports:
+      - "8081:8080"
+    depends_on:
+      - oracle-db
+    environment:
+      - DB_URL=jdbc:oracle:thin:@//oracle-db:1521/XEPDB1
+      - DB_USER=USUARIO_AEROLINEA
+      - DB_PASSWORD=LLego2005/
+      - DB_DRIVER=oracle.jdbc.OracleDriver
+    networks:
+      - aerolinea-network
+
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle_db
+    ports:
+      - "1522:1521"
+    environment:
+      - ORACLE_PASSWORD=oracle
+      - APP_USER=USUARIO_AEROLINEA
+      - APP_USER_PASSWORD=LLego2005/
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./docker/oracle/aerolinea.sql:/container-entrypoint-initdb.d/aerolinea.sql
+    networks:
+      - aerolinea-network
+
+volumes:
+  oracle-data:
+
+networks:
+  aerolinea-network:
+    driver: bridge

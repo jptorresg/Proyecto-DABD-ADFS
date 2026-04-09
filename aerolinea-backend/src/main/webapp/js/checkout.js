@@ -2,6 +2,16 @@
 // CHECKOUT - ALPINE.JS DATA COMPONENT
 // ============================================================
 
+/**
+ * Crea y retorna el objeto `checkoutData` para Alpine.js, responsable del proceso de
+ * checkout (finalización de compra) de un vuelo.
+ * <p>
+ * Gestiona la carga de datos del vuelo, el formulario de pasajeros, el método de pago,
+ * la validación y el envío de la reservación a la API.
+ * </p>
+ *
+ * @returns {Object} Un objeto Alpine con propiedades y métodos para el flujo de checkout.
+ */
 function checkoutData() {
     return {
         // Datos del vuelo (vienen de URL params o sessionStorage)
@@ -63,11 +73,20 @@ function checkoutData() {
         // Estado
         isProcessing: false,
         
-        // Cálculos
+        /**
+         * Calcula el precio total del vuelo según el número de pasajeros.
+         *
+         * @returns {number} Precio del vuelo (precio base * número de pasajeros).
+         */
         get precioVuelo() {
             return this.vueloInfo.precioBase * this.vueloInfo.numPasajeros;
         },
         
+        /**
+         * Calcula el costo total de los extras seleccionados.
+         *
+         * @returns {number} Costo total de los extras.
+         */
         get precioExtras() {
             let total = 0;
             if (this.extras.equipaje) total += 300;
@@ -76,19 +95,39 @@ function checkoutData() {
             return total;
         },
         
+        /**
+         * Calcula el subtotal del pedido (precio del vuelo + costo de los extras).
+         *
+         * @returns {number} Subtotal.
+         */
         get subtotal() {
             return this.precioVuelo + this.precioExtras;
         },
         
+        /**
+         * Calcula el valor de los impuestos (12% sobre el subtotal).
+         *
+         * @returns {number} Impuestos.
+         */
         get impuestos() {
             return Math.round(this.subtotal * 0.12);
         },
         
+        /**
+         * Calcula el costo total del pedido (subtotal + impuestos).
+         *
+         * @returns {number} Total a pagar.
+         */
         get total() {
             return this.subtotal + this.impuestos;
         },
 
-        // Inicialización
+        /**
+         * Inicializa el componente verificando autenticación, cargando datos del vuelo,
+         * extras, configurando fechas y generando los pasajeros.
+         *
+         * @returns {Promise<void>}
+         */
         async init() {
             // Verificar autenticación
             if (!requireAuth()) {
@@ -111,7 +150,11 @@ function checkoutData() {
             this.generarPasajeros();
         },
 
-        // Cargar datos del vuelo
+        /**
+         * Carga los datos del vuelo desde la API usando el ID de la URL.
+         *
+         * @returns {Promise<void>}
+         */
         async loadFlightData() {
             const params = new URLSearchParams(window.location.search);
             const vueloId = params.get('vueloId');
@@ -160,6 +203,9 @@ function checkoutData() {
             }
         },
 
+        /**
+         * Genera el array de objetos que representan a los pasajeros de la reserva actual.
+         */
         generarPasajeros() {
             this.pasajeros = [];
 
@@ -177,7 +223,9 @@ function checkoutData() {
             }
         },
 
-        // Cargar extras seleccionados
+        /**
+         * Carga los extras seleccionados desde el sessionStorage.
+         */
         loadExtras() {
             const stored = sessionStorage.getItem('selectedExtras');
             if (stored) {
@@ -189,26 +237,38 @@ function checkoutData() {
             }
         },
 
-        // Configurar restricciones de fecha (>18 años)
+        /**
+         * Configura la fecha máxima para los campos de fecha de nacimiento (mayor de 18 años).
+         */
         configureDateInputs() {
             const maxDate = new Date();
             maxDate.setFullYear(maxDate.getFullYear() - 18);
             this.maxBirthdate = maxDate.toISOString().split('T')[0];
         },
 
-        // Cambiar método de pago
+        /**
+         * Cambia el método de pago seleccionado.
+         *
+         * @param {string} type - Tipo de pago ('card', 'paypal', etc.).
+         */
         changePaymentMethod(type) {
             this.paymentType = type;
         },
 
-        // Formatear número de tarjeta
+        /**
+         * Formatea el número de tarjeta agregando espacios cada 4 dígitos y detecta la marca.
+         */
         formatCardNumber() {
             let value = this.tarjeta.numero.replace(/\s/g, '').replace(/[^0-9]/g, '');
             this.tarjeta.numero = value.match(/.{1,4}/g)?.join(' ') || value;
             this.detectCardBrand(value);
         },
 
-        // Detectar marca de tarjeta
+        /**
+         * Detecta la marca de la tarjeta según el número.
+         *
+         * @param {string} number - Número de tarjeta sin espacios.
+         */
         detectCardBrand(number) {
             const patterns = {
                 visa: /^4/,
@@ -227,17 +287,25 @@ function checkoutData() {
             this.tarjeta.marca = '';
         },
 
-        // Formatear CVV
+        /**
+         * Formatea el CVV permitiendo solo dígitos y limitando a 4 caracteres.
+         */
         formatCVV() {
             this.tarjeta.cvv = this.tarjeta.cvv.replace(/[^0-9]/g, '').substring(0, 4);
         },
 
-        // Formatear nombre en tarjeta
+        /**
+         * Formatea el nombre en la tarjeta a mayúsculas.
+         */
         formatCardName() {
             this.tarjeta.nombre = this.tarjeta.nombre.toUpperCase();
         },
 
-        // Validar formulario
+        /**
+         * Valida el formulario completo antes de procesar el pago.
+         *
+         * @returns {boolean} {@code true} si todos los campos requeridos son válidos.
+         */
         validateForm() {
             // Validar pasajeros
             for (const p of this.pasajeros) {
@@ -300,7 +368,15 @@ function checkoutData() {
             return true;
         },
 
-        // Procesar pago
+        /**
+         * Procesa el pago y crea la reservación en el sistema.
+         * <p>
+         * Valida el formulario, construye el payload y lo envía a {@code /api/reservaciones}.
+         * Si la operación es exitosa, redirige a la página de confirmación.
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async procesarPago() {
 
             if (this.paymentType === 'paypal') {

@@ -10,15 +10,37 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Servicio de lógica de negocio para la gestión de vuelos.
+ * <p>
+ * Proporciona métodos para buscar, crear, actualizar, eliminar y listar vuelos,
+ * incluyendo la búsqueda de rutas con escalas.
+ * </p>
+ */
 public class VueloService {
     private VueloDAO vueloDAO;
     
+    /**
+     * Constructor que inicializa el servicio con el DAO de vuelos.
+     */
     public VueloService() {
         this.vueloDAO = new VueloDAO();
     }
     
     /**
-     * Buscar vuelos disponibles
+     * Busca vuelos disponibles según los criterios especificados.
+     * <p>
+     * Combina la búsqueda de vuelos directos y vuelos con escalas. Los resultados
+     * incluyen objetos {@link Vuelo} para vuelos directos y {@link VueloConEscala}
+     * para rutas compuestas.
+     * </p>
+     *
+     * @param origen      Código IATA del aeropuerto de origen (opcional).
+     * @param destino     Código IATA del aeropuerto de destino (opcional).
+     * @param fechaSalida Fecha de salida deseada (opcional).
+     * @param tipoAsiento Tipo de asiento requerido (opcional).
+     * @return Lista heterogénea de objetos (pueden ser {@link Vuelo} o {@link VueloConEscala}).
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
      */
     public List<Object> buscarVuelos(String origen, String destino, LocalDate fechaSalida,
                                       String tipoAsiento) throws SQLException {
@@ -48,7 +70,12 @@ public class VueloService {
     }
     
     /**
-     * Obtener vuelo por ID
+     * Obtiene un vuelo por su identificador único.
+     *
+     * @param id Identificador del vuelo.
+     * @return El objeto {@link Vuelo} correspondiente.
+     * @throws SQLException             Si ocurre un error en la consulta.
+     * @throws IllegalArgumentException Si el vuelo no existe.
      */
     public Vuelo obtenerVuelo(Long id) throws SQLException {
         Vuelo vuelo = vueloDAO.findById(id);
@@ -58,6 +85,17 @@ public class VueloService {
         return vuelo;
     }
 
+    /**
+     * Obtiene un vuelo compuesto por múltiples tramos (escalas) según una lista de IDs.
+     * <p>
+     * Recupera cada vuelo individualmente y los agrupa en un objeto {@link VueloConEscala}.
+     * </p>
+     *
+     * @param ids Lista de identificadores de vuelos que componen la ruta.
+     * @return Objeto {@link VueloConEscala} que contiene la información de todos los tramos.
+     * @throws SQLException             Si ocurre un error al procesar la búsqueda.
+     * @throws IllegalArgumentException Si alguno de los IDs no corresponde a un vuelo existente.
+     */
     public Object obtenerVueloConEscalas(List<Long> ids) throws SQLException {
         List<Vuelo> tramos = new ArrayList<>();
 
@@ -73,7 +111,34 @@ public class VueloService {
     }
     
     /**
-     * Crear nuevo vuelo (solo admin)
+     * Crea un nuevo vuelo en el sistema (acceso exclusivo para administradores).
+     * <p>
+     * Realiza validaciones de negocio:
+     * <ul>
+     *   <li>El código de vuelo debe ser único.</li>
+     *   <li>La fecha de salida no puede ser anterior a la fecha actual.</li>
+     *   <li>La fecha de llegada debe ser posterior a la de salida.</li>
+     *   <li>El precio base debe ser mayor a cero.</li>
+     *   <li>El número de asientos totales debe ser positivo.</li>
+     * </ul>
+     * 
+     *
+     * @param codigoVuelo      Código alfanumérico del vuelo.
+     * @param origenCiudad     Ciudad de origen.
+     * @param origenIata       Código IATA del aeropuerto de origen.
+     * @param destinoCiudad    Ciudad de destino.
+     * @param destinoIata      Código IATA del aeropuerto de destino.
+     * @param fechaSalida      Fecha de salida.
+     * @param horaSalida       Hora de salida (formato "HH:mm").
+     * @param fechaLlegada     Fecha de llegada.
+     * @param horaLlegada      Hora de llegada (formato "HH:mm").
+     * @param tipoAsiento      Tipo de asiento ofrecido.
+     * @param precioBase       Precio base por asiento.
+     * @param asientosTotales  Número total de asientos.
+     * @param idUsuarioCreador ID del usuario administrador que crea el vuelo.
+     * @return El objeto {@link Vuelo} recién creado.
+     * @throws SQLException             Si ocurre un error en la base de datos.
+     * @throws IllegalArgumentException Si alguna validación falla.
      */
     public Vuelo crearVuelo(String codigoVuelo, String origenCiudad, String origenIata,
                            String destinoCiudad, String destinoIata, LocalDate fechaSalida,
@@ -119,7 +184,12 @@ public class VueloService {
     }
     
     /**
-     * Actualizar vuelo existente (solo admin)
+     * Actualiza los datos de un vuelo existente (acceso exclusivo para administradores).
+     *
+     * @param vuelo Objeto {@link Vuelo} con los datos actualizados (debe incluir ID).
+     * @return {@code true} si la actualización fue exitosa.
+     * @throws SQLException             Si ocurre un error en la base de datos.
+     * @throws IllegalArgumentException Si el vuelo no existe.
      */
     public boolean actualizarVuelo(Vuelo vuelo) throws SQLException {
         Vuelo existente = vueloDAO.findById(vuelo.getIdVuelo());
@@ -131,14 +201,26 @@ public class VueloService {
     }
     
     /**
-     * Eliminar vuelo (soft delete - solo admin)
+     * Elimina lógicamente un vuelo (cambia su estado a {@code CANCELADO}).
+     * <p>
+     * Acceso exclusivo para administradores.
+     * </p>
+     *
+     * @param idVuelo Identificador del vuelo a eliminar.
+     * @return {@code true} si la eliminación fue exitosa.
+     * @throws SQLException Si ocurre un error en la base de datos.
      */
     public boolean eliminarVuelo(Long idVuelo) throws SQLException {
         return vueloDAO.delete(idVuelo);
     }
     
     /**
-     * Listar todos los vuelos (con paginación)
+     * Lista todos los vuelos con paginación.
+     *
+     * @param pagina   Número de página (comienza en 1).
+     * @param porPagina Cantidad de resultados por página.
+     * @return Lista de objetos {@link Vuelo} correspondientes a la página solicitada.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public List<Vuelo> listarVuelos(int pagina, int porPagina) throws SQLException {
         int offset = (pagina - 1) * porPagina;

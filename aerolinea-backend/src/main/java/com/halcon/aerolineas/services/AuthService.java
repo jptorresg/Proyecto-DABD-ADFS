@@ -1,4 +1,3 @@
-//AuthService.java
 package com.halcon.aerolineas.services;
 
 import com.halcon.aerolineas.dao.UsuarioDAO;
@@ -9,17 +8,38 @@ import com.halcon.aerolineas.utils.PasswordUtil;
 
 import java.sql.SQLException;
 
+/**
+ * Servicio de lógica de negocio para autenticación y gestión de cuentas de usuario.
+ * <p>
+ * Proporciona métodos para el inicio de sesión, registro de nuevos usuarios y cambio de contraseña.
+ * </p>
+ */
 public class AuthService {
+    
     private UsuarioDAO usuarioDAO;
     private PaisDAO paisDAO;
     
+    /**
+     * Constructor que inicializa el servicio con los DAO necesarios.
+     */
     public AuthService() {
         this.usuarioDAO = new UsuarioDAO();
         this.paisDAO = new PaisDAO();
     }
     
     /**
-     * Login - retorna usuario si credenciales son correctas
+     * Autentica a un usuario utilizando su correo electrónico y contraseña.
+     * <p>
+     * Verifica que el usuario exista, esté activo y que la contraseña proporcionada
+     * coincida con el hash almacenado. Si la autenticación es exitosa, retorna el objeto
+     * {@link Usuario} sin el hash de la contraseña.
+     * </p>
+     *
+     * @param email    Correo electrónico del usuario.
+     * @param password Contraseña en texto plano.
+     * @return El objeto {@link Usuario} autenticado (sin el campo {@code passwordHash}).
+     * @throws SQLException             Si ocurre un error en la consulta a la base de datos.
+     * @throws IllegalArgumentException Si el usuario no existe, está inactivo o la contraseña es incorrecta.
      */
     public Usuario login(String email, String password) throws SQLException {
         Usuario usuario = usuarioDAO.findByEmail(email);
@@ -43,7 +63,23 @@ public class AuthService {
     }
     
     /**
-     * Registro de nuevo usuario
+     * Registra un nuevo usuario en el sistema.
+     * <p>
+     * Realiza validaciones de formato de correo, longitud de contraseña y edad.
+     * Verifica que el correo no esté ya registrado y que el país proporcionado sea válido.
+     * Almacena el hash de la contraseña y asigna el rol por defecto {@code REGISTRADO}.
+     * </p>
+     *
+     * @param email       Correo electrónico del nuevo usuario.
+     * @param password    Contraseña en texto plano (mínimo 8 caracteres).
+     * @param nombres     Nombres del usuario.
+     * @param apellidos   Apellidos del usuario.
+     * @param edad        Edad del usuario (entre 18 y 120 años).
+     * @param codigoPais  Código ISO alfa-2 del país de origen (ej. "GT", "MX").
+     * @param numPasaporte Número de pasaporte del usuario.
+     * @return El objeto {@link Usuario} recién creado (sin el campo {@code passwordHash}).
+     * @throws SQLException             Si ocurre un error en la consulta a la base de datos.
+     * @throws IllegalArgumentException Si alguna validación falla.
      */
     public Usuario registrar(String email, String password, String nombres, String apellidos,
                             Integer edad, String codigoPais, String numPasaporte) throws SQLException {
@@ -97,7 +133,20 @@ public class AuthService {
     }
     
     /**
-     * Cambiar contraseña
+     * Cambia la contraseña de un usuario existente.
+     * <p>
+     * Verifica que la contraseña actual sea correcta y que la nueva cumpla con los
+     * requisitos mínimos de seguridad (mínimo 8 caracteres). Actualiza el hash
+     * almacenado en la base de datos.
+     * </p>
+     *
+     * @param idUsuario      Identificador del usuario.
+     * @param passwordActual Contraseña actual en texto plano.
+     * @param passwordNuevo  Nueva contraseña en texto plano.
+     * @return {@code true} si la actualización fue exitosa, {@code false} en caso contrario.
+     * @throws SQLException             Si ocurre un error en la consulta a la base de datos.
+     * @throws IllegalArgumentException Si el usuario no existe, la contraseña actual es incorrecta
+     *                                  o la nueva contraseña no cumple los requisitos.
      */
     public boolean cambiarPassword(Long idUsuario, String passwordActual, String passwordNuevo) throws SQLException {
         Usuario usuario = usuarioDAO.findById(idUsuario);

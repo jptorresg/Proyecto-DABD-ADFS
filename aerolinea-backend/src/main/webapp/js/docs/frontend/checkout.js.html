@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: checkout.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: checkout.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// ============================================================
+// CHECKOUT - ALPINE.JS DATA COMPONENT
+// ============================================================
+
+/**
+ * Crea y retorna el objeto `checkoutData` para Alpine.js, responsable del proceso de
+ * checkout (finalización de compra) de un vuelo.
+ * &lt;p>
+ * Gestiona la carga de datos del vuelo, el formulario de pasajeros, el método de pago,
+ * la validación y el envío de la reservación a la API.
+ * &lt;/p>
+ *
+ * @returns {Object} Un objeto Alpine con propiedades y métodos para el flujo de checkout.
+ */
+function checkoutData() {
+    return {
+        // Datos del vuelo (vienen de URL params o sessionStorage)
+        vueloInfo: {
+            codigo: 'HC-305',
+            origen: 'Guatemala City',
+            origenIata: 'GUA',
+            destino: 'Ciudad de México',
+            destinoIata: 'MEX',
+            fecha: '10 Feb 2026',
+            horaSalida: '09:15',
+            horaLlegada: '13:40',
+            numPasajeros: 2,
+            clase: 'Turista',
+            tipoVuelo: 'escala',
+            precioBase: 950
+        },
+
+        // Datos de pasajeros
+        pasajeros: [],
+
+        // Contacto de emergencia
+        emergencia: {
+            nombre: '',
+            telefono: ''
+        },
+
+        // Método de pago
+        paymentType: 'card',
+        tarjeta: {
+            numero: '',
+            nombre: '',
+            cvv: '',
+            mes: '',
+            año: '',
+            marca: ''
+        },
+
+        // Dirección de cobro
+        billing: {
+            direccion: '',
+            ciudad: '',
+            estado: '',
+            codigoPostal: '',
+            pais: 'GT'
+        },
+
+        // Extras (vienen de detalle.html)
+        extras: {
+            equipaje: false,
+            asiento: false,
+            comida: false
+        },
+
+        // Términos
+        acceptTerms: false,
+        acceptNewsletter: false,
+
+        // Estado
+        isProcessing: false,
+        
+        /**
+         * Calcula el precio total del vuelo según el número de pasajeros.
+         *
+         * @returns {number} Precio del vuelo (precio base * número de pasajeros).
+         */
+        get precioVuelo() {
+            return this.vueloInfo.precioBase * this.vueloInfo.numPasajeros;
+        },
+        
+        /**
+         * Calcula el costo total de los extras seleccionados.
+         *
+         * @returns {number} Costo total de los extras.
+         */
+        get precioExtras() {
+            let total = 0;
+            if (this.extras.equipaje) total += 300;
+            if (this.extras.asiento) total += 160;
+            if (this.extras.comida) total += 90;
+            return total;
+        },
+        
+        /**
+         * Calcula el subtotal del pedido (precio del vuelo + costo de los extras).
+         *
+         * @returns {number} Subtotal.
+         */
+        get subtotal() {
+            return this.precioVuelo + this.precioExtras;
+        },
+        
+        /**
+         * Calcula el valor de los impuestos (12% sobre el subtotal).
+         *
+         * @returns {number} Impuestos.
+         */
+        get impuestos() {
+            return Math.round(this.subtotal * 0.12);
+        },
+        
+        /**
+         * Calcula el costo total del pedido (subtotal + impuestos).
+         *
+         * @returns {number} Total a pagar.
+         */
+        get total() {
+            return this.subtotal + this.impuestos;
+        },
+
+        /**
+         * Inicializa el componente verificando autenticación, cargando datos del vuelo,
+         * extras, configurando fechas y generando los pasajeros.
+         *
+         * @returns {Promise&lt;void>}
+         */
+        async init() {
+            // Verificar autenticación
+            if (!requireAuth()) {
+                return;
+            }
+
+            // Cargar datos de URL params o sessionStorage
+            await this.loadFlightData();
+            this.loadExtras();
+            this.configureDateInputs();
+            const params = new URLSearchParams(window.location.search);
+
+            this.vueloId = params.get('vueloId');
+            this.numPasajeros = params.get('pasajeros')
+                ? parseInt(params.get('pasajeros'))
+                : 1;
+
+            console.log("Vuelo:", this.vueloId);
+            console.log("Pasajeros:", this.numPasajeros);
+            this.generarPasajeros();
+        },
+
+        /**
+         * Carga los datos del vuelo desde la API usando el ID de la URL.
+         *
+         * @returns {Promise&lt;void>}
+         */
+        async loadFlightData() {
+            const params = new URLSearchParams(window.location.search);
+            const vueloId = params.get('vueloId');
+            const pasajeros = params.get('pasajeros');
+            const totalUrl = params.get('total');
+
+            if (!vueloId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/vuelos/${vueloId}`);
+                const json = await response.json();
+
+                if (json.success) {
+                    const v = json.data;
+
+                    const numPasajeros = pasajeros ? parseInt(pasajeros) : 1;
+                    const total = totalUrl ? parseFloat(totalUrl) : 0;
+
+                    // Si viene total por URL, lo usamos para sacar precio individual
+                    const precioBaseCalculado = total &amp;&amp; numPasajeros
+                        ? Math.round(total / numPasajeros)
+                        : v.precioBase;
+
+                    this.vueloInfo = {
+                        id: v.idVuelo,
+                        codigo: v.codigoVuelo,
+                        origen: v.origenCiudad,
+                        origenIata: v.origenCodigoIata,
+                        destino: v.destinoCiudad,
+                        destinoIata: v.destinoCodigoIata,
+                        fecha: v.fechaSalida,
+                        horaSalida: v.horaSalida,
+                        horaLlegada: v.horaLlegada,
+                        numPasajeros: numPasajeros,
+                        clase: v.tipoAsiento,
+                        tipoVuelo: 'direct', // ajusta si manejas escalas
+                        precioBase: precioBaseCalculado
+                    };
+
+                    this.numPasajeros = numPasajeros;
+
+                }
+
+            } catch (error) {
+                console.error("Error cargando vuelo:", error);
+            }
+        },
+
+        /**
+         * Genera el array de objetos que representan a los pasajeros de la reserva actual.
+         */
+        generarPasajeros() {
+            this.pasajeros = [];
+
+            for (let i = 1; i &lt;= this.numPasajeros; i++) {
+                this.pasajeros.push({
+                    numero: i,
+                    tipo: 'Adulto', // luego puedes diferenciar niños
+                    nombres: '',
+                    apellidos: '',
+                    fechaNacimiento: '',
+                    genero: '',
+                    pasaporte: '',
+                    nacionalidad: ''
+                });
+            }
+        },
+
+        /**
+         * Carga los extras seleccionados desde el sessionStorage.
+         */
+        loadExtras() {
+            const stored = sessionStorage.getItem('selectedExtras');
+            if (stored) {
+                try {
+                    this.extras = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error parsing extras:', e);
+                }
+            }
+        },
+
+        /**
+         * Configura la fecha máxima para los campos de fecha de nacimiento (mayor de 18 años).
+         */
+        configureDateInputs() {
+            const maxDate = new Date();
+            maxDate.setFullYear(maxDate.getFullYear() - 18);
+            this.maxBirthdate = maxDate.toISOString().split('T')[0];
+        },
+
+        /**
+         * Cambia el método de pago seleccionado.
+         *
+         * @param {string} type - Tipo de pago ('card', 'paypal', etc.).
+         */
+        changePaymentMethod(type) {
+            this.paymentType = type;
+        },
+
+        /**
+         * Formatea el número de tarjeta agregando espacios cada 4 dígitos y detecta la marca.
+         */
+        formatCardNumber() {
+            let value = this.tarjeta.numero.replace(/\s/g, '').replace(/[^0-9]/g, '');
+            this.tarjeta.numero = value.match(/.{1,4}/g)?.join(' ') || value;
+            this.detectCardBrand(value);
+        },
+
+        /**
+         * Detecta la marca de la tarjeta según el número.
+         *
+         * @param {string} number - Número de tarjeta sin espacios.
+         */
+        detectCardBrand(number) {
+            const patterns = {
+                visa: /^4/,
+                mastercard: /^5[1-5]/,
+                amex: /^3[47]/,
+                discover: /^6(?:011|5)/
+            };
+
+            const clean = number.replace(/\s/g, '');
+            for (const [brand, pattern] of Object.entries(patterns)) {
+                if (pattern.test(clean)) {
+                    this.tarjeta.marca = brand.charAt(0).toUpperCase() + brand.slice(1);
+                    return;
+                }
+            }
+            this.tarjeta.marca = '';
+        },
+
+        /**
+         * Formatea el CVV permitiendo solo dígitos y limitando a 4 caracteres.
+         */
+        formatCVV() {
+            this.tarjeta.cvv = this.tarjeta.cvv.replace(/[^0-9]/g, '').substring(0, 4);
+        },
+
+        /**
+         * Formatea el nombre en la tarjeta a mayúsculas.
+         */
+        formatCardName() {
+            this.tarjeta.nombre = this.tarjeta.nombre.toUpperCase();
+        },
+
+        /**
+         * Valida el formulario completo antes de procesar el pago.
+         *
+         * @returns {boolean} {@code true} si todos los campos requeridos son válidos.
+         */
+        validateForm() {
+            // Validar pasajeros
+            for (const p of this.pasajeros) {
+                if (!p.nombres || !p.apellidos || !p.fechaNacimiento || 
+                    !p.genero || !p.pasaporte || !p.nacionalidad) {
+                    showNotification('Por favor complete la información de todos los pasajeros', 'error');
+                    return false;
+                }
+            }
+
+            // Validar emergencia
+            if (!this.emergencia.nombre || !this.emergencia.telefono) {
+                showNotification('Por favor complete el contacto de emergencia', 'error');
+                return false;
+            }
+
+            // Validar pago (solo si es tarjeta)
+            if (this.paymentType === 'card') {
+                if (!this.tarjeta.numero || !this.tarjeta.nombre || 
+                    !this.tarjeta.cvv || !this.tarjeta.mes || !this.tarjeta.año) {
+                    showNotification('Por favor complete los datos de la tarjeta', 'error');
+                    return false;
+                }
+
+                // Validar número de tarjeta (16 dígitos)
+                const cardClean = this.tarjeta.numero.replace(/\s/g, '');
+                if (cardClean.length !== 16) {
+                    showNotification('El número de tarjeta debe tener 16 dígitos', 'error');
+                    return false;
+                }
+
+                // Validar CVV
+                if (this.tarjeta.cvv.length &lt; 3) {
+                    showNotification('El CVV debe tener 3 o 4 dígitos', 'error');
+                    return false;
+                }
+
+                // Validar fecha de expiración
+                const now = new Date();
+                const expiry = new Date(parseInt(this.tarjeta.año), parseInt(this.tarjeta.mes) - 1);
+                if (expiry &lt; now) {
+                    showNotification('La tarjeta está vencida', 'error');
+                    return false;
+                }
+            }
+
+            // Validar dirección
+            if (!this.billing.direccion || !this.billing.ciudad || 
+                !this.billing.estado || !this.billing.codigoPostal || !this.billing.pais) {
+                showNotification('Por favor complete la dirección de cobro', 'error');
+                return false;
+            }
+
+            // Validar términos
+            if (!this.acceptTerms) {
+                showNotification('Debe aceptar los Términos y Condiciones', 'error');
+                return false;
+            }
+
+            return true;
+        },
+
+        /**
+         * Procesa el pago y crea la reservación en el sistema.
+         * &lt;p>
+         * Valida el formulario, construye el payload y lo envía a {@code /api/reservaciones}.
+         * Si la operación es exitosa, redirige a la página de confirmación.
+         * &lt;/p>
+         *
+         * @returns {Promise&lt;void>}
+         */
+        async procesarPago() {
+
+            if (this.paymentType === 'paypal') {
+                showNotification('Redirigiendo a PayPal...', 'info');
+                return;
+            }
+
+            if (!this.validateForm()) {
+                return;
+            }
+
+            this.isProcessing = true;
+
+            try {
+
+                const reservacionData = {
+                    idVuelo: this.vueloId,
+                    metodoPago: this.paymentType,
+                    pasajeros: this.pasajeros.map(p => ({
+                        nombres: p.nombres,
+                        apellidos: p.apellidos,
+                        fechaNacimiento: p.fechaNacimiento,
+                        idNacionalidad: parseInt(p.nacionalidad) || 83,
+                        numPasaporte: p.pasaporte
+                    }))
+                };
+
+                const session = getUserSession();
+                console.log("Reservacion enviada:", JSON.stringify(reservacionData, null, 2));
+                const response = await fetch(`${API_BASE}/reservaciones`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-usuario-id': session.idUsuario
+                    },
+                    body: JSON.stringify(reservacionData)
+                });
+
+                const text = await response.text();
+                console.log("Respuesta cruda backend:", text);
+                const result = JSON.parse(text);
+
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
+
+                const reservacion = result.data;
+                const codigoReservacion = reservacion.codigoReservacion;
+
+                showNotification('¡Compra confirmada exitosamente!', 'success');
+
+                sessionStorage.setItem('lastReservation', codigoReservacion);
+
+                setTimeout(() => {
+                    window.location.href =
+                        `${BASE_PATH}/views/confirmacion.html?codigo=${codigoReservacion}`;
+                }, 1500);
+
+            } catch (error) {
+
+                console.error('Error procesando pago:', error);
+
+                showNotification(
+                    error.message || 'Error al procesar el pago.',
+                    'error'
+                );
+
+            } finally {
+                this.isProcessing = false;
+            }
+        }
+    };
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#adminDashboard">adminDashboard</a></li><li><a href="global.html#agencias">agencias</a></li><li><a href="global.html#agenciasAdminData">agenciasAdminData</a></li><li><a href="global.html#applyFilters">applyFilters</a></li><li><a href="global.html#applySort">applySort</a></li><li><a href="global.html#calcularDistribucion">calcularDistribucion</a></li><li><a href="global.html#calcularDuracion">calcularDuracion</a></li><li><a href="global.html#calculateStats">calculateStats</a></li><li><a href="global.html#cambiarFiltro">cambiarFiltro</a></li><li><a href="global.html#cambiarOrden">cambiarOrden</a></li><li><a href="global.html#cambiarRol">cambiarRol</a></li><li><a href="global.html#canAccess">canAccess</a></li><li><a href="global.html#cancelarReservacion">cancelarReservacion</a></li><li><a href="global.html#captchaQuestion">captchaQuestion</a></li><li><a href="global.html#cargarStats">cargarStats</a></li><li><a href="global.html#changePassword">changePassword</a></li><li><a href="global.html#changePaymentMethod">changePaymentMethod</a></li><li><a href="global.html#checkSession">checkSession</a></li><li><a href="global.html#checkoutData">checkoutData</a></li><li><a href="global.html#clearUserSession">clearUserSession</a></li><li><a href="global.html#closeApiKeyModal">closeApiKeyModal</a></li><li><a href="global.html#closeLoginModalFunc">closeLoginModalFunc</a></li><li><a href="global.html#closeModal">closeModal</a></li><li><a href="global.html#closePasswordModal">closePasswordModal</a></li><li><a href="global.html#configureDateInputs">configureDateInputs</a></li><li><a href="global.html#convertDurationToMinutes">convertDurationToMinutes</a></li><li><a href="global.html#copyToClipboard">copyToClipboard</a></li><li><a href="global.html#createAgencia">createAgencia</a></li><li><a href="global.html#currentAgencia">currentAgencia</a></li><li><a href="global.html#currentVuelo">currentVuelo</a></li><li><a href="global.html#dashboardData">dashboardData</a></li><li><a href="global.html#deleteVuelo">deleteVuelo</a></li><li><a href="global.html#descargarPDF">descargarPDF</a></li><li><a href="global.html#detalleData">detalleData</a></li><li><a href="global.html#detectCardBrand">detectCardBrand</a></li><li><a href="global.html#displayedVuelos">displayedVuelos</a></li><li><a href="global.html#editMode">editMode</a></li><li><a href="global.html#fetchAgencias">fetchAgencias</a></li><li><a href="global.html#fetchComentarios">fetchComentarios</a></li><li><a href="global.html#fetchDashboardData">fetchDashboardData</a></li><li><a href="global.html#fetchProfile">fetchProfile</a></li><li><a href="global.html#fetchReservaciones">fetchReservaciones</a></li><li><a href="global.html#fetchUsuarios">fetchUsuarios</a></li><li><a href="global.html#fetchUsuariosWebService">fetchUsuariosWebService</a></li><li><a href="global.html#fetchVueloDetalle">fetchVueloDetalle</a></li><li><a href="global.html#fetchVuelos">fetchVuelos</a></li><li><a href="global.html#filteredReservaciones">filteredReservaciones</a></li><li><a href="global.html#filteredUsuarios">filteredUsuarios</a></li><li><a href="global.html#filteredVuelos">filteredVuelos</a></li><li><a href="global.html#filters">filters</a></li><li><a href="global.html#filtrarReservaciones">filtrarReservaciones</a></li><li><a href="global.html#filtroActivo">filtroActivo</a></li><li><a href="global.html#formatCVV">formatCVV</a></li><li><a href="global.html#formatCardName">formatCardName</a></li><li><a href="global.html#formatCardNumber">formatCardNumber</a></li><li><a href="global.html#formatCurrency">formatCurrency</a></li><li><a href="global.html#formatDate">formatDate</a></li><li><a href="global.html#formatTime">formatTime</a></li><li><a href="global.html#generarPasajeros">generarPasajeros</a></li><li><a href="global.html#generateCaptcha">generateCaptcha</a></li><li><a href="global.html#generateVueloCode">generateVueloCode</a></li><li><a href="global.html#generatedApiKey">generatedApiKey</a></li><li><a href="global.html#getQueryParams">getQueryParams</a></li><li><a href="global.html#getUserSession">getUserSession</a></li><li><a href="global.html#guardAction">guardAction</a></li><li><a href="global.html#headerData">headerData</a></li><li><a href="global.html#impuestos">impuestos</a></li><li><a href="global.html#infoCardsData">infoCardsData</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#initializeApp">initializeApp</a></li><li><a href="global.html#isLoading">isLoading</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#loadExtras">loadExtras</a></li><li><a href="global.html#loadFlightData">loadFlightData</a></li><li><a href="global.html#loadSearchParams">loadSearchParams</a></li><li><a href="global.html#loading">loading</a></li><li><a href="global.html#loginData">loginData</a></li><li><a href="global.html#loginUser">loginUser</a></li><li><a href="global.html#loginWithGoogle">loginWithGoogle</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#logoutUser">logoutUser</a></li><li><a href="global.html#mapBackendVuelo">mapBackendVuelo</a></li><li><a href="global.html#marcarMejorPrecio">marcarMejorPrecio</a></li><li><a href="global.html#modalMode">modalMode</a></li><li><a href="global.html#navigateTo">navigateTo</a></li><li><a href="global.html#navigateToAdmin">navigateToAdmin</a></li><li><a href="global.html#navigateToAgency">navigateToAgency</a></li><li><a href="global.html#navigateToDetalle">navigateToDetalle</a></li><li><a href="global.html#navigateToHotels">navigateToHotels</a></li><li><a href="global.html#navigateToPerfil">navigateToPerfil</a></li><li><a href="global.html#navigateToReservaciones">navigateToReservaciones</a></li><li><a href="global.html#notifications">notifications</a></li><li><a href="global.html#notificationsData">notificationsData</a></li><li><a href="global.html#openCreateModal">openCreateModal</a></li><li><a href="global.html#openEditModal">openEditModal</a></li><li><a href="global.html#openFiltersWithCurrentValues">openFiltersWithCurrentValues</a></li><li><a href="global.html#openLoginModal">openLoginModal</a></li><li><a href="global.html#openPasswordModal">openPasswordModal</a></li><li><a href="global.html#ordenarComentarios">ordenarComentarios</a></li><li><a href="global.html#paginatedUsuarios">paginatedUsuarios</a></li><li><a href="global.html#paginatedVuelos">paginatedVuelos</a></li><li><a href="global.html#pagination">pagination</a></li><li><a href="global.html#passwordData">passwordData</a></li><li><a href="global.html#passwordStrength">passwordStrength</a></li><li><a href="global.html#passwordStrengthText">passwordStrengthText</a></li><li><a href="global.html#passwordsMatch">passwordsMatch</a></li><li><a href="global.html#perfilData">perfilData</a></li><li><a href="global.html#performSearch">performSearch</a></li><li><a href="global.html#precioExtras">precioExtras</a></li><li><a href="global.html#precioVuelo">precioVuelo</a></li><li><a href="global.html#procederCompra">procederCompra</a></li><li><a href="global.html#procesarPago">procesarPago</a></li><li><a href="global.html#publicarComentario">publicarComentario</a></li><li><a href="global.html#puedeSerCancelada">puedeSerCancelada</a></li><li><a href="global.html#recalcularTotal">recalcularTotal</a></li><li><a href="global.html#recentReservations">recentReservations</a></li><li><a href="global.html#redirectIfAuthenticated">redirectIfAuthenticated</a></li><li><a href="global.html#regenerateApiKey">regenerateApiKey</a></li><li><a href="global.html#registroData">registroData</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#renderRouteGraphic">renderRouteGraphic</a></li><li><a href="global.html#renderStars">renderStars</a></li><li><a href="global.html#renderStarsInElements">renderStarsInElements</a></li><li><a href="global.html#requireAdmin">requireAdmin</a></li><li><a href="global.html#requireAuth">requireAuth</a></li><li><a href="global.html#reservaciones">reservaciones</a></li><li><a href="global.html#reservacionesData">reservacionesData</a></li><li><a href="global.html#responderComentario">responderComentario</a></li><li><a href="global.html#resultadosData">resultadosData</a></li><li><a href="global.html#saveUserSession">saveUserSession</a></li><li><a href="global.html#saveVuelo">saveVuelo</a></li><li><a href="global.html#searchParams">searchParams</a></li><li><a href="global.html#searchQuery">searchQuery</a></li><li><a href="global.html#sendRecoveryEmail">sendRecoveryEmail</a></li><li><a href="global.html#setRating">setRating</a></li><li><a href="global.html#setupScrollAnimations">setupScrollAnimations</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#showApiKeyModal">showApiKeyModal</a></li><li><a href="global.html#showFilters">showFilters</a></li><li><a href="global.html#showModal">showModal</a></li><li><a href="global.html#showNotification">showNotification</a></li><li><a href="global.html#showPasswordModal">showPasswordModal</a></li><li><a href="global.html#showProfileMenu">showProfileMenu</a></li><li><a href="global.html#sortBy">sortBy</a></li><li><a href="global.html#stats">stats</a></li><li><a href="global.html#submitLogin">submitLogin</a></li><li><a href="global.html#submitRegistro">submitRegistro</a></li><li><a href="global.html#subtotal">subtotal</a></li><li><a href="global.html#toggleActivo">toggleActivo</a></li><li><a href="global.html#toggleEditMode">toggleEditMode</a></li><li><a href="global.html#toggleFilters">toggleFilters</a></li><li><a href="global.html#toggleLike">toggleLike</a></li><li><a href="global.html#toggleProfileMenu">toggleProfileMenu</a></li><li><a href="global.html#total">total</a></li><li><a href="global.html#updatePriceProgress">updatePriceProgress</a></li><li><a href="global.html#updateProfile">updateProfile</a></li><li><a href="global.html#userName">userName</a></li><li><a href="global.html#userRole">userRole</a></li><li><a href="global.html#usuario">usuario</a></li><li><a href="global.html#usuarios">usuarios</a></li><li><a href="global.html#usuariosAdminData">usuariosAdminData</a></li><li><a href="global.html#usuariosWebService">usuariosWebService</a></li><li><a href="global.html#validateForm">validateForm</a></li><li><a href="global.html#validatePassword">validatePassword</a></li><li><a href="global.html#vuelos">vuelos</a></li><li><a href="global.html#vuelosAdminData">vuelosAdminData</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 09 2026 16:27:47 GMT-0600 (hora estándar central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

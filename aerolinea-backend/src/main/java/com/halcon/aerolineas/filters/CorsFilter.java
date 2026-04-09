@@ -10,8 +10,35 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Filtro para habilitar CORS (Cross-Origin Resource Sharing) en la aplicación.
+ * <p>
+ * Permite solicitudes desde el frontend (por ejemplo, {@code http://localhost:8080})
+ * estableciendo las cabeceras CORS adecuadas en cada respuesta.
+ * </p>
+ */
 @WebFilter("/*")
 public class CorsFilter implements Filter {
+
+    /**
+     * Intercepta cada solicitud entrante para agregar las cabeceras CORS necesarias.
+     * <p>
+     * Este método establece los siguientes encabezados:
+     * <ul>
+     *   <li>{@code Access-Control-Allow-Origin}: {@code http://localhost:8080}</li>
+     *   <li>{@code Access-Control-Allow-Credentials}: {@code true}</li>
+     *   <li>{@code Access-Control-Allow-Methods}: {@code GET, POST, PUT, DELETE, OPTIONS}</li>
+     *   <li>{@code Access-Control-Allow-Headers}: {@code Content-Type, Authorization}</li>
+     *   <li>{@code Access-Control-Max-Age}: {@code 3600}</li>
+     * </ul>
+     * 
+     *
+     * @param req   La solicitud entrante.
+     * @param res   La respuesta saliente.
+     * @param chain La cadena de filtros para continuar procesando la solicitud.
+     * @throws IOException      Si ocurre un error de entrada/salida.
+     * @throws ServletException Si ocurre un error en el filtro del servlet.
+     */
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {

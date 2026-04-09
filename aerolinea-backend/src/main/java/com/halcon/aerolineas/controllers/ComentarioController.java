@@ -16,16 +16,53 @@ import com.halcon.aerolineas.services.ComentarioService.ComentarioResponse;
 import com.halcon.aerolineas.utils.JsonResponse;
 import com.halcon.aerolineas.models.ComentarioRating;
 
+/**
+ * Controlador para la gestión de comentarios y valoraciones de vuelos.
+ * <p>
+ * Maneja las peticiones HTTP dirigidas a {@code /api/comentarios/*} y proporciona
+ * endpoints para obtener y crear comentarios asociados a un vuelo.
+ * </p>
+ * <p>
+ * Métodos soportados:
+ * <ul>
+ *   <li>GET  /api/comentarios/{idVuelo} - Obtiene los comentarios de un vuelo.</li>
+ *   <li>POST /api/comentarios           - Crea un nuevo comentario.</li>
+ * </ul>
+ * 
+ */
 @WebServlet("/api/comentarios/*")
 public class ComentarioController extends HttpServlet {
 
     private ComentarioService comentarioService;
 
+    /**
+     * Inicializa el servicio de comentarios.
+     * <p>
+     * Este método es invocado automáticamente por el contenedor de servlets
+     * cuando se carga el servlet.
+     * </p>
+     *
+     * @throws ServletException si ocurre un error durante la inicialización.
+     */
     @Override
     public void init() throws ServletException {
         this.comentarioService = new ComentarioService();
     }
 
+    /**
+     * Maneja las peticiones HTTP GET.
+     * <p>
+     * Endpoints disponibles:
+     * <ul>
+     *   <li>{@code /api/comentarios/{idVuelo}} - Devuelve la lista de comentarios de un vuelo.</li>
+     * </ul>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws IOException      Si ocurre un error de entrada/salida al escribir la respuesta.
+     * @throws ServletException Si ocurre un error al procesar la solicitud.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -70,6 +107,20 @@ public class ComentarioController extends HttpServlet {
         }
     }
 
+    /**
+     * Maneja las peticiones HTTP POST.
+     * <p>
+     * Endpoints disponibles:
+     * <ul>
+     *   <li>{@code /api/comentarios} - Crea un nuevo comentario.</li>
+     * </ul>
+     * 
+     *
+     * @param request  Objeto {@code HttpServletRequest} con la solicitud del cliente.
+     * @param response Objeto {@code HttpServletResponse} para enviar la respuesta.
+     * @throws IOException      Si ocurre un error de entrada/salida al escribir la respuesta.
+     * @throws ServletException Si ocurre un error al procesar la solicitud.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

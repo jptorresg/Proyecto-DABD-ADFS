@@ -20,20 +20,26 @@ let isUserLoggedIn = false;
 // FUNCIONES PRINCIPALES
 // ===================================
 
-// Abrir modal de login
+/**
+ * Abre el modal de inicio de sesión y bloquea el scroll de la página.
+ */
 function openLoginModal() {
     loginModal.classList.add('active');
     document.body.style.overflow = 'hidden'; // Prevenir scroll
 }
 
-// Cerrar modal de login
+/**
+ * Cierra el modal de inicio de sesión y restaura el scroll.
+ */
 function closeLoginModalFunc() {
     loginModal.classList.remove('active');
     document.body.style.overflow = 'auto'; // Restaurar scroll
     loginForm.reset();
 }
 
-// Cambiar a vista de usuario registrado
+/**
+ * Cambia la interfaz al estado de usuario autenticado.
+ */
 function loginUser() {
     isUserLoggedIn = true;
     guestSection.style.display = 'none';
@@ -47,7 +53,9 @@ function loginUser() {
     }, 10);
 }
 
-// Cambiar a vista de visitante
+/**
+ * Cambia la interfaz al estado de visitante (cierra sesión).
+ */
 function logoutUser() {
     isUserLoggedIn = false;
     loggedSection.style.display = 'none';
@@ -142,7 +150,9 @@ profileDropdown.addEventListener('click', () => {
 // FUNCIONES AUXILIARES
 // ===================================
 
-// Inicializar estado por defecto
+/**
+ * Inicializa la aplicación con el estado por defecto (visitante).
+ */
 function initializeApp() {
     // Por defecto, el usuario no está logueado
     isUserLoggedIn = false;
@@ -165,23 +175,27 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================
 const filterBtn = document.querySelector('.filter-btn');
 
-filterBtn.addEventListener('click', () => {
-    console.log('Botón de filtros clickeado');
-    // Implementación futura: abrir panel de filtros
-});
+if (filterBtn) {
+    filterBtn.addEventListener('click', () => {
+        console.log('Botón de filtros clickeado');
+        // Implementación futura: abrir panel de filtros
+    });
+}
 
 // ===================================
 // BÚSQUEDA (Para implementación futura)
 // ===================================
 const searchInput = document.querySelector('.search-input');
 
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const searchTerm = e.target.value;
-        console.log('Búsqueda realizada:', searchTerm);
-        // Implementación futura: realizar búsqueda
-    }
-});
+if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const searchTerm = e.target.value;
+            console.log('Búsqueda realizada:', searchTerm);
+            // Implementación futura: realizar búsqueda
+        }
+    });
+}
 
 // ===================================
 // HERO Y CARDS - NAVEGACIÓN
@@ -193,8 +207,8 @@ const exploreFlightsBtn = document.getElementById('exploreFlightsBtn');
 if (exploreFlightsBtn) {
     exploreFlightsBtn.addEventListener('click', (e) => {
         e.preventDefault();
-
-        window.location.href = '${BASE_PATH}/views/resultados.html';
+        // BASE_PATH debe estar definido globalmente (ej. en un script previo)
+        window.location.href = `${BASE_PATH}/views/resultados.html`;
     });
 }
 
@@ -222,7 +236,10 @@ if (agencyBtn) {
 // ANIMACIONES DE SCROLL
 // ===================================
 
-// Función para observar elementos y animarlos al hacer scroll
+/**
+ * Configura las animaciones al hacer scroll para las tarjetas informativas.
+ * Utiliza la API IntersectionObserver para revelar los elementos suavemente.
+ */
 function setupScrollAnimations() {
     const observerOptions = {
         threshold: 0.1,

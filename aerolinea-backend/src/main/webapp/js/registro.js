@@ -2,6 +2,24 @@
 // REGISTRO - ALPINE.JS DATA COMPONENT
 // ============================================================
 
+/**
+ * Crea y retorna el objeto `registroData` para Alpine.js, responsable del
+ * formulario de registro de nuevos usuarios.
+ *
+ * @returns {Object} Un objeto Alpine con las siguientes propiedades y métodos:
+ * @property {Object} formData - Datos del formulario de registro.
+ * @property {Object} captcha - Datos de la pregunta CAPTCHA.
+ * @property {boolean} showPassword - Controla la visibilidad de la contraseña.
+ * @property {boolean} showConfirmPassword - Controla la visibilidad de la confirmación.
+ * @property {boolean} termsAccepted - Indica si se aceptaron los términos.
+ * @property {boolean} isLoading - Indica si se está procesando el registro.
+ * @property {string} passwordStrength - (getter) Nivel de fortaleza de la contraseña.
+ * @property {string} passwordStrengthText - (getter) Texto descriptivo de la fortaleza.
+ * @property {boolean} passwordsMatch - (getter) Indica si las contraseñas coinciden.
+ * @property {Function} init - Inicializa el componente.
+ * @property {Function} generateCaptcha - Genera una nueva pregunta CAPTCHA.
+ * @property {Function} submitRegistro - Envía el formulario de registro a la API.
+ */
 function registroData() {
     return {
         // Datos del formulario
@@ -35,12 +53,20 @@ function registroData() {
         // Estado
         isLoading: false,
 
-        // Computed: Pregunta CAPTCHA
+        /**
+         * Getter que devuelve la pregunta CAPTCHA formateada.
+         *
+         * @returns {string} Pregunta CAPTCHA (ej. "¿Cuánto es 3 + 5?").
+         */
         get captchaQuestion() {
             return `¿Cuánto es ${this.captcha.num1} ${this.captcha.operation} ${this.captcha.num2}?`;
         },
 
-        // Computed: Fortaleza de contraseña
+        /**
+         * Getter que evalúa la fortaleza de la contraseña.
+         *
+         * @returns {string} 'weak' si < 8 caracteres, 'medium' si < 12, 'strong' si >= 12.
+         */
         get passwordStrength() {
             const pwd = this.formData.password;
             if (pwd.length === 0) return '';
@@ -49,6 +75,11 @@ function registroData() {
             return 'strong';
         },
 
+        /**
+         * Getter que devuelve el texto descriptivo de la fortaleza de la contraseña.
+         *
+         * @returns {string} Mensaje indicando la fortaleza.
+         */
         get passwordStrengthText() {
             const strength = this.passwordStrength;
             if (strength === 'weak') return '⚠️ Contraseña débil';
@@ -57,20 +88,32 @@ function registroData() {
             return '';
         },
 
-        // Computed: Contraseñas coinciden
+        /**
+         * Getter que verifica si la contraseña y su confirmación coinciden.
+         *
+         * @returns {boolean} {@code true} si coinciden y no están vacías.
+         */
         get passwordsMatch() {
             return this.formData.password === this.formData.confirmPassword && 
                    this.formData.confirmPassword.length > 0;
         },
 
-        // Inicialización
+        /**
+         * Inicializa el componente.
+         * <p>
+         * Redirige a la página principal si el usuario ya está autenticado.
+         * Genera la primera pregunta CAPTCHA.
+         * </p>
+         */
         init() {
             // Si ya está logueado, redirigir
             redirectIfAuthenticated();
             this.generateCaptcha();
         },
 
-        // Generar CAPTCHA
+        /**
+         * Genera una nueva pregunta CAPTCHA con dos números y una operación aleatoria.
+         */
         generateCaptcha() {
             this.captcha.num1 = Math.floor(Math.random() * 10) + 1;
             this.captcha.num2 = Math.floor(Math.random() * 10) + 1;
@@ -92,7 +135,15 @@ function registroData() {
             this.captcha.answer = '';
         },
 
-        // Submit registro
+        /**
+         * Envía el formulario de registro a la API para crear una nueva cuenta.
+         * <p>
+         * Realiza validaciones de campos obligatorios, coincidencia de contraseñas,
+         * longitud mínima, respuesta CAPTCHA y aceptación de términos.
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async submitRegistro() {
             // Validaciones
             if (!this.formData.email || !this.formData.password || !this.formData.nombres || 
