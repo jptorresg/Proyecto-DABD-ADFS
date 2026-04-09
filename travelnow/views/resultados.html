@@ -10,17 +10,6 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./public/css/styles.css">
   <style>
-    /*!
-     * \file resultados.html
-     * \brief Página de resultados de búsqueda de TravelHub
-     * \author TravelHub Team
-     * \version 1.0
-     * \date 2024
-     * 
-     * Esta página muestra los resultados de búsqueda de vuelos, hoteles o paquetes.
-     * Permite filtrar y ordenar los resultados, y redirige a las páginas de detalle o checkout.
-     */
-     
     body { background: var(--navy); }
     .filter-sidebar {
       background: rgba(17,34,64,0.85);
@@ -77,6 +66,7 @@
     }
     .result-card-full:hover { border-color: rgba(212,168,67,0.55); box-shadow: var(--shadow-gold); }
     .airline-badge { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+    .hotel-badge  { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60A5FA; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
     .route-display { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin: 0.8rem 0; }
     .route-location { text-align: center; }
     .route-time { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--white); line-height: 1; }
@@ -89,7 +79,10 @@
     .flight-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.6rem; }
     .flight-meta-item { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
     .flight-meta-item i { color: var(--gold); font-size: 0.75rem; }
-    .price-col { text-align: right; }
+    .hotel-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin-top: 0.8rem; }
+    .hotel-info-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted); }
+    .hotel-info-item i { color: #60A5FA; font-size: 0.75rem; }
+    .price-col { text-align: right; min-width: 160px; }
     .big-price { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; color: var(--gold); line-height: 1; }
     .big-price small { font-family: var(--font-body); font-size: 0.72rem; color: var(--text-muted); font-weight: 400; }
     .btn-ver { background: transparent; border: 1px solid var(--border-gold); color: var(--cream); padding: 0.5rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer; transition: var(--trans); text-decoration: none; display: inline-block; margin-right: 0.5rem; }
@@ -101,42 +94,17 @@
     .sort-select option { background: var(--navy-mid); }
     .modify-btn { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); padding: 0.55rem 1.4rem; border-radius: 50px; font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: var(--trans); text-decoration: none; }
     .modify-btn:hover { background: var(--gold); color: var(--navy); }
+    /* Tipo badge en el header */
+    .tipo-badge-vuelos  { background: rgba(212,168,67,0.15); border: 1px solid var(--border-gold); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .tipo-badge-hoteles { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60A5FA; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
     /* Loading state */
-    .skeleton-card {
-      background: rgba(17,34,64,0.5);
-      border: 1px solid rgba(212,168,67,0.15);
-      border-radius: var(--radius-md);
-      padding: 1.8rem;
-      margin-bottom: 1rem;
-      animation: shimmer 1.5s infinite;
-    }
+    .skeleton-card { background: rgba(17,34,64,0.5); border: 1px solid rgba(212,168,67,0.15); border-radius: var(--radius-md); padding: 1.8rem; margin-bottom: 1rem; animation: shimmer 1.5s infinite; }
     .skeleton-line { height: 14px; background: rgba(212,168,67,0.08); border-radius: 4px; margin-bottom: 0.8rem; }
-    @keyframes shimmer {
-      0%,100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
+    @keyframes shimmer { 0%,100%{opacity:0.6} 50%{opacity:1} }
     /* Empty / error state */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--text-muted);
-    }
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
     .empty-state i { font-size: 3rem; color: var(--gold); display: block; margin-bottom: 1rem; }
     .empty-state h3 { font-family: var(--font-display); font-size: 1.6rem; color: var(--cream); margin-bottom: 0.5rem; }
-    /* Cancel button for user's own reservations */
-    .btn-cancelar {
-      background: rgba(248,113,113,0.1);
-      border: 1px solid rgba(248,113,113,0.3);
-      color: #F87171;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: var(--trans);
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-cancelar:hover { background: rgba(248,113,113,0.25); color: #F87171; }
   </style>
 </head>
 <body>
@@ -159,12 +127,14 @@
   <!-- Hero de búsqueda -->
   <section class="search-hero">
     <div class="container">
-      <div class="hero-eyebrow"><i class="fa-solid fa-plane"></i> Resultados de búsqueda</div>
+      <div class="hero-eyebrow" id="search-eyebrow">
+        <i class="fa-solid fa-plane"></i> Resultados de búsqueda
+      </div>
       <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.8rem);font-weight:300;color:var(--white);">
-        Vuelos <em style="font-style:italic;color:var(--gold-light)" id="search-title">disponibles</em>
+        <span id="search-tipo-label">Vuelos</span> <em style="font-style:italic;color:var(--gold-light)" id="search-title">disponibles</em>
       </h1>
       <div class="search-params-bar" id="params-bar">
-        <!-- Se rellena dinámicamente desde los query params de la URL -->
+        <!-- Se rellena dinámicamente -->
       </div>
     </div>
   </section>
@@ -178,6 +148,7 @@
         <div class="col-lg-3">
           <div class="filter-sidebar anim-up">
             <div class="filter-title"><i class="fa-solid fa-sliders me-2" style="color:var(--gold)"></i>Filtros</div>
+
             <div class="filter-group">
               <div class="filter-group-title"><i class="fa-solid fa-dollar-sign me-1"></i> Precio máximo</div>
               <div class="price-input-row">
@@ -186,17 +157,30 @@
               </div>
               <button class="btn-sm-gold mt-2" style="width:100%;" onclick="aplicarFiltros()">Aplicar</button>
             </div>
+
             <div class="filter-group">
               <div class="filter-group-title"><i class="fa-solid fa-building me-1"></i> Proveedor</div>
               <div id="filter-proveedores">
-                <!-- Se llena dinámicamente -->
                 <label class="filter-check"><input type="checkbox" value="todos" checked onchange="aplicarFiltros()"> Todos</label>
               </div>
             </div>
-            <div class="filter-group">
+
+            <!-- Filtro de asiento solo para vuelos -->
+            <div class="filter-group" id="filtro-asiento-group">
               <div class="filter-group-title"><i class="fa-solid fa-chair me-1"></i> Tipo de asiento</div>
               <label class="filter-check"><input type="checkbox" class="filter-asiento" value="turista" checked onchange="aplicarFiltros()"> Turista</label>
               <label class="filter-check"><input type="checkbox" class="filter-asiento" value="business" checked onchange="aplicarFiltros()"> Business</label>
+            </div>
+
+            <!-- Filtro de capacidad solo para hoteles -->
+            <div class="filter-group d-none" id="filtro-huespedes-group">
+              <div class="filter-group-title"><i class="fa-solid fa-users me-1"></i> Capacidad mínima</div>
+              <select class="price-input-sm" id="filtro-capacidad" onchange="aplicarFiltros()">
+                <option value="0">Cualquiera</option>
+                <option value="1">1+ huésped</option>
+                <option value="2">2+ huéspedes</option>
+                <option value="4">4+ huéspedes</option>
+              </select>
             </div>
           </div>
         </div>
@@ -204,7 +188,7 @@
         <!-- Resultados -->
         <div class="col-lg-9">
           <div class="sort-row">
-            <p class="results-count" id="results-count">Buscando vuelos...</p>
+            <p class="results-count" id="results-count">Buscando...</p>
             <div class="d-flex align-items-center gap-2">
               <span style="font-size:0.82rem;color:var(--text-muted);">Ordenar:</span>
               <select class="sort-select" id="sort-select" onchange="ordenarYRenderizar()">
@@ -216,7 +200,6 @@
 
           <!-- Contenedor de resultados dinámicos -->
           <div id="resultados-container">
-            <!-- Skeletons de carga -->
             <div class="skeleton-card"><div class="skeleton-line" style="width:30%"></div><div class="skeleton-line" style="width:80%"></div><div class="skeleton-line" style="width:50%"></div></div>
             <div class="skeleton-card"><div class="skeleton-line" style="width:25%"></div><div class="skeleton-line" style="width:75%"></div><div class="skeleton-line" style="width:45%"></div></div>
             <div class="skeleton-card"><div class="skeleton-line" style="width:35%"></div><div class="skeleton-line" style="width:85%"></div><div class="skeleton-line" style="width:55%"></div></div>
@@ -228,84 +211,135 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    /* =========================================================
+     *  VARIABLES GLOBALES — DEFINIDAS AL INICIO (bug fix)
+     * ========================================================= */
+
     /**
-     * @file resultados.html (JavaScript)
-     * @brief Lógica de búsqueda, filtrado y renderizado de resultados
-     * @author TravelHub Team
-     * @version 1.0
+     * @var urlParams  — Parámetros completos de la URL actual.
+     * Usados para recuperar criterios de búsqueda y construir
+     * la petición a la API.
      */
+    const urlParams = new URLSearchParams(window.location.search);
 
-    /*!
-     * \var todosLosVuelos
-     * \brief Array que almacena todos los resultados obtenidos de la API
+    /**
+     * @var tipoResultado — Tipo de búsqueda activa.
+     * Valores: 'flights' | 'hotels' | 'packages'
+     * Se lee del parámetro ?tipo= de la URL.
+     * Por defecto 'flights' para compatibilidad con búsquedas
+     * que no especifiquen el tipo explícitamente.
      */
-    let todosLosVuelos = [];
+    const tipoResultado = urlParams.get('tipo') || 'flights';
 
-    /*!
-     * \var vuelosFiltrados
-     * \brief Array que almacena los resultados después de aplicar filtros
-     */
-    let vuelosFiltrados = [];
+    /** Arrays de resultados */
+    let todosLosResultados  = [];
+    let resultadosFiltrados = [];
 
-    /*!
-     * \brief Lee los parámetros de la URL y renderiza la barra de parámetros de búsqueda
-     * 
-     * Esta función se ejecuta inmediatamente y extrae los parámetros como origen,
-     * destino, fechas, pasajeros, etc., mostrándolos en el hero de la página.
-     */
+    /* =========================================================
+     *  CONFIGURACIÓN INICIAL DE LA UI SEGÚN TIPO
+     * ========================================================= */
+    (function configurarUI() {
+      const esHotel   = tipoResultado === 'hotels';
+      const esPaquete = tipoResultado === 'packages';
+
+      // Actualizar eyebrow / título
+      const eyebrow = document.getElementById('search-eyebrow');
+      const tipoLabel = document.getElementById('search-tipo-label');
+      const titleSuffix = document.getElementById('search-title');
+
+      if (esHotel) {
+        eyebrow.innerHTML = '<i class="fa-solid fa-building"></i> Resultados de búsqueda';
+        tipoLabel.textContent = 'Hoteles';
+        titleSuffix.textContent = 'encontrados';
+      } else if (esPaquete) {
+        eyebrow.innerHTML = '<i class="fa-solid fa-bag-shopping"></i> Resultados de búsqueda';
+        tipoLabel.textContent = 'Paquetes';
+        titleSuffix.textContent = 'disponibles';
+      } else {
+        eyebrow.innerHTML = '<i class="fa-solid fa-plane"></i> Resultados de búsqueda';
+        tipoLabel.textContent = 'Vuelos';
+        titleSuffix.textContent = 'disponibles';
+      }
+
+      // Mostrar/ocultar filtros específicos por tipo
+      document.getElementById('filtro-asiento-group').classList.toggle('d-none', esHotel);
+      document.getElementById('filtro-huespedes-group').classList.toggle('d-none', !esHotel);
+    })();
+
+    /* =========================================================
+     *  BARRA DE PARÁMETROS DE BÚSQUEDA
+     * ========================================================= */
     (function renderParamsBar() {
-      const bar = document.getElementById('params-bar');
+      const bar   = document.getElementById('params-bar');
       const items = [];
 
-      const origen  = urlParams.get('origen');
-      const destino = urlParams.get('destino');
-      const ciudad  = urlParams.get('ciudad');
+      const origen        = urlParams.get('origen');
+      const destino       = urlParams.get('destino');
+      const ciudad        = urlParams.get('ciudad');
       const fechaSalida   = urlParams.get('fecha_salida');
       const fechaRegreso  = urlParams.get('fecha_regreso');
       const fechaCheckin  = urlParams.get('fecha_checkin');
       const fechaCheckout = urlParams.get('fecha_checkout');
-      const pasajeros = urlParams.get('num_pasajeros') || urlParams.get('num_huespedes');
-      const asiento   = urlParams.get('tipo_asiento');
+      const pasajeros     = urlParams.get('num_pasajeros') || urlParams.get('num_huespedes');
+      const asiento       = urlParams.get('tipo_asiento');
 
       if (origen && destino) {
-        items.push(`<div class="search-param-item"><i class="fa-solid fa-location-dot" style="color:var(--gold)"></i> <strong>${origen.toUpperCase()}</strong> → <strong>${destino.toUpperCase()}</strong></div>`);
+        items.push(`<div class="search-param-item">
+          <i class="fa-solid fa-location-dot" style="color:var(--gold)"></i>
+          <strong>${origen.toUpperCase()}</strong> → <strong>${destino.toUpperCase()}</strong>
+        </div>`);
       }
+
       if (ciudad) {
-        items.push(`<div class="search-param-item"><i class="fa-solid fa-city" style="color:var(--gold)"></i> <strong>${ciudad}</strong></div>`);
+        items.push(`<div class="search-param-item">
+          <i class="fa-solid fa-city" style="color:var(--gold)"></i>
+          <strong>${ciudad}</strong>
+        </div>`);
       }
+
       if (fechaSalida) {
         const label = fechaRegreso
           ? `<strong>${fechaSalida}</strong> — <strong>${fechaRegreso}</strong>`
           : `<strong>${fechaSalida}</strong>`;
-        items.push(`<div class="search-param-item"><i class="fa-regular fa-calendar" style="color:var(--gold)"></i> ${label}</div>`);
+        items.push(`<div class="search-param-item">
+          <i class="fa-regular fa-calendar" style="color:var(--gold)"></i> ${label}
+        </div>`);
       }
-      if (fechaCheckin) {
-        items.push(`<div class="search-param-item"><i class="fa-regular fa-calendar" style="color:var(--gold)"></i> <strong>${fechaCheckin}</strong> — <strong>${fechaCheckout || '?'}</strong></div>`);
-      }
-      if (pasajeros) {
-        items.push(`<div class="search-param-item"><i class="fa-solid fa-users" style="color:var(--gold)"></i> <strong>${pasajeros} pasajero(s)</strong>${asiento ? ' · ' + asiento : ''}</div>`);
-      }
-      items.push(`<a href="/buscar" class="modify-btn ms-auto"><i class="fa-solid fa-pen me-1"></i> Modificar búsqueda</a>`);
-      bar.innerHTML = items.join('');
 
-      // Título dinámico
-      const titleMap = { flights: 'disponibles', hotels: 'encontrados', packages: 'disponibles' };
-      document.getElementById('search-title').textContent = titleMap[tipoResultado] || 'disponibles';
+      if (fechaCheckin) {
+        items.push(`<div class="search-param-item">
+          <i class="fa-regular fa-calendar" style="color:var(--gold)"></i>
+          <strong>${fechaCheckin}</strong> — <strong>${fechaCheckout || '?'}</strong>
+        </div>`);
+      }
+
+      if (pasajeros) {
+        const unidad = tipoResultado === 'hotels' ? 'huésped(es)' : 'pasajero(s)';
+        items.push(`<div class="search-param-item">
+          <i class="fa-solid fa-users" style="color:var(--gold)"></i>
+          <strong>${pasajeros} ${unidad}</strong>${asiento ? ' · ' + asiento : ''}
+        </div>`);
+      }
+
+      items.push(`<a href="/buscar" class="modify-btn ms-auto">
+        <i class="fa-solid fa-pen me-1"></i> Modificar búsqueda
+      </a>`);
+
+      bar.innerHTML = items.join('');
     })();
 
-    /*!
-     * \brief Realiza la llamada a la API para obtener los resultados de búsqueda
-     * 
-     * Esta función asincrónica obtiene los datos del endpoint correspondiente
-     * (flights, hotels, packages) según el tipo de resultado.
-     * 
-     * \async
-     * \throws {Error} Si hay problemas de conexión o respuesta inválida
+    /* =========================================================
+     *  PETICIÓN A LA API
+     * ========================================================= */
+
+    /**
+     * @brief Llama al endpoint correcto según tipoResultado y carga los datos.
      */
     async function buscarResultados() {
       const endpointMap = { flights: 'flights', hotels: 'hotels', packages: 'packages' };
-      const endpoint = endpointMap[tipoResultado] || 'flights';
+      const endpoint    = endpointMap[tipoResultado] || 'flights';
 
+      // Pasar todos los parámetros de la URL directamente a la API
       const params = new URLSearchParams(urlParams);
 
       try {
@@ -317,8 +351,8 @@
           return;
         }
 
-        todosLosVuelos  = data.data || [];
-        vuelosFiltrados = [...todosLosVuelos];
+        todosLosResultados  = data.data || [];
+        resultadosFiltrados = [...todosLosResultados];
         construirFiltrosProveedores();
         ordenarYRenderizar();
 
@@ -327,58 +361,79 @@
       }
     }
 
-    /*!
-     * \brief Construye dinámicamente los checkboxes de filtro por proveedor
-     * 
-     * Extrae la lista única de nombres de proveedores de los resultados
-     * y crea un checkbox para cada uno.
+    /* =========================================================
+     *  FILTROS
+     * ========================================================= */
+
+    /**
+     * @brief Construye los checkboxes de proveedor con los datos reales.
      */
     function construirFiltrosProveedores() {
-      const proveedores = [...new Set(todosLosVuelos.map(v => v.nombre_proveedor).filter(Boolean))];
-      const container   = document.getElementById('filter-proveedores');
+      const proveedores = [...new Set(
+        todosLosResultados.map(v => v.nombre_proveedor).filter(Boolean)
+      )];
+      const container = document.getElementById('filter-proveedores');
+
+      if (!proveedores.length) {
+        container.innerHTML = '<span style="font-size:0.82rem;color:var(--text-muted);">Sin proveedores</span>';
+        return;
+      }
+
       container.innerHTML = proveedores.map(p =>
-        `<label class="filter-check"><input type="checkbox" class="filter-prov" value="${p}" checked onchange="aplicarFiltros()"> ${p}</label>`
-      ).join('') || '<span style="font-size:0.82rem;color:var(--text-muted);">Sin proveedores</span>';
+        `<label class="filter-check">
+          <input type="checkbox" class="filter-prov" value="${p}" checked onchange="aplicarFiltros()"> ${p}
+        </label>`
+      ).join('');
     }
 
-    /*!
-     * \brief Aplica los filtros seleccionados por el usuario
-     * 
-     * Filtra los resultados según precio mínimo/máximo, tipo de asiento
-     * y proveedores seleccionados. Actualiza vuelosFiltrados y renderiza.
-     * 
-     * \see ordenarYRenderizar
+    /**
+     * @brief Aplica todos los filtros activos y actualiza la lista filtrada.
      */
     function aplicarFiltros() {
       const minPrecio  = parseFloat(document.getElementById('precio-min').value) || 0;
       const maxPrecio  = parseFloat(document.getElementById('precio-max').value) || Infinity;
-      const asientos   = [...document.querySelectorAll('.filter-asiento:checked')].map(c => c.value);
       const provs      = [...document.querySelectorAll('.filter-prov:checked')].map(c => c.value);
 
-      vuelosFiltrados = todosLosVuelos.filter(v => {
-        const precio = v.precio_agencia || v.precio_noche_agencia || 0;
+      resultadosFiltrados = todosLosResultados.filter(item => {
+        // Campo de precio diferente para hoteles vs vuelos
+        const precio = tipoResultado === 'hotels'
+          ? (item.precio_noche_agencia || 0)
+          : (item.precio_agencia || 0);
+
         if (precio < minPrecio || precio > maxPrecio) return false;
-        if (v.tipo_asiento && asientos.length && !asientos.includes(v.tipo_asiento)) return false;
-        if (provs.length && v.nombre_proveedor && !provs.includes(v.nombre_proveedor)) return false;
+
+        if (provs.length && item.nombre_proveedor && !provs.includes(item.nombre_proveedor)) return false;
+
+        // Filtro de asiento solo para vuelos
+        if (tipoResultado !== 'hotels') {
+          const asientos = [...document.querySelectorAll('.filter-asiento:checked')].map(c => c.value);
+          if (item.tipo_asiento && asientos.length && !asientos.includes(item.tipo_asiento)) return false;
+        }
+
+        // Filtro de capacidad solo para hoteles
+        if (tipoResultado === 'hotels') {
+          const minCap = parseInt(document.getElementById('filtro-capacidad').value) || 0;
+          if (minCap > 0 && (item.capacidad_max || 0) < minCap) return false;
+        }
+
         return true;
       });
 
       ordenarYRenderizar();
     }
 
-    /*!
-     * \brief Ordena los resultados según la selección y los renderiza
-     * 
-     * Lee el valor del selector de ordenamiento (precio ascendente o descendente)
-     * y aplica la ordenación correspondiente antes de llamar a renderResultados.
-     * 
-     * \see renderResultados
+    /* =========================================================
+     *  ORDENAMIENTO Y RENDERIZADO
+     * ========================================================= */
+
+    /**
+     * @brief Ordena los resultados filtrados y los renderiza.
      */
     function ordenarYRenderizar() {
-      const sort = document.getElementById('sort-select').value;
+      const sort   = document.getElementById('sort-select').value;
       const campoP = tipoResultado === 'hotels' ? 'precio_noche_agencia' : 'precio_agencia';
 
-      const sorted = [...vuelosFiltrados].sort((a, b) => {
+      const sorted = [...resultadosFiltrados].sort((a, b) => {
         if (sort === 'precio_asc')  return (a[campoP] || 0) - (b[campoP] || 0);
         if (sort === 'precio_desc') return (b[campoP] || 0) - (a[campoP] || 0);
         return 0;
@@ -387,13 +442,9 @@
       renderResultados(sorted);
     }
 
-    /*!
-     * \brief Renderiza las tarjetas de resultados en el DOM
-     * 
-     * Según el tipo de resultado (vuelos u hoteles), utiliza la función
-     * correspondiente para generar el HTML y lo inserta en el contenedor.
-     * 
-     * \param items Array de objetos (vuelos u hoteles) a renderizar
+    /**
+     * @brief Decide qué función de renderizado usar según el tipo de búsqueda.
+     * @param {Array} items - Resultados a renderizar
      */
     function renderResultados(items) {
       const container = document.getElementById('resultados-container');
@@ -406,40 +457,65 @@
           <div class="empty-state">
             <i class="fa-solid fa-magnifying-glass"></i>
             <h3>Sin resultados</h3>
-            <p>No encontramos opciones con los filtros actuales.<br>Intenta ampliar los criterios de búsqueda.</p>
+            <p>No encontramos opciones con los filtros actuales.<br>
+               Intenta ampliar los criterios de búsqueda.</p>
             <a href="/buscar" class="btn-reservar mt-3">Nueva búsqueda</a>
           </div>`;
         return;
       }
 
-      container.innerHTML = items.map((item, idx) =>
-        tipoResultado === 'hotels' ? renderHotel(item, idx) : renderVuelo(item, idx)
-      ).join('');
+      // Selección de renderizador según tipo — aquí estaba el bug original
+      if (tipoResultado === 'hotels') {
+        container.innerHTML = items.map((item, idx) => renderHotel(item, idx)).join('');
+      } else {
+        // 'flights' y 'packages' usan la tarjeta de vuelo
+        container.innerHTML = items.map((item, idx) => renderVuelo(item, idx)).join('');
+      }
     }
 
-    /*!
-     * \brief Genera el HTML para una tarjeta de vuelo
-     * 
-     * \param v Objeto con los datos del vuelo
-     * \param idx Índice del elemento para animaciones
-     * \returns string HTML de la tarjeta de vuelo
+    /* =========================================================
+     *  TARJETAS DE RESULTADO — VUELO
+     * ========================================================= */
+
+    /**
+     * @brief Genera HTML para una tarjeta de vuelo.
+     * @param {Object} v   - Datos del vuelo
+     * @param {number} idx - Índice para animación CSS
+     * @returns {string} HTML de la tarjeta
      */
     function renderVuelo(v, idx) {
       const precio  = v.precio_agencia || 0;
       const asiento = v.tipo_asiento   || '—';
       const disp    = v.asientos_disponibles != null ? `${v.asientos_disponibles} disp.` : '';
-      const origen  = [v.origen_ciudad, v.origen_iata  ? `(${v.origen_iata})`  : ''].filter(Boolean).join(' ');
-      const destino = [v.destino_ciudad,v.destino_iata ? `(${v.destino_iata})` : ''].filter(Boolean).join(' ');
-      const horaS   = v.hora_salida  || v.fecha_salida  || '—';
-      const horaL   = v.hora_llegada || v.fecha_llegada || '—';
-      const detalleUrl = `/detalle-vuelo?id=${v.id_vuelo || ''}&proveedor=${v.id_proveedor || ''}`;
-      const checkoutUrl = `/checkout?tipo=vuelo&id_vuelo=${v.id_vuelo || ''}&id_proveedor=${v.id_proveedor || ''}&precio=${precio}&asiento=${asiento}`;
+      const horaS   = v.hora_salida  || (v.fecha_salida  ? new Date(v.fecha_salida).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})  : '—');
+      const horaL   = v.hora_llegada || (v.fecha_llegada ? new Date(v.fecha_llegada).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}) : '—');
+      const animCls = idx > 0 ? `anim-up-${Math.min(idx, 4)}` : '';
+
+      // Construir URL de detalle y checkout pasando todos los parámetros relevantes
+      const detalleParams = new URLSearchParams({
+        tipo:         'vuelo',
+        id_vuelo:     v.id_vuelo     || '',
+        id_proveedor: v.id_proveedor || '',
+      });
+      const checkoutParams = new URLSearchParams({
+        tipo:         'vuelo',
+        id_vuelo:     v.id_vuelo     || '',
+        id_proveedor: v.id_proveedor || '',
+        precio:       precio,
+        asiento:      asiento,
+        origen:       v.origen_iata  || v.origen_ciudad  || '',
+        destino:      v.destino_iata || v.destino_ciudad || '',
+        fecha_salida: v.fecha_salida || '',
+        num_pasajeros: urlParams.get('num_pasajeros') || 1,
+      });
 
       return `
-        <div class="result-card-full anim-up ${idx > 0 ? `anim-up-${Math.min(idx, 4)}` : ''}">
+        <div class="result-card-full anim-up ${animCls}">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div style="flex:1;">
-              <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}</span>
+              <span class="airline-badge">
+                <i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}
+              </span>
               <div class="route-display">
                 <div class="route-location">
                   <div class="route-time">${horaS}</div>
@@ -447,7 +523,7 @@
                   <div class="route-city">${v.origen_ciudad || '—'}</div>
                 </div>
                 <div class="route-mid">
-                  <div class="route-dur">${v.codigo_vuelo || ''}</div>
+                  <div class="route-dur">${v.codigo_vuelo || 'Vuelo directo'}</div>
                   <div class="route-line-gold"></div>
                   <div style="font-size:0.72rem;color:var(--gold);">
                     ${v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString('es-GT') : ''}
@@ -467,57 +543,84 @@
             <div class="price-col">
               <div class="big-price">$${precio.toFixed(2)}<small>/persona</small></div>
               <div class="mt-2">
-                <a href="${detalleUrl}" class="btn-ver">Ver detalles</a>
-                <a href="${checkoutUrl}" class="btn-reservar">Seleccionar</a>
+                <a href="/detalle-vuelo?${detalleParams.toString()}"  class="btn-ver">Ver detalles</a>
+                <a href="/checkout?${checkoutParams.toString()}" class="btn-reservar">Seleccionar</a>
               </div>
             </div>
           </div>
         </div>`;
     }
 
-    /*!
-     * \brief Genera el HTML para una tarjeta de hotel
-     * 
-     * \param h Objeto con los datos del hotel/habitación
-     * \param idx Índice del elemento para animaciones
-     * \returns string HTML de la tarjeta de hotel
+    /* =========================================================
+     *  TARJETAS DE RESULTADO — HOTEL
+     * ========================================================= */
+
+    /**
+     * @brief Genera HTML para una tarjeta de hotel/habitación.
+     * @param {Object} h   - Datos del hotel
+     * @param {number} idx - Índice para animación CSS
+     * @returns {string} HTML de la tarjeta
      */
     function renderHotel(h, idx) {
-      const precio      = h.precio_noche_agencia || 0;
-      const detalleUrl  = `/detalle-hotel?id=${h.id_habitacion || ''}&proveedor=${h.id_proveedor || ''}`;
-      const checkoutUrl = `/checkout?tipo=hotel&id_habitacion=${h.id_habitacion || ''}&id_proveedor=${h.id_proveedor || ''}&precio=${precio}`;
-      const amenidades  = Array.isArray(h.amenidades) ? h.amenidades.slice(0, 3).join(', ') : '';
+      const precio     = h.precio_noche_agencia || 0;
+      const animCls    = idx > 0 ? `anim-up-${Math.min(idx, 4)}` : '';
+      const amenidades = Array.isArray(h.amenidades) ? h.amenidades.slice(0, 3).join(', ') : '';
+
+      // Construir URLs de detalle y checkout con parámetros de hotel
+      const detalleParams = new URLSearchParams({
+        tipo:           'hotel',
+        id_habitacion:  h.id_habitacion  || '',
+        id_proveedor:   h.id_proveedor   || '',
+        ciudad:         h.ciudad         || urlParams.get('ciudad') || '',
+        fecha_checkin:  urlParams.get('fecha_checkin')  || '',
+        fecha_checkout: urlParams.get('fecha_checkout') || '',
+        num_huespedes:  urlParams.get('num_huespedes')  || 1,
+      });
+      const checkoutParams = new URLSearchParams(detalleParams);
+      checkoutParams.set('precio', precio);
 
       return `
-        <div class="result-card-full anim-up ${idx > 0 ? `anim-up-${Math.min(idx, 4)}` : ''}">
+        <div class="result-card-full anim-up ${animCls}">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div style="flex:1;">
-              <span class="airline-badge"><i class="fa-solid fa-building me-1"></i>${h.nombre_proveedor || 'Hotel'}</span>
-              <div class="mt-2" style="font-size:1rem;font-weight:600;color:var(--cream);">
-                ${h.nombre_hotel || 'Hotel'} <span style="font-size:0.82rem;color:var(--text-muted);">· Hab. ${h.num_habitacion || ''}</span>
+              <span class="hotel-badge">
+                <i class="fa-solid fa-building me-1"></i>${h.nombre_proveedor || 'Hotel'}
+              </span>
+              <div class="mt-2" style="font-family:var(--font-display);font-size:1.2rem;color:var(--white);">
+                ${h.nombre_hotel || 'Alojamiento'}
+                <span style="font-size:0.82rem;color:var(--text-muted);font-family:var(--font-body);">
+                  · Hab. ${h.num_habitacion || ''}
+                </span>
               </div>
-              <div class="flight-meta mt-1">
-                <span class="flight-meta-item"><i class="fa-solid fa-bed"></i> ${h.tipo_habitacion || '—'}</span>
-                <span class="flight-meta-item"><i class="fa-solid fa-users"></i> Máx. ${h.capacidad_max || '—'}</span>
-                ${amenidades ? `<span class="flight-meta-item"><i class="fa-solid fa-star"></i> ${amenidades}</span>` : ''}
+              <div class="hotel-info-grid">
+                <span class="hotel-info-item">
+                  <i class="fa-solid fa-bed"></i> ${h.tipo_habitacion || '—'}
+                </span>
+                <span class="hotel-info-item">
+                  <i class="fa-solid fa-users"></i> Máx. ${h.capacidad_max || '—'} huéspedes
+                </span>
+                ${amenidades
+                  ? `<span class="hotel-info-item"><i class="fa-solid fa-star"></i> ${amenidades}</span>`
+                  : ''}
+                ${h.ciudad
+                  ? `<span class="hotel-info-item"><i class="fa-solid fa-location-dot"></i> ${h.ciudad}</span>`
+                  : ''}
               </div>
             </div>
             <div class="price-col">
               <div class="big-price">$${precio.toFixed(2)}<small>/noche</small></div>
               <div class="mt-2">
-                <a href="${detalleUrl}" class="btn-ver">Ver detalles</a>
-                <a href="${checkoutUrl}" class="btn-reservar">Reservar</a>
+                <a href="/detalle-hotel?${detalleParams.toString()}"  class="btn-ver">Ver detalles</a>
+                <a href="/checkout?${checkoutParams.toString()}" class="btn-reservar">Reservar</a>
               </div>
             </div>
           </div>
         </div>`;
     }
 
-    /*!
-     * \brief Muestra un mensaje de error en el contenedor de resultados
-     * 
-     * \param msg Mensaje de error a mostrar
-     */
+    /* =========================================================
+     *  ERRORES
+     * ========================================================= */
     function mostrarError(msg) {
       document.getElementById('resultados-container').innerHTML = `
         <div class="empty-state">
@@ -529,26 +632,24 @@
       document.getElementById('results-count').textContent = 'Error al cargar resultados';
     }
 
-    /*!
-     * \brief Obtiene la información del usuario autenticado y actualiza la navbar
-     * 
-     * Realiza una petición a /api/auth/me para verificar si hay un usuario logueado.
-     * Si existe, muestra su nombre en lugar del botón de inicio de sesión.
-     * 
-     * \async
-     */
-    fetch('/api/auth/me').then(r => r.json()).then(d => {
-      if (d?.ok && d.usuario) {
-        document.getElementById('nav-user-area').innerHTML =
-          `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
-      }
-    }).catch(() => {});
+    /* =========================================================
+     *  AUTENTICACIÓN / NAVBAR
+     * ========================================================= */
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('nav-user-area').innerHTML =
+            `<a href="#" class="btn-nav-user">
+               <div class="avatar"><i class="fa-solid fa-user"></i></div>
+               <span>${d.usuario.nombre}</span>
+             </a>`;
+        }
+      }).catch(() => {});
 
-    /*!
-     * \brief Inicia la búsqueda de resultados al cargar la página
-     * 
-     * Punto de entrada principal de la aplicación.
-     */
+    /* =========================================================
+     *  INICIO
+     * ========================================================= */
     buscarResultados();
   </script>
 </body>
