@@ -91,7 +91,6 @@ const _withRetry = async (prov, fn) => {
     } catch (err) {
         const status = err.response?.status;
         if (status === 401 || status === 403) {
-            // BUG CORREGIDO: "warn" en lugar de "warm"
             console.warn(`[Aerolinea] Sesion expirada para "${prov.nombre}", reintentando login...`);
             _invalidarSession(prov.id_proveedor);
             const client = await _crearClienteAerolinea(prov);
@@ -130,7 +129,6 @@ const buscarVuelos = async (idProveedor, params) => {
 
     const vuelos = raw?.data ?? (Array.isArray(raw) ? raw : []);
     if (!Array.isArray(vuelos)) {
-        // BUG CORREGIDO: "warn" en lugar de "warm"
         console.warn(`[Aerolinea] buscarVuelos: respuesta inesperada de "${prov.nombre}"`, raw);
         return [];
     }
@@ -159,18 +157,18 @@ const buscarVuelos = async (idProveedor, params) => {
 
 const reservarVuelo = async (idProveedor, payload) => {
     const prov = await getConfig(idProveedor);
-    if (!payload.id_vuelo)        throw new Error('[Aerolinea] Falta id_vuelo en el payload');
+    if (!payload.id_vuelo)          throw new Error('[Aerolinea] Falta id_vuelo en el payload');
     if (!payload.pasajeros?.length) throw new Error('[Aerolinea] Se requiere al menos un pasajero');
 
     const body = {
-        idVuelo:     payload.id_vuelo,
-        metodoPago:  payload.metodo_pago || 'tarjeta',
-        pasajeros:   payload.pasajeros.map(p => ({
-            nombres:          p.nombres,
-            apellidos:        p.apellidos,
-            fechaNacimiento:  p.fecha_nacimiento,
-            idNacionalidad:   p.id_nacionalidad ?? 83,
-            numPasaporte:     p.num_pasaporte,
+        idVuelo:    payload.id_vuelo,
+        metodoPago: payload.metodo_pago || 'tarjeta',
+        pasajeros:  payload.pasajeros.map(p => ({
+            nombres:         p.nombres,
+            apellidos:       p.apellidos,
+            fechaNacimiento: p.fecha_nacimiento,
+            idNacionalidad:  p.id_nacionalidad ?? 83,
+            numPasaporte:    p.num_pasaporte,
         })),
     };
 
@@ -226,17 +224,18 @@ const obtenerOrigenesDestinos = async (idProveedor) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  Hotel
+//  Hotel  ← CORRECCIONES APLICADAS AQUÍ
 // ─────────────────────────────────────────────────────────────
 
 const buscarHoteles = async (idProveedor, params) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
 
+    // FIX: Fechas en formato yyyy-MM-dd que espera .NET
     const queryParams = {
-        checkIn:   params.fecha_checkin,
-        checkOut:  params.fecha_checkout,
-        capacidad: params.num_huespedes || 1,
+        checkIn:   new Date(params.fecha_checkin).toISOString().split('T')[0],
+        checkOut:  new Date(params.fecha_checkout).toISOString().split('T')[0],
+        capacidad: parseInt(params.num_huespedes) || 1,
     };
 
     const { data } = await client.get('/api/b2b/disponibilidad', { params: queryParams });
@@ -266,14 +265,16 @@ const reservarHotel = async (idProveedor, payload) => {
     const prov   = await getConfig(idProveedor);
     const client = clienteHotel(prov);
 
+    // FIX: camelCase en el body porque HotelesAPI usa JsonNamingPolicy.CamelCase
+    // FIX: Fechas en formato yyyy-MM-dd
     const body = {
-        IdHabitacion:    payload.id_habitacion,
-        FechaCheckIn:    payload.fecha_checkin,
-        FechaCheckOut:   payload.fecha_checkout,
-        NumHuespedes:    payload.num_huespedes,
-        IdUsuario:       payload.id_usuario_externo || 1,
-        MetodoPago:      payload.metodo_pago || 'transferencia',
-        NotasEspeciales: payload.notas || '',
+        idHabitacion:    payload.id_habitacion,
+        fechaCheckIn:    new Date(payload.fecha_checkin).toISOString().split('T')[0],
+        fechaCheckOut:   new Date(payload.fecha_checkout).toISOString().split('T')[0],
+        numHuespedes:    parseInt(payload.num_huespedes) || 1,
+        idUsuario:       payload.id_usuario_externo || 1,
+        metodoPago:      payload.metodo_pago || 'transferencia',
+        notasEspeciales: payload.notas || '',
     };
 
     const { data } = await client.post('/api/b2b/reservar', body);
