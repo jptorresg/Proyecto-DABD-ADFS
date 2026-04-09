@@ -777,7 +777,7 @@ public IActionResult GetAll()</code></pre>
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[HttpGet(&quot;{id}&quot;)]
+    <pre><code class="lang-csharp hljs">[HttpGet(&quot;{id:int}&quot;)]
 public IActionResult GetById(int id)</code></pre>
   </div>
 
@@ -827,6 +827,38 @@ public IActionResult GetDisponibles(DateTime checkIn, DateTime checkOut, int cap
     <dt><code>capacidad</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
   </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/microsoft.aspnetcore.mvc.iactionresult">IActionResult</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="HotelesAPI_Controllers_HabitacionesController_GetOpcionesFiltro_" data-uid="HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro*"></a>
+
+  <h3 id="HotelesAPI_Controllers_HabitacionesController_GetOpcionesFiltro" data-uid="HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro">
+  GetOpcionesFiltro()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[HttpGet(&quot;opciones-filtro&quot;)]
+public IActionResult GetOpcionesFiltro()</code></pre>
+  </div>
+
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">

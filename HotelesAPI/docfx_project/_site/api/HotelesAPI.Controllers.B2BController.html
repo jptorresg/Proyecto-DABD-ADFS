@@ -730,8 +730,8 @@ public IActionResult CancelarReserva(int id)</code></pre>
 
   <a id="HotelesAPI_Controllers_B2BController_GetDisponibilidad_" data-uid="HotelesAPI.Controllers.B2BController.GetDisponibilidad*"></a>
 
-  <h3 id="HotelesAPI_Controllers_B2BController_GetDisponibilidad_System_DateTime_System_DateTime_System_Int32_" data-uid="HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32)">
-  GetDisponibilidad(DateTime, DateTime, int)
+  <h3 id="HotelesAPI_Controllers_B2BController_GetDisponibilidad_System_DateTime_System_DateTime_System_Int32_System_String_" data-uid="HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32,System.String)">
+  GetDisponibilidad(DateTime, DateTime, int, string?)
   
   </h3>
 
@@ -740,7 +740,7 @@ public IActionResult CancelarReserva(int id)</code></pre>
 
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[HttpGet(&quot;disponibilidad&quot;)]
-public IActionResult GetDisponibilidad(DateTime checkIn, DateTime checkOut, int capacidad = 1)</code></pre>
+public IActionResult GetDisponibilidad(DateTime checkIn, DateTime checkOut, int capacidad = 1, string? ciudad = null)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -750,6 +750,8 @@ public IActionResult GetDisponibilidad(DateTime checkIn, DateTime checkOut, int 
     <dt><code>checkOut</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a></dt>
     <dd></dd>
     <dt><code>capacidad</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>ciudad</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
     <dd></dd>
   </dl>
 

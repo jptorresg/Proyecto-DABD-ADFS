@@ -505,15 +505,15 @@ references:
   commentId: Overload:HotelesAPI.Controllers.B2BController.CancelarReserva
   fullName: HotelesAPI.Controllers.B2BController.CancelarReserva
   nameWithType: B2BController.CancelarReserva
-- uid: HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32)
-  name: GetDisponibilidad(DateTime, DateTime, int)
-  href: api/HotelesAPI.Controllers.B2BController.html#HotelesAPI_Controllers_B2BController_GetDisponibilidad_System_DateTime_System_DateTime_System_Int32_
-  commentId: M:HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32)
-  name.vb: GetDisponibilidad(Date, Date, Integer)
-  fullName: HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime, System.DateTime, int)
-  fullName.vb: HotelesAPI.Controllers.B2BController.GetDisponibilidad(Date, Date, Integer)
-  nameWithType: B2BController.GetDisponibilidad(DateTime, DateTime, int)
-  nameWithType.vb: B2BController.GetDisponibilidad(Date, Date, Integer)
+- uid: HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32,System.String)
+  name: GetDisponibilidad(DateTime, DateTime, int, string?)
+  href: api/HotelesAPI.Controllers.B2BController.html#HotelesAPI_Controllers_B2BController_GetDisponibilidad_System_DateTime_System_DateTime_System_Int32_System_String_
+  commentId: M:HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime,System.DateTime,System.Int32,System.String)
+  name.vb: GetDisponibilidad(Date, Date, Integer, String)
+  fullName: HotelesAPI.Controllers.B2BController.GetDisponibilidad(System.DateTime, System.DateTime, int, string?)
+  fullName.vb: HotelesAPI.Controllers.B2BController.GetDisponibilidad(Date, Date, Integer, String)
+  nameWithType: B2BController.GetDisponibilidad(DateTime, DateTime, int, string?)
+  nameWithType.vb: B2BController.GetDisponibilidad(Date, Date, Integer, String)
 - uid: HotelesAPI.Controllers.B2BController.GetDisponibilidad*
   name: GetDisponibilidad
   href: api/HotelesAPI.Controllers.B2BController.html#HotelesAPI_Controllers_B2BController_GetDisponibilidad_
@@ -814,6 +814,18 @@ references:
   commentId: Overload:HotelesAPI.Controllers.HabitacionesController.GetDisponibles
   fullName: HotelesAPI.Controllers.HabitacionesController.GetDisponibles
   nameWithType: HabitacionesController.GetDisponibles
+- uid: HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro
+  name: GetOpcionesFiltro()
+  href: api/HotelesAPI.Controllers.HabitacionesController.html#HotelesAPI_Controllers_HabitacionesController_GetOpcionesFiltro
+  commentId: M:HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro
+  fullName: HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro()
+  nameWithType: HabitacionesController.GetOpcionesFiltro()
+- uid: HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro*
+  name: GetOpcionesFiltro
+  href: api/HotelesAPI.Controllers.HabitacionesController.html#HotelesAPI_Controllers_HabitacionesController_GetOpcionesFiltro_
+  commentId: Overload:HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro
+  fullName: HotelesAPI.Controllers.HabitacionesController.GetOpcionesFiltro
+  nameWithType: HabitacionesController.GetOpcionesFiltro
 - uid: HotelesAPI.Controllers.InventarioController
   name: InventarioController
   href: api/HotelesAPI.Controllers.InventarioController.html
@@ -1000,6 +1012,21 @@ references:
   commentId: Overload:HotelesAPI.Controllers.ReservacionesController.GetByUsuario
   fullName: HotelesAPI.Controllers.ReservacionesController.GetByUsuario
   nameWithType: ReservacionesController.GetByUsuario
+- uid: HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas(System.Int32)
+  name: GetFechasOcupadas(int)
+  href: api/HotelesAPI.Controllers.ReservacionesController.html#HotelesAPI_Controllers_ReservacionesController_GetFechasOcupadas_System_Int32_
+  commentId: M:HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas(System.Int32)
+  name.vb: GetFechasOcupadas(Integer)
+  fullName: HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas(int)
+  fullName.vb: HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas(Integer)
+  nameWithType: ReservacionesController.GetFechasOcupadas(int)
+  nameWithType.vb: ReservacionesController.GetFechasOcupadas(Integer)
+- uid: HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas*
+  name: GetFechasOcupadas
+  href: api/HotelesAPI.Controllers.ReservacionesController.html#HotelesAPI_Controllers_ReservacionesController_GetFechasOcupadas_
+  commentId: Overload:HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas
+  fullName: HotelesAPI.Controllers.ReservacionesController.GetFechasOcupadas
+  nameWithType: ReservacionesController.GetFechasOcupadas
 - uid: HotelesAPI.Controllers.ReservacionesController.Modificar(System.Int32,HotelesAPI.DTOs.ModificarReservacionDto)
   name: Modificar(int, ModificarReservacionDto)
   href: api/HotelesAPI.Controllers.ReservacionesController.html#HotelesAPI_Controllers_ReservacionesController_Modificar_System_Int32_HotelesAPI_DTOs_ModificarReservacionDto_
@@ -1657,21 +1684,48 @@ references:
   commentId: Overload:HotelesAPI.DAO.HabitacionDAO.GetById
   fullName: HotelesAPI.DAO.HabitacionDAO.GetById
   nameWithType: HabitacionDAO.GetById
-- uid: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32)
-  name: GetDisponibles(DateTime, DateTime, int)
-  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetDisponibles_System_DateTime_System_DateTime_System_Int32_
-  commentId: M:HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32)
-  name.vb: GetDisponibles(Date, Date, Integer)
-  fullName: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime, System.DateTime, int)
-  fullName.vb: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(Date, Date, Integer)
-  nameWithType: HabitacionDAO.GetDisponibles(DateTime, DateTime, int)
-  nameWithType.vb: HabitacionDAO.GetDisponibles(Date, Date, Integer)
+- uid: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32,System.String)
+  name: GetDisponibles(DateTime, DateTime, int, string?)
+  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetDisponibles_System_DateTime_System_DateTime_System_Int32_System_String_
+  commentId: M:HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32,System.String)
+  name.vb: GetDisponibles(Date, Date, Integer, String)
+  fullName: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime, System.DateTime, int, string?)
+  fullName.vb: HotelesAPI.DAO.HabitacionDAO.GetDisponibles(Date, Date, Integer, String)
+  nameWithType: HabitacionDAO.GetDisponibles(DateTime, DateTime, int, string?)
+  nameWithType.vb: HabitacionDAO.GetDisponibles(Date, Date, Integer, String)
 - uid: HotelesAPI.DAO.HabitacionDAO.GetDisponibles*
   name: GetDisponibles
   href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetDisponibles_
   commentId: Overload:HotelesAPI.DAO.HabitacionDAO.GetDisponibles
   fullName: HotelesAPI.DAO.HabitacionDAO.GetDisponibles
   nameWithType: HabitacionDAO.GetDisponibles
+- uid: HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas(System.Int32)
+  name: GetFechasOcupadas(int)
+  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetFechasOcupadas_System_Int32_
+  commentId: M:HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas(System.Int32)
+  name.vb: GetFechasOcupadas(Integer)
+  fullName: HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas(int)
+  fullName.vb: HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas(Integer)
+  nameWithType: HabitacionDAO.GetFechasOcupadas(int)
+  nameWithType.vb: HabitacionDAO.GetFechasOcupadas(Integer)
+- uid: HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas*
+  name: GetFechasOcupadas
+  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetFechasOcupadas_
+  commentId: Overload:HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas
+  fullName: HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas
+  nameWithType: HabitacionDAO.GetFechasOcupadas
+- uid: HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro
+  name: GetOpcionesFiltro()
+  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetOpcionesFiltro
+  commentId: M:HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro
+  fullName: HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro()
+  nameWithType: HabitacionDAO.GetOpcionesFiltro()
+- uid: HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro*
+  name: GetOpcionesFiltro
+  href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetOpcionesFiltro_
+  commentId: Overload:HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro
+  fullName: HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro
+  nameWithType: HabitacionDAO.GetOpcionesFiltro
 - uid: HotelesAPI.DAO.HabitacionDAO.GetWithFilters(System.String,System.Nullable{System.Decimal},System.Nullable{System.Int32},System.String)
   name: GetWithFilters(string?, decimal?, int?, string?)
   href: api/HotelesAPI.DAO.HabitacionDAO.html#HotelesAPI_DAO_HabitacionDAO_GetWithFilters_System_String_System_Nullable_System_Decimal__System_Nullable_System_Int32__System_String_
@@ -2017,6 +2071,21 @@ references:
   commentId: Overload:HotelesAPI.DAO.ReservacionDAO.GetByUsuario
   fullName: HotelesAPI.DAO.ReservacionDAO.GetByUsuario
   nameWithType: ReservacionDAO.GetByUsuario
+- uid: HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas(System.Int32)
+  name: GetFechasOcupadas(int)
+  href: api/HotelesAPI.DAO.ReservacionDAO.html#HotelesAPI_DAO_ReservacionDAO_GetFechasOcupadas_System_Int32_
+  commentId: M:HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas(System.Int32)
+  name.vb: GetFechasOcupadas(Integer)
+  fullName: HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas(int)
+  fullName.vb: HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas(Integer)
+  nameWithType: ReservacionDAO.GetFechasOcupadas(int)
+  nameWithType.vb: ReservacionDAO.GetFechasOcupadas(Integer)
+- uid: HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas*
+  name: GetFechasOcupadas
+  href: api/HotelesAPI.DAO.ReservacionDAO.html#HotelesAPI_DAO_ReservacionDAO_GetFechasOcupadas_
+  commentId: Overload:HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas
+  fullName: HotelesAPI.DAO.ReservacionDAO.GetFechasOcupadas
+  nameWithType: ReservacionDAO.GetFechasOcupadas
 - uid: HotelesAPI.DAO.ReservacionDAO.Modificar(System.Int32,System.DateTime,System.DateTime,System.Int32,System.Decimal)
   name: Modificar(int, DateTime, DateTime, int, decimal)
   href: api/HotelesAPI.DAO.ReservacionDAO.html#HotelesAPI_DAO_ReservacionDAO_Modificar_System_Int32_System_DateTime_System_DateTime_System_Int32_System_Decimal_

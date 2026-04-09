@@ -382,8 +382,8 @@
 
   <a id="HotelesAPI_DAO_HabitacionDAO_GetDisponibles_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetDisponibles*"></a>
 
-  <h3 id="HotelesAPI_DAO_HabitacionDAO_GetDisponibles_System_DateTime_System_DateTime_System_Int32_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32)">
-  GetDisponibles(DateTime, DateTime, int)
+  <h3 id="HotelesAPI_DAO_HabitacionDAO_GetDisponibles_System_DateTime_System_DateTime_System_Int32_System_String_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetDisponibles(System.DateTime,System.DateTime,System.Int32,System.String)">
+  GetDisponibles(DateTime, DateTime, int, string?)
   
   </h3>
 
@@ -391,7 +391,7 @@
   <div class="markdown level1 conceptual"></div>
 
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public List&lt;Habitacion&gt; GetDisponibles(DateTime checkIn, DateTime checkOut, int capacidad)</code></pre>
+    <pre><code class="lang-csharp hljs">public List&lt;Habitacion&gt; GetDisponibles(DateTime checkIn, DateTime checkOut, int capacidad, string? ciudad = null)</code></pre>
   </div>
 
   <h4 class="section">Parameters</h4>
@@ -402,11 +402,80 @@
     <dd></dd>
     <dt><code>capacidad</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
     <dd></dd>
+    <dt><code>ciudad</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
   </dl>
 
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="HotelesAPI.Models.Habitacion.html">Habitacion</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="HotelesAPI_DAO_HabitacionDAO_GetFechasOcupadas_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas*"></a>
+
+  <h3 id="HotelesAPI_DAO_HabitacionDAO_GetFechasOcupadas_System_Int32_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetFechasOcupadas(System.Int32)">
+  GetFechasOcupadas(int)
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public List&lt;object&gt; GetFechasOcupadas(int idHabitacion)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>idHabitacion</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="HotelesAPI_DAO_HabitacionDAO_GetOpcionesFiltro_" data-uid="HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro*"></a>
+
+  <h3 id="HotelesAPI_DAO_HabitacionDAO_GetOpcionesFiltro" data-uid="HotelesAPI.DAO.HabitacionDAO.GetOpcionesFiltro">
+  GetOpcionesFiltro()
+  
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public object GetOpcionesFiltro()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
     <dd></dd>
   </dl>
 
