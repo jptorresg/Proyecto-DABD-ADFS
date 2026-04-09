@@ -86,7 +86,10 @@
                 <i class="bi bi-calendar-x"></i> Cierre de Ventas
             </a>
             <div class="nav-section">Sistema</div>
-            <a href="login.html" class="nav-item-link" @click="localStorage.removeItem('usuario')">
+            <a href="index.html" class="nav-item-link">
+                <i class="bi bi-shop"></i> Ver Sitio
+            </a>
+            <a href="#" class="nav-item-link" @click.prevent="cerrarSesion()">
                 <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
             </a>
         </nav>
@@ -564,7 +567,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -753,6 +755,11 @@
                 setTimeout(() => this.exito = '', 3000);
             },
 
+            cerrarSesion() {
+                localStorage.removeItem('usuario');
+                window.location.href = 'login.html';
+            },
+
             async cargarStats() {
                 try { const r = await fetch(`${API}/admin/dashboard`); const d = await r.json(); if (d.success) this.stats = d.data; } catch (e) {}
             },
@@ -811,8 +818,7 @@
                 if (u.rol === 'superadmin') return;
                 if (nuevoRol === u.rol) return;
                 if (!confirm(`¿Cambiar el rol de ${u.nombre} de "${u.rol}" a "${nuevoRol}"?`)) {
-                    await this.cargarUsuarios();
-                    return;
+                    await this.cargarUsuarios(); return;
                 }
                 try {
                     const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/rol`, {
@@ -831,7 +837,6 @@
                 } catch (e) { await this.cargarUsuarios(); }
             },
 
-            // ── HOTELES ──
             abrirModalHotel(hotel) {
                 this.errorHotel = '';
                 if (hotel) {
@@ -873,7 +878,6 @@
                 } catch (e) {}
             },
 
-            // ── AGENCIAS ──
             abrirModalAgencia() {
                 this.formAgencia = { nombre: '', email: '' };
                 this.errorAgencia = '';
@@ -921,7 +925,6 @@
                 } catch (e) {}
             },
 
-            // ── CUPONES ──
             abrirModalCupon() {
                 this.formCupon = { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 };
                 this.errorCupon = '';
@@ -960,7 +963,6 @@
                 } catch (e) {}
             },
 
-            // ── CIERRE DE VENTAS ──
             async guardarCierreVentas() {
                 try {
                     const res = await fetch(`${API}/admin/configuracion/cierre-ventas`, {

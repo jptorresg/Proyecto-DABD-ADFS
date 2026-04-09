@@ -46,6 +46,9 @@ namespace HotelesAPI.Controllers
                 if (habitacion.CapacidadMax <= 0)
                     return BadRequest(JsonResponse.Error("La capacidad debe ser mayor a 0"));
 
+                if (string.IsNullOrWhiteSpace(habitacion.Ubicacion))
+                    return BadRequest(JsonResponse.Error("La ciudad es obligatoria"));
+
                 int id = _habitacionDAO.Create(habitacion);
                 var creada = _habitacionDAO.GetById(id);
                 return StatusCode(201, JsonResponse.Ok("Habitación creada exitosamente", creada));
@@ -65,6 +68,9 @@ namespace HotelesAPI.Controllers
                 var existe = _habitacionDAO.GetById(id);
                 if (existe == null)
                     return NotFound(JsonResponse.Error("Habitación no encontrada"));
+
+                if (string.IsNullOrWhiteSpace(habitacion.Ubicacion))
+                    return BadRequest(JsonResponse.Error("La ciudad es obligatoria"));
 
                 habitacion.IdHabitacion = id;
                 bool actualizado = _habitacionDAO.Update(habitacion);

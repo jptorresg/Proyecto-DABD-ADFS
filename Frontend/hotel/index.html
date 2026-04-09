@@ -23,6 +23,12 @@
         .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
         .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; }
         .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .city-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; margin-top: 2rem; }
+        .city-header h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--primary-color); margin: 0; }
+        .city-header .city-line { flex: 1; height: 2px; background: linear-gradient(to right, #003580, transparent); }
+        .city-header .city-count { font-size: 0.8rem; color: #9ca3af; background: #f0f4f8; border: 1px solid #e5e7eb; border-radius: 20px; padding: 2px 10px; }
+        .room-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px 12px 0 0; }
+        .card-body { padding: 1.2rem !important; }
     </style>
 </head>
 <body x-data="appHabitaciones()" x-init="init()">
@@ -59,12 +65,16 @@
         <!-- Filtros -->
         <div class="search-box mb-5">
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Tipo de habitación</label>
-                    <input type="text" class="form-control" x-model="filtros.tipo" @input="filtrar()"
-                           placeholder="Suite, Doble, Individual...">
-                </div>
                 <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Tipo de habitación</label>
+                    <select class="form-select" x-model="filtros.tipo" @change="filtrar()">
+                        <option value="">Todos los tipos</option>
+                        <template x-for="tipo in opcionesFiltro.tipos" :key="tipo">
+                            <option :value="tipo" x-text="tipo"></option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label fw-bold small text-muted text-uppercase">Capacidad</label>
                     <select class="form-select" x-model="filtros.capacidad" @change="filtrar()">
                         <option value="">Cualquiera</option>
@@ -82,20 +92,25 @@
                         <option value="800">Hasta Q800</option>
                         <option value="1200">Hasta Q1,200</option>
                         <option value="2000">Hasta Q2,000</option>
+                        <option value="5000">Hasta Q5,000</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button @click="limpiarFiltros()" class="btn btn-outline-secondary w-100 rounded-pill">
-                        <i class="bi bi-x-lg me-1"></i>Limpiar
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Ciudad</label>
+                    <select class="form-select" x-model="filtros.ciudad" @change="filtrar()">
+                        <option value="">Todas las ciudades</option>
+                        <template x-for="ciudad in opcionesFiltro.ciudades" :key="ciudad">
+                            <option :value="ciudad" x-text="ciudad"></option>
+                        </template>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button @click="limpiarFiltros()" class="btn btn-outline-secondary w-100 rounded-pill"
+                            title="Limpiar filtros">
+                        <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Título -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title mb-0">Habitaciones Disponibles</h2>
-            <span class="text-muted small" x-text="habitaciones.length + ' habitaciones encontradas'"></span>
         </div>
 
         <!-- Loading -->
@@ -110,53 +125,76 @@
             <p class="mt-2 text-muted fw-bold">No se encontraron habitaciones disponibles.</p>
         </div>
 
-        <!-- Tarjetas -->
-        <div class="row g-4">
-            <template x-for="h in habitaciones" :key="h.idHabitacion">
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex flex-column p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="fw-bold mb-0" style="color:var(--primary-color);"
-                                    x-text="h.tipoHabitacion + ' ' + h.numHabitacion"></h5>
-                                <span class="badge bg-success rounded-pill" x-text="h.estado"></span>
-                            </div>
-                            <p class="text-muted small mb-1">
-                                <i class="bi bi-building me-1"></i>
-                                <span x-text="h.nombreHotel"></span>
-                            </p>
-                            <p class="text-muted small mb-1">
-                                <i class="bi bi-geo-alt me-1"></i>
-                                <span x-text="h.ubicacion"></span>
-                            </p>
-                            <p class="text-muted small mb-3">
-                                <i class="bi bi-people me-1"></i>
-                                Capacidad: <strong x-text="h.capacidadMax + ' personas'"></strong>
-                                <span x-text="' · ' + '⭐'.repeat(h.estrellas)"></span>
-                            </p>
-                            <div class="d-flex flex-wrap gap-1 mb-3">
-                                <template x-for="amenidad in (h.amenidades ? h.amenidades.split(',') : [])" :key="amenidad">
-                                    <span class="badge-amenidad" x-text="amenidad.trim()"></span>
-                                </template>
-                            </div>
-                            <hr class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="h4 mb-0 fw-bold" style="color:var(--primary-color);"
-                                          x-text="'Q' + h.precioNoche.toFixed(2)"></span>
-                                    <span class="text-muted small"> / noche</span>
+        <!-- Encabezado general -->
+        <div class="d-flex justify-content-between align-items-center mb-2" x-show="!loading && habitaciones.length > 0">
+            <h2 class="section-title mb-0">
+                Habitaciones Disponibles
+                <span x-show="filtros.ciudad" class="fs-6 fw-normal text-muted ms-2"
+                      x-text="'en ' + filtros.ciudad"></span>
+            </h2>
+            <span class="text-muted small" x-text="habitaciones.length + ' habitaciones encontradas'"></span>
+        </div>
+
+        <!-- Habitaciones agrupadas por ciudad -->
+        <template x-for="grupo in habitacionesPorCiudad" :key="grupo.ciudad">
+            <div>
+                <!-- Header de ciudad -->
+                <div class="city-header">
+                    <i class="bi bi-geo-alt-fill" style="color:var(--primary-color); font-size:1.1rem;"></i>
+                    <h3 x-text="grupo.ciudad"></h3>
+                    <div class="city-line"></div>
+                    <span class="city-count" x-text="grupo.habitaciones.length + ' disponibles'"></span>
+                </div>
+
+                <!-- Tarjetas de habitaciones -->
+                <div class="row g-4 mb-2">
+                    <template x-for="h in grupo.habitaciones" :key="h.idHabitacion">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100">
+                                <!-- Imagen por tipo -->
+                                <img :src="imagenPorTipo(h.tipoHabitacion)"
+                                     :alt="h.tipoHabitacion"
+                                     class="room-img">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="fw-bold mb-0" style="color:var(--primary-color); font-size:1rem;"
+                                            x-text="h.tipoHabitacion + ' ' + h.numHabitacion"></h5>
+                                        <span class="badge bg-success rounded-pill" x-text="h.estado"></span>
+                                    </div>
+                                    <p class="text-muted small mb-1">
+                                        <i class="bi bi-building me-1"></i>
+                                        <span x-text="h.nombreHotel"></span>
+                                    </p>
+                                    <p class="text-muted small mb-3">
+                                        <i class="bi bi-people me-1"></i>
+                                        Capacidad: <strong x-text="h.capacidadMax + ' personas'"></strong>
+                                        <span x-text="' · ' + '⭐'.repeat(h.estrellas)"></span>
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-1 mb-3">
+                                        <template x-for="amenidad in (h.amenidades ? h.amenidades.split(',').slice(0,3) : [])" :key="amenidad">
+                                            <span class="badge-amenidad" x-text="amenidad.trim()"></span>
+                                        </template>
+                                    </div>
+                                    <hr class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="h5 mb-0 fw-bold" style="color:var(--primary-color);"
+                                                  x-text="'Q' + h.precioNoche.toFixed(2)"></span>
+                                            <span class="text-muted small"> / noche</span>
+                                        </div>
+                                        <a :href="'detalle_habitacion.html?id=' + h.idHabitacion"
+                                           class="btn btn-primary btn-sm rounded-pill px-3"
+                                           style="background:var(--primary-color); border:none;">
+                                            Ver detalle
+                                        </a>
+                                    </div>
                                 </div>
-                                <a :href="'detalle_habitacion.html?id=' + h.idHabitacion"
-                                   class="btn btn-primary rounded-pill px-4"
-                                   style="background:var(--primary-color); border:none;">
-                                    Ver detalle
-                                </a>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
-            </template>
-        </div>
+            </div>
+        </template>
     </main>
 
     <footer class="bg-white py-4 mt-5 border-top">
@@ -170,58 +208,87 @@
     <script>
     const API = 'http://localhost:5043/api';
 
+    const IMAGENES_TIPO = {
+        'Sencilla':   'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&fit=crop',
+        'Doble':      'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600&h=400&fit=crop',
+        'Suite':      'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&h=400&fit=crop',
+        'Familiar':   'https://images.unsplash.com/photo-1586105251261-72a756497a11?w=600&h=400&fit=crop',
+        'Ejecutiva':  'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600&h=400&fit=crop',
+        'Penthouse':  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+    };
+
     function appHabitaciones() {
         return {
             habitaciones: [],
+            opcionesFiltro: { tipos: [], ciudades: [] },
             loading: false,
             usuario: null,
-            filtros: { tipo: '', capacidad: '', precioMax: '' },
+            filtros: { tipo: '', capacidad: '', precioMax: '', ciudad: '' },
 
             async init() {
-                // Si no hay sesión redirigir a landing
-                this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
-                if (!this.usuario) {
-                    window.location.href = 'landing.html';
-                    return;
-                }
-                // Si es admin redirigir al dashboard
-                const rolesAdmin = ['superadmin', 'admin', 'recepcionista', 'auditor'];
-                if (rolesAdmin.includes(this.usuario.rol)) {
-                    window.location.href = 'admin.html';
-                    return;
-                }
-                await this.cargarHabitaciones();
-            },
-
+    this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+    if (!this.usuario) { window.location.href = 'landing.html'; return; }
+    await Promise.all([this.cargarHabitaciones(), this.cargarOpciones()]);
+},
             async cargarHabitaciones() {
                 this.loading = true;
                 try {
-                    const res = await fetch(`${API}/habitaciones`);
+                    const res  = await fetch(`${API}/habitaciones`);
                     const data = await res.json();
                     if (data.success) this.habitaciones = data.data;
-                } catch (e) {} finally {
-                    this.loading = false;
-                }
+                } catch (e) {} finally { this.loading = false; }
+            },
+
+            async cargarOpciones() {
+                try {
+                    const res  = await fetch(`${API}/habitaciones/opciones-filtro`);
+                    const data = await res.json();
+                    if (data.success) this.opcionesFiltro = data.data;
+                } catch (e) {}
             },
 
             async filtrar() {
                 this.loading = true;
                 try {
                     let url = `${API}/habitaciones/filtrar?`;
-                    if (this.filtros.tipo) url += `tipo=${this.filtros.tipo}&`;
+                    if (this.filtros.tipo)      url += `tipo=${encodeURIComponent(this.filtros.tipo)}&`;
                     if (this.filtros.capacidad) url += `capacidad=${this.filtros.capacidad}&`;
                     if (this.filtros.precioMax) url += `precioMax=${this.filtros.precioMax}&`;
-                    const res = await fetch(url);
+                    const res  = await fetch(url);
                     const data = await res.json();
-                    if (data.success) this.habitaciones = data.data;
-                } catch (e) {} finally {
-                    this.loading = false;
-                }
+                    if (data.success) {
+                        let resultado = data.data;
+                        if (this.filtros.ciudad) {
+                            resultado = resultado.filter(h =>
+                                h.ubicacion && h.ubicacion.toLowerCase()
+                                    .includes(this.filtros.ciudad.toLowerCase())
+                            );
+                        }
+                        this.habitaciones = resultado;
+                    }
+                } catch (e) {} finally { this.loading = false; }
             },
 
             limpiarFiltros() {
-                this.filtros = { tipo: '', capacidad: '', precioMax: '' };
+                this.filtros = { tipo: '', capacidad: '', precioMax: '', ciudad: '' };
                 this.cargarHabitaciones();
+            },
+
+            imagenPorTipo(tipo) {
+                return IMAGENES_TIPO[tipo] || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&fit=crop';
+            },
+
+            get habitacionesPorCiudad() {
+                const grupos = {};
+                for (const h of this.habitaciones) {
+                    const ciudad = h.ubicacion || 'Sin ciudad';
+                    if (!grupos[ciudad]) grupos[ciudad] = [];
+                    grupos[ciudad].push(h);
+                }
+                return Object.keys(grupos).sort().map(ciudad => ({
+                    ciudad,
+                    habitaciones: grupos[ciudad]
+                }));
             }
         }
     }

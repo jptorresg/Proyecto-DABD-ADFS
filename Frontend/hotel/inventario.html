@@ -26,6 +26,7 @@
         .modal-content { border: none; border-radius: 15px; }
         .modal-header { background-color: var(--primary-color); color: white; border-radius: 15px 15px 0 0; }
         .btn-close-white { filter: invert(1); }
+        .field-required { color: #dc2626; margin-left: 2px; }
     </style>
 </head>
 <body x-data="inventarioApp()" x-init="init()">
@@ -84,7 +85,8 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100" @click="filtro = ''; filtroEstado = ''; filtroHotel = ''">
+                    <button class="btn btn-outline-secondary w-100"
+                            @click="filtro = ''; filtroEstado = ''; filtroHotel = ''">
                         <i class="bi bi-x-lg me-1"></i>Limpiar
                     </button>
                 </div>
@@ -106,9 +108,9 @@
                                 <th>Número</th>
                                 <th>Tipo</th>
                                 <th>Hotel</th>
+                                <th>Ciudad</th>
                                 <th>Precio/Noche</th>
                                 <th>Capacidad</th>
-                                <th>Amenidades</th>
                                 <th>Estado</th>
                                 <th class="text-center pe-4">Acciones</th>
                             </tr>
@@ -120,16 +122,17 @@
                                     <td class="fw-bold" x-text="h.numHabitacion"></td>
                                     <td x-text="h.tipoHabitacion"></td>
                                     <td class="text-muted small" x-text="h.nombreHotel"></td>
+                                    <td class="text-muted small">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        <span x-text="h.ubicacion || '-'"></span>
+                                    </td>
                                     <td class="fw-bold text-success" x-text="'Q ' + parseFloat(h.precioNoche).toFixed(2)"></td>
                                     <td x-text="h.capacidadMax + ' pers.'"></td>
-                                    <td>
-                                        <span class="text-muted small" x-text="h.amenidades ? h.amenidades.substring(0, 30) + '...' : '-'"></span>
-                                    </td>
                                     <td>
                                         <span class="badge rounded-pill"
                                               :class="{
                                                 'bg-success': h.estado === 'Disponible',
-                                                'bg-danger': h.estado === 'Ocupada',
+                                                'bg-danger':  h.estado === 'Ocupada',
                                                 'bg-warning text-dark': h.estado === 'Mantenimiento',
                                                 'bg-secondary': h.estado === 'Inactiva'
                                               }"
@@ -170,11 +173,12 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Número de Habitación *</label>
-                            <input type="text" class="form-control" x-model="form.numHabitacion" placeholder="Ej: 101">
+                            <label class="form-label">Número de Habitación <span class="field-required">*</span></label>
+                            <input type="text" class="form-control" x-model="form.numHabitacion"
+                                   placeholder="Ej: 101">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Tipo de Habitación *</label>
+                            <label class="form-label">Tipo de Habitación <span class="field-required">*</span></label>
                             <select class="form-select" x-model="form.tipoHabitacion">
                                 <option value="">Seleccionar...</option>
                                 <option value="Sencilla">Sencilla</option>
@@ -186,12 +190,12 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Precio por Noche (Q) *</label>
+                            <label class="form-label">Precio por Noche (Q) <span class="field-required">*</span></label>
                             <input type="number" class="form-control" x-model="form.precioNoche"
                                    placeholder="Ej: 850.00" min="0" step="0.01">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Capacidad Máxima *</label>
+                            <label class="form-label">Capacidad Máxima <span class="field-required">*</span></label>
                             <select class="form-select" x-model="form.capacidadMax">
                                 <option value="1">1 persona</option>
                                 <option value="2">2 personas</option>
@@ -199,6 +203,32 @@
                                 <option value="4">4 personas</option>
                                 <option value="6">6 personas</option>
                             </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cadena Hotelera <span class="field-required">*</span></label>
+                            <select class="form-select" x-model="form.idHotel">
+                                <option value="">Seleccionar hotel...</option>
+                                <template x-for="h in hoteles" :key="h.idHotel">
+                                    <option :value="h.idHotel"
+                                            x-text="h.nombreHotel + ' (' + h.estrellas + '★)'">
+                                    </option>
+                                </template>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ciudad <span class="field-required">*</span></label>
+                            <input type="text" class="form-control" x-model="form.ciudad"
+                                   placeholder="Ej: Guatemala City, Antigua..."
+                                   list="lista-ciudades">
+                            <datalist id="lista-ciudades">
+                                <template x-for="c in ciudadesExistentes" :key="c">
+                                    <option :value="c"></option>
+                                </template>
+                            </datalist>
+                            <div class="form-text text-muted" style="font-size:0.75rem;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Esta ciudad aparecerá en los filtros del catálogo.
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Estado</label>
@@ -210,12 +240,13 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Cadena Hotelera *</label>
-                            <select class="form-select" x-model="form.idHotel">
-                                <option value="">Seleccionar hotel...</option>
-                                <template x-for="h in hoteles" :key="h.idHotel">
-                                    <option :value="h.idHotel" x-text="h.nombreHotel + ' (' + h.estrellas + '★)'"></option>
-                                </template>
+                            <label class="form-label">Estrellas del Hotel</label>
+                            <select class="form-select" x-model="form.estrellas">
+                                <option value="1">⭐ 1 estrella</option>
+                                <option value="2">⭐⭐ 2 estrellas</option>
+                                <option value="3">⭐⭐⭐ 3 estrellas</option>
+                                <option value="4">⭐⭐⭐⭐ 4 estrellas</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 estrellas</option>
                             </select>
                         </div>
                         <div class="col-12">
@@ -237,10 +268,14 @@
                     <div x-show="errorModal" class="alert alert-danger mt-3 small" x-text="errorModal"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4" @click="guardar()" :disabled="cargando">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4"
+                            @click="guardar()" :disabled="cargando">
                         <span x-show="!cargando"><i class="bi bi-check-circle me-2"></i>Guardar</span>
-                        <span x-show="cargando"><span class="spinner-border spinner-border-sm me-2"></span>Guardando...</span>
+                        <span x-show="cargando">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+                        </span>
                     </button>
                 </div>
             </div>
@@ -255,6 +290,7 @@
         return {
             habitaciones: [],
             hoteles: [],
+            ciudadesExistentes: [],
             loading: true,
             cargando: false,
             error: '',
@@ -272,6 +308,8 @@
                 capacidadMax: 2,
                 estado: 'Disponible',
                 idHotel: '',
+                ciudad: '',
+                estrellas: 5,
                 amenidades: '',
                 descripcion: '',
                 imagenUrl: ''
@@ -280,14 +318,15 @@
             async init() {
                 await Promise.all([
                     this.cargarHabitaciones(),
-                    this.cargarHoteles()
+                    this.cargarHoteles(),
+                    this.cargarCiudades()
                 ]);
             },
 
             async cargarHabitaciones() {
                 this.loading = true;
                 try {
-                    const res = await fetch(`${API}/inventario`);
+                    const res  = await fetch(`${API}/inventario`);
                     const data = await res.json();
                     if (data.success) this.habitaciones = data.data;
                 } catch (e) {
@@ -299,9 +338,17 @@
 
             async cargarHoteles() {
                 try {
-                    const res = await fetch(`${API}/admin/hoteles`);
+                    const res  = await fetch(`${API}/admin/hoteles`);
                     const data = await res.json();
                     if (data.success) this.hoteles = data.data;
+                } catch (e) {}
+            },
+
+            async cargarCiudades() {
+                try {
+                    const res  = await fetch(`${API}/habitaciones/opciones-filtro`);
+                    const data = await res.json();
+                    if (data.success) this.ciudadesExistentes = data.data.ciudades || [];
                 } catch (e) {}
             },
 
@@ -310,30 +357,34 @@
                 if (hab) {
                     this.modoEdicion = true;
                     this.form = {
-                        idHabitacion: hab.idHabitacion,
+                        idHabitacion:  hab.idHabitacion,
                         numHabitacion: hab.numHabitacion,
                         tipoHabitacion: hab.tipoHabitacion,
-                        precioNoche: hab.precioNoche,
-                        capacidadMax: hab.capacidadMax,
-                        estado: hab.estado,
-                        idHotel: hab.idHotel || '',
-                        amenidades: hab.amenidades || '',
-                        descripcion: hab.descripcion || '',
-                        imagenUrl: hab.imagenUrl || ''
+                        precioNoche:   hab.precioNoche,
+                        capacidadMax:  hab.capacidadMax,
+                        estado:        hab.estado,
+                        idHotel:       hab.idHotel || '',
+                        ciudad:        hab.ubicacion || '',
+                        estrellas:     hab.estrellas || 5,
+                        amenidades:    hab.amenidades || '',
+                        descripcion:   hab.descripcion || '',
+                        imagenUrl:     hab.imagenUrl || ''
                     };
                 } else {
                     this.modoEdicion = false;
                     this.form = {
-                        idHabitacion: null,
+                        idHabitacion:  null,
                         numHabitacion: '',
                         tipoHabitacion: '',
-                        precioNoche: '',
-                        capacidadMax: 2,
-                        estado: 'Disponible',
-                        idHotel: this.hoteles.length > 0 ? this.hoteles[0].idHotel : '',
-                        amenidades: '',
-                        descripcion: '',
-                        imagenUrl: ''
+                        precioNoche:   '',
+                        capacidadMax:  2,
+                        estado:        'Disponible',
+                        idHotel:       this.hoteles.length > 0 ? this.hoteles[0].idHotel : '',
+                        ciudad:        '',
+                        estrellas:     5,
+                        amenidades:    '',
+                        descripcion:   '',
+                        imagenUrl:     ''
                     };
                 }
                 const modal = new bootstrap.Modal(document.getElementById('modalHabitacion'));
@@ -342,21 +393,24 @@
 
             async guardar() {
                 this.errorModal = '';
-                if (!this.form.numHabitacion) { this.errorModal = 'El número de habitación es requerido.'; return; }
+                if (!this.form.numHabitacion)  { this.errorModal = 'El número de habitación es requerido.'; return; }
                 if (!this.form.tipoHabitacion) { this.errorModal = 'El tipo de habitación es requerido.'; return; }
-                if (!this.form.precioNoche) { this.errorModal = 'El precio es requerido.'; return; }
-                if (!this.form.idHotel) { this.errorModal = 'Selecciona una cadena hotelera.'; return; }
+                if (!this.form.precioNoche)    { this.errorModal = 'El precio es requerido.'; return; }
+                if (!this.form.idHotel)        { this.errorModal = 'Selecciona una cadena hotelera.'; return; }
+                if (!this.form.ciudad.trim())  { this.errorModal = 'La ciudad es obligatoria.'; return; }
 
                 const payload = {
-                    idHotel: parseInt(this.form.idHotel),
-                    numHabitacion: this.form.numHabitacion,
+                    idHotel:        parseInt(this.form.idHotel),
+                    numHabitacion:  this.form.numHabitacion,
                     tipoHabitacion: this.form.tipoHabitacion,
-                    precioNoche: parseFloat(this.form.precioNoche),
-                    capacidadMax: parseInt(this.form.capacidadMax),
-                    estado: this.form.estado,
-                    amenidades: this.form.amenidades || null,
-                    descripcion: this.form.descripcion || null,
-                    imagenUrl: this.form.imagenUrl || null
+                    precioNoche:    parseFloat(this.form.precioNoche),
+                    capacidadMax:   parseInt(this.form.capacidadMax),
+                    estado:         this.form.estado,
+                    ciudad:         this.form.ciudad.trim(),
+                    estrellas:      parseInt(this.form.estrellas),
+                    amenidades:     this.form.amenidades || null,
+                    descripcion:    this.form.descripcion || null,
+                    imagenUrl:      this.form.imagenUrl || null
                 };
 
                 this.cargando = true;
@@ -377,9 +431,16 @@
                     }
                     data = await res.json();
                     if (data.success) {
-                        this.exito = this.modoEdicion ? 'Habitación actualizada exitosamente.' : 'Habitación creada exitosamente.';
-                        bootstrap.Modal.getInstance(document.getElementById('modalHabitacion')).hide();
-                        await this.cargarHabitaciones();
+                        this.exito = this.modoEdicion
+                            ? 'Habitación actualizada exitosamente.'
+                            : 'Habitación creada exitosamente.';
+                        bootstrap.Modal.getInstance(
+                            document.getElementById('modalHabitacion')
+                        ).hide();
+                        await Promise.all([
+                            this.cargarHabitaciones(),
+                            this.cargarCiudades()
+                        ]);
                         setTimeout(() => this.exito = '', 3000);
                     } else {
                         this.errorModal = data.message;
@@ -394,7 +455,7 @@
             async eliminar(id) {
                 if (!confirm('¿Estás seguro de eliminar esta habitación?')) return;
                 try {
-                    const res = await fetch(`${API}/inventario/${id}`, { method: 'DELETE' });
+                    const res  = await fetch(`${API}/inventario/${id}`, { method: 'DELETE' });
                     const data = await res.json();
                     if (data.success) {
                         this.exito = 'Habitación eliminada correctamente.';
@@ -410,11 +471,11 @@
 
             get habitacionesFiltradas() {
                 return this.habitaciones.filter(h => {
-                    const matchFiltro = !this.filtro ||
+                    const matchFiltro  = !this.filtro ||
                         h.tipoHabitacion.toLowerCase().includes(this.filtro.toLowerCase()) ||
                         h.numHabitacion.toLowerCase().includes(this.filtro.toLowerCase());
-                    const matchEstado = !this.filtroEstado || h.estado === this.filtroEstado;
-                    const matchHotel = !this.filtroHotel || h.idHotel === parseInt(this.filtroHotel);
+                    const matchEstado  = !this.filtroEstado || h.estado === this.filtroEstado;
+                    const matchHotel   = !this.filtroHotel  || h.idHotel === parseInt(this.filtroHotel);
                     return matchFiltro && matchEstado && matchHotel;
                 });
             }

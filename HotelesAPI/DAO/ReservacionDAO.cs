@@ -13,8 +13,6 @@ namespace HotelesAPI.DAO
         /// <summary>
         /// Obtiene todas las reservaciones de un usuario ordenadas por fecha de reservación.
         /// </summary>
-        /// <param name="idUsuario">ID del usuario cuyas reservaciones se desean obtener.</param>
-        /// <returns>Lista de reservaciones del usuario con datos de habitación y hotel.</returns>
         public List<Reservacion> GetByUsuario(int idUsuario)
         {
             var lista = new List<Reservacion>();
@@ -38,10 +36,8 @@ namespace HotelesAPI.DAO
         }
 
         /// <summary>
-        /// Obtiene una reservación específica por su ID incluyendo datos de habitación y hotel.
+        /// Obtiene una reservación específica por su ID.
         /// </summary>
-        /// <param name="id">ID de la reservación a buscar.</param>
-        /// <returns>La reservación encontrada o null si no existe.</returns>
         public Reservacion? GetById(int id)
         {
             string sql = @"SELECT r.*, h.tipo_habitacion, h.num_habitacion,
@@ -65,19 +61,13 @@ namespace HotelesAPI.DAO
 
         /// <summary>
         /// Verifica si existe un conflicto de fechas para una habitación específica.
-        /// Utilizado para prevenir el overbooking en el sistema.
         /// </summary>
-        /// <param name="idHabitacion">ID de la habitación a verificar.</param>
-        /// <param name="checkIn">Fecha de entrada propuesta.</param>
-        /// <param name="checkOut">Fecha de salida propuesta.</param>
-        /// <param name="excluirId">ID de reservación a excluir de la verificación (para modificaciones).</param>
-        /// <returns>True si existe conflicto de fechas, False si la habitación está disponible.</returns>
         public bool ExisteConflicto(int idHabitacion, DateTime checkIn, DateTime checkOut, int? excluirId = null)
         {
             string sql = @"SELECT COUNT(*) FROM Reservaciones
                           WHERE id_habitacion = @idHabitacion
                           AND estado NOT IN ('Cancelada')
-                          AND NOT (@checkOut <= fecha_check_in 
+                          AND NOT (@checkOut <= fecha_check_in
                                OR @checkIn >= fecha_check_out)";
 
             if (excluirId.HasValue)
@@ -99,8 +89,6 @@ namespace HotelesAPI.DAO
         /// <summary>
         /// Crea una nueva reservación en la base de datos.
         /// </summary>
-        /// <param name="reservacion">Objeto con los datos de la reservación a crear.</param>
-        /// <returns>ID de la reservación creada en la base de datos.</returns>
         public int Create(Reservacion reservacion)
         {
             string sql = @"INSERT INTO Reservaciones
@@ -130,14 +118,8 @@ namespace HotelesAPI.DAO
         }
 
         /// <summary>
-        /// Modifica las fechas, número de huéspedes y precio de una reservación existente.
+        /// Modifica las fechas y datos de una reservación existente.
         /// </summary>
-        /// <param name="id">ID de la reservación a modificar.</param>
-        /// <param name="checkIn">Nueva fecha de check-in.</param>
-        /// <param name="checkOut">Nueva fecha de check-out.</param>
-        /// <param name="numHuespedes">Nuevo número de huéspedes.</param>
-        /// <param name="precioTotal">Nuevo precio total calculado.</param>
-        /// <returns>True si la modificación fue exitosa.</returns>
         public bool Modificar(int id, DateTime checkIn, DateTime checkOut, int numHuespedes, decimal precioTotal)
         {
             string sql = @"UPDATE Reservaciones SET
@@ -162,8 +144,6 @@ namespace HotelesAPI.DAO
         /// <summary>
         /// Cambia el estado de una reservación a "Cancelada".
         /// </summary>
-        /// <param name="id">ID de la reservación a cancelar.</param>
-        /// <returns>True si la operación fue exitosa.</returns>
         public bool Cancelar(int id)
         {
             string sql = "UPDATE Reservaciones SET estado = 'Cancelada' WHERE id_reservacion = @id";
@@ -179,8 +159,6 @@ namespace HotelesAPI.DAO
         /// <summary>
         /// Cambia el estado de una reservación a "Confirmada".
         /// </summary>
-        /// <param name="id">ID de la reservación a confirmar.</param>
-        /// <returns>True si la operación fue exitosa.</returns>
         public bool Confirmar(int id)
         {
             string sql = "UPDATE Reservaciones SET estado = 'Confirmada' WHERE id_reservacion = @id";
@@ -196,9 +174,6 @@ namespace HotelesAPI.DAO
         /// <summary>
         /// Cambia el estado de una reservación a cualquier valor permitido.
         /// </summary>
-        /// <param name="id">ID de la reservación.</param>
-        /// <param name="estado">Nuevo estado de la reservación.</param>
-        /// <returns>True si la operación fue exitosa.</returns>
         public bool CambiarEstado(int id, string estado)
         {
             string sql = "UPDATE Reservaciones SET estado = @estado WHERE id_reservacion = @id";
@@ -214,9 +189,7 @@ namespace HotelesAPI.DAO
 
         /// <summary>
         /// Obtiene todas las reservaciones del sistema incluyendo datos del usuario.
-        /// Usado principalmente por el panel de administración.
         /// </summary>
-        /// <returns>Lista completa de reservaciones con datos de habitación, hotel y usuario.</returns>
         public List<Reservacion> GetAll()
         {
             var lista = new List<Reservacion>();
@@ -239,36 +212,55 @@ namespace HotelesAPI.DAO
         }
 
         /// <summary>
-        /// Mapea un registro de la base de datos a un objeto Reservacion.
+        /// Obtiene los rangos de fechas ocupadas de una habitación para bloquear el calendario.
         /// </summary>
-        /// <param name="rs">SqlDataReader con los datos del registro.</param>
-        /// <returns>Objeto Reservacion con los datos mapeados.</returns>
+        public List<object> GetFechasOcupadas(int idHabitacion)
+        {
+            var lista = new List<object>();
+            string sql = @"SELECT fecha_check_in, fecha_check_out
+                          FROM Reservaciones
+                          WHERE id_habitacion = @idHabitacion
+                          AND estado NOT IN ('Cancelada')
+                          AND fecha_check_out >= GETDATE()
+                          ORDER BY fecha_check_in";
+
+            using var conn = DatabaseConfig.GetConnection();
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@idHabitacion", idHabitacion);
+            using var rs = cmd.ExecuteReader();
+            while (rs.Read())
+            {
+                lista.Add(new
+                {
+                    checkIn  = rs.GetDateTime(0).ToString("yyyy-MM-dd"),
+                    checkOut = rs.GetDateTime(1).ToString("yyyy-MM-dd")
+                });
+            }
+            return lista;
+        }
+
         private Reservacion MapReservacion(SqlDataReader rs)
         {
             return new Reservacion
             {
-                IdReservacion = rs.GetInt32(rs.GetOrdinal("id_reservacion")),
-                IdUsuario = rs.GetInt32(rs.GetOrdinal("id_usuario")),
-                IdHabitacion = rs.GetInt32(rs.GetOrdinal("id_habitacion")),
+                IdReservacion  = rs.GetInt32(rs.GetOrdinal("id_reservacion")),
+                IdUsuario      = rs.GetInt32(rs.GetOrdinal("id_usuario")),
+                IdHabitacion   = rs.GetInt32(rs.GetOrdinal("id_habitacion")),
                 NombreHabitacion = rs.GetString(rs.GetOrdinal("tipo_habitacion")) + " " +
                                    rs.GetString(rs.GetOrdinal("num_habitacion")),
-                NombreHotel = rs.GetString(rs.GetOrdinal("nombre_hotel")),
-                FechaCheckIn = rs.GetDateTime(rs.GetOrdinal("fecha_check_in")),
-                FechaCheckOut = rs.GetDateTime(rs.GetOrdinal("fecha_check_out")),
-                PrecioTotal = rs.GetDecimal(rs.GetOrdinal("precio_total")),
-                Estado = rs.GetString(rs.GetOrdinal("estado")),
-                MetodoPago = rs.IsDBNull(rs.GetOrdinal("metodo_pago")) ? "" : rs.GetString(rs.GetOrdinal("metodo_pago")),
+                NombreHotel    = rs.GetString(rs.GetOrdinal("nombre_hotel")),
+                FechaCheckIn   = rs.GetDateTime(rs.GetOrdinal("fecha_check_in")),
+                FechaCheckOut  = rs.GetDateTime(rs.GetOrdinal("fecha_check_out")),
+                PrecioTotal    = rs.GetDecimal(rs.GetOrdinal("precio_total")),
+                Estado         = rs.GetString(rs.GetOrdinal("estado")),
+                MetodoPago     = rs.IsDBNull(rs.GetOrdinal("metodo_pago")) ? "" : rs.GetString(rs.GetOrdinal("metodo_pago")),
                 FechaReservacion = rs.GetDateTime(rs.GetOrdinal("fecha_reservacion")),
-                NumHuespedes = rs.IsDBNull(rs.GetOrdinal("num_huespedes")) ? 1 : rs.GetInt32(rs.GetOrdinal("num_huespedes")),
+                NumHuespedes   = rs.IsDBNull(rs.GetOrdinal("num_huespedes")) ? 1 : rs.GetInt32(rs.GetOrdinal("num_huespedes")),
                 NotasEspeciales = rs.IsDBNull(rs.GetOrdinal("notas_especiales")) ? null : rs.GetString(rs.GetOrdinal("notas_especiales"))
             };
         }
 
-        /// <summary>
-        /// Mapea un registro administrativo incluyendo el nombre del usuario.
-        /// </summary>
-        /// <param name="rs">SqlDataReader con los datos del registro.</param>
-        /// <returns>Objeto Reservacion con datos completos incluyendo nombre de usuario.</returns>
         private Reservacion MapReservacionAdmin(SqlDataReader rs)
         {
             var r = MapReservacion(rs);

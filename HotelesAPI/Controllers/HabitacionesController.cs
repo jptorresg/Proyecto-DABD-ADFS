@@ -30,7 +30,22 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // GET api/habitaciones/filtrar?tipo=Suite&precioMax=1000&capacidad=2&amenidad=WiFi
+        // GET api/habitaciones/opciones-filtro
+        [HttpGet("opciones-filtro")]
+        public IActionResult GetOpcionesFiltro()
+        {
+            try
+            {
+                var opciones = _habitacionDAO.GetOpcionesFiltro();
+                return Ok(JsonResponse.Ok("Opciones obtenidas", opciones));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        // GET api/habitaciones/filtrar
         [HttpGet("filtrar")]
         public IActionResult Filtrar([FromQuery] string? tipo, [FromQuery] decimal? precioMax,
                                      [FromQuery] int? capacidad, [FromQuery] string? amenidad)
@@ -46,25 +61,7 @@ namespace HotelesAPI.Controllers
             }
         }
 
-        // GET api/habitaciones/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            try
-            {
-                var habitacion = _habitacionDAO.GetById(id);
-                if (habitacion == null)
-                    return NotFound(JsonResponse.Error("Habitación no encontrada"));
-
-                return Ok(JsonResponse.Ok("Habitación encontrada", habitacion));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, JsonResponse.Error(ex.Message));
-            }
-        }
-
-        // GET api/habitaciones/disponibles?checkIn=2026-03-01&checkOut=2026-03-05&capacidad=2
+        // GET api/habitaciones/disponibles
         [HttpGet("disponibles")]
         public IActionResult GetDisponibles([FromQuery] DateTime checkIn,
                                             [FromQuery] DateTime checkOut,
@@ -77,6 +74,24 @@ namespace HotelesAPI.Controllers
 
                 var habitaciones = _habitacionDAO.GetDisponibles(checkIn, checkOut, capacidad);
                 return Ok(JsonResponse.Ok("Habitaciones disponibles", habitaciones));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        // GET api/habitaciones/{id}  ← debe ir AL FINAL
+        [HttpGet("{id:int}")]
+        public IActionResult GetById(int id)
+        {
+            try
+            {
+                var habitacion = _habitacionDAO.GetById(id);
+                if (habitacion == null)
+                    return NotFound(JsonResponse.Error("Habitación no encontrada"));
+
+                return Ok(JsonResponse.Ok("Habitación encontrada", habitacion));
             }
             catch (Exception ex)
             {

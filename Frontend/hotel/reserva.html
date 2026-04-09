@@ -28,6 +28,13 @@
         .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
         .cupon-valido { background: #dcfce7; border: 1.5px solid #16a34a; border-radius: 10px; padding: 0.75rem 1rem; }
         .cupon-invalido { background: #fee2e2; border: 1.5px solid #dc2626; border-radius: 10px; padding: 0.75rem 1rem; }
+        .alerta-transferencia { background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 1rem 1.2rem; }
+        .metodo-pago-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.2s; }
+        .metodo-pago-card:hover { border-color: var(--primary-color); background: #f0f4f8; }
+        .metodo-pago-card.selected { border-color: var(--primary-color); background: #eff6ff; }
+        .metodo-pago-card .metodo-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .metodo-pago-card .metodo-nombre { font-weight: 600; font-size: 0.9rem; color: #374151; }
+        .metodo-pago-card .metodo-desc { font-size: 0.75rem; color: #9ca3af; }
     </style>
 </head>
 <body x-data="reservaApp()" x-init="init()">
@@ -52,7 +59,8 @@
             <p class="text-muted small mb-4">Recibirás los detalles en tu correo electrónico.</p>
             <div class="d-flex gap-2 justify-content-center">
                 <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4">Ver Catálogo</a>
-                <a href="historial.html" class="btn btn-primary rounded-pill px-4" style="background: var(--primary-color); border: none;">
+                <a href="historial.html" class="btn btn-primary rounded-pill px-4"
+                   style="background: var(--primary-color); border: none;">
                     Mis Reservas
                 </a>
             </div>
@@ -70,6 +78,8 @@
 
             <!-- Formulario -->
             <div class="col-lg-8">
+
+                <!-- Datos del huésped -->
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Datos del Huésped</h5>
                     <div class="row g-3">
@@ -100,7 +110,7 @@
                     </div>
                 </div>
 
-                <!-- CUPÓN -->
+                <!-- Cupón -->
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Código de Descuento</h5>
                     <div class="d-flex gap-2 mb-3">
@@ -127,7 +137,8 @@
                                 <span class="fw-bold small text-success" x-text="infoCupon.codigo"></span>
                                 <span class="small text-muted ms-2" x-text="infoCupon.descripcion"></span>
                             </div>
-                            <span class="fw-bold text-success small" x-text="'- Q ' + infoCupon.descuentoAplicado"></span>
+                            <span class="fw-bold text-success small"
+                                  x-text="'- Q ' + infoCupon.descuentoAplicado"></span>
                         </div>
                     </div>
                     <div x-show="errorCupon" class="cupon-invalido mt-2">
@@ -136,35 +147,80 @@
                     </div>
                 </div>
 
+                <!-- Método de pago -->
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Método de Pago</h5>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <select class="form-select" x-model="form.metodoPago">
-                                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                                <option value="efectivo">Efectivo en hotel</option>
-                                <option value="transferencia">Transferencia Bancaria</option>
-                            </select>
+
+                    <!-- Opciones de pago como cards -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="metodo-pago-card"
+                                 :class="form.metodoPago === 'tarjeta' ? 'selected' : ''"
+                                 @click="form.metodoPago = 'tarjeta'">
+                                <div class="metodo-icon">💳</div>
+                                <div class="metodo-nombre">Tarjeta de Crédito/Débito</div>
+                                <div class="metodo-desc">Visa, Mastercard, American Express</div>
+                            </div>
                         </div>
-                        <div class="col-12" x-show="form.metodoPago === 'tarjeta'">
+                        <div class="col-md-6">
+                            <div class="metodo-pago-card"
+                                 :class="form.metodoPago === 'transferencia' ? 'selected' : ''"
+                                 @click="form.metodoPago = 'transferencia'">
+                                <div class="metodo-icon">🏦</div>
+                                <div class="metodo-nombre">Transferencia Bancaria</div>
+                                <div class="metodo-desc">Depósito o transferencia directa</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos de tarjeta -->
+                    <div x-show="form.metodoPago === 'tarjeta'" class="row g-3">
+                        <div class="col-12">
                             <label class="form-label">Número de Tarjeta</label>
                             <input type="text" class="form-control" x-model="form.numTarjeta"
                                    placeholder="**** **** **** ****" maxlength="19"
                                    @input="formatarTarjeta()">
                         </div>
-                        <div class="row g-2" x-show="form.metodoPago === 'tarjeta'">
-                            <div class="col-6">
-                                <label class="form-label">Vencimiento</label>
-                                <input type="text" class="form-control" x-model="form.vencimiento" placeholder="MM/AA" maxlength="5">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">CVV</label>
-                                <input type="password" class="form-control" x-model="form.cvv" placeholder="***" maxlength="3">
+                        <div class="col-6">
+                            <label class="form-label">Vencimiento</label>
+                            <input type="text" class="form-control" x-model="form.vencimiento"
+                                   placeholder="MM/AA" maxlength="5">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">CVV</label>
+                            <input type="password" class="form-control" x-model="form.cvv"
+                                   placeholder="***" maxlength="3">
+                        </div>
+                    </div>
+
+                    <!-- Advertencia transferencia bancaria -->
+                    <div x-show="form.metodoPago === 'transferencia'" class="alerta-transferencia">
+                        <div class="d-flex gap-3">
+                            <div style="font-size:1.8rem; flex-shrink:0;">⚠️</div>
+                            <div>
+                                <p class="fw-bold mb-1" style="color:#b45309; font-size:0.95rem;">
+                                    Confirmación de pago requerida
+                                </p>
+                                <p class="mb-2" style="font-size:0.85rem; color:#92400e; line-height:1.6;">
+                                    El hotel se reserva el derecho de <strong>cancelar la reservación</strong>
+                                    si en un plazo de <strong>48 horas</strong> no se confirma el pago
+                                    enviando el comprobante al correo:
+                                </p>
+                                <a href="mailto:admin@bedly.com"
+                                   class="fw-bold"
+                                   style="color:#b45309; font-size:0.9rem;">
+                                    <i class="bi bi-envelope-fill me-1"></i>admin@bedly.com
+                                </a>
+                                <p class="mt-2 mb-0" style="font-size:0.78rem; color:#92400e;">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Incluye en el correo: número de reserva, nombre completo y comprobante de transferencia.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Notas especiales -->
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Notas Especiales</h5>
                     <textarea class="form-control" x-model="form.notas" rows="3"
@@ -177,7 +233,8 @@
                 <button class="btn btn-reservar btn-primary w-100 text-white"
                         @click="confirmarReserva()" :disabled="cargando">
                     <span x-show="!cargando">
-                        <i class="bi bi-calendar-check me-2"></i>Confirmar Reserva · Q<span x-text="totalFinal"></span>
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Confirmar Reserva · Q<span x-text="totalFinal"></span>
                     </span>
                     <span x-show="cargando">
                         <span class="spinner-border spinner-border-sm me-2"></span>Procesando...
@@ -209,6 +266,10 @@
                         <span>Noches</span>
                         <span x-text="noches"></span>
                     </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Método de pago</span>
+                        <span x-text="form.metodoPago === 'tarjeta' ? '💳 Tarjeta' : '🏦 Transferencia'"></span>
+                    </div>
                     <hr class="border-white border-opacity-25">
                     <div class="d-flex justify-content-between small mb-1">
                         <span>Subtotal</span>
@@ -218,7 +279,8 @@
                         <span>IVA (12%)</span>
                         <span x-text="'Q ' + iva"></span>
                     </div>
-                    <div class="d-flex justify-content-between small mb-2 text-warning" x-show="cuponAplicado">
+                    <div class="d-flex justify-content-between small mb-2 text-warning"
+                         x-show="cuponAplicado">
                         <span><i class="bi bi-tag-fill me-1"></i>Descuento (<span x-text="infoCupon.codigo"></span>)</span>
                         <span x-text="'- Q ' + infoCupon.descuentoAplicado"></span>
                     </div>
@@ -269,9 +331,9 @@
                 if (!usuario) { window.location.href = 'login.html'; return; }
 
                 const params = new URLSearchParams(window.location.search);
-                this.form.nombre = usuario.nombre;
-                this.form.email = usuario.email;
-                this.form.checkIn = params.get('checkIn') || '';
+                this.form.nombre   = usuario.nombre;
+                this.form.email    = usuario.email;
+                this.form.checkIn  = params.get('checkIn')  || '';
                 this.form.checkOut = params.get('checkOut') || '';
                 this.form.huespedes = parseInt(params.get('huespedes')) || 1;
 
@@ -282,7 +344,7 @@
 
             async cargarHabitacion(id) {
                 try {
-                    const res = await fetch(`${API}/habitaciones/${id}`);
+                    const res  = await fetch(`${API}/habitaciones/${id}`);
                     const data = await res.json();
                     if (data.success) this.habitacion = data.data;
                 } catch (e) {}
@@ -293,10 +355,10 @@
                 this.errorCupon = '';
                 this.validandoCupon = true;
                 try {
-                    const res = await fetch(`${API}/cupones/validar/${this.codigoCupon}?subtotal=${this.subtotalConIva}`);
+                    const res  = await fetch(`${API}/cupones/validar/${this.codigoCupon}?subtotal=${this.subtotalConIva}`);
                     const data = await res.json();
                     if (data.success) {
-                        this.infoCupon = data.data;
+                        this.infoCupon    = data.data;
                         this.cuponAplicado = true;
                     } else {
                         this.errorCupon = data.message;
@@ -310,9 +372,9 @@
 
             quitarCupon() {
                 this.cuponAplicado = false;
-                this.codigoCupon = '';
-                this.infoCupon = { codigo: '', descripcion: '', descuentoAplicado: 0 };
-                this.errorCupon = '';
+                this.codigoCupon   = '';
+                this.infoCupon     = { codigo: '', descripcion: '', descuentoAplicado: 0 };
+                this.errorCupon    = '';
             },
 
             get noches() {
@@ -335,8 +397,9 @@
             },
 
             get totalFinal() {
-                const base = parseFloat(this.subtotalConIva);
-                const descuento = this.cuponAplicado ? parseFloat(this.infoCupon.descuentoAplicado) : 0;
+                const base      = parseFloat(this.subtotalConIva);
+                const descuento = this.cuponAplicado
+                    ? parseFloat(this.infoCupon.descuentoAplicado) : 0;
                 return Math.max(0, base - descuento).toFixed(2);
             },
 
@@ -347,8 +410,12 @@
 
             async confirmarReserva() {
                 this.error = '';
-                if (!this.form.checkIn || !this.form.checkOut) { this.error = 'Por favor completa las fechas.'; return; }
-                if (this.noches <= 0) { this.error = 'Las fechas seleccionadas no son válidas.'; return; }
+                if (!this.form.checkIn || !this.form.checkOut) {
+                    this.error = 'Por favor completa las fechas.'; return;
+                }
+                if (this.noches <= 0) {
+                    this.error = 'Las fechas seleccionadas no son válidas.'; return;
+                }
 
                 const usuario = JSON.parse(localStorage.getItem('usuario'));
                 this.cargando = true;
@@ -358,16 +425,17 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            idUsuario: usuario.idUsuario,
-                            idHabitacion: this.habitacion.idHabitacion,
-                            fechaCheckIn: this.form.checkIn,
-                            fechaCheckOut: this.form.checkOut,
-                            numHuespedes: parseInt(this.form.huespedes),
-                            metodoPago: this.form.metodoPago,
-                            notasEspeciales: this.form.notas,
-                            precioTotal: parseFloat(this.totalFinal),
-                            codigoCupon: this.cuponAplicado ? this.infoCupon.codigo : null,
-                            descuentoAplicado: this.cuponAplicado ? parseFloat(this.infoCupon.descuentoAplicado) : 0
+                            idUsuario:         usuario.idUsuario,
+                            idHabitacion:      this.habitacion.idHabitacion,
+                            fechaCheckIn:      this.form.checkIn,
+                            fechaCheckOut:     this.form.checkOut,
+                            numHuespedes:      parseInt(this.form.huespedes),
+                            metodoPago:        this.form.metodoPago,
+                            notasEspeciales:   this.form.notas,
+                            precioTotal:       parseFloat(this.totalFinal),
+                            codigoCupon:       this.cuponAplicado ? this.infoCupon.codigo : null,
+                            descuentoAplicado: this.cuponAplicado
+                                ? parseFloat(this.infoCupon.descuentoAplicado) : 0
                         })
                     });
                     const data = await res.json();
