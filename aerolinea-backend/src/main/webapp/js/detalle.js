@@ -2,6 +2,16 @@
 // DETALLE DE VUELO - ALPINE.JS DATA COMPONENT
 // ============================================================
 
+/**
+ * Crea y retorna el objeto `detalleData` para Alpine.js, responsable de la vista
+ * de detalle de un vuelo.
+ * <p>
+ * Carga la información completa del vuelo, gestiona los comentarios y valoraciones,
+ * y permite al usuario seleccionar extras y proceder al checkout.
+ * </p>
+ *
+ * @returns {Object} Un objeto Alpine con propiedades y métodos para la vista de detalle.
+ */
 function detalleData() {
     return {
         // Estado
@@ -30,7 +40,12 @@ function detalleData() {
             1: 0
         },
 
-        // Inicialización
+        /**
+         * Inicializa el componente extrayendo los parámetros de la URL,
+         * cargando el detalle del vuelo y los comentarios, y calculando el total.
+         *
+         * @returns {Promise<void>}
+         */
         async init() {
             const urlParams = new URLSearchParams(window.location.search);
 
@@ -45,7 +60,11 @@ function detalleData() {
             this.recalcularTotal(); // 👈 IMPORTANTE
         },
 
-        // Fetch datos del vuelo
+        /**
+         * Obtiene los detalles del vuelo desde la API.
+         *
+         * @returns {Promise<void>}
+         */
         async fetchVueloDetalle() {
             try {
                 const response = await fetch(`${API_BASE}/vuelos/${this.vueloId}`);
@@ -87,6 +106,16 @@ function detalleData() {
             }
         },
 
+        /**
+         * Calcula la duración en horas y minutos entre dos horas en formato "HH:mm".
+         * <p>
+         * Si la hora de llegada es menor que la de salida, se asume que corresponde al día siguiente.
+         * </p>
+         *
+         * @param {string} salida - Hora de salida (formato "HH:mm").
+         * @param {string} llegada - Hora de llegada (formato "HH:mm").
+         * @returns {string} Duración en formato "Xh Ym".
+         */
         calcularDuracion(salida, llegada) {
             const [h1, m1] = salida.split(':').map(Number);
             const [h2, m2] = llegada.split(':').map(Number);
@@ -102,6 +131,13 @@ function detalleData() {
             return `${horas}h ${minutos}m`;
         },
 
+        /**
+         * Calcula la distribución porcentual de las valoraciones (ratings) del vuelo.
+         * <p>
+         * Recorre los comentarios raíz (aquellos con rating) y cuenta cuántos hay de cada
+         * estrella (1-5), luego los convierte a porcentajes sobre el total.
+         * </p>
+         */
         calcularDistribucion() {
 
             // Resetear
@@ -126,7 +162,14 @@ function detalleData() {
             }
         },
 
-        // Fetch comentarios
+        /**
+         * Obtiene los comentarios del vuelo desde la API.
+         * <p>
+         * Mapea la respuesta jerárquica y actualiza el promedio de rating y el total de comentarios.
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async fetchComentarios() {
             try {
                 const response = await fetch(`${API_BASE}/comentarios/${this.vueloId}`);
@@ -172,7 +215,9 @@ function detalleData() {
             }
         },
 
-        // Renderizar estrellas en elementos fijos
+        /**
+         * Renderiza las estrellas del rating en elementos HTML fijos (hero y resumen).
+         */
         renderStarsInElements() {
             this.$nextTick(() => {
                 const heroStars = document.getElementById('heroStars');
@@ -183,7 +228,12 @@ function detalleData() {
             });
         },
 
-        // Helper: renderizar estrellas
+        /**
+         * Genera el HTML de estrellas según una calificación numérica.
+         *
+         * @param {number} rating - Calificación (1-5).
+         * @returns {string} HTML con iconos de estrellas.
+         */
         renderStars(rating) {
             let html = '';
             for (let i = 1; i <= 5; i++) {
@@ -198,12 +248,23 @@ function detalleData() {
             return html;
         },
 
-        // Calificación de estrellas (nuevo comentario)
+        /**
+         * Establece la calificación seleccionada para un nuevo comentario.
+         *
+         * @param {number} stars - Número de estrellas (1-5).
+         */
         setRating(stars) {
             this.selectedRating = stars;
         },
 
-        // Publicar comentario
+        /**
+         * Publica un nuevo comentario en el vuelo.
+         * <p>
+         * Requiere autenticación. Envía el comentario y la calificación a la API.
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async publicarComentario() {
             if (!this.nuevoComentario.trim()) {
                 showNotification('Por favor escribe un comentario', 'warning');
@@ -262,6 +323,12 @@ function detalleData() {
             }
         },
 
+        /**
+         * Responde a un comentario existente.
+         *
+         * @param {number} idComentarioPadre - Identificador del comentario padre.
+         * @returns {Promise<void>}
+         */
         async responderComentario(idComentarioPadre) {
 
             if (!this.respuestaTexto.trim()) {
@@ -309,6 +376,17 @@ function detalleData() {
             }
         },
 
+        /**
+         * Ordena la lista de comentarios según el criterio actual.
+         * <p>
+         * Los criterios disponibles son:
+         * <ul>
+         *   <li>{@code 'recent'} - Más recientes primero.</li>
+         *   <li>{@code 'rating'} - Mayor calificación primero.</li>
+         *   <li>{@code 'likes'}  - Mayor número de "me gusta" primero.</li>
+         * </ul>
+         * </p>
+         */
         ordenarComentarios() {
 
             // Clonar array para no mutar el original
@@ -335,12 +413,21 @@ function detalleData() {
             this.comentarios = copia;
         },
 
+        /**
+         * Cambia el criterio de ordenamiento de los comentarios.
+         *
+         * @param {string} tipo - Nuevo criterio ('recent', 'rating', 'likes').
+         */
         cambiarOrden(tipo) {
             this.sortActual = tipo;
             this.ordenarComentarios();
         },
 
-        // Toggle like en comentario
+        /**
+         * Alterna el estado "me gusta" de un comentario.
+         *
+         * @param {Object} comentario - Objeto comentario (debe tener propiedades `likes` y `liked`).
+         */
         toggleLike(comentario) {
             if (!comentario.liked) {
                 comentario.likes++;
@@ -355,7 +442,9 @@ function detalleData() {
             }
         },
 
-        // Recalcular precio total
+        /**
+         * Recalcula el precio total en base al precio base, número de pasajeros y extras seleccionados.
+         */
         recalcularTotal() {
             if (!this.vuelo.precioBase) return;
 
@@ -368,7 +457,9 @@ function detalleData() {
             this.precioTotal = total;
         },
 
-        // Proceder a checkout
+        /**
+         * Navega a la página de checkout con los parámetros del vuelo y el total calculado.
+         */
         procederCompra() {
             const pasajeros = this.pasajeros || 1;
 

@@ -2,6 +2,24 @@
 // LOGIN - ALPINE.JS DATA COMPONENT
 // ============================================================
 
+/**
+ * Crea y retorna el objeto `loginData` para Alpine.js, responsable del
+ * formulario de inicio de sesión y recuperación de contraseña.
+ *
+ * @returns {Object} Un objeto Alpine con las siguientes propiedades y métodos:
+ * @property {string} email - Correo electrónico del usuario.
+ * @property {string} password - Contraseña del usuario.
+ * @property {boolean} rememberMe - Indica si se debe recordar el correo.
+ * @property {boolean} showPassword - Controla la visibilidad de la contraseña.
+ * @property {boolean} showForgotModal - Controla la visibilidad del modal de recuperación.
+ * @property {string} recoveryEmail - Correo para enviar el enlace de recuperación.
+ * @property {boolean} isSendingRecovery - Indica si se está enviando la solicitud de recuperación.
+ * @property {boolean} isLoading - Indica si se está procesando el inicio de sesión.
+ * @property {Function} init - Inicializa el componente.
+ * @property {Function} submitLogin - Procesa el inicio de sesión.
+ * @property {Function} loginWithGoogle - Inicia sesión con Google (próximamente).
+ * @property {Function} sendRecoveryEmail - Envía el correo de recuperación de contraseña.
+ */
 function loginData() {
     return {
         // Datos del formulario
@@ -18,7 +36,13 @@ function loginData() {
         // Estado
         isLoading: false,
 
-        // Inicialización
+        /**
+         * Inicializa el componente.
+         * <p>
+         * Redirige a la página principal si el usuario ya está autenticado.
+         * Carga el correo electrónico recordado desde el almacenamiento local.
+         * </p>
+         */
         init() {
             // Si ya está logueado, redirigir
             redirectIfAuthenticated();
@@ -31,7 +55,15 @@ function loginData() {
             }
         },
 
-        // Submit login
+        /**
+         * Procesa el inicio de sesión enviando las credenciales a la API.
+         * <p>
+         * Valida los campos, envía una petición POST a {@code /api/auth/login},
+         * guarda la sesión del usuario y redirige según el rol.
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async submitLogin() {
             // Validaciones
             if (!this.email || !this.password) {
@@ -100,13 +132,22 @@ function loginData() {
             }
         },
 
-        // Login con Google
+        /**
+         * Inicia el flujo de autenticación con Google (funcionalidad en desarrollo).
+         */
         loginWithGoogle() {
             showNotification('Funcionalidad de Google OAuth próximamente', 'info');
             // En producción: window.location.href = '/auth/google';
         },
 
-        // Enviar email de recuperación
+        /**
+         * Envía un correo de recuperación de contraseña al email proporcionado.
+         * <p>
+         * Actualmente es una simulación (no realiza llamada real a la API).
+         * </p>
+         *
+         * @returns {Promise<void>}
+         */
         async sendRecoveryEmail() {
             if (!this.recoveryEmail) {
                 showNotification('Por favor ingresa tu correo', 'error');

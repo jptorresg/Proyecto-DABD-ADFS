@@ -12,8 +12,21 @@ import java.util.Map;
 
 import com.halcon.aerolineas.config.DatabaseConfig;
 
+/**
+ * Clase de acceso a datos para operaciones administrativas.
+ * <p>
+ * Proporciona métodos para obtener estadísticas del sistema, listar usuarios
+ * y actualizar roles de usuario.
+ * </p>
+ */
 public class AdminDAO {
 
+    /**
+     * Cuenta el número de vuelos activos en el sistema.
+     *
+     * @return El número de vuelos activos.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
     public int contarVuelosActivosHoy() throws SQLException {
 
         String sql =
@@ -35,7 +48,12 @@ public class AdminDAO {
         return 0;
     }
 
-
+    /**
+     * Cuenta el número total de usuarios registrados en la base de datos.
+     *
+     * @return El número de usuarios.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
     public int contarUsuarios() throws SQLException {
 
         String sql = "SELECT COUNT(*) FROM USUARIOS";
@@ -54,7 +72,17 @@ public class AdminDAO {
         return 0;
     }
 
-
+    /**
+     * Calcula el ingreso total del mes actual.
+     * <p>
+     * Realiza una consulta SQL para obtener la suma de los precios totales de las
+     * reservaciones realizadas en el mes y año en curso. Utiliza la función
+     * {@code NVL} para retornar 0 en caso de no haber registros.
+     * </p>
+     *
+     * @return El ingreso total del mes actual.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
     public double calcularIngresosMes() throws SQLException {
 
         String sql =
@@ -77,6 +105,11 @@ public class AdminDAO {
         return 0;
     }
 
+    /**
+     * Cuenta el número de reservaciones realizadas en el mes actual.
+     *
+     * @return El número de reservaciones del mes.
+     */
     public int contarReservacionesMes() {
 
         String sql =
@@ -100,6 +133,26 @@ public class AdminDAO {
         return 0;
     }
 
+    /**
+     * Obtiene una lista de todos los usuarios del sistema.
+     * <p>
+     * Cada elemento de la lista es un {@code Map} con los siguientes campos:
+     * <ul>
+     *   <li>{@code id}            - Identificador del usuario.</li>
+     *   <li>{@code email}         - Correo electrónico.</li>
+     *   <li>{@code nombres}       - Nombres del usuario.</li>
+     *   <li>{@code apellidos}     - Apellidos del usuario.</li>
+     *   <li>{@code edad}          - Edad.</li>
+     *   <li>{@code pais}          - País de origen.</li>
+     *   <li>{@code numPasaporte}  - Número de pasaporte.</li>
+     *   <li>{@code tipoUsuario}   - Rol del usuario (ej. "ADMIN", "CLIENTE").</li>
+     *   <li>{@code fechaRegistro} - Fecha de registro.</li>
+     *   <li>{@code activo}        - Estado (1: activo, 0: inactivo).</li>
+     * </ul>
+     * 
+     *
+     * @return La lista de usuarios del sistema.
+     */
     public List<Map<String, Object>> obtenerUsuarios() {
 
         List<Map<String, Object>> usuarios = new ArrayList<>();
@@ -138,6 +191,13 @@ public class AdminDAO {
         return usuarios;
     }
 
+    /**
+     * Actualiza el rol del usuario especificado.
+     *
+     * @param userId   Identificador del usuario a actualizar.
+     * @param nuevoRol Nuevo rol para el usuario.
+     * @return {@code true} si se actualizó correctamente, {@code false} en caso contrario.
+     */
     public boolean actualizarRolUsuario(int userId, String nuevoRol) {
 
         String sql = 

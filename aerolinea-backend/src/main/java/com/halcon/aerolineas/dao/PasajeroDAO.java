@@ -7,10 +7,27 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase de acceso a datos para la entidad {@link Pasajero}.
+ * <p>
+ * Proporciona métodos para crear pasajeros y obtener los pasajeros asociados
+ * a una reservación, incluyendo información de nacionalidad mediante un JOIN
+ * con la tabla {@code PAISES}.
+ * </p>
+ */
 public class PasajeroDAO {
     
     /**
-     * Crear pasajero - ACTUALIZADO con FK a PAISES
+     * Crea un nuevo pasajero en la base de datos.
+     * <p>
+     * Inserta un registro en la tabla {@code PASAJEROS} con los datos del pasajero,
+     * utilizando la clave foránea {@code id_reservacion} para vincularlo a una reservación
+     * existente y {@code nacionalidad} como referencia a la tabla {@code PAISES}.
+     * </p>
+     *
+     * @param pasajero Objeto {@link Pasajero} con los datos a insertar.
+     * @return El ID generado para el nuevo pasajero, o {@code null} si ocurre un error.
+     * @throws SQLException Si ocurre un error al ejecutar la inserción.
      */
     public Long create(Pasajero pasajero) throws SQLException {
         String sql = "INSERT INTO PASAJEROS (id_reservacion, nombres, apellidos, " +
@@ -40,7 +57,15 @@ public class PasajeroDAO {
     }
     
     /**
-     * Obtener pasajeros de una reservación - CON JOIN a PAISES
+     * Obtiene la lista de pasajeros asociados a una reservación específica.
+     * <p>
+     * Realiza un JOIN con la tabla {@code PAISES} para incluir el nombre y código
+     * ISO del país de nacionalidad de cada pasajero.
+     * </p>
+     *
+     * @param idReservacion Identificador de la reservación de la cual se obtienen los pasajeros.
+     * @return Lista de objetos {@link Pasajero} pertenecientes a la reservación.
+     * @throws SQLException Si ocurre un error al ejecutar la consulta.
      */
     public List<Pasajero> findByReservacion(Long idReservacion) throws SQLException {
         List<Pasajero> pasajeros = new ArrayList<>();

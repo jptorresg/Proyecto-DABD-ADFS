@@ -1,4 +1,3 @@
-//UsuarioDAO.java
 package com.halcon.aerolineas.dao;
 
 import java.sql.Connection;
@@ -13,10 +12,26 @@ import java.util.List;
 import com.halcon.aerolineas.config.DatabaseConfig;
 import com.halcon.aerolineas.models.Usuario;
 
+/**
+ * Clase de acceso a datos para la entidad {@link Usuario}.
+ * <p>
+ * Proporciona métodos para crear, buscar, listar y actualizar usuarios en la base de datos,
+ * incluyendo información del país de origen mediante un JOIN con la tabla {@code PAISES}.
+ * </p>
+ */
 public class UsuarioDAO {
     
     /**
-     * Buscar por email (para login) - CON JOIN a PAISES
+     * Busca un usuario por su dirección de correo electrónico.
+     * <p>
+     * Utilizado principalmente durante el proceso de inicio de sesión. La consulta
+     * incluye un JOIN con la tabla {@code PAISES} para obtener el nombre y código
+     * ISO del país de origen.
+     * </p>
+     *
+     * @param email Correo electrónico del usuario a buscar.
+     * @return Objeto {@link Usuario} correspondiente al email, o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
      */
     public Usuario findByEmail(String email) throws SQLException {
         String sql = "SELECT u.*, p.name as nombre_pais, p.alfa2 as codigo_pais " +
@@ -39,7 +54,14 @@ public class UsuarioDAO {
     }
     
     /**
-     * Listar todos con información de país
+     * Obtiene la lista completa de usuarios registrados en el sistema.
+     * <p>
+     * Los resultados incluyen la información del país de origen y se ordenan
+     * por fecha de registro en orden descendente (los más recientes primero).
+     * </p>
+     *
+     * @return Lista de objetos {@link Usuario} con todos los usuarios.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
      */
     public List<Usuario> findAll() throws SQLException {
         List<Usuario> usuarios = new ArrayList<>();
@@ -61,7 +83,11 @@ public class UsuarioDAO {
     }
     
     /**
-     * Crear nuevo usuario - ACTUALIZADO
+     * Crea un nuevo usuario en la base de datos.
+     *
+     * @param usuario Objeto {@link Usuario} con los datos del nuevo usuario a insertar.
+     * @return El ID generado para el usuario creado, o {@code null} si ocurre un error.
+     * @throws SQLException Si ocurre un error durante la inserción.
      */
     public Long create(Usuario usuario) throws SQLException {
         String sql = "INSERT INTO USUARIOS (email, password_hash, nombres, apellidos, edad, " +
@@ -92,7 +118,11 @@ public class UsuarioDAO {
     }
     
     /**
-     * Actualizar usuario
+     * Actualiza los datos de un usuario existente.
+     *
+     * @param usuario Objeto {@link Usuario} con los datos actualizados (debe incluir el ID).
+     * @return {@code true} si la actualización afectó al menos un registro, {@code false} en caso contrario.
+     * @throws SQLException Si ocurre un error durante la actualización.
      */
     public boolean update(Usuario usuario) throws SQLException {
         String sql = "UPDATE USUARIOS SET email = ?, nombres = ?, apellidos = ?, " +
@@ -117,7 +147,11 @@ public class UsuarioDAO {
     }
     
     /**
-     * Buscar por ID
+     * Busca un usuario por su identificador único.
+     *
+     * @param id ID del usuario a buscar.
+     * @return Objeto {@link Usuario} correspondiente al ID, o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public Usuario findById(Long id) throws SQLException {
         String sql = "SELECT u.*, p.name as nombre_pais, p.alfa2 as codigo_pais " +
@@ -140,7 +174,15 @@ public class UsuarioDAO {
     }
     
     /**
-     * Helper: mapear ResultSet a Usuario (CON datos de país)
+     * Método auxiliar para mapear un {@link ResultSet} a un objeto {@link Usuario}.
+     * <p>
+     * Extrae los valores de las columnas y los asigna a las propiedades correspondientes
+     * del usuario, incluyendo los datos del país obtenidos mediante JOIN.
+     * </p>
+     *
+     * @param rs El {@code ResultSet} posicionado en la fila a mapear.
+     * @return Un objeto {@link Usuario} completamente poblado.
+     * @throws SQLException Si ocurre un error al leer los valores del {@code ResultSet}.
      */
     private Usuario mapResultSetToUsuario(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
@@ -171,7 +213,13 @@ public class UsuarioDAO {
     }
     
     /**
-     * Main de prueba - ACTUALIZADO
+     * Método principal para probar la funcionalidad del DAO de usuarios.
+     * <p>
+     * Realiza una prueba de búsqueda por email y lista todos los usuarios,
+     * mostrando información básica en la consola.
+     * </p>
+     *
+     * @param args Argumentos de línea de comandos (no utilizados).
      */
     public static void main(String[] args) {
         UsuarioDAO dao = new UsuarioDAO();

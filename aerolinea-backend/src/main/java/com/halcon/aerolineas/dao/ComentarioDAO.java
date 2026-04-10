@@ -6,14 +6,37 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase de acceso a datos para la gestión de comentarios y valoraciones de vuelos.
+ * <p>
+ * Proporciona métodos para obtener los comentarios asociados a un vuelo y para
+ * insertar nuevos comentarios en la base de datos.
+ * </p>
+ */
 public class ComentarioDAO {
 
     private Connection conn;
 
+    /**
+     * Constructor que recibe una conexión activa a la base de datos.
+     *
+     * @param conn Conexión JDBC que será utilizada para ejecutar las consultas.
+     */
     public ComentarioDAO(Connection conn) {
         this.conn = conn;
     }
 
+    /**
+     * Obtiene los comentarios asociados a un vuelo específico.
+     * <p>
+     * Devuelve una lista de objetos {@link ComentarioRating} ordenados por fecha
+     * de creación en orden descendente (los más recientes primero).
+     * </p>
+     *
+     * @param idVuelo Identificador del vuelo del cual se desean obtener los comentarios.
+     * @return Lista de objetos {@link ComentarioRating} con los comentarios del vuelo.
+     * @throws SQLException Si ocurre un error al ejecutar la consulta.
+     */
     public List<ComentarioRating> getComentariosByVuelo(int idVuelo) throws SQLException {
 
         String sql =
@@ -63,6 +86,17 @@ public class ComentarioDAO {
         return lista;
     }
 
+    /**
+     * Inserta un nuevo comentario en la base de datos.
+     * <p>
+     * El comentario se almacena en la tabla {@code COMENTARIOS_RATINGS}. La fecha
+     * de creación se establece automáticamente utilizando la función
+     * {@code SYSTIMESTAMP} de Oracle.
+     * </p>
+     *
+     * @param comentario Objeto {@link ComentarioRating} que contiene los datos del comentario a insertar.
+     * @throws SQLException Si ocurre un error al ejecutar la inserción.
+     */
     public void insertarComentario(ComentarioRating comentario) throws SQLException {
 
         String sql =

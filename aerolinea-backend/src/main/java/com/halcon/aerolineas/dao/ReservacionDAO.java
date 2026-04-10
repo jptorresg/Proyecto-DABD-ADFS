@@ -12,10 +12,31 @@ import com.halcon.aerolineas.models.Reservacion;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.models.VueloConEscala;
 
+/**
+ * Clase de acceso a datos para la gestión de reservaciones.
+ * <p>
+ * Proporciona métodos para crear, consultar y cancelar reservaciones,
+ * manejando transacciones para garantizar la integridad de la disponibilidad
+ * de asientos.
+ * </p>
+ */
 public class ReservacionDAO {
     
     /**
-     * Crear nueva reservación (con transacción para asientos)
+     * Crea una nueva reservación en la base de datos.
+     * <p>
+     * Este método ejecuta una transacción que:
+     * <ol>
+     *   <li>Verifica y bloquea el vuelo para comprobar disponibilidad.</li>
+     *   <li>Decrementa el número de asientos disponibles.</li>
+     *   <li>Inserta el registro de la reservación con estado {@code CONFIRMADA}.</li>
+     * </ol>
+     * En caso de error, se realiza rollback automático para mantener la consistencia.
+     * 
+     *
+     * @param reservacion Objeto {@link Reservacion} con los datos de la reserva a crear.
+     * @return El ID generado para la nueva reservación.
+     * @throws SQLException Si ocurre un error en la base de datos o no hay asientos suficientes.
      */
     public Long create(Reservacion reservacion) throws SQLException {
         Connection conn = null;
@@ -87,6 +108,13 @@ public class ReservacionDAO {
         }
     }
 
+    /**
+     * Busca una reservación específica por su ID.
+     *
+     * @param idReservacion ID de la reservación a buscar.
+     * @return La reservación encontrada o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la base de datos.
+     */
     public Reservacion findById(Long idReservacion) throws SQLException {
         String sql = "SELECT * FROM RESERVACIONES WHERE ID_RESERVACION = ?";
         
@@ -116,7 +144,15 @@ public class ReservacionDAO {
     }
     
     /**
-     * Buscar reservaciones por usuario
+     * Obtiene todas las reservaciones asociadas a un usuario.
+     * <p>
+     * La consulta incluye un JOIN con la tabla {@code VUELOS} para proporcionar
+     * información detallada del vuelo en cada reservación.
+     * </p>
+     *
+     * @param idUsuario ID del usuario del cual se desean obtener las reservaciones.
+     * @return Lista de objetos {@link Reservacion} con los datos completos, ordenados por fecha de compra descendente.
+     * @throws SQLException Si ocurre un error en la base de datos.
      */
     public List<Reservacion> findByUsuario(Long idUsuario) throws SQLException {
         List<Reservacion> reservaciones = new ArrayList<>();
@@ -173,7 +209,11 @@ public class ReservacionDAO {
     }
     
     /**
-     * Buscar por código de reservación
+     * Busca una reservación por su código único de reserva.
+     *
+     * @param codigo Código alfanumérico de la reservación.
+     * @return Objeto {@link Reservacion} correspondiente al código, o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la base de datos.
      */
     public Reservacion findByCodigo(String codigo) throws SQLException {
         String sql = "SELECT * FROM RESERVACIONES WHERE codigo_reservacion = ?";
@@ -202,6 +242,21 @@ public class ReservacionDAO {
         return null;
     }
 
+    /**
+     * Cancela una reservación existente.
+     * <p>
+     * El método realiza una transacción que:
+     * <ol>
+     *   <li>Obtiene los datos de la reservación (vuelo y número de pasajeros).</li>
+     *   <li>Devuelve los asientos al vuelo correspondiente.</li>
+     *   <li>Actualiza el estado de la reservación a {@code CANCELADA}.</li>
+     * </ol>
+     * En caso de error, se revierten todos los cambios para mantener la integridad.
+     * 
+     *
+     * @param idReservacion ID de la reservación a cancelar.
+     * @throws SQLException Si ocurre un error en la base de datos o la reservación no existe.
+     */
     public void cancelar(Long idReservacion) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;

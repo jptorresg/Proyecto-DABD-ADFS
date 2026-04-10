@@ -14,10 +14,24 @@ import com.halcon.aerolineas.config.DatabaseConfig;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.models.VueloConEscala;
 
+/**
+ * Clase de acceso a datos para la gestión de vuelos.
+ * <p>
+ * Proporciona métodos para buscar, crear, actualizar y eliminar vuelos,
+ * incluyendo lógica avanzada para la búsqueda de rutas con escalas.
+ * </p>
+ */
 public class VueloDAO {
     
     /**
-     * Buscar vuelos con filtros
+     * Busca vuelos disponibles según filtros de origen, destino, fecha y tipo de asiento.
+     *
+     * @param origen       Código IATA del aeropuerto de origen (opcional).
+     * @param destino      Código IATA del aeropuerto de destino (opcional).
+     * @param fechaSalida  Fecha de salida deseada (opcional).
+     * @param tipoAsiento  Tipo de asiento requerido (opcional).
+     * @return Lista de objetos {@link Vuelo} que cumplen con los criterios.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public List<Vuelo> buscarVuelos(String origen, String destino, LocalDate fechaSalida, 
                                      String tipoAsiento) throws SQLException {
@@ -63,6 +77,27 @@ public class VueloDAO {
         return vuelos;
     }
 
+    /**
+     * Busca vuelos disponibles con escalas (rutas con 2 o más tramos) que conectan
+     * el origen con el destino, con fecha de salida igual o posterior a la proporcionada,
+     * y con el tipo de asiento especificado.
+     * <p>
+     * La búsqueda se realiza en tres pasos:
+     * <ol>
+     *   <li>Encuentra vuelos que llegan al destino final.</li>
+     *   <li>Expande hacia atrás, máximo 3 niveles (4 tramos = 3 escalas).</li>
+     *   <li>Procesa cadenas que quedaron pendientes después del último nivel.</li>
+     * </ol>
+     * 
+     *
+     * @param origen       Código IATA del origen.
+     * @param destino      Código IATA del destino.
+     * @param fechaSalida  Fecha de salida deseada (opcional).
+     * @param tipoAsiento  Tipo de asiento requerido (opcional).
+     * @return Lista de cadenas de vuelos (cada cadena es una lista de {@link Vuelo})
+     *         que conectan el origen con el destino.
+     * @throws SQLException Si ocurre un error al procesar la búsqueda.
+     */
     public List<List<Vuelo>> buscarVuelosConEscala(String origen, String destino,
                                                     LocalDate fechaSalida,
                                                     String tipoAsiento) throws SQLException {
@@ -160,6 +195,15 @@ public class VueloDAO {
         return resultados;
     }
 
+    /**
+     * Busca vuelos que llegan a un destino determinado.
+     *
+     * @param destinoIata Código IATA del destino.
+     * @param fecha       Fecha de salida de los vuelos (opcional).
+     * @param tipoAsiento Tipo de asiento requerido (opcional).
+     * @return Lista de vuelos que llegan al destino especificado.
+     * @throws SQLException Si ocurre un error al realizar la consulta.
+     */
     private List<Vuelo> buscarVuelosQueLleganA(String destinoIata, LocalDate fecha,
                                                 String tipoAsiento) throws SQLException {
         List<Vuelo> vuelos = new ArrayList<>();
@@ -191,6 +235,22 @@ public class VueloDAO {
         return vuelos;
     }
 
+    /**
+     * Busca vuelos que conectan con un destino determinado, es decir, vuelos cuyo destino
+     * coincide con el parámetro {@code destinoIata} y que permiten una conexión posterior.
+     * <p>
+     * Se filtran vuelos cuya fecha de salida esté en un rango de un día antes hasta el mismo
+     * día de {@code fechaSiguiente}, y que tengan una diferencia de al menos 45 minutos entre
+     * la hora de llegada y la hora de salida del siguiente tramo.
+     * </p>
+     *
+     * @param destinoIata        Código IATA del destino de estos vuelos.
+     * @param fechaSiguiente     Fecha del siguiente tramo.
+     * @param horaSalidaSiguiente Hora de salida del siguiente tramo en formato "HH:mm".
+     * @param tipoAsiento        Tipo de asiento requerido (opcional).
+     * @return Lista de vuelos que pueden servir como tramo anterior.
+     * @throws SQLException Si ocurre un error al realizar la consulta.
+     */
     private List<Vuelo> buscarVuelosQueConectan(String destinoIata, LocalDate fechaSiguiente,
                                                 String horaSalidaSiguiente,
                                                 String tipoAsiento) throws SQLException {
@@ -231,13 +291,23 @@ public class VueloDAO {
         return vuelos;
     }
 
+    /**
+     * Convierte una hora en formato "HH:mm" a minutos desde las 00:00.
+     *
+     * @param hora La hora en formato "HH:mm".
+     * @return El total de minutos.
+     */
     private int timeToMinutes(String hora) {
         String[] parts = hora.split(":");
         return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
     }
     
     /**
-     * Obtener vuelo por ID
+     * Obtiene un vuelo por su identificador único.
+     *
+     * @param id Identificador del vuelo.
+     * @return Objeto {@link Vuelo} correspondiente, o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public Vuelo findById(Long id) throws SQLException {
         String sql = "SELECT * FROM VUELOS WHERE id_vuelo = ?";
@@ -257,7 +327,11 @@ public class VueloDAO {
     }
     
     /**
-     * Obtener vuelo por código
+     * Obtiene un vuelo por su código de vuelo.
+     *
+     * @param codigo Código del vuelo.
+     * @return Objeto {@link Vuelo} correspondiente, o {@code null} si no existe.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public Vuelo findByCodigo(String codigo) throws SQLException {
         String sql = "SELECT * FROM VUELOS WHERE codigo_vuelo = ?";
@@ -277,7 +351,12 @@ public class VueloDAO {
     }
     
     /**
-     * Listar todos los vuelos (con paginación opcional)
+     * Lista todos los vuelos con paginación.
+     *
+     * @param limit  Número máximo de resultados a retornar.
+     * @param offset Número de registros a saltar.
+     * @return Lista de objetos {@link Vuelo} ordenados por fecha de salida descendente.
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public List<Vuelo> findAll(int limit, int offset) throws SQLException {
         List<Vuelo> vuelos = new ArrayList<>();
@@ -299,7 +378,12 @@ public class VueloDAO {
     }
     
     /**
-     * Crear nuevo vuelo
+     * Crea un nuevo vuelo en la base de datos.
+     *
+     * @param vuelo           Objeto {@link Vuelo} con los datos del vuelo a crear.
+     * @param idUsuarioCreador ID del usuario que crea el vuelo (puede ser {@code null}).
+     * @return El ID generado para el nuevo vuelo, o {@code null} si ocurre un error.
+     * @throws SQLException Si ocurre un error durante la inserción.
      */
     public Long create(Vuelo vuelo, Long idUsuarioCreador) throws SQLException {
         String sql = "INSERT INTO VUELOS (codigo_vuelo, origen_ciudad, origen_codigo_iata, " +
@@ -343,7 +427,11 @@ public class VueloDAO {
     }
     
     /**
-     * Actualizar vuelo existente
+     * Actualiza los datos de un vuelo existente.
+     *
+     * @param vuelo Objeto {@link Vuelo} con los datos actualizados (debe incluir el ID).
+     * @return {@code true} si la actualización afectó al menos un registro, {@code false} en caso contrario.
+     * @throws SQLException Si ocurre un error durante la actualización.
      */
     public boolean update(Vuelo vuelo) throws SQLException {
         String sql = "UPDATE VUELOS SET origen_ciudad = ?, origen_codigo_iata = ?, " +
@@ -375,7 +463,11 @@ public class VueloDAO {
     }
     
     /**
-     * Eliminar vuelo (soft delete - cambiar estado)
+     * Elimina lógicamente un vuelo (cambia su estado a 'CANCELADO').
+     *
+     * @param id Identificador del vuelo a eliminar.
+     * @return {@code true} si se actualizó al menos un registro, {@code false} en caso contrario.
+     * @throws SQLException Si ocurre un error durante la actualización.
      */
     public boolean delete(Long id) throws SQLException {
         String sql = "UPDATE VUELOS SET estado = 'CANCELADO' WHERE id_vuelo = ?";
@@ -389,7 +481,15 @@ public class VueloDAO {
     }
     
     /**
-     * Decrementar asientos disponibles (para reservaciones)
+     * Decrementa el número de asientos disponibles para un vuelo.
+     * <p>
+     * Se utiliza durante la creación de reservaciones para garantizar la disponibilidad.
+     * </p>
+     *
+     * @param idVuelo  Identificador del vuelo.
+     * @param cantidad Número de asientos a decrementar.
+     * @return {@code true} si la actualización fue exitosa (había suficientes asientos).
+     * @throws SQLException Si ocurre un error en la consulta.
      */
     public boolean decrementarAsientos(Long idVuelo, int cantidad) throws SQLException {
         String sql = "UPDATE VUELOS SET asientos_disponibles = asientos_disponibles - ? " +
@@ -407,7 +507,11 @@ public class VueloDAO {
     }
     
     /**
-     * Helper: mapear ResultSet a objeto Vuelo
+     * Método auxiliar que mapea un {@link ResultSet} a un objeto {@link Vuelo}.
+     *
+     * @param rs El {@code ResultSet} posicionado en la fila a mapear.
+     * @return Un objeto {@link Vuelo} poblado con los datos de la fila actual.
+     * @throws SQLException Si ocurre un error al leer los valores del {@code ResultSet}.
      */
     public Vuelo mapResultSetToVuelo(ResultSet rs) throws SQLException {
         Vuelo v = new Vuelo();
