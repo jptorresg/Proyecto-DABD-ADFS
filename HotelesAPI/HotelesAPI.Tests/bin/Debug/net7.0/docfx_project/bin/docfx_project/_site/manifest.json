@@ -1,0 +1,712 @@
+{
+  "homepages": [],
+  "source_base_path": "C:/Users/José Rueda/Desktop/Proyecto_Modulo_Hotel_Final/HotelesAPI/docfx_project",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Config.DatabaseConfig.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Config.DatabaseConfig.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Config.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Config.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.AdminController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.AdminController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.ApiMonitorController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.ApiMonitorController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.AuthController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.AuthController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.B2BController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.B2BController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.ComentariosController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.ComentariosController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.ConfirmacionController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.ConfirmacionController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.CuponController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.CuponController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.HabitacionesController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.HabitacionesController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.InventarioController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.InventarioController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.ReservacionesController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.ReservacionesController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.UsuariosController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.UsuariosController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.WeatherForecastController.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.WeatherForecastController.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Controllers.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.AgenciaDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.AgenciaDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.ComentarioDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.ComentarioDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.ConfiguracionDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.ConfiguracionDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.CuponDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.CuponDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.DashboardDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.DashboardDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.HabitacionDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.HabitacionDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.HotelDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.HotelDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.LogApiDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.LogApiDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.ReservacionDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.ReservacionDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.UsuarioDAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.UsuarioDAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DAO.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DAO.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.AuthResponseDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.AuthResponseDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.CambiarEstadoDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.CambiarEstadoDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.CambiarPasswordDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.CambiarPasswordDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.CambiarRolDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.CambiarRolDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.CierreVentasDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.CierreVentasDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ComentarioDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ComentarioDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.DashboardDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.DashboardDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.EstadisticaMensual.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.EstadisticaMensual.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.LoginDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.LoginDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ModificarReservacionDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ModificarReservacionDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.RegistroDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.RegistroDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ReservacionB2BDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ReservacionB2BDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ReservacionDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ReservacionDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ReservacionReciente.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ReservacionReciente.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.ToggleUsuarioDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.ToggleUsuarioDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.UsuarioDto.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.UsuarioDto.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.DTOs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.DTOs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Agencia.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Agencia.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Comentario.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Comentario.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Cupon.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Cupon.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Habitacion.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Habitacion.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Hotel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Hotel.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.LogApi.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.LogApi.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Reservacion.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Reservacion.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.Usuario.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.Usuario.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Models.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.AuthService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.AuthService.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.PdfService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.PdfService.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.ReservacionService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.ReservacionService.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.ReservacionValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.ReservacionValidator.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.UsuarioService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.UsuarioService.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Services.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Utils.JsonResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Utils.JsonResponse.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Utils.PasswordUtil.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Utils.PasswordUtil.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.Utils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.Utils.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.WeatherForecast.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.WeatherForecast.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/HotelesAPI.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/HotelesAPI.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/intro.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

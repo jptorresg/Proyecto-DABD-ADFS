@@ -3,6 +3,7 @@
  * @description Módulo que proporciona una función para generar códigos únicos de reservación
  * con formato estandarizado TN-YYYYMMDD-XXXX
  */
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * Genera un código único para la reservación

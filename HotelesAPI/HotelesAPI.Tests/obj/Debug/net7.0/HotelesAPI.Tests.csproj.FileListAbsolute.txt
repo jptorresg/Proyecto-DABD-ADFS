@@ -1,4 +1,3 @@
-C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\CoverletSourceRootsMapping
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\testhost.dll
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\HotelesAPI.deps.json
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\HotelesAPI.runtimeconfig.json
@@ -185,3 +184,19 @@ C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.T
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\obj\Debug\net7.0\HotelesAPI.Tests.pdb
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\obj\Debug\net7.0\HotelesAPI.Tests.genruntimeconfig.cache
 C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\obj\Debug\net7.0\ref\HotelesAPI.Tests.dll
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\appsettings.Development.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\appsettings.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\docfx.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\_site\api\toc.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\_site\articles\toc.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\_site\manifest.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\_site\search-stopwords.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\docfx_project\_site\toc.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\HotelesAPI.deps.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\bin\HotelesAPI.runtimeconfig.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\docfx.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\_site\api\toc.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\_site\articles\toc.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\_site\manifest.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\_site\search-stopwords.json
+C:\Users\José Rueda\Desktop\Proyecto_Modulo_Hotel_Final\HotelesAPI\HotelesAPI.Tests\bin\Debug\net7.0\docfx_project\_site\toc.json

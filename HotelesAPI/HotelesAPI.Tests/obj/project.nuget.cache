@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "pIqdJ0QRxynPWnJoqNJXojHr8AO0kuwp3oXCfUpCS0tTGxVm6VLmnhfKlE/NrQczExKTlZ1JOH3PPFQl21Jixw==",
+  "dgSpecHash": "9bMw9+fhGWkz7IP75t/jslqtOxYX+b/+YrsJKIhxZkPQSO4D2eHkK4LGG1ajlol1TW+ewTs+NFHf5BfA0ohEPg==",
   "success": true,
   "projectFilePath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.Tests\\HotelesAPI.Tests.csproj",
   "expectedPackageFiles": [
@@ -8,7 +8,6 @@
     "C:\\Users\\José Rueda\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
-    "C:\\Users\\José Rueda\\.nuget\\packages\\coverlet.collector\\3.1.2\\coverlet.collector.3.1.2.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.codecoverage\\17.3.2\\microsoft.codecoverage.17.3.2.nupkg.sha512",
     "C:\\Users\\José Rueda\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
