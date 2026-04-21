@@ -53,5 +53,10 @@ namespace HotelesAPI.Controllers
                 return StatusCode(500, JsonResponse.Error(ex.Message));
             }
         }
+        [HttpGet("genhash/{password}")]
+public IActionResult GenHash(string password)
+{
+    return Ok(new { hash = PasswordUtil.HashPassword(password) });
+}
     }
 }   
