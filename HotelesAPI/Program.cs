@@ -24,7 +24,7 @@ builder.Services.AddAuthentication();
 
 var app = builder.Build();
 
-DatabaseConfig.ConnectionString = builder.Configuration.GetConnectionString("SqlServer")
+DatabaseConfig.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new Exception("No se encontró cadena de conexión");
 
 app.UseCors("AllowFrontend");

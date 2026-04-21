@@ -1,0 +1,1 @@
+router.get('/proveedores/:id/probar', ...isAdmin, ctrl.probarConexionProveedor);

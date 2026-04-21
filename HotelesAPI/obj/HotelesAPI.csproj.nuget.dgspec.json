@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {}
+    "C:\\Users\\javia\\OneDrive\\Escritorio\\Proyecto-BD_AD\\Proyecto-DABD-ADFS\\HotelesAPI\\HotelesAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj": {
+    "C:\\Users\\javia\\OneDrive\\Escritorio\\Proyecto-BD_AD\\Proyecto-DABD-ADFS\\HotelesAPI\\HotelesAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
+        "projectUniqueName": "C:\\Users\\javia\\OneDrive\\Escritorio\\Proyecto-BD_AD\\Proyecto-DABD-ADFS\\HotelesAPI\\HotelesAPI.csproj",
         "projectName": "HotelesAPI",
-        "projectPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\HotelesAPI.csproj",
-        "packagesPath": "C:\\Users\\José Rueda\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\José Rueda\\Desktop\\Proyecto_Modulo_Hotel_Final\\HotelesAPI\\obj\\",
+        "projectPath": "C:\\Users\\javia\\OneDrive\\Escritorio\\Proyecto-BD_AD\\Proyecto-DABD-ADFS\\HotelesAPI\\HotelesAPI.csproj",
+        "packagesPath": "C:\\Users\\javia\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\javia\\OneDrive\\Escritorio\\Proyecto-BD_AD\\Proyecto-DABD-ADFS\\HotelesAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\José Rueda\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\javia\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -34,6 +34,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -68,6 +73,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[7.0.16, 7.0.16]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[7.0.16, 7.0.16]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[7.0.16, 7.0.16]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[7.0.16, 7.0.16]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -76,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
         }
       }
     }

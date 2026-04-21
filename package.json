@@ -4,7 +4,7 @@
   "description": "Este repositorio contiene el frontend estático del proyecto,\r organizado por módulos: Aerolínea, Hotel y Agencia de Viajes.",
   "main": "index.js",
   "scripts": {
-    "test":"jest"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
     "jest": "^30.3.0"
   },
   "dependencies": {
+    "all": "^0.0.0",
     "ansi-escapes": "^4.3.2",
     "ansi-regex": "^6.2.2",
     "ansi-styles": "^4.3.0",

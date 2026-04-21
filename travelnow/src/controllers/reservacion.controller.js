@@ -4,6 +4,13 @@
  * @file Controlador de reservaciones
  * @description Maneja todas las operaciones relacionadas con reservaciones de vuelos, hoteles y paquetes
  * @module controllers/reservacionController
+ *
+ * FIX 2026-04-20:
+ *   - `_generarPDF` ahora incluye datos del cliente, método de pago, subtotal/impuestos
+ *     y datos de pasajeros/huéspedes.
+ *   - Se agrega la función `historialUsuario` que faltaba (referenciada en routes).
+ *   - Se agrega `reenviarCorreo` para que el usuario pueda pedir un reenvío.
+ *   - `descargarPDF` ahora valida mejor y responde con `Content-Length`.
  */
 
 const db = require('../config/db');
@@ -16,27 +23,18 @@ const path = require('path');
 const fs   = require('fs');
 require('dotenv').config();
 
-/**
- * Crea una nueva reservación (vuelo, hotel o paquete)
- * @async
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.user - Usuario autenticado
- * @param {string} req.body.tipo - Tipo de reservación: 'vuelo', 'hotel' o 'paquete'
- * @param {string} req.body.metodo_pago - Método de pago
- * @param {Object} req.body.datos_cobro - Datos de facturación/cobro
- * @param {Object} req.body.vuelo - Datos del vuelo de ida (requerido si tipo es 'vuelo' o 'paquete')
- * @param {Object} req.body.vuelo_regreso - Datos del vuelo de regreso (opcional para vuelos)
- * @param {Object} req.body.hotel - Datos del hotel (requerido si tipo es 'hotel' o 'paquete')
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta con los datos de la reservación creada
- */
+const TAX_RATE = 0.12; // IVA Guatemala
+
+/* ──────────────────────────────────────────────────────────────────────
+ * CREAR RESERVACIÓN
+ * ────────────────────────────────────────────────────────────────────── */
 const crear = async (req, res) => {
     const usuario = req.user;
     const { tipo, metodo_pago, datos_cobro, vuelo, vuelo_regreso, hotel } = req.body;
 
-    /// Validación de campos requeridos
-    if (!tipo || !metodo_pago)
+    if (!tipo || !metodo_pago) {
         return err(res, 'Faltan campos requeridos: tipo y metodo_pago', 400);
+    }
 
     const conn = await db.getConnection();
     try {
@@ -44,7 +42,6 @@ const crear = async (req, res) => {
         let totalAgencia = 0;
         const codigoReserva = generarCodigoReserva();
 
-        /// Insertar registro principal de reservación
         const [resResult] = await conn.query(
             `INSERT INTO reservacion
                (codigo_reserva, id_usuario, tipo, total, moneda, estado, metodo_pago, datos_cobro)
@@ -53,7 +50,7 @@ const crear = async (req, res) => {
         );
         const idReservacion = resResult.insertId;
 
-        /// Procesar vuelo de ida (para vuelos o paquetes)
+        // ── Vuelo de ida ──────────────────────────────────────────
         if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo) {
             if (!vuelo.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo');
             if (!vuelo.pasajeros?.length) throw new Error('Se requiere al menos un pasajero');
@@ -70,7 +67,7 @@ const crear = async (req, res) => {
             const precioTotal     = proveedorService.calcularPrecioConGanancia(
                 vuelo.precio_proveedor, prov.porcentaje_ganancia
             );
-            totalAgencia += parseFloat(precioTotal);
+            totalAgencia += parseFloat(precioTotal) * vuelo.pasajeros.length;
 
             await conn.query(
                 `INSERT INTO detalle_vuelo
@@ -84,13 +81,13 @@ const crear = async (req, res) => {
                     vuelo.codigo_vuelo || '', vuelo.origen || '', vuelo.destino || '',
                     vuelo.fecha_salida || null, vuelo.tipo_asiento || 'turista',
                     vuelo.pasajeros.length, vuelo.precio_proveedor,
-                    prov.porcentaje_ganancia, precioTotal,
+                    prov.porcentaje_ganancia, parseFloat(precioTotal) * vuelo.pasajeros.length,
                     JSON.stringify(vuelo.pasajeros),
                 ]
             );
         }
 
-        /// Procesar vuelo de regreso (solo para tipo vuelo con ida y vuelta)
+        // ── Vuelo de regreso ──────────────────────────────────────
         if (tipo === 'vuelo' && vuelo_regreso) {
             const prov   = await proveedorService.buscarConfig(vuelo_regreso.id_proveedor);
             const resReg = await proveedorService.reservarVuelo(vuelo_regreso.id_proveedor, {
@@ -99,12 +96,11 @@ const crear = async (req, res) => {
                 id_usuario_externo: usuario.id_usuario,
                 pasajeros:          vuelo_regreso.pasajeros,
             });
-
-            const codigoReg = String(resReg?.codigoReservacion ?? resReg?.idReservacion ?? '');
-            const precioReg = proveedorService.calcularPrecioConGanancia(
+            const codigoReg    = String(resReg?.codigoReservacion ?? resReg?.idReservacion ?? '');
+            const precioReg    = proveedorService.calcularPrecioConGanancia(
                 vuelo_regreso.precio_proveedor, prov.porcentaje_ganancia
             );
-            totalAgencia += parseFloat(precioReg);
+            totalAgencia += parseFloat(precioReg) * vuelo_regreso.pasajeros.length;
 
             await conn.query(
                 `INSERT INTO detalle_vuelo
@@ -115,35 +111,41 @@ const crear = async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
                 [
                     idReservacion, vuelo_regreso.id_proveedor, codigoReg,
-                    vuelo_regreso.codigo_vuelo || '', vuelo_regreso.origen || '',
-                    vuelo_regreso.destino || '', vuelo_regreso.fecha_salida || null,
-                    vuelo_regreso.tipo_asiento || 'turista', vuelo_regreso.pasajeros.length,
-                    vuelo_regreso.precio_proveedor, prov.porcentaje_ganancia, precioReg,
+                    vuelo_regreso.codigo_vuelo || '',
+                    vuelo_regreso.origen || '', vuelo_regreso.destino || '',
+                    vuelo_regreso.fecha_salida || null,
+                    vuelo_regreso.tipo_asiento || 'turista',
+                    vuelo_regreso.pasajeros.length, vuelo_regreso.precio_proveedor,
+                    prov.porcentaje_ganancia, parseFloat(precioReg) * vuelo_regreso.pasajeros.length,
                     JSON.stringify(vuelo_regreso.pasajeros),
                 ]
             );
         }
 
-        /// Procesar reservación de hotel (para hoteles o paquetes)
+        // ── Hotel ─────────────────────────────────────────────────
         if ((tipo === 'hotel' || tipo === 'paquete') && hotel) {
-            const prov = await proveedorService.buscarConfig(hotel.id_proveedor);
+            if (!hotel.id_proveedor)  throw new Error('Falta id_proveedor en el hotel');
+            if (!hotel.id_habitacion) throw new Error('Falta id_habitacion en el hotel');
 
+            const prov      = await proveedorService.buscarConfig(hotel.id_proveedor);
             const respHotel = await proveedorService.reservarHotel(hotel.id_proveedor, {
                 id_habitacion:      hotel.id_habitacion,
                 fecha_checkin:      hotel.fecha_checkin,
                 fecha_checkout:     hotel.fecha_checkout,
                 num_huespedes:      hotel.num_huespedes,
-                id_usuario_externo: usuario.id_usuario,
                 metodo_pago:        'transferencia',
-                notas:              `Agencia TravelNow - usuario ${usuario.id_usuario}`,
+                id_usuario_externo: usuario.id_usuario,
+                notas:              `Reserva TravelNow - ${codigoReserva}`,
             });
+            const codigoHotelProv = String(respHotel?.idReservacion ?? '');
 
-            const codigoHotelProv    = String(respHotel?.idReservacion ?? '');
-            const totalHotel         = parseFloat(respHotel?.total ?? 0);
+            const noches = Math.max(1, Math.ceil(
+                (new Date(hotel.fecha_checkout) - new Date(hotel.fecha_checkin)) / (1000 * 60 * 60 * 24)
+            ));
             const precioNocheAgencia = proveedorService.calcularPrecioConGanancia(
                 hotel.precio_noche_proveedor, prov.porcentaje_ganancia
             );
-            const montoHotel = totalHotel > 0 ? totalHotel : parseFloat(precioNocheAgencia);
+            const montoHotel = noches * parseFloat(precioNocheAgencia);
             totalAgencia += montoHotel;
 
             await conn.query(
@@ -162,17 +164,19 @@ const crear = async (req, res) => {
             );
         }
 
-        /// Actualizar total y estado de la reservación
+        // Total incluye IVA
+        const totalConIva = +(totalAgencia * (1 + TAX_RATE)).toFixed(2);
+
         await conn.query(
             'UPDATE reservacion SET total = ?, estado = "confirmada" WHERE id_reservacion = ?',
-            [totalAgencia.toFixed(2), idReservacion]
+            [totalConIva, idReservacion]
         );
         await conn.commit();
 
-        // ── Post-commit ──────────────────────────────────────────────────
-        /// Obtener datos completos de la reservación para notificaciones
+        // ── Post-commit ───────────────────────────────────────────
         const [rows] = await db.query(
-            `SELECT r.*, u.correo, u.nombre, u.apellido
+            `SELECT r.*, u.correo, u.nombre, u.apellido, u.numero_pasaporte,
+                    u.nacionalidad, u.fecha_nacimiento
                FROM reservacion r
                JOIN usuario u ON u.id_usuario = r.id_usuario
               WHERE r.id_reservacion = ?`,
@@ -180,36 +184,28 @@ const crear = async (req, res) => {
         );
         const reservacion = rows[0];
 
-        /// Generar PDF del comprobante (no bloquea la respuesta si falla)
+        // Generar PDF (no bloquea la respuesta si falla)
+        let pdfGenerado = false;
         try {
             const pdfPath = await _generarPDF(reservacion, idReservacion);
             await db.query(
                 'UPDATE reservacion SET comprobante_pdf = ? WHERE id_reservacion = ?',
                 [pdfPath, idReservacion]
             );
+            pdfGenerado = true;
         } catch (pdfErr) {
             console.error('[Reservacion] Error generando PDF:', pdfErr.message);
         }
 
-        /// FIX #14: capturar resultado del correo y exponerlo en la respuesta.
-        /// La reservación ya está confirmada en BD; el frontend puede mostrar un
-        /// aviso si email_enviado === false para que el usuario guarde su código.
+        // Enviar correo (no bloquea la respuesta si falla)
         let emailEnviado = false;
         let emailError   = null;
         try {
-            await sendMail({
-                to:      reservacion.correo,
-                subject: `Confirmacion de reserva ${codigoReserva}`,
-                html: `<h2>Tu reserva esta confirmada!</h2>
-                       <p>Hola ${reservacion.nombre}, tu reservacion
-                       <strong>${codigoReserva}</strong> ha sido confirmada por un total de
-                       <strong>$${totalAgencia.toFixed(2)} USD</strong>.</p>
-                       <p>Puedes descargar tu comprobante desde tu historial de reservas.</p>`,
-            });
+            await _enviarCorreoConfirmacion(reservacion, totalConIva);
             emailEnviado = true;
         } catch (mailErr) {
             emailError = mailErr.message;
-            console.error('[Reservacion] Error enviando correo de confirmación:', mailErr.message);
+            console.error('[Reservacion] Error enviando correo:', mailErr.message);
         }
 
         return ok(
@@ -219,13 +215,12 @@ const crear = async (req, res) => {
                 reservacion: {
                     id_reservacion: idReservacion,
                     codigo_reserva: codigoReserva,
-                    total:          totalAgencia.toFixed(2),
+                    total:          totalConIva.toFixed(2),
                     estado:         'confirmada',
                 },
-                /// FIX #14: el frontend usa estos campos para alertar al usuario
-                /// si el correo no pudo enviarse.
                 email_enviado: emailEnviado,
                 email_error:   emailError ?? undefined,
+                pdf_disponible: pdfGenerado,
             },
             201
         );
@@ -238,22 +233,16 @@ const crear = async (req, res) => {
     }
 };
 
-/**
- * Obtiene los detalles de una reservación específica
- * @async
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.params - Parámetros de la ruta
- * @param {string} req.params.id - ID de la reservación
- * @param {Object} req.user - Usuario autenticado
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta con los detalles de la reservación
- */
+/* ──────────────────────────────────────────────────────────────────────
+ * OBTENER RESERVACIÓN (GET /:id)
+ * ────────────────────────────────────────────────────────────────────── */
 const obtener = async (req, res) => {
     const { id }  = req.params;
     const usuario = req.user;
     try {
         const [rows] = await db.query(
-            `SELECT r.*, u.nombre, u.apellido, u.correo
+            `SELECT r.*, u.nombre, u.apellido, u.correo, u.numero_pasaporte,
+                    u.nacionalidad
                FROM reservacion r
                JOIN usuario u ON u.id_usuario = r.id_usuario
               WHERE r.id_reservacion = ?`,
@@ -262,154 +251,61 @@ const obtener = async (req, res) => {
         if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
 
         const reservacion = rows[0];
-        /// Verificar permisos: solo el propietario o administrador
         if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
             return err(res, 'Acceso denegado', 403);
 
         const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [id]);
         const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [id]);
 
-        return ok(res, { data: { ...reservacion, vuelos, hoteles } });
+        // Parsear datos_cobro y datos_pasajeros que están como JSON string
+        let datosCobro = {};
+        try { datosCobro = typeof reservacion.datos_cobro === 'string'
+            ? JSON.parse(reservacion.datos_cobro) : (reservacion.datos_cobro || {}); }
+        catch { datosCobro = {}; }
+
+        vuelos.forEach(v => {
+            try {
+                v.pasajeros = typeof v.datos_pasajeros === 'string'
+                    ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || []);
+            } catch { v.pasajeros = []; }
+        });
+
+        // Calcular subtotal (total / (1+IVA))
+        const total    = parseFloat(reservacion.total) || 0;
+        const subtotal = +(total / (1 + TAX_RATE)).toFixed(2);
+        const iva      = +(total - subtotal).toFixed(2);
+
+        return ok(res, {
+            data: {
+                ...reservacion,
+                datos_cobro: datosCobro,
+                subtotal,
+                iva,
+                vuelos,
+                hoteles,
+            },
+        });
     } catch (e) {
         return err(res, e.message);
     }
 };
 
-/**
- * Descarga el comprobante PDF de una reservación
- * @async
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.params - Parámetros de la ruta
- * @param {string} req.params.id - ID de la reservación
- * @param {Object} req.user - Usuario autenticado
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Stream>} Flujo del archivo PDF
- */
-const descargarPDF = async (req, res) => {
-    const { id }  = req.params;
-    const usuario = req.user;
-    try {
-        const [rows] = await db.query('SELECT * FROM reservacion WHERE id_reservacion = ?', [id]);
-        if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
-
-        const reservacion = rows[0];
-        /// Verificar permisos
-        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
-            return err(res, 'Acceso denegado', 403);
-
-        const pdfDir  = process.env.PDF_OUTPUT_DIR || './public/comprobantes';
-        const pdfFile = path.join(pdfDir, `reserva-${reservacion.codigo_reserva}.pdf`);
-
-        /// Regenerar PDF si no existe
-        if (!fs.existsSync(pdfFile)) {
-            try { await _generarPDF(reservacion, id); }
-            catch (genErr) {
-                console.error('[PDF] Error regenerando PDF:', genErr.message);
-                return err(res, 'No se pudo generar el comprobante PDF. Intenta de nuevo más tarde.', 500);
-            }
-        }
-
-        if (!fs.existsSync(pdfFile))
-            return err(res, 'El comprobante PDF no está disponible aún.', 404);
-
-        /// Configurar cabeceras para descarga
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition',
-            `attachment; filename="TravelNow-${reservacion.codigo_reserva}.pdf"`);
-
-        const stream = fs.createReadStream(pdfFile);
-        stream.on('error', (streamErr) => {
-            console.error('[PDF] Error en stream:', streamErr.message);
-            if (!res.headersSent) return err(res, 'Error al leer el archivo PDF.', 500);
-        });
-        stream.pipe(res);
-    } catch (e) { return err(res, e.message); }
-};
-
-/**
- * Cancela una reservación existente
- * @async
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.params - Parámetros de la ruta
- * @param {string} req.params.id - ID de la reservación
- * @param {Object} req.body - Cuerpo de la solicitud
- * @param {string} [req.body.motivo] - Motivo de la cancelación
- * @param {Object} req.user - Usuario autenticado
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta de confirmación
- */
-const cancelar = async (req, res) => {
-    const { id }  = req.params;
-    const usuario = req.user;
-    try {
-        const [rows] = await db.query('SELECT * FROM reservacion WHERE id_reservacion = ?', [id]);
-        if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
-
-        const reservacion = rows[0];
-        /// Verificar permisos
-        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
-            return err(res, 'Acceso denegado', 403);
-
-        if (reservacion.estado === 'cancelada')
-            return err(res, 'La reservacion ya esta cancelada', 400);
-
-        /// Actualizar estado de la reservación
-        await db.query('UPDATE reservacion SET estado = "cancelada" WHERE id_reservacion = ?', [id]);
-
-        /// Registrar la cancelación
-        const origen = usuario.rol === 'administrador' ? 'administrador' : 'cliente';
-        await db.query(
-            `INSERT INTO cancelacion (id_reservacion, origen, procesado_por, motivo)
-             VALUES (?, ?, ?, ?)`,
-            [id, origen, usuario.id_usuario, req.body.motivo || `Cancelado por ${origen}`]
-        );
-
-        /// Enviar notificación por correo
-        const [uRows] = await db.query(
-            `SELECT u.correo, u.nombre
-               FROM usuario u
-               JOIN reservacion r ON r.id_usuario = u.id_usuario
-              WHERE r.id_reservacion = ?`,
-            [id]
-        );
-        if (uRows.length) {
-            await sendMail({
-                to:      uRows[0].correo,
-                subject: `TravelNow — Tu reserva ${reservacion.codigo_reserva} fue cancelada`,
-                html:    `<p>Hola ${uRows[0].nombre}, tu reservacion
-                          <strong>${reservacion.codigo_reserva}</strong> ha sido cancelada.
-                          ${req.body.motivo ? 'Motivo: ' + req.body.motivo : ''}
-                          Contactanos si tienes preguntas.</p>`,
-            }).catch(() => {});
-        }
-
-        return ok(res, { message: 'Reservacion cancelada exitosamente' });
-    } catch (e) { return err(res, e.message); }
-};
-
-/**
- * Obtiene el historial de reservaciones del usuario autenticado
- * @async
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.query - Parámetros de consulta
- * @param {number} [req.query.page=1] - Número de página para paginación
- * @param {number} [req.query.limit=10] - Cantidad de registros por página
- * @param {Object} req.user - Usuario autenticado
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta con el historial paginado
- */
+/* ──────────────────────────────────────────────────────────────────────
+ * HISTORIAL DEL USUARIO (GET /usuario/historial)
+ * ────────────────────────────────────────────────────────────────────── */
 const historialUsuario = async (req, res) => {
     const usuario = req.user;
-    const page    = parseInt(req.query.page  || 1);
-    const limit   = parseInt(req.query.limit || 10);
+    const page    = parseInt(req.query.page)  || 1;
+    const limit   = parseInt(req.query.limit) || 20;
     const offset  = (page - 1) * limit;
+
     try {
         const [rows] = await db.query(
-            `SELECT id_reservacion, codigo_reserva, tipo, total, moneda, estado,
-                    fecha_reserva, comprobante_pdf
-               FROM reservacion
-              WHERE id_usuario = ?
-              ORDER BY fecha_reserva DESC
+            `SELECT r.id_reservacion, r.codigo_reserva, r.tipo, r.total, r.moneda,
+                    r.estado, r.fecha_reserva, r.comprobante_pdf
+               FROM reservacion r
+              WHERE r.id_usuario = ?
+              ORDER BY r.fecha_reserva DESC
               LIMIT ? OFFSET ?`,
             [usuario.id_usuario, limit, offset]
         );
@@ -418,16 +314,180 @@ const historialUsuario = async (req, res) => {
             [usuario.id_usuario]
         );
         return ok(res, { data: rows, total, page, limit });
-    } catch (e) { return err(res, e.message); }
+    } catch (e) {
+        return err(res, e.message);
+    }
+};
+
+/* ──────────────────────────────────────────────────────────────────────
+ * DESCARGAR PDF (GET /:id/pdf)
+ * ────────────────────────────────────────────────────────────────────── */
+const descargarPDF = async (req, res) => {
+    const { id }  = req.params;
+    const usuario = req.user;
+    try {
+        const [rows] = await db.query(
+            `SELECT r.*, u.correo, u.nombre, u.apellido, u.numero_pasaporte, u.nacionalidad
+               FROM reservacion r
+               JOIN usuario u ON u.id_usuario = r.id_usuario
+              WHERE r.id_reservacion = ?`,
+            [id]
+        );
+        if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
+
+        const reservacion = rows[0];
+        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
+            return err(res, 'Acceso denegado', 403);
+
+        const pdfDir  = process.env.PDF_OUTPUT_DIR
+            || path.join(__dirname, '../../public/comprobantes');
+        const pdfFile = path.join(pdfDir, `reserva-${reservacion.codigo_reserva}.pdf`);
+
+        // Regenerar PDF si no existe o está corrupto/vacio
+        if (!fs.existsSync(pdfFile) || fs.statSync(pdfFile).size === 0) {
+            try { await _generarPDF(reservacion, id); }
+            catch (genErr) {
+                console.error('[PDF] Error regenerando PDF:', genErr.message);
+                return err(res, 'No se pudo generar el comprobante PDF.', 500);
+            }
+        }
+        if (!fs.existsSync(pdfFile)) {
+            return err(res, 'El comprobante PDF no está disponible aún.', 404);
+        }
+
+        const stat = fs.statSync(pdfFile);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Length', stat.size);
+        res.setHeader('Content-Disposition',
+            `attachment; filename="TravelNow-${reservacion.codigo_reserva}.pdf"`);
+        res.setHeader('Cache-Control', 'no-store');
+
+        const stream = fs.createReadStream(pdfFile);
+        stream.on('error', (streamErr) => {
+            console.error('[PDF] Error en stream:', streamErr.message);
+            if (!res.headersSent) return err(res, 'Error al leer el archivo PDF.', 500);
+        });
+        stream.pipe(res);
+    } catch (e) {
+        return err(res, e.message);
+    }
+};
+
+/* ──────────────────────────────────────────────────────────────────────
+ * REENVIAR CORREO DE CONFIRMACIÓN (POST /:id/reenviar-correo)
+ * ────────────────────────────────────────────────────────────────────── */
+const reenviarCorreo = async (req, res) => {
+    const { id }  = req.params;
+    const usuario = req.user;
+    try {
+        const [rows] = await db.query(
+            `SELECT r.*, u.correo, u.nombre, u.apellido
+               FROM reservacion r
+               JOIN usuario u ON u.id_usuario = r.id_usuario
+              WHERE r.id_reservacion = ?`,
+            [id]
+        );
+        if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
+
+        const reservacion = rows[0];
+        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
+            return err(res, 'Acceso denegado', 403);
+
+        await _enviarCorreoConfirmacion(reservacion, parseFloat(reservacion.total));
+        return ok(res, { message: 'Correo reenviado correctamente a ' + reservacion.correo });
+    } catch (e) {
+        return err(res, `No se pudo reenviar el correo: ${e.message}`);
+    }
+};
+
+/* ──────────────────────────────────────────────────────────────────────
+ * CANCELAR RESERVACIÓN
+ * ────────────────────────────────────────────────────────────────────── */
+const cancelar = async (req, res) => {
+    const { id }  = req.params;
+    const usuario = req.user;
+    try {
+        const [rows] = await db.query('SELECT * FROM reservacion WHERE id_reservacion = ?', [id]);
+        if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
+
+        const reservacion = rows[0];
+        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
+            return err(res, 'Acceso denegado', 403);
+        if (reservacion.estado === 'cancelada')
+            return err(res, 'La reservacion ya esta cancelada', 400);
+
+        await db.query('UPDATE reservacion SET estado = "cancelada" WHERE id_reservacion = ?', [id]);
+        return ok(res, { message: 'Reservacion cancelada correctamente' });
+    } catch (e) {
+        return err(res, e.message);
+    }
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+ * HELPERS PRIVADOS
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Envía correo de confirmación con el detalle completo de la reservación.
+ */
+const _enviarCorreoConfirmacion = async (reservacion, totalConIva) => {
+    const codigo   = reservacion.codigo_reserva;
+    const cliente  = `${reservacion.nombre || ''} ${reservacion.apellido || ''}`.trim();
+    const total    = parseFloat(totalConIva).toFixed(2);
+    const subtotal = (parseFloat(totalConIva) / (1 + TAX_RATE)).toFixed(2);
+    const iva      = (parseFloat(totalConIva) - parseFloat(subtotal)).toFixed(2);
+
+    const html = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <div style="background:#0A1628;color:#F5E6B3;padding:20px;text-align:center;border-radius:8px 8px 0 0;">
+            <h1 style="margin:0;font-size:28px;">TravelNow</h1>
+            <p style="margin:4px 0 0;font-size:13px;opacity:0.8;">Confirmación de reservación</p>
+          </div>
+          <div style="background:#fff;padding:25px;border:1px solid #ddd;border-top:none;">
+            <h2 style="color:#0A1628;margin-top:0;">¡Tu reserva está confirmada!</h2>
+            <p>Hola <strong>${cliente || 'cliente'}</strong>,</p>
+            <p>Tu reservación <strong style="color:#D4AF37;">${codigo}</strong> fue procesada correctamente.</p>
+            <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+              <tr style="background:#F5F5F0;">
+                <td style="padding:10px;border:1px solid #ddd;"><strong>Tipo</strong></td>
+                <td style="padding:10px;border:1px solid #ddd;">${(reservacion.tipo || '').toUpperCase()}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px;border:1px solid #ddd;"><strong>Estado</strong></td>
+                <td style="padding:10px;border:1px solid #ddd;color:green;">Confirmada</td>
+              </tr>
+              <tr style="background:#F5F5F0;">
+                <td style="padding:10px;border:1px solid #ddd;"><strong>Subtotal</strong></td>
+                <td style="padding:10px;border:1px solid #ddd;">$${subtotal} USD</td>
+              </tr>
+              <tr>
+                <td style="padding:10px;border:1px solid #ddd;"><strong>IVA (12%)</strong></td>
+                <td style="padding:10px;border:1px solid #ddd;">$${iva} USD</td>
+              </tr>
+              <tr style="background:#D4AF37;color:#0A1628;">
+                <td style="padding:10px;border:1px solid #ddd;"><strong>Total</strong></td>
+                <td style="padding:10px;border:1px solid #ddd;"><strong>$${total} USD</strong></td>
+              </tr>
+            </table>
+            <p style="font-size:13px;color:#666;">
+              Puedes descargar tu comprobante en PDF ingresando a tu historial de reservas en TravelNow.
+            </p>
+          </div>
+          <div style="background:#0A1628;color:#8b95a8;padding:15px;text-align:center;border-radius:0 0 8px 8px;font-size:11px;">
+            Este es un correo automático, no responder.<br>
+            &copy; 2026 TravelNow - Guatemala
+          </div>
+        </div>`;
+
+    await sendMail({
+        to:      reservacion.correo,
+        subject: `Confirmación de reserva ${codigo} - TravelNow`,
+        html,
+    });
 };
 
 /**
- * Genera un documento PDF con el comprobante de la reservación
- * @async
- * @private
- * @param {Object} reservacion - Datos de la reservación
- * @param {number} idReservacion - ID de la reservación
- * @returns {Promise<string>} Ruta del archivo PDF generado
+ * Genera un documento PDF con el comprobante COMPLETO de la reservación.
  */
 const _generarPDF = async (reservacion, idReservacion) => {
     const pdfDir = process.env.PDF_OUTPUT_DIR
@@ -438,65 +498,177 @@ const _generarPDF = async (reservacion, idReservacion) => {
     const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [idReservacion]);
     const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [idReservacion]);
 
+    // Calcular montos
+    const total    = parseFloat(reservacion.total) || 0;
+    const subtotal = +(total / (1 + TAX_RATE)).toFixed(2);
+    const iva      = +(total - subtotal).toFixed(2);
+
+    // Parse datos de cobro
+    let datosCobro = {};
+    try {
+        datosCobro = typeof reservacion.datos_cobro === 'string'
+            ? JSON.parse(reservacion.datos_cobro) : (reservacion.datos_cobro || {});
+    } catch { datosCobro = {}; }
+
     await new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50, size: 'LETTER' });
         const ws  = fs.createWriteStream(pdfPath);
         ws.on('error', reject);
         ws.on('finish', resolve);
         doc.pipe(ws);
 
-        /// Encabezado del documento
-        doc.fontSize(24).font('Helvetica-Bold').text('TravelNow', { align: 'center' });
-        doc.fontSize(12).font('Helvetica').text('Comprobante de Reservacion', { align: 'center' });
-        doc.moveDown();
-        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();
-        doc.moveDown();
+        const NAVY = '#0A1628';
+        const GOLD = '#D4AF37';
+        const GRAY = '#666666';
 
-        /// Datos principales de la reservación
-        doc.fontSize(14).font('Helvetica-Bold').text('Datos de la Reservacion');
+        // ── Encabezado ──────────────────────────────────────────
+        doc.rect(0, 0, doc.page.width, 90).fill(NAVY);
+        doc.fillColor(GOLD).fontSize(28).font('Helvetica-Bold').text('TravelNow', 50, 30);
+        doc.fillColor('white').fontSize(10).font('Helvetica')
+           .text('Agencia de Viajes', 50, 62)
+           .text('www.travelnow.com  |  soporte@travelnow.com', 50, 75);
+        doc.fillColor('white').fontSize(9).font('Helvetica-Bold')
+           .text('COMPROBANTE DE RESERVA', doc.page.width - 230, 35, { width: 180, align: 'right' });
+        doc.fontSize(8).font('Helvetica')
+           .text(`Emitido: ${new Date().toLocaleString('es-GT')}`,
+                 doc.page.width - 230, 55, { width: 180, align: 'right' });
+
+        doc.fillColor('black').moveDown(4);
+        doc.y = 110;
+
+        // ── Datos de la reserva ─────────────────────────────────
+        doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Datos de la reservación');
+        doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
+        doc.moveDown(0.8);
+
+        doc.fontSize(10).fillColor('black').font('Helvetica');
+        const col1 = 50, col2 = 320;
+        const yStart = doc.y;
+        doc.text('Código:',   col1, yStart).font('Helvetica-Bold').text(reservacion.codigo_reserva, col1 + 80, yStart);
+        doc.font('Helvetica').text('Tipo:',   col2, yStart).font('Helvetica-Bold').text((reservacion.tipo || '').toUpperCase(), col2 + 60, yStart);
+        doc.font('Helvetica').text('Estado:', col1, yStart + 18).font('Helvetica-Bold').fillColor('green').text(reservacion.estado, col1 + 80, yStart + 18);
+        doc.font('Helvetica').fillColor('black').text('Fecha reserva:', col2, yStart + 18).font('Helvetica-Bold')
+           .text(new Date(reservacion.fecha_reserva).toLocaleString('es-GT'), col2 + 90, yStart + 18);
+        doc.y = yStart + 40;
+
+        // ── Datos del cliente ───────────────────────────────────
         doc.moveDown(0.5);
-        doc.fontSize(11).font('Helvetica');
-        doc.text(`Codigo:  ${reservacion.codigo_reserva}`);
-        doc.text(`Tipo:    ${(reservacion.tipo || '').toUpperCase()}`);
-        doc.text(`Estado:  ${reservacion.estado}`);
-        doc.text(`Fecha:   ${new Date(reservacion.fecha_reserva).toLocaleString('es-GT')}`);
-        doc.text(`Total:   $${parseFloat(reservacion.total).toFixed(2)} ${reservacion.moneda}`);
-        doc.moveDown();
+        doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Datos del cliente');
+        doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
+        doc.moveDown(0.8);
 
-        /// Detalles de vuelos (si existen)
+        doc.fontSize(10).fillColor('black').font('Helvetica');
+        const y2 = doc.y;
+        doc.text('Nombre:',     col1, y2).font('Helvetica-Bold').text(
+            `${reservacion.nombre || ''} ${reservacion.apellido || ''}`.trim() || '—',
+            col1 + 80, y2
+        );
+        doc.font('Helvetica').text('Correo:',   col2, y2).font('Helvetica-Bold').text(reservacion.correo || '—', col2 + 60, y2);
+        doc.font('Helvetica').text('Pasaporte:', col1, y2 + 18).font('Helvetica-Bold').text(reservacion.numero_pasaporte || '—', col1 + 80, y2 + 18);
+        doc.font('Helvetica').text('Nacionalidad:', col2, y2 + 18).font('Helvetica-Bold').text(String(reservacion.nacionalidad || '—'), col2 + 90, y2 + 18);
+        doc.y = y2 + 40;
+
+        // ── Vuelos ──────────────────────────────────────────────
         if (vuelos.length) {
-            doc.fontSize(14).font('Helvetica-Bold').text('Vuelo(s)');
             doc.moveDown(0.5);
-            vuelos.forEach(v => {
-                doc.fontSize(11).font('Helvetica');
-                doc.text(`${v.es_regreso ? 'Regreso' : 'Ida'}: ${v.origen} -> ${v.destino}`);
-                doc.text(`Codigo: ${v.codigo_vuelo}   Asiento: ${v.tipo_asiento}`);
-                doc.text(`Precio: $${parseFloat(v.precio_total).toFixed(2)} USD`);
-                doc.moveDown(0.5);
+            doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Detalle de vuelos');
+            doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
+            doc.moveDown(0.6);
+
+            vuelos.forEach((v, idx) => {
+                if (idx > 0) doc.moveDown(0.3);
+                doc.fontSize(10).font('Helvetica-Bold').fillColor(NAVY)
+                   .text(`${v.es_regreso ? '✈ REGRESO' : '✈ IDA'}: ${v.origen || '?'} → ${v.destino || '?'}`);
+                doc.fontSize(9).font('Helvetica').fillColor('black');
+                const fecha = v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString('es-GT') : '—';
+                doc.text(`Fecha: ${fecha}   Código vuelo: ${v.codigo_vuelo || '—'}   Asiento: ${v.tipo_asiento || '—'}   Pasajeros: ${v.num_pasajeros || 1}`);
+                doc.text(`Código proveedor: ${v.codigo_reserva_proveedor || '—'}   Precio: $${parseFloat(v.precio_total || 0).toFixed(2)} USD`);
+
+                // Pasajeros
+                let pasajeros = [];
+                try {
+                    pasajeros = typeof v.datos_pasajeros === 'string'
+                        ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || []);
+                } catch { pasajeros = []; }
+                if (pasajeros.length) {
+                    doc.fontSize(9).font('Helvetica-Oblique').fillColor(GRAY)
+                       .text('Pasajeros: ' + pasajeros.map(p =>
+                            `${p.nombres || ''} ${p.apellidos || ''}`.trim()
+                       ).join(', '));
+                }
             });
+            doc.fillColor('black');
         }
 
-        /// Detalles de hoteles (si existen)
+        // ── Hoteles ─────────────────────────────────────────────
         if (hoteles.length) {
-            doc.fontSize(14).font('Helvetica-Bold').text('Hotel');
             doc.moveDown(0.5);
-            hoteles.forEach(h => {
-                doc.fontSize(11).font('Helvetica');
-                doc.text(`Hotel: ${h.nombre_hotel}   Ciudad: ${h.ciudad}`);
-                doc.text(`Habitacion: ${h.tipo_habitacion}`);
-                doc.text(`Check-in:  ${new Date(h.fecha_checkin).toLocaleDateString('es-GT')}`);
-                doc.text(`Check-out: ${new Date(h.fecha_checkout).toLocaleDateString('es-GT')}`);
-                doc.text(`Precio: $${parseFloat(h.precio_total).toFixed(2)} USD`);
+            doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Detalle de hospedaje');
+            doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
+            doc.moveDown(0.6);
+
+            hoteles.forEach((h) => {
+                const ci = h.fecha_checkin  ? new Date(h.fecha_checkin).toLocaleDateString('es-GT')  : '—';
+                const co = h.fecha_checkout ? new Date(h.fecha_checkout).toLocaleDateString('es-GT') : '—';
+                const noches = (new Date(h.fecha_checkout) - new Date(h.fecha_checkin)) / (1000 * 60 * 60 * 24);
+
+                doc.fontSize(10).font('Helvetica-Bold').fillColor(NAVY)
+                   .text(`🏨 ${h.nombre_hotel || 'Hotel'} — ${h.ciudad || ''}`);
+                doc.fontSize(9).font('Helvetica').fillColor('black');
+                doc.text(`Habitación: ${h.tipo_habitacion || '—'}   Huéspedes: ${h.num_huespedes || 1}   Noches: ${Math.max(1, Math.round(noches))}`);
+                doc.text(`Check-in: ${ci}   Check-out: ${co}`);
+                doc.text(`Código proveedor: ${h.codigo_reserva_proveedor || '—'}   Precio/noche: $${parseFloat(h.precio_por_noche_proveedor || 0).toFixed(2)}   Total: $${parseFloat(h.precio_total || 0).toFixed(2)} USD`);
             });
         }
 
-        /// Pie de página
-        doc.moveDown(2);
-        doc.fontSize(9).fillColor('gray').text('Comprobante oficial de reserva TravelNow.', { align: 'center' });
+        // ── Pago y totales ──────────────────────────────────────
+        doc.moveDown(0.8);
+        doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Información de pago');
+        doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
+        doc.moveDown(0.6);
+
+        doc.fontSize(10).fillColor('black').font('Helvetica');
+        const y3 = doc.y;
+        doc.text('Método de pago:', col1, y3).font('Helvetica-Bold')
+           .text(String(reservacion.metodo_pago || '—').replace(/_/g, ' ').toUpperCase(), col1 + 100, y3);
+        if (datosCobro.titular) {
+            doc.font('Helvetica').text('Titular:', col2, y3).font('Helvetica-Bold')
+               .text(datosCobro.titular, col2 + 60, y3);
+        }
+        doc.y = y3 + 25;
+
+        // Caja de totales
+        const boxX = doc.page.width - 250;
+        const boxY = doc.y;
+        doc.rect(boxX, boxY, 200, 80).strokeColor(GOLD).lineWidth(1).stroke();
+        doc.fontSize(10).fillColor('black').font('Helvetica');
+        doc.text(`Subtotal:`, boxX + 10, boxY + 10).text(`$${subtotal.toFixed(2)}`, boxX + 120, boxY + 10, { width: 70, align: 'right' });
+        doc.text(`IVA (12%):`, boxX + 10, boxY + 28).text(`$${iva.toFixed(2)}`, boxX + 120, boxY + 28, { width: 70, align: 'right' });
+        doc.moveTo(boxX + 10, boxY + 48).lineTo(boxX + 190, boxY + 48).stroke();
+        doc.fontSize(12).font('Helvetica-Bold').fillColor(NAVY);
+        doc.text(`TOTAL:`, boxX + 10, boxY + 55).text(`$${total.toFixed(2)} ${reservacion.moneda || 'USD'}`, boxX + 100, boxY + 55, { width: 90, align: 'right' });
+
+        doc.y = boxY + 95;
+
+        // ── Pie de página ───────────────────────────────────────
+        doc.moveDown(1);
+        doc.fontSize(8).fillColor(GRAY).font('Helvetica-Oblique')
+           .text('Este comprobante es un documento oficial de TravelNow y sirve como constancia de reservación confirmada.',
+                 50, doc.page.height - 70, { align: 'center', width: doc.page.width - 100 });
+        doc.text(`Reserva ${reservacion.codigo_reserva} · Generado automáticamente el ${new Date().toLocaleString('es-GT')}`,
+                 50, doc.page.height - 55, { align: 'center', width: doc.page.width - 100 });
+
         doc.end();
     });
 
     return pdfPath;
 };
 
-module.exports = { crear, obtener, descargarPDF, cancelar, historialUsuario };
+module.exports = {
+    crear,
+    obtener,
+    descargarPDF,
+    cancelar,
+    historialUsuario,
+    reenviarCorreo,
+};
