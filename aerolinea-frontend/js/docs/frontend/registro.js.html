@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: registro.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: registro.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// ============================================================
+// REGISTRO - ALPINE.JS DATA COMPONENT
+// ============================================================
+
+/**
+ * Crea y retorna el objeto `registroData` para Alpine.js, responsable del
+ * formulario de registro de nuevos usuarios.
+ *
+ * @returns {Object} Un objeto Alpine con las siguientes propiedades y métodos:
+ * @property {Object} formData - Datos del formulario de registro.
+ * @property {Object} captcha - Datos de la pregunta CAPTCHA.
+ * @property {boolean} showPassword - Controla la visibilidad de la contraseña.
+ * @property {boolean} showConfirmPassword - Controla la visibilidad de la confirmación.
+ * @property {boolean} termsAccepted - Indica si se aceptaron los términos.
+ * @property {boolean} isLoading - Indica si se está procesando el registro.
+ * @property {string} passwordStrength - (getter) Nivel de fortaleza de la contraseña.
+ * @property {string} passwordStrengthText - (getter) Texto descriptivo de la fortaleza.
+ * @property {boolean} passwordsMatch - (getter) Indica si las contraseñas coinciden.
+ * @property {Function} init - Inicializa el componente.
+ * @property {Function} generateCaptcha - Genera una nueva pregunta CAPTCHA.
+ * @property {Function} submitRegistro - Envía el formulario de registro a la API.
+ */
+function registroData() {
+    return {
+        // Datos del formulario
+        formData: {
+            email: '',
+            password: '',
+            confirmPassword: '',
+            nombres: '',
+            apellidos: '',
+            edad: '',
+            codigoPais: '',
+            numPasaporte: ''
+        },
+        
+        // CAPTCHA
+        captcha: {
+            num1: 0,
+            num2: 0,
+            operation: '+',
+            answer: '',
+            correctAnswer: 0
+        },
+        
+        // Toggles de contraseña
+        showPassword: false,
+        showConfirmPassword: false,
+        
+        // Términos
+        termsAccepted: false,
+        
+        // Estado
+        isLoading: false,
+
+        /**
+         * Getter que devuelve la pregunta CAPTCHA formateada.
+         *
+         * @returns {string} Pregunta CAPTCHA (ej. "¿Cuánto es 3 + 5?").
+         */
+        get captchaQuestion() {
+            return `¿Cuánto es ${this.captcha.num1} ${this.captcha.operation} ${this.captcha.num2}?`;
+        },
+
+        /**
+         * Getter que evalúa la fortaleza de la contraseña.
+         *
+         * @returns {string} 'weak' si &lt; 8 caracteres, 'medium' si &lt; 12, 'strong' si >= 12.
+         */
+        get passwordStrength() {
+            const pwd = this.formData.password;
+            if (pwd.length === 0) return '';
+            if (pwd.length &lt; 8) return 'weak';
+            if (pwd.length &lt; 12) return 'medium';
+            return 'strong';
+        },
+
+        /**
+         * Getter que devuelve el texto descriptivo de la fortaleza de la contraseña.
+         *
+         * @returns {string} Mensaje indicando la fortaleza.
+         */
+        get passwordStrengthText() {
+            const strength = this.passwordStrength;
+            if (strength === 'weak') return '⚠️ Contraseña débil';
+            if (strength === 'medium') return '✓ Contraseña media';
+            if (strength === 'strong') return '✓✓ Contraseña fuerte';
+            return '';
+        },
+
+        /**
+         * Getter que verifica si la contraseña y su confirmación coinciden.
+         *
+         * @returns {boolean} {@code true} si coinciden y no están vacías.
+         */
+        get passwordsMatch() {
+            return this.formData.password === this.formData.confirmPassword &amp;&amp; 
+                   this.formData.confirmPassword.length > 0;
+        },
+
+        /**
+         * Inicializa el componente.
+         * &lt;p>
+         * Redirige a la página principal si el usuario ya está autenticado.
+         * Genera la primera pregunta CAPTCHA.
+         * &lt;/p>
+         */
+        init() {
+            // Si ya está logueado, redirigir
+            redirectIfAuthenticated();
+            this.generateCaptcha();
+        },
+
+        /**
+         * Genera una nueva pregunta CAPTCHA con dos números y una operación aleatoria.
+         */
+        generateCaptcha() {
+            this.captcha.num1 = Math.floor(Math.random() * 10) + 1;
+            this.captcha.num2 = Math.floor(Math.random() * 10) + 1;
+            const operations = ['+', '-', '×'];
+            this.captcha.operation = operations[Math.floor(Math.random() * operations.length)];
+
+            switch(this.captcha.operation) {
+                case '+':
+                    this.captcha.correctAnswer = this.captcha.num1 + this.captcha.num2;
+                    break;
+                case '-':
+                    this.captcha.correctAnswer = this.captcha.num1 - this.captcha.num2;
+                    break;
+                case '×':
+                    this.captcha.correctAnswer = this.captcha.num1 * this.captcha.num2;
+                    break;
+            }
+
+            this.captcha.answer = '';
+        },
+
+        /**
+         * Envía el formulario de registro a la API para crear una nueva cuenta.
+         * &lt;p>
+         * Realiza validaciones de campos obligatorios, coincidencia de contraseñas,
+         * longitud mínima, respuesta CAPTCHA y aceptación de términos.
+         * &lt;/p>
+         *
+         * @returns {Promise&lt;void>}
+         */
+        async submitRegistro() {
+            // Validaciones
+            if (!this.formData.email || !this.formData.password || !this.formData.nombres || 
+                !this.formData.apellidos || !this.formData.edad || !this.formData.codigoPais || 
+                !this.formData.numPasaporte) {
+                showNotification('Por favor completa todos los campos obligatorios', 'error');
+                return;
+            }
+
+            if (this.formData.password !== this.formData.confirmPassword) {
+                showNotification('Las contraseñas no coinciden', 'error');
+                return;
+            }
+
+            if (this.formData.password.length &lt; 8) {
+                showNotification('La contraseña debe tener al menos 8 caracteres', 'error');
+                return;
+            }
+
+            if (parseInt(this.captcha.answer) !== this.captcha.correctAnswer) {
+                showNotification('Respuesta CAPTCHA incorrecta', 'error');
+                this.generateCaptcha();
+                return;
+            }
+
+            if (!this.termsAccepted) {
+                showNotification('Debes aceptar los Términos y Condiciones', 'error');
+                return;
+            }
+
+            this.isLoading = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: this.formData.email,
+                        password: this.formData.password,
+                        nombres: this.formData.nombres,
+                        apellidos: this.formData.apellidos,
+                        edad: parseInt(this.formData.edad),
+                        codigoPais: this.formData.codigoPais,
+                        numPasaporte: this.formData.numPasaporte
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok &amp;&amp; data.success) {
+                    showNotification('¡Registro exitoso! Redirigiendo al login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'aerolineas/views/login.html';
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || 'Error al registrar usuario');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification(error.message || 'Error al registrar usuario', 'error');
+            } finally {
+                this.isLoading = false;
+            }
+        }
+    };
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#adminDashboard">adminDashboard</a></li><li><a href="global.html#agencias">agencias</a></li><li><a href="global.html#agenciasAdminData">agenciasAdminData</a></li><li><a href="global.html#applyFilters">applyFilters</a></li><li><a href="global.html#applySort">applySort</a></li><li><a href="global.html#calcularDistribucion">calcularDistribucion</a></li><li><a href="global.html#calcularDuracion">calcularDuracion</a></li><li><a href="global.html#calculateStats">calculateStats</a></li><li><a href="global.html#cambiarFiltro">cambiarFiltro</a></li><li><a href="global.html#cambiarOrden">cambiarOrden</a></li><li><a href="global.html#cambiarRol">cambiarRol</a></li><li><a href="global.html#canAccess">canAccess</a></li><li><a href="global.html#cancelarReservacion">cancelarReservacion</a></li><li><a href="global.html#captchaQuestion">captchaQuestion</a></li><li><a href="global.html#cargarStats">cargarStats</a></li><li><a href="global.html#changePassword">changePassword</a></li><li><a href="global.html#changePaymentMethod">changePaymentMethod</a></li><li><a href="global.html#checkSession">checkSession</a></li><li><a href="global.html#checkoutData">checkoutData</a></li><li><a href="global.html#clearUserSession">clearUserSession</a></li><li><a href="global.html#closeApiKeyModal">closeApiKeyModal</a></li><li><a href="global.html#closeLoginModalFunc">closeLoginModalFunc</a></li><li><a href="global.html#closeModal">closeModal</a></li><li><a href="global.html#closePasswordModal">closePasswordModal</a></li><li><a href="global.html#configureDateInputs">configureDateInputs</a></li><li><a href="global.html#convertDurationToMinutes">convertDurationToMinutes</a></li><li><a href="global.html#copyToClipboard">copyToClipboard</a></li><li><a href="global.html#createAgencia">createAgencia</a></li><li><a href="global.html#currentAgencia">currentAgencia</a></li><li><a href="global.html#currentVuelo">currentVuelo</a></li><li><a href="global.html#dashboardData">dashboardData</a></li><li><a href="global.html#deleteVuelo">deleteVuelo</a></li><li><a href="global.html#descargarPDF">descargarPDF</a></li><li><a href="global.html#detalleData">detalleData</a></li><li><a href="global.html#detectCardBrand">detectCardBrand</a></li><li><a href="global.html#displayedVuelos">displayedVuelos</a></li><li><a href="global.html#editMode">editMode</a></li><li><a href="global.html#fetchAgencias">fetchAgencias</a></li><li><a href="global.html#fetchComentarios">fetchComentarios</a></li><li><a href="global.html#fetchDashboardData">fetchDashboardData</a></li><li><a href="global.html#fetchProfile">fetchProfile</a></li><li><a href="global.html#fetchReservaciones">fetchReservaciones</a></li><li><a href="global.html#fetchUsuarios">fetchUsuarios</a></li><li><a href="global.html#fetchUsuariosWebService">fetchUsuariosWebService</a></li><li><a href="global.html#fetchVueloDetalle">fetchVueloDetalle</a></li><li><a href="global.html#fetchVuelos">fetchVuelos</a></li><li><a href="global.html#filteredReservaciones">filteredReservaciones</a></li><li><a href="global.html#filteredUsuarios">filteredUsuarios</a></li><li><a href="global.html#filteredVuelos">filteredVuelos</a></li><li><a href="global.html#filters">filters</a></li><li><a href="global.html#filtrarReservaciones">filtrarReservaciones</a></li><li><a href="global.html#filtroActivo">filtroActivo</a></li><li><a href="global.html#formatCVV">formatCVV</a></li><li><a href="global.html#formatCardName">formatCardName</a></li><li><a href="global.html#formatCardNumber">formatCardNumber</a></li><li><a href="global.html#formatCurrency">formatCurrency</a></li><li><a href="global.html#formatDate">formatDate</a></li><li><a href="global.html#formatTime">formatTime</a></li><li><a href="global.html#generarPasajeros">generarPasajeros</a></li><li><a href="global.html#generateCaptcha">generateCaptcha</a></li><li><a href="global.html#generateVueloCode">generateVueloCode</a></li><li><a href="global.html#generatedApiKey">generatedApiKey</a></li><li><a href="global.html#getQueryParams">getQueryParams</a></li><li><a href="global.html#getUserSession">getUserSession</a></li><li><a href="global.html#guardAction">guardAction</a></li><li><a href="global.html#headerData">headerData</a></li><li><a href="global.html#impuestos">impuestos</a></li><li><a href="global.html#infoCardsData">infoCardsData</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#initializeApp">initializeApp</a></li><li><a href="global.html#isLoading">isLoading</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#loadExtras">loadExtras</a></li><li><a href="global.html#loadFlightData">loadFlightData</a></li><li><a href="global.html#loadSearchParams">loadSearchParams</a></li><li><a href="global.html#loading">loading</a></li><li><a href="global.html#loginData">loginData</a></li><li><a href="global.html#loginUser">loginUser</a></li><li><a href="global.html#loginWithGoogle">loginWithGoogle</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#logoutUser">logoutUser</a></li><li><a href="global.html#mapBackendVuelo">mapBackendVuelo</a></li><li><a href="global.html#marcarMejorPrecio">marcarMejorPrecio</a></li><li><a href="global.html#modalMode">modalMode</a></li><li><a href="global.html#navigateTo">navigateTo</a></li><li><a href="global.html#navigateToAdmin">navigateToAdmin</a></li><li><a href="global.html#navigateToAgency">navigateToAgency</a></li><li><a href="global.html#navigateToDetalle">navigateToDetalle</a></li><li><a href="global.html#navigateToHotels">navigateToHotels</a></li><li><a href="global.html#navigateToPerfil">navigateToPerfil</a></li><li><a href="global.html#navigateToReservaciones">navigateToReservaciones</a></li><li><a href="global.html#notifications">notifications</a></li><li><a href="global.html#notificationsData">notificationsData</a></li><li><a href="global.html#openCreateModal">openCreateModal</a></li><li><a href="global.html#openEditModal">openEditModal</a></li><li><a href="global.html#openFiltersWithCurrentValues">openFiltersWithCurrentValues</a></li><li><a href="global.html#openLoginModal">openLoginModal</a></li><li><a href="global.html#openPasswordModal">openPasswordModal</a></li><li><a href="global.html#ordenarComentarios">ordenarComentarios</a></li><li><a href="global.html#paginatedUsuarios">paginatedUsuarios</a></li><li><a href="global.html#paginatedVuelos">paginatedVuelos</a></li><li><a href="global.html#pagination">pagination</a></li><li><a href="global.html#passwordData">passwordData</a></li><li><a href="global.html#passwordStrength">passwordStrength</a></li><li><a href="global.html#passwordStrengthText">passwordStrengthText</a></li><li><a href="global.html#passwordsMatch">passwordsMatch</a></li><li><a href="global.html#perfilData">perfilData</a></li><li><a href="global.html#performSearch">performSearch</a></li><li><a href="global.html#precioExtras">precioExtras</a></li><li><a href="global.html#precioVuelo">precioVuelo</a></li><li><a href="global.html#procederCompra">procederCompra</a></li><li><a href="global.html#procesarPago">procesarPago</a></li><li><a href="global.html#publicarComentario">publicarComentario</a></li><li><a href="global.html#puedeSerCancelada">puedeSerCancelada</a></li><li><a href="global.html#recalcularTotal">recalcularTotal</a></li><li><a href="global.html#recentReservations">recentReservations</a></li><li><a href="global.html#redirectIfAuthenticated">redirectIfAuthenticated</a></li><li><a href="global.html#regenerateApiKey">regenerateApiKey</a></li><li><a href="global.html#registroData">registroData</a></li><li><a href="global.html#remove">remove</a></li><li><a href="global.html#renderRouteGraphic">renderRouteGraphic</a></li><li><a href="global.html#renderStars">renderStars</a></li><li><a href="global.html#renderStarsInElements">renderStarsInElements</a></li><li><a href="global.html#requireAdmin">requireAdmin</a></li><li><a href="global.html#requireAuth">requireAuth</a></li><li><a href="global.html#reservaciones">reservaciones</a></li><li><a href="global.html#reservacionesData">reservacionesData</a></li><li><a href="global.html#responderComentario">responderComentario</a></li><li><a href="global.html#resultadosData">resultadosData</a></li><li><a href="global.html#saveUserSession">saveUserSession</a></li><li><a href="global.html#saveVuelo">saveVuelo</a></li><li><a href="global.html#searchParams">searchParams</a></li><li><a href="global.html#searchQuery">searchQuery</a></li><li><a href="global.html#sendRecoveryEmail">sendRecoveryEmail</a></li><li><a href="global.html#setRating">setRating</a></li><li><a href="global.html#setupScrollAnimations">setupScrollAnimations</a></li><li><a href="global.html#show">show</a></li><li><a href="global.html#showApiKeyModal">showApiKeyModal</a></li><li><a href="global.html#showFilters">showFilters</a></li><li><a href="global.html#showModal">showModal</a></li><li><a href="global.html#showNotification">showNotification</a></li><li><a href="global.html#showPasswordModal">showPasswordModal</a></li><li><a href="global.html#showProfileMenu">showProfileMenu</a></li><li><a href="global.html#sortBy">sortBy</a></li><li><a href="global.html#stats">stats</a></li><li><a href="global.html#submitLogin">submitLogin</a></li><li><a href="global.html#submitRegistro">submitRegistro</a></li><li><a href="global.html#subtotal">subtotal</a></li><li><a href="global.html#toggleActivo">toggleActivo</a></li><li><a href="global.html#toggleEditMode">toggleEditMode</a></li><li><a href="global.html#toggleFilters">toggleFilters</a></li><li><a href="global.html#toggleLike">toggleLike</a></li><li><a href="global.html#toggleProfileMenu">toggleProfileMenu</a></li><li><a href="global.html#total">total</a></li><li><a href="global.html#updatePriceProgress">updatePriceProgress</a></li><li><a href="global.html#updateProfile">updateProfile</a></li><li><a href="global.html#userName">userName</a></li><li><a href="global.html#userRole">userRole</a></li><li><a href="global.html#usuario">usuario</a></li><li><a href="global.html#usuarios">usuarios</a></li><li><a href="global.html#usuariosAdminData">usuariosAdminData</a></li><li><a href="global.html#usuariosWebService">usuariosWebService</a></li><li><a href="global.html#validateForm">validateForm</a></li><li><a href="global.html#validatePassword">validatePassword</a></li><li><a href="global.html#vuelos">vuelos</a></li><li><a href="global.html#vuelosAdminData">vuelosAdminData</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 09 2026 16:27:47 GMT-0600 (hora estándar central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

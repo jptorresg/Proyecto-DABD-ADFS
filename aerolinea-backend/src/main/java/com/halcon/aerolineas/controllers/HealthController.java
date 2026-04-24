@@ -42,7 +42,7 @@ public class HealthController extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) AS total FROM VUELOS")) {
 
@@ -59,5 +59,9 @@ public class HealthController extends HttpServlet {
                 "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}"
             );
         }
+    }
+
+    protected Connection getConnection() throws Exception {
+        return DatabaseConfig.getConnection();
     }
 }

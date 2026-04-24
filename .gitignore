@@ -14,6 +14,7 @@ nbproject/
 # =====================
 db.properties
 application.properties
+DatabaseConfig.java
 
 # =====================
 # NO ignorar ejemplos
@@ -31,3 +32,19 @@ dist/
 # Logs
 # =====================
 logs/
+
+# Ignorar todo target
+target/*
+
+# PERO permitir estas subcarpetas
+!target/test-classes/
+!target/surefire-reports/
+!target/reports
+
+docs/
+docfx_project/_site/
+
+# Otros
+*.class
+*.log
+*.pdf

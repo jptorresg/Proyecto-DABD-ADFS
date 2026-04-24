@@ -23,6 +23,24 @@ import com.halcon.aerolineas.models.VueloConEscala;
  */
 public class VueloDAO {
     
+    private Connection connection;
+
+    // Constructor normal (producción)
+    public VueloDAO() {
+    }
+
+    // Constructor para testing
+    public VueloDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    private Connection getConnection() throws SQLException {
+        if (connection != null) {
+            return connection; // 👈 usado en tests
+        }
+        return DatabaseConfig.getConnection(); // 👈 producción
+    }
+    
     /**
      * Busca vuelos disponibles según filtros de origen, destino, fecha y tipo de asiento.
      *
@@ -61,7 +79,7 @@ public class VueloDAO {
         
         sql.append(" ORDER BY fecha_salida, hora_salida");
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             
             for (int i = 0; i < params.size(); i++) {
@@ -226,7 +244,7 @@ public class VueloDAO {
             params.add(tipoAsiento);
         }
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) stmt.setObject(i + 1, params.get(i));
             ResultSet rs = stmt.executeQuery();
@@ -274,7 +292,7 @@ public class VueloDAO {
             params.add(tipoAsiento);
         }
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) stmt.setObject(i + 1, params.get(i));
             ResultSet rs = stmt.executeQuery();
@@ -312,7 +330,7 @@ public class VueloDAO {
     public Vuelo findById(Long id) throws SQLException {
         String sql = "SELECT * FROM VUELOS WHERE id_vuelo = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, id);
@@ -336,7 +354,7 @@ public class VueloDAO {
     public Vuelo findByCodigo(String codigo) throws SQLException {
         String sql = "SELECT * FROM VUELOS WHERE codigo_vuelo = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, codigo);
@@ -362,7 +380,7 @@ public class VueloDAO {
         List<Vuelo> vuelos = new ArrayList<>();
         String sql = "SELECT * FROM VUELOS ORDER BY fecha_salida DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, offset);
@@ -392,7 +410,7 @@ public class VueloDAO {
                     "asientos_totales, asientos_disponibles, estado, creado_por) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"id_vuelo"})) {
             
             stmt.setString(1, vuelo.getCodigoVuelo());
@@ -440,7 +458,7 @@ public class VueloDAO {
                     "tipo_asiento = ?, precio_base = ?, asientos_totales = ?, " +
                     "asientos_disponibles = ?, estado = ? WHERE id_vuelo = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, vuelo.getOrigenCiudad());
@@ -472,7 +490,7 @@ public class VueloDAO {
     public boolean delete(Long id) throws SQLException {
         String sql = "UPDATE VUELOS SET estado = 'CANCELADO' WHERE id_vuelo = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, id);
@@ -495,7 +513,7 @@ public class VueloDAO {
         String sql = "UPDATE VUELOS SET asientos_disponibles = asientos_disponibles - ? " +
                     "WHERE id_vuelo = ? AND asientos_disponibles >= ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, cantidad);
