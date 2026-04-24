@@ -14,12 +14,11 @@ nbproject/
 # =====================
 db.properties
 application.properties
-DatabaseConfig.java
 
 # =====================
-# NO ignorar ejemplos
+# Ejemplos
 # =====================
-!db.properties.example
+!*.example
 
 # =====================
 # Node / Frontend
@@ -33,6 +32,7 @@ dist/
 # =====================
 logs/
 
+<<<<<<< HEAD
 # Ignorar todo target
 target/*
 
@@ -48,3 +48,9 @@ docfx_project/_site/
 *.class
 *.log
 *.pdf
+=======
+# =====================
+# Maven build
+# =====================
+target/
+>>>>>>> 676f93d (Se implementó la generación de comprobante en PDF y los comentarios recursivos para aerolíneas)
