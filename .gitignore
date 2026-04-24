@@ -13,6 +13,7 @@ nbproject/
 # Configuración sensible
 # =====================
 db.properties
+mail.properties
 application.properties
 
 # =====================
@@ -51,3 +52,9 @@ docfx_project/_site/
 # Maven build
 # =====================
 target/
+
+# =====================
+# DatabasConfig
+# =====================
+
+**/DatabaseConfig.java

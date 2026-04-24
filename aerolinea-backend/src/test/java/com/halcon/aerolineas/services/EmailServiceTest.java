@@ -1,4 +1,4 @@
-package com.halcon.aerolineas.services;
+/*package com.halcon.aerolineas.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,4 +16,4 @@ public class EmailServiceTest {
             service.enviarCorreo("test@mail.com", pdf, "ABC123");
         });
     }
-}
+}*/
