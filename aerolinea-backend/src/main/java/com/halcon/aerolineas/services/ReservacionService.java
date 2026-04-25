@@ -21,6 +21,9 @@ public class ReservacionService {
     private ReservacionDAO reservacionDAO;
     private VueloDAO vueloDAO;
     private PasajeroDAO pasajeroDAO;
+    private UsuarioDAO usuarioDAO;
+    private PdfService pdfService;
+    private EmailService emailService;
     
     /**
      * Constructor que inicializa el servicio con los DAO necesarios.
@@ -29,6 +32,25 @@ public class ReservacionService {
         this.reservacionDAO = new ReservacionDAO();
         this.vueloDAO = new VueloDAO();
         this.pasajeroDAO = new PasajeroDAO();
+        this.usuarioDAO = new UsuarioDAO();
+        this.pdfService = new PdfService();
+        this.emailService = new EmailService();
+    }
+
+    public ReservacionService(
+        ReservacionDAO reservacionDAO,
+        VueloDAO vueloDAO,
+        PasajeroDAO pasajeroDAO,
+        UsuarioDAO usuarioDAO,
+        PdfService pdfService,
+        EmailService emailService
+    ) {
+        this.reservacionDAO = reservacionDAO;
+        this.vueloDAO = vueloDAO;
+        this.pasajeroDAO = pasajeroDAO;
+        this.usuarioDAO = usuarioDAO;
+        this.pdfService = pdfService;
+        this.emailService = emailService;
     }
     
     /**
@@ -94,6 +116,25 @@ public class ReservacionService {
             pasajero.setIdReservacion(idReservacion);
             pasajero.setTipoAsiento(vuelo.getTipoAsiento());
             pasajeroDAO.create(pasajero);
+        }
+
+        List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+
+        byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
+
+        Usuario usuario = usuarioDAO.findById(idUsuario);
+
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        String email = usuario.getEmail();
+
+        try {
+            emailService.enviarCorreo(email, pdf, reservacion.getCodigoReservacion());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error enviando correo: " + e.getMessage());
         }
         
         // Retornar reservación completa

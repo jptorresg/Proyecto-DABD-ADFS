@@ -21,6 +21,21 @@ import com.halcon.aerolineas.models.VueloConEscala;
  * </p>
  */
 public class ReservacionDAO {
+
+    private Connection connection;
+
+    // Producción
+    public ReservacionDAO() {}
+
+    // Testing
+    public ReservacionDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    private Connection getConnection() throws SQLException {
+        if (connection != null) return connection;
+        return DatabaseConfig.getConnection();
+    }
     
     /**
      * Crea una nueva reservación en la base de datos.
@@ -43,7 +58,7 @@ public class ReservacionDAO {
         PreparedStatement stmt = null;
         
         try {
-            conn = DatabaseConfig.getConnection();
+            conn = getConnection();
             conn.setAutoCommit(false); // Iniciar transacción
             
             // 1. Verificar disponibilidad y decrementar asientos
@@ -118,7 +133,7 @@ public class ReservacionDAO {
     public Reservacion findById(Long idReservacion) throws SQLException {
         String sql = "SELECT * FROM RESERVACIONES WHERE ID_RESERVACION = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, idReservacion);
@@ -159,7 +174,7 @@ public class ReservacionDAO {
         
         String sql = "SELECT DISTINCT r.*, v.id_vuelo, v.codigo_vuelo, v.origen_ciudad, v.destino_ciudad, v.origen_codigo_iata, v.destino_codigo_iata, v.fecha_salida, v.hora_salida, v.tipo_asiento FROM RESERVACIONES r JOIN VUELOS v ON r.id_vuelo = v.id_vuelo WHERE r.id_usuario = ? ORDER BY r.fecha_compra DESC";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, idUsuario);
@@ -218,7 +233,7 @@ public class ReservacionDAO {
     public Reservacion findByCodigo(String codigo) throws SQLException {
         String sql = "SELECT * FROM RESERVACIONES WHERE codigo_reservacion = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, codigo);
@@ -262,7 +277,7 @@ public class ReservacionDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = DatabaseConfig.getConnection();
+            conn = getConnection();
             conn.setAutoCommit(false);
 
             // 1. Obtener reservación

@@ -20,6 +20,23 @@ import com.halcon.aerolineas.models.Usuario;
  * </p>
  */
 public class UsuarioDAO {
+
+    private Connection connection;
+
+    // Producción
+    public UsuarioDAO() {}
+
+    // Testing
+    public UsuarioDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    private Connection getConnection() throws SQLException {
+        if (connection != null) {
+            return connection;
+        }
+        return DatabaseConfig.getConnection();
+    }
     
     /**
      * Busca un usuario por su dirección de correo electrónico.
@@ -39,7 +56,7 @@ public class UsuarioDAO {
                     "LEFT JOIN PAISES p ON u.pais_origen = p.id " +
                     "WHERE u.email = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
@@ -50,6 +67,23 @@ public class UsuarioDAO {
             }
         }
         
+        return null;
+    }
+
+    public String findEmailById(Long idUsuario) throws SQLException {
+        String sql = "SELECT email FROM USUARIOS WHERE id_usuario = ?";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, idUsuario);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("email");
+            }
+        }
+
         return null;
     }
     
@@ -70,7 +104,7 @@ public class UsuarioDAO {
                     "LEFT JOIN PAISES p ON u.pais_origen = p.id " +
                     "ORDER BY u.fecha_registro DESC";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -94,7 +128,7 @@ public class UsuarioDAO {
                     "pais_origen, num_pasaporte, tipo_usuario) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"id_usuario"})) {
             
             stmt.setString(1, usuario.getEmail());
@@ -129,7 +163,7 @@ public class UsuarioDAO {
                     "edad = ?, pais_origen = ?, num_pasaporte = ?, tipo_usuario = ?, " +
                     "activo = ? WHERE id_usuario = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, usuario.getEmail());
@@ -159,7 +193,7 @@ public class UsuarioDAO {
                     "LEFT JOIN PAISES p ON u.pais_origen = p.id " +
                     "WHERE u.id_usuario = ?";
         
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setLong(1, id);

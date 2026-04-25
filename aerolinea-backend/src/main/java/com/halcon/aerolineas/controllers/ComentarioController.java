@@ -102,6 +102,7 @@ public class ComentarioController extends HttpServlet {
             response.setStatus(400);
             out.print(JsonResponse.error("ID de vuelo inválido"));
         } catch (Exception e) {
+            e.printStackTrace(); // 👈 CLAVE
             response.setStatus(500);
             out.print(JsonResponse.error(e.getMessage()));
         }
@@ -131,7 +132,6 @@ public class ComentarioController extends HttpServlet {
 
         try {
 
-            // Leer JSON manualmente
             StringBuilder sb = new StringBuilder();
             String line;
             BufferedReader reader = request.getReader();
@@ -141,15 +141,26 @@ public class ComentarioController extends HttpServlet {
 
             String json = sb.toString();
 
-            // Parse simple (puedes usar Gson si ya lo usas en el proyecto)
             Gson gson = new Gson();
             ComentarioRating comentario = gson.fromJson(json, ComentarioRating.class);
+
+            // 🔥 VALIDACIÓN CLAVE
+            if (comentario == null || comentario.getIdVuelo() == null) {
+                response.setStatus(400);
+                out.print(JsonResponse.error("Datos inválidos"));
+                return;
+            }
 
             comentarioService.crearComentario(comentario);
 
             out.print(JsonResponse.success("Comentario creado"));
 
+        } catch (com.google.gson.JsonSyntaxException e) {
+            response.setStatus(400);
+            out.print(JsonResponse.error("JSON inválido"));
+
         } catch (Exception e) {
+            e.printStackTrace();
             response.setStatus(500);
             out.print(JsonResponse.error(e.getMessage()));
         }

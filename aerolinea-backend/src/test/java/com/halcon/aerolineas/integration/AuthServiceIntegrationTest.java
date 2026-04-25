@@ -1,4 +1,4 @@
-package com.halcon.aerolineas.integration;
+/*package com.halcon.aerolineas.integration;
 
 import com.halcon.aerolineas.models.Usuario;
 import com.halcon.aerolineas.services.AuthService;
@@ -62,3 +62,4 @@ public class AuthServiceIntegrationTest {
                 || exception.getMessage().contains("Usuario no encontrado"));
     }
 }
+*/

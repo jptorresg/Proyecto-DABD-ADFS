@@ -346,7 +346,7 @@
 
                         <!-- Árbol de Comentarios -->
                         <div class="det-comments-tree">
-                            <template x-for="comentario in comentarios" :key="comentario.id">
+                            <template x-for="comentario in comentarios" :key="comentario.idComentario">
                                 <div x-data="{ comment: comentario }">
                                     <div x-html="$refs.commentTemplate.innerHTML"></div>
                                 </div>
