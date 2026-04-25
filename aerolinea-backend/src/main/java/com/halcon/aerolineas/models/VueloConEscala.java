@@ -62,6 +62,9 @@ public class VueloConEscala {
     
     /** Estado general del vuelo con escalas (actualmente fijo "ACTIVO"). */
     private String estado;
+
+    /** Indica si el vuelo es de ida y vuelta. */
+    private boolean esIdaYVuelta = false;
     
     /** Lista de información de cada escala intermedia. */
     private List<EscalaInfo> escalas;
@@ -210,6 +213,16 @@ public class VueloConEscala {
      * @return el estado general del vuelo.
      */
     public String getEstado()              { return estado; }
+
+    /**
+     * @return si el vuelo es de ida y vuelta.
+     */
+    public boolean isEsIdaYVuelta() { return esIdaYVuelta; }
+
+    /**
+     * Establece si el vuelo es de ida y vuelta.
+     */
+    public void setEsIdaYVuelta(boolean esIdaYVuelta) { this.esIdaYVuelta = esIdaYVuelta; }
     
     /**
      * @return la lista de información de escalas intermedias.

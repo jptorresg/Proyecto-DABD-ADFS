@@ -523,6 +523,104 @@ public class VueloDAO {
             return stmt.executeUpdate() > 0;
         }
     }
+
+    /**
+     * Busca vuelos de ida y vuelta combinando un tramo de origen→destino
+     * en {@code fechaSalida} con un tramo de destino→origen en {@code fechaRegreso}.
+     * <p>
+     * Cada combinación se representa como una lista de dos {@link Vuelo},
+     * lista que el servicio convertirá en un {@link VueloConEscala}.
+     * </p>
+     *
+     * @param origen       Código IATA del aeropuerto de origen.
+     * @param destino      Código IATA del aeropuerto de destino.
+     * @param fechaSalida  Fecha del vuelo de ida.
+     * @param fechaRegreso Fecha del vuelo de regreso.
+     * @param tipoAsiento  Tipo de asiento requerido (opcional).
+     * @return Lista de pares de vuelos [ida, regreso].
+     * @throws SQLException Si ocurre un error en la consulta.
+     */
+    public List<List<Vuelo>> buscarVuelosIdaYVuelta(String origen, String destino,
+                                                    LocalDate fechaSalida,
+                                                    LocalDate fechaRegreso,
+                                                    String tipoAsiento) throws SQLException {
+
+        List<List<Vuelo>> resultados = new ArrayList<>();
+
+        // --- Tramos de IDA: origen → destino ---
+        StringBuilder sqlIda = new StringBuilder(
+            "SELECT * FROM VUELOS WHERE estado = 'ACTIVO' " +
+            "AND asientos_disponibles > 0 " +
+            "AND origen_codigo_iata = ? " +
+            "AND destino_codigo_iata = ? " +
+            "AND fecha_salida = ?"
+        );
+        List<Object> paramsIda = new ArrayList<>();
+        paramsIda.add(origen);
+        paramsIda.add(destino);
+        paramsIda.add(Date.valueOf(fechaSalida));
+
+        if (tipoAsiento != null && !tipoAsiento.isEmpty()) {
+            sqlIda.append(" AND tipo_asiento = ?");
+            paramsIda.add(tipoAsiento);
+        }
+        sqlIda.append(" ORDER BY hora_salida");
+
+        // --- Tramos de REGRESO: destino → origen ---
+        StringBuilder sqlRegreso = new StringBuilder(
+            "SELECT * FROM VUELOS WHERE estado = 'ACTIVO' " +
+            "AND asientos_disponibles > 0 " +
+            "AND origen_codigo_iata = ? " +
+            "AND destino_codigo_iata = ? " +
+            "AND fecha_salida = ?"
+        );
+        List<Object> paramsRegreso = new ArrayList<>();
+        paramsRegreso.add(destino);   // invertido
+        paramsRegreso.add(origen);    // invertido
+        paramsRegreso.add(Date.valueOf(fechaRegreso));
+
+        if (tipoAsiento != null && !tipoAsiento.isEmpty()) {
+            sqlRegreso.append(" AND tipo_asiento = ?");
+            paramsRegreso.add(tipoAsiento);
+        }
+        sqlRegreso.append(" ORDER BY hora_salida");
+
+        List<Vuelo> vuelosIda     = new ArrayList<>();
+        List<Vuelo> vuelosRegreso = new ArrayList<>();
+
+        // Ejecutar ambas queries
+        try (Connection conn = getConnection()) {
+
+            try (PreparedStatement stmt = conn.prepareStatement(sqlIda.toString())) {
+                for (int i = 0; i < paramsIda.size(); i++) stmt.setObject(i + 1, paramsIda.get(i));
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) vuelosIda.add(mapResultSetToVuelo(rs));
+            }
+
+            try (PreparedStatement stmt = conn.prepareStatement(sqlRegreso.toString())) {
+                for (int i = 0; i < paramsRegreso.size(); i++) stmt.setObject(i + 1, paramsRegreso.get(i));
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) vuelosRegreso.add(mapResultSetToVuelo(rs));
+            }
+        }
+
+        // Combinar cada vuelo de ida con cada vuelo de regreso
+        for (Vuelo ida : vuelosIda) {
+            for (Vuelo regreso : vuelosRegreso) {
+                List<Vuelo> par = new ArrayList<>();
+                par.add(ida);
+                par.add(regreso);
+                resultados.add(par);
+            }
+        }
+
+        System.out.println("=== IDA Y VUELTA ===");
+        System.out.println("Vuelos ida: "     + vuelosIda.size());
+        System.out.println("Vuelos regreso: " + vuelosRegreso.size());
+        System.out.println("Combinaciones: "  + resultados.size());
+
+        return resultados;
+    }
     
     /**
      * Método auxiliar que mapea un {@link ResultSet} a un objeto {@link Vuelo}.

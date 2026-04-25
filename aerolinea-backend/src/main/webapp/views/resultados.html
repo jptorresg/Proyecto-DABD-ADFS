@@ -48,6 +48,14 @@
                         <span x-text="searchParams.fechaSalida"></span>
                     </span>
 
+                    <!-- Fecha regreso: solo si es ida y vuelta -->
+                    <template x-if="searchParams.fechaRegreso">
+                        <span class="summary-tag">
+                            <i class="fas fa-calendar-check"></i>
+                            <span x-text="searchParams.fechaRegreso"></span>
+                        </span>
+                    </template>
+
                     <span class="summary-tag">
                         <i class="fas fa-users"></i>
                         <span x-text="searchParams.pasajeros"></span> Pasajeros
@@ -55,7 +63,7 @@
 
                     <span class="summary-tag">
                         <i class="fas fa-exchange-alt"></i>
-                        <span x-text="searchParams.tipoViaje === 'ida' ? 'Solo ida' : 'Ida y vuelta'"></span>
+                        <span x-text="searchParams.tipoViaje === 'idaVuelta' ? 'Ida y vuelta' : 'Solo ida'"></span>
                     </span>
                 </div>
                 <button class="btn btn-outline"
@@ -199,10 +207,17 @@
                                             <span class="flight-code" x-text="vuelo.code"></span>
 
                                             <span class="flight-type-badge"
-                                                :class="vuelo.type === 'direct' ? 'badge-direct' : 'badge-layover'">
-                                                <i :class="vuelo.type === 'direct' ? 'fas fa-minus' : 'fas fa-circle'"
-                                                style="font-size:0.6rem;"></i>
-                                                <span x-text="vuelo.type === 'direct' ? 'Directo' : 'Con Escala'"></span>
+                                                :class="{
+                                                    'badge-direct':    vuelo.type === 'direct',
+                                                    'badge-layover':   vuelo.type === 'layover',
+                                                    'badge-roundtrip': vuelo.type === 'roundtrip'
+                                                }">
+                                                <i :class="{
+                                                    'fas fa-minus':        vuelo.type === 'direct',
+                                                    'fas fa-circle':       vuelo.type === 'layover',
+                                                    'fas fa-exchange-alt': vuelo.type === 'roundtrip'
+                                                }" style="font-size:0.6rem;"></i>
+                                                <span x-text="vuelo.type === 'direct' ? 'Directo' : vuelo.type === 'roundtrip' ? 'Ida y Vuelta' : 'Con Escala'"></span>
                                             </span>
 
                                             <span class="flight-class">

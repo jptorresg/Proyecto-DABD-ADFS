@@ -48,8 +48,26 @@ public class VueloService {
      * @throws SQLException Si ocurre un error en la consulta a la base de datos.
      */
     public List<Object> buscarVuelos(String origen, String destino, LocalDate fechaSalida,
-                                      String tipoAsiento) throws SQLException {
+                                    LocalDate fechaRegreso, String tipoAsiento) throws SQLException {
+
         List<Object> resultados = new ArrayList<>();
+
+        if (fechaRegreso != null && origen != null && !origen.isEmpty()
+                                && destino != null && !destino.isEmpty()) {
+
+            List<List<Vuelo>> pares = vueloDAO.buscarVuelosIdaYVuelta(
+                origen, destino, fechaSalida, fechaRegreso, tipoAsiento
+            );
+
+            for (List<Vuelo> par : pares) {
+                VueloConEscala vce = new VueloConEscala(par);
+                vce.setEsIdaYVuelta(true);   // ← marca semántica para el frontend
+                resultados.add(vce);
+            }
+
+            // Con fecha de regreso no buscamos vuelos directos ni con escalas normales
+            return resultados;
+        }
 
         // Directos
         resultados.addAll(vueloDAO.buscarVuelos(origen, destino, fechaSalida, tipoAsiento));

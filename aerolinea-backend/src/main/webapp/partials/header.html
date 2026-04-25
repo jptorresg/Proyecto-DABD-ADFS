@@ -46,9 +46,37 @@
                         <input type="text" placeholder="Ciudad destino" x-model="filters.destino">
                     </div>
 
+                    <!-- NUEVO: Toggle tipo de viaje -->
+                    <div class="field field-full">
+                        <label>Tipo de viaje</label>
+                        <div class="trip-type-toggle">
+                            <button class="trip-btn" 
+                                    :class="filters.tipoViaje === 'ida' ? 'active' : ''"
+                                    @click="filters.tipoViaje = 'ida'; filters.fechaRegreso = ''">
+                                <i class="fas fa-arrow-right"></i> Solo ida
+                            </button>
+                            <button class="trip-btn"
+                                    :class="filters.tipoViaje === 'idaVuelta' ? 'active' : ''"
+                                    @click="filters.tipoViaje = 'idaVuelta'">
+                                <i class="fas fa-exchange-alt"></i> Ida y vuelta
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="field">
                         <label>Fecha salida</label>
                         <input type="date" x-model="filters.fechaSalida">
+                    </div>
+
+                    <!-- Fecha regreso: solo activa si tipoViaje === 'idaVuelta' -->
+                    <div class="field">
+                        <label :style="filters.tipoViaje !== 'idaVuelta' ? 'opacity: 0.4' : ''">
+                            Fecha regreso
+                        </label>
+                        <input type="date" 
+                            x-model="filters.fechaRegreso"
+                            :disabled="filters.tipoViaje !== 'idaVuelta'"
+                            :style="filters.tipoViaje !== 'idaVuelta' ? 'opacity: 0.4; cursor: not-allowed' : ''">
                     </div>
 
                     <div class="field">

@@ -184,6 +184,35 @@ body {
     transform: scale(1.05);
 }
 
+.trip-type-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.trip-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--medium-gray);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.trip-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue);
+    color: white;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
 .user-section {
     display: flex;
     align-items: center;

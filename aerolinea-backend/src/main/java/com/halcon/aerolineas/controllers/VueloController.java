@@ -330,11 +330,15 @@ public class VueloController extends HttpServlet {
         String origen = request.getParameter("origen");
         String destino = request.getParameter("destino");
         String fechaSalidaStr = request.getParameter("fechaSalida");
+        String fechaRegresoStr = request.getParameter("fechaRegreso");
         String tipoAsiento = request.getParameter("tipoAsiento");
         
         LocalDate fechaSalida = (fechaSalidaStr != null) ? LocalDate.parse(fechaSalidaStr) : null;
+        LocalDate fechaRegreso = (fechaRegresoStr != null) ? LocalDate.parse(fechaRegresoStr) : null;
         
-        List<Object> vuelos = vueloService.buscarVuelos(origen, destino, fechaSalida, tipoAsiento);
+        List<Object> vuelos = vueloService.buscarVuelos(
+            origen, destino, fechaSalida, fechaRegreso, tipoAsiento
+        );
         out.print(JsonResponse.success(vuelos));
     }
 

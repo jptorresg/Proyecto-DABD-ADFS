@@ -47,6 +47,12 @@ function headerData() {
             destino: '',
             /** @type {string} Fecha de salida en formato ISO (YYYY-MM-DD). */
             fechaSalida: '',
+            /** @type {string} Fecha de regreso en formato ISO (YYYY-MM-DD). */
+            fechaRegreso: '',
+            /** @type {string} Tipo de viaje ('ida', 'ida y vuelta'). */
+            tipoViaje: 'ida',
+            /** @type {number} Cantidad de pasajeros. */
+            pasajeros: 1
         },
 
         /**
@@ -70,8 +76,21 @@ function headerData() {
          * headerData.applyFilters();
          */
         applyFilters() {
-            const params = new URLSearchParams(this.filters).toString();
-            window.location.href = `${BASE_PATH}/views/resultados.html?${params}`;
+            const params = new URLSearchParams();
+
+            if (this.filters.origen)     params.append('origen',     this.filters.origen);
+            if (this.filters.destino)    params.append('destino',    this.filters.destino);
+            if (this.filters.fechaSalida) params.append('fechaSalida', this.filters.fechaSalida);
+            if (this.filters.pasajeros)  params.append('pasajeros',  this.filters.pasajeros);
+            
+            params.append('tipoViaje', this.filters.tipoViaje);
+
+            // Solo enviar fechaRegreso si el usuario eligió ida y vuelta
+            if (this.filters.tipoViaje === 'idaVuelta' && this.filters.fechaRegreso) {
+                params.append('fechaRegreso', this.filters.fechaRegreso);
+            }
+
+            window.location.href = `${BASE_PATH}/views/resultados.html?${params.toString()}`;
         },
         
         /**
@@ -1730,7 +1749,7 @@ function resultadosData() {
         
         /** @type {Object} Filtros aplicados por el usuario. */
         filters: {
-            precioMax: 3500,
+            precioMax: 10000,
             tipoVuelo: {
                 directo: true,
                 escala: true
@@ -1749,6 +1768,7 @@ function resultadosData() {
             origen: '',
             destino: '',
             fechaSalida: '',
+            fechaRegreso: '',
             pasajeros: 1,
             tipoViaje: 'ida'
         },
@@ -1759,12 +1779,12 @@ function resultadosData() {
         loadSearchParams() {
             const query = this.getQueryParams();
 
-            this.searchParams.origen = query.origen || '';
-            this.searchParams.destino = query.destino || '';
+            this.searchParams.origen      = query.origen      || '';
+            this.searchParams.destino     = query.destino     || '';
             this.searchParams.fechaSalida = query.fechaSalida || '';
-            this.searchParams.pasajeros = query.pasajeros || 1;
-            this.searchParams.tipoViaje = query.tipoViaje || 'ida';
-            this.searchParams.pasajeros = query.pasajeros ? parseInt(query.pasajeros) : 1;
+            this.searchParams.fechaRegreso = query.fechaRegreso || '';
+            this.searchParams.tipoViaje   = query.tipoViaje   || 'ida';
+            this.searchParams.pasajeros   = query.pasajeros   ? parseInt(query.pasajeros) : 1;
         },
 
         /**
@@ -1796,11 +1816,13 @@ function resultadosData() {
         getQueryParams() {
             const params = new URLSearchParams(window.location.search);
             return {
-                origen: params.get('origen'),
-                destino: params.get('destino'),
-                fechaSalida: params.get('fechaSalida'),
-                tipoAsiento: params.get('tipoAsiento'),
-                pasajeros: params.get('pasajeros')
+                origen:       params.get('origen'),
+                destino:      params.get('destino'),
+                fechaSalida:  params.get('fechaSalida'),
+                fechaRegreso: params.get('fechaRegreso'),
+                tipoAsiento:  params.get('tipoAsiento'),
+                pasajeros:    params.get('pasajeros'),
+                tipoViaje:    params.get('tipoViaje'),
             };
         },
 
@@ -1851,8 +1873,10 @@ function resultadosData() {
             this.filteredVuelos = this.vuelos.filter(v => {
                 if (v.price > this.filters.precioMax) return false;
 
+                // Directo
                 if (!this.filters.tipoVuelo.directo && v.type === 'direct') return false;
-                if (!this.filters.tipoVuelo.escala && v.type === 'layover') return false;
+                // Con escala (incluye roundtrip, ambos tienen escala intermedia)
+                if (!this.filters.tipoVuelo.escala && (v.type === 'layover' || v.type === 'roundtrip')) return false;
 
                 if (!this.filters.claseAsiento.turista && v.class === 'TURISTA') return false;
                 if (!this.filters.claseAsiento.business && v.class === 'BUSINESS') return false;
@@ -1899,10 +1923,22 @@ function resultadosData() {
                     <span class="route-line"></span>
                     <i class="fa-solid fa-plane route-plane"></i>
                     <span class="route-dot"></span>
-                </div>
-                `;
+                </div>`;
             }
 
+            if (type === 'roundtrip') {
+                return `
+                <div class="route-roundtrip">
+                    <span class="route-dot"></span>
+                    <span class="route-arc route-arc-top"></span>
+                    <i class="fa-solid fa-plane route-plane-out"></i>
+                    <span class="route-arc route-arc-bottom"></span>
+                    <i class="fa-solid fa-plane route-plane-in"></i>
+                    <span class="route-dot"></span>
+                </div>`;
+            }
+
+            // layover
             return `
             <div class="route-layover">
                 <span class="route-dot"></span>
@@ -1910,8 +1946,7 @@ function resultadosData() {
                 <span class="route-stop"></span>
                 <i class="fa-solid fa-plane route-plane-layover"></i>
                 <span class="route-dot"></span>
-            </div>
-            `;
+            </div>`;
         },
 
         /**
@@ -1970,29 +2005,24 @@ function resultadosData() {
         async fetchVuelos() {
             try {
                 const query = this.getQueryParams();
-
                 const params = new URLSearchParams();
 
-                if (query.origen) params.append("origen", query.origen);
-                if (query.destino) params.append("destino", query.destino);
-                if (query.fechaSalida) params.append("fechaSalida", query.fechaSalida);
-                if (query.tipoAsiento) params.append("tipoAsiento", query.tipoAsiento);
+                if (query.origen)       params.append("origen",       query.origen);
+                if (query.destino)      params.append("destino",      query.destino);
+                if (query.fechaSalida)  params.append("fechaSalida",  query.fechaSalida);
+                if (query.tipoAsiento)  params.append("tipoAsiento",  query.tipoAsiento);
+                if (query.fechaRegreso) params.append("fechaRegreso", query.fechaRegreso);  // ← nuevo
 
-                const url = params.toString()
-                    ? `${API_BASE}/vuelos?${params.toString()}`
-                    : `${API_BASE}/vuelos`;
-
-                console.log("Fetching:", url); // 👈 DEBUG
+                const url = `${API_BASE}/vuelos?${params.toString()}`;
+                console.log("Fetching:", url);
 
                 const response = await fetch(url);
                 const json = await response.json();
 
                 if (json.success) {
                     this.vuelos = json.data.map(v => this.mapBackendVuelo(v));
-
                     this.filteredVuelos = this.vuelos;
                     this.displayedVuelos = this.vuelos;
-
                     this.marcarMejorPrecio();
                 }
 
@@ -2023,17 +2053,23 @@ function resultadosData() {
          * @property {Object} layover     - Resumen de la primera escala para la tarjeta.
          */
         mapBackendVuelo(v) {
-            const tieneEscala = v.escalas && v.escalas.length > 0;
+            const tieneEscala    = v.escalas && v.escalas.length > 0;
+            const esIdaYVuelta   = v.esIdaYVuelta === true;             // ← nuevo
+            const primeraEscala  = tieneEscala ? v.escalas[0] : null;
 
-            // Para la card de resultados mostramos solo la primera escala como resumen
-            const primeraEscala = tieneEscala ? v.escalas[0] : null;
+            // El tipo determina el badge y el gráfico
+            let tipo;
+            if (esIdaYVuelta)      tipo = 'roundtrip';
+            else if (tieneEscala)  tipo = 'layover';
+            else                   tipo = 'direct';
 
             return {
-                id:    v.idVuelo,
-                code:  v.codigoVuelo,
-                type:  tieneEscala ? 'layover' : 'direct',
-                class: v.tipoAsiento,
-                price: Number(v.precioBase),
+                id:           v.idVuelo,
+                code:         v.codigoVuelo,
+                type:         tipo,
+                esIdaYVuelta: esIdaYVuelta,    // ← nuevo
+                class:        v.tipoAsiento,
+                price:        Number(v.precioBase),
 
                 from: {
                     city: v.origenCiudad,
@@ -2047,20 +2083,19 @@ function resultadosData() {
                 },
 
                 duration: this.calcularDuracion(v.horaSalida, v.horaLlegada),
-                rating:   (Math.random() * 2 + 3).toFixed(1),
-                reviews:  Math.floor(Math.random() * 200) + 50,
+                rating:    (Math.random() * 2 + 3).toFixed(1),
+                reviews:   Math.floor(Math.random() * 200) + 50,
                 bestPrice: false,
 
                 escalas: tieneEscala ? v.escalas : [],
 
-                // layover sigue siendo el resumen para la card (primera escala)
                 layover: primeraEscala ? {
-                    city:     primeraEscala.ciudad,
-                    code:     primeraEscala.codigo,
-                    duration: primeraEscala.duracion,
-                    llegada:  primeraEscala.llegada,
-                    salida:   primeraEscala.salida,
-                    totalEscalas: v.escalas.length  // para mostrar "2 escalas" si aplica
+                    city:        primeraEscala.ciudad,
+                    code:        primeraEscala.codigo,
+                    duration:    primeraEscala.duracion,
+                    llegada:     primeraEscala.llegada,
+                    salida:      primeraEscala.salida,
+                    totalEscalas: v.escalas.length
                 } : null
             };
         },

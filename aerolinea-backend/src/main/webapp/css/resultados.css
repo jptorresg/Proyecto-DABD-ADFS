@@ -409,6 +409,58 @@
     font-weight: 600;
 }
 
+/* Badge ida y vuelta */
+.badge-roundtrip {
+    background: rgba(13, 110, 253, 0.1);
+    color: var(--primary-blue);
+}
+
+/* Gráfico roundtrip */
+.route-roundtrip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+}
+
+.route-arc {
+    width: 55px;
+    height: 14px;
+    border-left: none;
+    border-right: none;
+}
+
+.route-arc-top {
+    border-top: 2px solid #4A5F7F;
+    border-radius: 50% 50% 0 0;
+    margin-bottom: 6px;
+}
+
+.route-arc-bottom {
+    border-bottom: 2px solid #4A5F7F;
+    border-radius: 0 0 50% 50%;
+    margin-top: 6px;
+}
+
+.route-plane-out {
+    position: absolute;
+    top: 0;
+    left: 30%;
+    font-size: 0.75rem;
+    color: #4A5F7F;
+    transform: rotate(-10deg);
+}
+
+.route-plane-in {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    font-size: 0.75rem;
+    color: #4A5F7F;
+    transform: rotate(170deg);
+}
+
 .flight-info {
     flex: 1;
 }
