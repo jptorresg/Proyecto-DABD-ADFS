@@ -100,6 +100,7 @@ app.use('/api/search',        searchLimiter);
 app.use('/api/reservaciones', apiLimiter);
 app.use('/api/notifications', apiLimiter);
 app.use('/api/admin',         apiLimiter);
+app.use('/api/b2b',           apiLimiter);
 
 /**
  * Montaje de routers de la API después de aplicar limitadores
@@ -114,6 +115,7 @@ app.use('/api/search',        require('./routes/search.routes'));
 app.use('/api/reservaciones', require('./routes/reservacion.routes'));
 app.use('/api/notifications', require('./routes/notificacion.routes'));
 app.use('/api/admin',         require('./routes/admin.routes'));
+app.use('/api/b2b',           require('./routes/b2b.routes'));
 
 // ── Vistas ─────────────────────────────────────────────────────────────────
 /**
@@ -137,12 +139,14 @@ app.get('/register',   (req, res) => res.redirect('/registro')); /**< Redirecci�
  */
 app.get('/buscar',     view('buscar.html'));         /**< Formulario de búsqueda */
 app.get('/resultados', view('resultados.html'));     /**< Resultados de búsqueda */
+app.get('/historial', view('historial.html'));       /**< Historial de reservaciones */
 
 /**
  * Rutas para detalles de productos
  */
 app.get('/detalle-vuelo', view('detalle_vuelo.html')); /**< Detalles de vuelo */
 app.get('/detalle-hotel', view('detalle_hotel.html')); /**< Detalles de hotel */
+app.get('/paquetes',   view('paquetes.html'));       /**< Detalles Paquetes */
 
 /**
  * Rutas para proceso de compra

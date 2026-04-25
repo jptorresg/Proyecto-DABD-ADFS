@@ -32,6 +32,7 @@
                 <div class="d-none d-lg-flex align-items-center gap-4">
                   <a href="/" class="nav-link-custom">Inicio</a>
                   <a href="/buscar" class="nav-link-custom">Buscar</a>
+                  <a href="/historial" class="nav-link-custom" id="link-historial" style="display:none;">Mis reservas</a>
                   <a href="#destinos" class="nav-link-custom">Destinos</a>
                   <a href="#nosotros" class="nav-link-custom">Nosotros</a>
                 </div>
@@ -251,11 +252,7 @@
         </form>
 
         <!-- @brief Formulario de búsqueda de Paquetes (Oculto por defecto) -->
-        <form class="search-form-content d-none" id="form-paquetes"
-              hx-get="/api/search/packages"
-              hx-target="#search-results"
-              hx-swap="innerHTML"
-              hx-indicator=".btn-buscar">
+        <form class="search-form-content d-none" id="form-paquetes" onsubmit="buscarPaquete(event)">
           <div class="row g-3 mb-3">
             <div class="col-md-3">
               <label class="th-label"><i class="fa-solid fa-location-dot me-1"></i> Origen</label>
@@ -265,10 +262,10 @@
               </div>
             </div>
             <div class="col-md-3">
-              <label class="th-label"><i class="fa-solid fa-location-dot me-1"></i> Destino</label>
+              <label class="th-label"><i class="fa-solid fa-location-dot me-1"></i> Destino (ciudad)</label>
               <div class="input-group-custom">
                 <i class="input-icon fa-solid fa-plane-arrival"></i>
-                <input class="th-input" type="text" name="destino" placeholder="Ciudad o país" required>
+                <input class="th-input" type="text" name="destino" placeholder="Ciudad destino" required>
               </div>
             </div>
             <div class="col-md-2">
@@ -520,21 +517,25 @@
      * por un avatar con el nombre del usuario y un botón de logout.
      */
     fetch('/api/auth/me', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => {
-          if (d?.ok && d.usuario) {
-            document.getElementById('nav-user-area').innerHTML =
-              `<div class="d-flex align-items-center gap-3">
-                <a href="#" class="btn-nav-user">
-                  <div class="avatar"><i class="fa-solid fa-user"></i></div>
-                  <span>${d.usuario.nombre}</span>
-                </a>
-                <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">
-                  <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-              </div>`;
-          }
-        }).catch(() => {});
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          // Mostrar link "Mis reservas" solo a usuarios logueados
+          const linkHist = document.getElementById('link-historial');
+          if (linkHist) linkHist.style.display = '';
+
+          document.getElementById('nav-user-area').innerHTML =
+            `<div class="d-flex align-items-center gap-3">
+              <a href="/historial" class="btn-nav-user">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <span>${d.usuario.nombre}</span>
+              </a>
+              <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+              </button>
+            </div>`;
+        } 
+    }).catch(() => {});
    
     /**
      * @brief Cierra la sesión del usuario actual.
@@ -543,6 +544,16 @@
     function logout() {
         fetch('/api/auth/logout', { method: 'POST' }).then(() => location.reload());
       }
+
+      /**
+ * Redirige al wizard de paquetes con los datos del formulario.
+ */
+function buscarPaquete(e) {
+  e.preventDefault();
+  const form = document.getElementById('form-paquetes');
+  const params = new URLSearchParams(new FormData(form));
+  window.location.href = `/paquetes?${params.toString()}`;
+}
   </script>
     </body>
 </html>

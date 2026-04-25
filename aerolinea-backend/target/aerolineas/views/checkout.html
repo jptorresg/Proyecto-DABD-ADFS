@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra – Aerolíneas Halcón</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../css/global.css" rel="stylesheet">
+    <link href="../css/index.css" rel="stylesheet">
+    <link href="../css/checkout.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth-guard.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/checkout.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="checkoutData()">
+
+    <!-- Header (incluir partial) -->
+    <div id="header-placeholder"></div>
+
+    <!-- Breadcrumb -->
+    <nav class="chk-breadcrumb">
+        <div class="container">
+            <a href="index.html"><i class="fas fa-home"></i> Inicio</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="resultados.html">Resultados</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="detalle.html">Detalle</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>Checkout</span>
+        </div>
+    </nav>
+
+    <!-- Progress Indicator -->
+    <section class="chk-progress">
+        <div class="container">
+            <div class="chk-steps">
+                <div class="chk-step chk-step-done">
+                    <div class="chk-step-circle"><i class="fas fa-check"></i></div>
+                    <span class="chk-step-label">Selección</span>
+                </div>
+                <div class="chk-step chk-step-active">
+                    <div class="chk-step-circle">2</div>
+                    <span class="chk-step-label">Pago</span>
+                </div>
+                <div class="chk-step">
+                    <div class="chk-step-circle">3</div>
+                    <span class="chk-step-label">Confirmación</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="chk-main">
+        <div class="container">
+            <div class="row g-4">
+
+                <!-- Columna Izquierda: Formularios -->
+                <div class="col-lg-8">
+
+                    <!-- PASAJEROS -->
+                    <div class="chk-card">
+                        <h2 class="chk-card-title">
+                            <i class="fas fa-users"></i> Información de Pasajeros
+                        </h2>
+                        
+                        <template x-for="(pasajero, index) in pasajeros" :key="index">
+                            <div class="chk-passenger-block">
+                                <div class="chk-passenger-header">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span x-text="`Pasajero ${pasajero.numero} (${pasajero.tipo})`"></span>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Nombre(s) <span class="chk-req">*</span></label>
+                                        <input type="text" class="chk-input" 
+                                               x-model="pasajeros[index].nombres"
+                                               placeholder="Juan Carlos" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Apellido(s) <span class="chk-req">*</span></label>
+                                        <input type="text" class="chk-input" 
+                                               x-model="pasajeros[index].apellidos"
+                                               placeholder="Pérez González" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Fecha de Nacimiento <span class="chk-req">*</span></label>
+                                        <input type="date" class="chk-input" 
+                                               x-model="pasajeros[index].fechaNacimiento"
+                                               :max="maxBirthdate" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Género <span class="chk-req">*</span></label>
+                                        <select class="chk-input" x-model="pasajeros[index].genero" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="M">Masculino</option>
+                                            <option value="F">Femenino</option>
+                                            <option value="O">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Pasaporte <span class="chk-req">*</span></label>
+                                        <input type="text" class="chk-input" 
+                                               x-model="pasajeros[index].pasaporte"
+                                               placeholder="A12345678" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="chk-label">Nacionalidad <span class="chk-req">*</span></label>
+                                        <select class="chk-input" x-model="pasajeros[index].nacionalidad" required>
+                                            <option value="">Seleccionar</option>
+                                            <option value="GT">Guatemala</option>
+                                            <option value="MX">México</option>
+                                            <option value="US">Estados Unidos</option>
+                                            <option value="SV">El Salvador</option>
+                                            <option value="HN">Honduras</option>
+                                            <option value="NI">Nicaragua</option>
+                                            <option value="CR">Costa Rica</option>
+                                            <option value="PA">Panamá</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Contacto Emergencia -->
+                        <div class="chk-contact-block">
+                            <h5 class="chk-section-subtitle">
+                                <i class="fas fa-phone-alt"></i> Contacto de Emergencia
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="chk-label">Nombre Completo <span class="chk-req">*</span></label>
+                                    <input type="text" class="chk-input" 
+                                           x-model="emergencia.nombre"
+                                           placeholder="Ana Patricia Ramírez" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="chk-label">Teléfono <span class="chk-req">*</span></label>
+                                    <input type="tel" class="chk-input" 
+                                           x-model="emergencia.telefono"
+                                           placeholder="+502 5555-1234" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MÉTODO DE PAGO -->
+                    <div class="chk-card">
+                        <h2 class="chk-card-title">
+                            <i class="fas fa-credit-card"></i> Método de Pago
+                        </h2>
+
+                        <!-- Selector tipo pago -->
+                        <div class="chk-payment-methods">
+                            <label class="chk-payment-option" 
+                                   :class="{ 'chk-payment-active': paymentType === 'card' }">
+                                <input type="radio" name="paymentType" value="card" 
+                                       x-model="paymentType">
+                                <div class="chk-pm-content">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Tarjeta de Crédito/Débito</span>
+                                </div>
+                            </label>
+                            <label class="chk-payment-option" 
+                                   :class="{ 'chk-payment-active': paymentType === 'paypal' }">
+                                <input type="radio" name="paymentType" value="paypal" 
+                                       x-model="paymentType">
+                                <div class="chk-pm-content">
+                                    <i class="fab fa-paypal"></i>
+                                    <span>PayPal</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Formulario Tarjeta -->
+                        <div class="chk-card-form" x-show="paymentType === 'card'" x-cloak>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="chk-label">Número de Tarjeta <span class="chk-req">*</span></label>
+                                    <div class="chk-input-icon-wrapper">
+                                        <i class="fas fa-credit-card chk-input-icon"></i>
+                                        <input type="text" 
+                                               class="chk-input chk-input-with-icon" 
+                                               x-model="tarjeta.numero"
+                                               @input="formatCardNumber()"
+                                               placeholder="1234 5678 9012 3456" 
+                                               maxlength="19" required>
+                                        <div class="chk-card-brand" x-text="tarjeta.marca" x-show="tarjeta.marca"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="chk-label">Nombre en la Tarjeta <span class="chk-req">*</span></label>
+                                    <input type="text" class="chk-input" 
+                                           x-model="tarjeta.nombre"
+                                           @input="formatCardName()"
+                                           placeholder="JUAN CARLOS PEREZ" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="chk-label">CVV <span class="chk-req">*</span></label>
+                                    <div class="chk-input-icon-wrapper">
+                                        <input type="text" class="chk-input" 
+                                               x-model="tarjeta.cvv"
+                                               @input="formatCVV()"
+                                               placeholder="123" maxlength="4" required>
+                                        <i class="fas fa-question-circle chk-cvv-help" 
+                                           title="Código de 3 o 4 dígitos en el reverso"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="chk-label">Fecha de Expiración <span class="chk-req">*</span></label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <select class="chk-input" x-model="tarjeta.mes" required>
+                                                <option value="">Mes</option>
+                                                <option value="01">01 - Enero</option>
+                                                <option value="02">02 - Febrero</option>
+                                                <option value="03">03 - Marzo</option>
+                                                <option value="04">04 - Abril</option>
+                                                <option value="05">05 - Mayo</option>
+                                                <option value="06">06 - Junio</option>
+                                                <option value="07">07 - Julio</option>
+                                                <option value="08">08 - Agosto</option>
+                                                <option value="09">09 - Septiembre</option>
+                                                <option value="10">10 - Octubre</option>
+                                                <option value="11">11 - Noviembre</option>
+                                                <option value="12">12 - Diciembre</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-6">
+                                            <select class="chk-input" x-model="tarjeta.año" required>
+                                                <option value="">Año</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2027">2027</option>
+                                                <option value="2028">2028</option>
+                                                <option value="2029">2029</option>
+                                                <option value="2030">2030</option>
+                                                <option value="2031">2031</option>
+                                                <option value="2032">2032</option>
+                                                <option value="2033">2033</option>
+                                                <option value="2034">2034</option>
+                                                <option value="2035">2035</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulario PayPal -->
+                        <div class="chk-paypal-form" x-show="paymentType === 'paypal'" x-cloak>
+                            <div class="chk-paypal-placeholder">
+                                <i class="fab fa-paypal"></i>
+                                <p>Serás redirigido a PayPal para completar el pago de forma segura.</p>
+                                <button type="button" class="chk-paypal-btn" @click="procesarPago()">
+                                    <i class="fab fa-paypal"></i> Continuar con PayPal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DIRECCIÓN DE COBRO -->
+                    <div class="chk-card">
+                        <h2 class="chk-card-title">
+                            <i class="fas fa-map-marker-alt"></i> Dirección de Cobro
+                        </h2>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="chk-label">Dirección <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" 
+                                       x-model="billing.direccion"
+                                       placeholder="Calle Principal 123, Zona 10" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">Ciudad <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" 
+                                       x-model="billing.ciudad"
+                                       placeholder="Guatemala City" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">Departamento/Estado <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" 
+                                       x-model="billing.estado"
+                                       placeholder="Guatemala" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">Código Postal <span class="chk-req">*</span></label>
+                                <input type="text" class="chk-input" 
+                                       x-model="billing.codigoPostal"
+                                       placeholder="01010" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="chk-label">País <span class="chk-req">*</span></label>
+                                <select class="chk-input" x-model="billing.pais" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="GT">Guatemala</option>
+                                    <option value="MX">México</option>
+                                    <option value="US">Estados Unidos</option>
+                                    <option value="SV">El Salvador</option>
+                                    <option value="HN">Honduras</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TÉRMINOS -->
+                    <div class="chk-card chk-card-terms">
+                        <label class="chk-checkbox-label">
+                            <input type="checkbox" x-model="acceptTerms" required>
+                            <span>Acepto los <a href="#" class="chk-link">Términos y Condiciones</a> y la <a href="#" class="chk-link">Política de Privacidad</a></span>
+                        </label>
+                        <label class="chk-checkbox-label">
+                            <input type="checkbox" x-model="acceptNewsletter">
+                            <span>Deseo recibir ofertas y promociones por correo electrónico</span>
+                        </label>
+                    </div>
+
+                </div>
+
+                <!-- Columna Derecha: Resumen -->
+                <div class="col-lg-4">
+
+                    <!-- RESUMEN PEDIDO -->
+                    <div class="chk-summary-panel">
+                        <h3 class="chk-summary-title">Resumen del Pedido</h3>
+
+                        <!-- Vuelo -->
+                        <div class="chk-summary-flight">
+                            <div class="chk-sf-header">
+                                <span class="chk-sf-code" x-text="vueloInfo.codigo"></span>
+                                <span class="chk-sf-badge" x-show="vueloInfo.tipoVuelo === 'escala'">
+                                    <i class="fas fa-circle"></i> Con Escala
+                                </span>
+                            </div>
+                            <div class="chk-sf-route">
+                                <div class="chk-sf-city">
+                                    <span class="chk-sf-time" x-text="vueloInfo.horaSalida"></span>
+                                    <span class="chk-sf-airport" x-text="vueloInfo.origenIata"></span>
+                                </div>
+                                <div class="chk-sf-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+                                <div class="chk-sf-city">
+                                    <span class="chk-sf-time" x-text="vueloInfo.horaLlegada"></span>
+                                    <span class="chk-sf-airport" x-text="vueloInfo.destinoIata"></span>
+                                </div>
+                            </div>
+                            <div class="chk-sf-details">
+                                <span><i class="fas fa-calendar-alt"></i> <span x-text="vueloInfo.fecha"></span></span>
+                                <span><i class="fas fa-users"></i> <span x-text="vueloInfo.numPasajeros"></span> Pasajeros</span>
+                                <span><i class="fas fa-chair"></i> <span x-text="vueloInfo.clase"></span></span>
+                            </div>
+                        </div>
+
+                        <div class="chk-summary-divider"></div>
+
+                        <!-- Desglose -->
+                        <div class="chk-summary-breakdown">
+                            <div class="chk-sb-row">
+                                <span x-text="`Vuelo (${vueloInfo.numPasajeros} × Q${vueloInfo.precioBase})`"></span>
+                                <span x-text="formatCurrency(precioVuelo)"></span>
+                            </div>
+                            <div class="chk-sb-row chk-sb-extra" x-show="extras.equipaje">
+                                <span x-text="`Equipaje facturado (${vueloInfo.numPasajeros})`"></span>
+                                <span>+Q300</span>
+                            </div>
+                            <div class="chk-sb-row chk-sb-extra" x-show="extras.asiento">
+                                <span x-text="`Asiento preferencial (${vueloInfo.numPasajeros})`"></span>
+                                <span>+Q160</span>
+                            </div>
+                            <div class="chk-sb-row chk-sb-extra" x-show="extras.comida">
+                                <span x-text="`Paquete comida (${vueloInfo.numPasajeros})`"></span>
+                                <span>+Q90</span>
+                            </div>
+                            <div class="chk-sb-row chk-sb-tax">
+                                <span>Impuestos y cargos (12%)</span>
+                                <span x-text="formatCurrency(impuestos)"></span>
+                            </div>
+                        </div>
+
+                        <div class="chk-summary-divider"></div>
+
+                        <div class="chk-summary-total">
+                            <span>Total a Pagar</span>
+                            <span class="chk-summary-total-price" x-text="formatCurrency(total)"></span>
+                        </div>
+
+                        <button class="chk-btn-confirm" 
+                                @click="procesarPago()"
+                                :disabled="isProcessing">
+                            <template x-if="!isProcessing">
+                                <span><i class="fas fa-lock"></i> Confirmar y Pagar</span>
+                            </template>
+                            <template x-if="isProcessing">
+                                <span><i class="fas fa-spinner fa-spin"></i> Procesando...</span>
+                            </template>
+                        </button>
+
+                        <p class="chk-summary-secure">
+                            <i class="fas fa-shield-alt"></i> Pago 100% seguro con encriptación SSL
+                        </p>
+                    </div>
+
+                    <!-- HOTEL ALIADO -->
+                    <!--
+                    <div class="chk-hotel-card">
+                        <div class="chk-hotel-badge">¡Oferta Especial!</div>
+                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop" 
+                             alt="Hotel" class="chk-hotel-img">
+                        <div class="chk-hotel-content">
+                            <h4 class="chk-hotel-name">
+                                <i class="fas fa-hotel"></i> Hotel Marquis Reforma
+                            </h4>
+                            <div class="chk-hotel-location">
+                                <i class="fas fa-map-marker-alt"></i> Ciudad de México · A 5 km del aeropuerto
+                            </div>
+                            <div class="chk-hotel-rating">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                <span>5.0 (284 reseñas)</span>
+                            </div>
+                            <div class="chk-hotel-features">
+                                <span><i class="fas fa-wifi"></i> Wi-Fi</span>
+                                <span><i class="fas fa-swimming-pool"></i> Piscina</span>
+                                <span><i class="fas fa-concierge-bell"></i> Room Service</span>
+                            </div>
+                            <div class="chk-hotel-price-row">
+                                <div>
+                                    <span class="chk-hotel-label">Desde</span>
+                                    <span class="chk-hotel-price">Q850<span class="chk-hotel-night">/noche</span></span>
+                                </div>
+                                <span class="chk-hotel-discount">-15% reserva conjunta</span>
+                            </div>
+                            <button class="chk-hotel-btn" @click="alert('Funcionalidad próximamente')">
+                                <i class="fas fa-plus-circle"></i> Agregar Hotel
+                            </button>
+                        </div>
+                    </div>
+                    -->
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (incluir partial) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts para incluir partials -->
+    <script>
+        fetch('../partials/header.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('header-placeholder').innerHTML = html);
+
+        fetch('../partials/footer.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('footer-placeholder').innerHTML = html);
+
+        fetch('../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => document.getElementById('notification-toast').innerHTML = html);
+    </script>
+
+    <script>
+    // Verificar autenticación al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAuth()) {
+            // Ya redirige automáticamente en requireAuth()
+        }
+    });
+    </script>
+</body>
+</html>

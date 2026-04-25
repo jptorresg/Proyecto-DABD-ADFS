@@ -1,29 +1,29 @@
 /**
  * @file reservacion.routes.js
- * @description Rutas para la gestión de reservaciones
- * FIX 2026-04-20: se agrega POST /:id/reenviar-correo
+ * @description Rutas para la gestión de reservaciones.
+ *              Acepta tanto sesión (navegador) como JWT (cliente B2B).
  */
 
 const router = require('express').Router();
 const ctrl = require('../controllers/reservacion.controller');
-const { verifySession } = require('../middlewares/auth.middleware');
+const { verifyAuth } = require('../middlewares/auth.middleware');
 
-// Crear nueva reservación
-router.post('/', verifySession, ctrl.crear);
+// Crear nueva reservación (web o B2B)
+router.post('/', verifyAuth, ctrl.crear);
 
-// Historial del usuario autenticado
-router.get('/usuario/historial', verifySession, ctrl.historialUsuario);
+// Historial del usuario autenticado (sus propias reservas)
+router.get('/usuario/historial', verifyAuth, ctrl.historialUsuario);
 
-// Obtener detalle de una reservación específica
-router.get('/:id', verifySession, ctrl.obtener);
+// Detalle de una reservación específica
+router.get('/:id', verifyAuth, ctrl.obtener);
 
 // Descargar PDF
-router.get('/:id/pdf', verifySession, ctrl.descargarPDF);
+router.get('/:id/pdf', verifyAuth, ctrl.descargarPDF);
 
-// FIX: Reenviar correo de confirmación
-router.post('/:id/reenviar-correo', verifySession, ctrl.reenviarCorreo);
+// Reenviar correo de confirmación
+router.post('/:id/reenviar-correo', verifyAuth, ctrl.reenviarCorreo);
 
 // Cancelar reservación
-router.put('/:id/cancelar', verifySession, ctrl.cancelar);
+router.put('/:id/cancelar', verifyAuth, ctrl.cancelar);
 
 module.exports = router;

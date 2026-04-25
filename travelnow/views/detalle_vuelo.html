@@ -1,42 +1,15 @@
 <!DOCTYPE html>
-/**
- * @file detalle_vuelo.html
- * @brief Página de detalles de vuelo para TravelHub
- * @author TravelHub Team
- * @version 1.0
- * @date 2026
- * 
- * @section descripcion Descripción
- * Esta página muestra la información detallada de un vuelo seleccionado,
- * incluyendo ruta, servicios, precios y sección de comentarios.
- * 
- * @section features Características
- * - Visualización de ruta de vuelo (origen-destino)
- * - Cálculo dinámico de precio por número de pasajeros
- * - Sistema de calificación con estrellas
- * - Sección de comentarios y respuestas
- * - Sidebar de reserva con desglose de precios
- */
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalle del Vuelo — TravelHub</title>
-  <!-- Google Fonts - Fuentes externas para tipografía -->
+  <title>Detalle del Vuelo — TravelNow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Bootstrap CSS - Framework CSS principal -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome - Iconos vectoriales -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <!-- Estilos personalizados del sitio -->
-  <link rel="stylesheet" href="./public/css/styles.css">
+  <link rel="stylesheet" href="/public/css/styles.css">
   <style>
-    /** 
-     * @brief Estilos específicos de la página de detalles
-     * @details Sobrescribe y extiende los estilos globales para
-     *          componentes únicos de esta vista
-     */
     body { background: var(--navy); }
     .detail-section {
       background: rgba(17,34,64,0.7);
@@ -63,7 +36,6 @@
     }
     .detail-header i { color: var(--gold); }
     .detail-body { padding: 2rem; }
-    /* Route display - Estilos para visualización de ruta de vuelo */
     .route-big { display: grid; grid-template-columns: 1fr auto 1fr; gap: 3rem; align-items: center; margin-bottom: 2rem; }
     .route-loc { text-align: center; }
     .route-time-big { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: var(--white); line-height: 1; }
@@ -75,47 +47,11 @@
     .route-line-big { height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); position: relative; margin: 0.5rem 0; }
     .route-line-big::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 8px; height: 8px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px rgba(212,168,67,0.5); }
     .direct-pill { display: inline-block; background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-top: 0.4rem; }
-    /* Info items - Tarjetas de información del vuelo */
     .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
     .info-item-dark { display: flex; align-items: flex-start; gap: 0.8rem; background: rgba(10,22,40,0.4); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); padding: 1rem; }
     .info-icon-dark { width: 34px; height: 34px; background: var(--gold-dim); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 0.85rem; flex-shrink: 0; }
     .info-lbl { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
     .info-val { font-size: 0.88rem; color: var(--cream); font-weight: 500; margin-top: 0.15rem; }
-    /* Servicios - Grid de servicios incluidos */
-    .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
-    .service-card-dark { background: rgba(10,22,40,0.5); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1.2rem; text-align: center; transition: var(--trans); }
-    .service-card-dark:hover { border-color: var(--gold); }
-    .service-icon-dark { font-size: 1.8rem; color: var(--gold); margin-bottom: 0.6rem; }
-    .service-name { font-size: 0.82rem; color: var(--cream); font-weight: 500; }
-    .service-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
-    /* Comentarios - Estilos para reseñas y respuestas */
-    .comment-card {
-      background: rgba(10,22,40,0.5);
-      border: 1px solid rgba(212,168,67,0.12);
-      border-radius: var(--radius-sm);
-      padding: 1.3rem;
-      margin-bottom: 0.8rem;
-    }
-    .comment-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem; }
-    .comment-author { display: flex; align-items: center; gap: 0.8rem; }
-    .comment-avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--gold-dim), rgba(212,168,67,0.25)); border: 1px solid var(--border-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.9rem; color: var(--gold); font-weight: 600; }
-    .comment-name { font-size: 0.9rem; color: var(--cream); font-weight: 500; }
-    .comment-date { font-size: 0.72rem; color: var(--text-muted); }
-    .stars-gold-sm { color: var(--gold); font-size: 0.85rem; }
-    .comment-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 0.7rem; }
-    .comment-actions { display: flex; gap: 1rem; }
-    .comment-action { font-size: 0.78rem; color: var(--text-muted); cursor: pointer; transition: var(--trans); display: flex; align-items: center; gap: 0.3rem; }
-    .comment-action:hover { color: var(--gold); }
-    .reply-indent { margin-left: 2.5rem; margin-top: 0.6rem; }
-    .reply-card { background: rgba(17,34,64,0.4); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); padding: 1rem; }
-    /* Form comentario - Estilos para formulario de reseñas */
-    .comment-form-dark { background: rgba(10,22,40,0.5); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1.5rem; margin-bottom: 1.5rem; }
-    .star-btn { background: none; border: none; color: rgba(212,168,67,0.3); font-size: 1.6rem; cursor: pointer; transition: var(--trans); padding: 0 0.1rem; }
-    .star-btn:hover, .star-btn.active { color: var(--gold); }
-    .th-textarea { background: rgba(10,22,40,0.7); border: 1px solid var(--border-gold); color: var(--cream); border-radius: var(--radius-sm); padding: 0.9rem 1rem; font-family: var(--font-body); font-size: 0.9rem; width: 100%; resize: vertical; min-height: 110px; }
-    .th-textarea::placeholder { color: rgba(245,240,232,0.3); }
-    .th-textarea:focus { outline: none; border-color: var(--gold); }
-    /* Sidebar precio - Estilos para el panel de reserva */
     .price-sidebar-card {
       background: rgba(6,15,28,0.9);
       border: 1px solid var(--border-gold);
@@ -135,207 +71,124 @@
     .trust-mini-item i { display: block; font-size: 1.1rem; color: var(--gold); margin-bottom: 0.3rem; }
     .btn-back-res { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.6rem 1.3rem; font-size: 0.82rem; text-decoration: none; transition: var(--trans); }
     .btn-back-res:hover { border-color: var(--gold); color: var(--gold); }
+    .loading-full { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
+    .error-box { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+    .error-box i { font-size: 3rem; color: var(--coral); display: block; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
 
-  <!--
-    @brief Barra de navegación principal
-    @details Incluye el logo del sitio, enlace para volver a resultados
-             y área de usuario (login/perfil)
-  -->
   <nav class="th-navbar scrolled">
     <div class="container">
       <div class="d-flex align-items-center justify-content-between">
-        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span></a>
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Now</span></a>
         <div class="d-flex align-items-center gap-3">
-          <a href="/resultados" class="btn-back-res"><i class="fa-solid fa-arrow-left"></i> Volver a resultados</a>
+          <a href="javascript:history.back()" class="btn-back-res"><i class="fa-solid fa-arrow-left"></i> Volver a resultados</a>
           <div id="nav-user-area"><a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a></div>
         </div>
       </div>
     </div>
   </nav>
 
-  <div style="padding:90px 0 5rem;">
+  <!-- Loading -->
+  <div id="loading-view" style="padding-top:90px;">
+    <div class="loading-full">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--gold);"></i>
+      <p style="margin-top:1rem;">Cargando detalles del vuelo...</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-view" style="padding-top:90px;display:none;">
+    <div class="error-box">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <h3 style="font-family:var(--font-display);color:var(--cream);">No se pudo cargar el vuelo</h3>
+      <p id="error-msg"></p>
+      <a href="/buscar" class="btn-reservar mt-3">Nueva búsqueda</a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main-view" style="padding:90px 0 5rem;display:none;">
     <div class="container">
       <div class="row g-4">
 
-        <!-- @section Contenido principal de la página -->
         <div class="col-lg-8">
-
-          <!--
-            @section Información del vuelo
-            @brief Muestra detalles de la aerolínea, ruta y clase
-            @details Contiene:
-                      - Nombre de aerolínea y código de vuelo
-                      - Horarios de salida/llegada
-                      - Aeropuertos de origen/destino
-                      - Clase de servicio y equipaje
-          -->
           <div class="detail-section anim-up">
             <div class="detail-header">
               <i class="fa-solid fa-plane-departure"></i>
-              <h2>AeroGuatemala Airlines · <small style="font-size:0.9rem;color:var(--text-muted);">AG-2458 · Boeing 737-800</small></h2>
-              <div class="ms-auto d-flex align-items-center gap-1" style="color:var(--gold);font-size:0.85rem;">
-                <i class="fa-solid fa-star"></i> 4.8 <span style="color:var(--text-muted);font-size:0.78rem;">(328)</span>
+              <h2 id="head-proveedor">—</h2>
+              <div class="ms-auto">
+                <span id="head-codigo" style="color:var(--text-muted);font-size:0.85rem;"></span>
               </div>
             </div>
             <div class="detail-body">
-              <!-- Visualización gráfica de la ruta -->
               <div class="route-big">
                 <div class="route-loc">
-                  <div class="route-time-big">08:30</div>
-                  <div class="route-code-big">GUA</div>
-                  <div class="route-name-big">Aeropuerto La Aurora</div>
-                  <div class="route-name-big">Guatemala City, GT</div>
-                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i>15 Febrero, 2026</div>
+                  <div class="route-time-big" id="hora-salida">—</div>
+                  <div class="route-code-big" id="origen-code">—</div>
+                  <div class="route-name-big" id="origen-ciudad">—</div>
+                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i><span id="fecha-salida">—</span></div>
                 </div>
                 <div class="route-center-big">
-                  <div class="route-dur-big">3h 45m</div>
+                  <div class="route-dur-big" id="duracion">Vuelo</div>
                   <div class="route-line-big"></div>
-                  <div class="direct-pill"><i class="fa-solid fa-check me-1"></i>Vuelo directo</div>
+                  <div class="direct-pill" id="pill-tipo"><i class="fa-solid fa-check me-1"></i>Directo</div>
                 </div>
                 <div class="route-loc">
-                  <div class="route-time-big">12:15</div>
-                  <div class="route-code-big">MIA</div>
-                  <div class="route-name-big">Miami International Airport</div>
-                  <div class="route-name-big">Miami, Florida, USA</div>
-                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i>15 Febrero, 2026</div>
+                  <div class="route-time-big" id="hora-llegada">—</div>
+                  <div class="route-code-big" id="destino-code">—</div>
+                  <div class="route-name-big" id="destino-ciudad">—</div>
+                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i><span id="fecha-llegada">—</span></div>
                 </div>
               </div>
-              <!-- Grid de información adicional -->
+
               <div class="info-grid">
-                <div class="info-item-dark"><div class="info-icon-dark"><i class="fa-solid fa-chair"></i></div><div><div class="info-lbl">Clase</div><div class="info-val">Turista · Asientos reclinables</div></div></div>
-                <div class="info-item-dark"><div class="info-icon-dark"><i class="fa-solid fa-suitcase"></i></div><div><div class="info-lbl">Equipaje</div><div class="info-val">1 maleta 23kg + equipaje de mano</div></div></div>
-                <div class="info-item-dark"><div class="info-icon-dark"><i class="fa-solid fa-utensils"></i></div><div><div class="info-lbl">Comidas</div><div class="info-val">Refrigerio y bebidas incluidas</div></div></div>
-                <div class="info-item-dark"><div class="info-icon-dark"><i class="fa-solid fa-tv"></i></div><div><div class="info-lbl">Entretenimiento</div><div class="info-val">Sistema personal a bordo</div></div></div>
-              </div>
-            </div>
-          </div>
-
-          <!--
-            @section Servicios incluidos
-            @brief Lista de servicios complementarios del vuelo
-            @details Muestra en formato grid los servicios como:
-                      - Check-in online
-                      - WiFi a bordo
-                      - Carga USB
-                      - Programa de millas
-          -->
-          <div class="detail-section anim-up anim-up-1">
-            <div class="detail-header"><i class="fa-solid fa-concierge-bell"></i><h2>Servicios incluidos</h2></div>
-            <div class="detail-body">
-              <div class="service-grid">
-                <div class="service-card-dark"><div class="service-icon-dark"><i class="fa-solid fa-mobile-screen"></i></div><div class="service-name">Check-in Online</div><div class="service-desc">Disponible 24h antes</div></div>
-                <div class="service-card-dark"><div class="service-icon-dark"><i class="fa-solid fa-wifi"></i></div><div class="service-name">WiFi a bordo</div><div class="service-desc">Acceso gratuito</div></div>
-                <div class="service-card-dark"><div class="service-icon-dark"><i class="fa-solid fa-bolt"></i></div><div class="service-name">Carga USB</div><div class="service-desc">En cada asiento</div></div>
-                <div class="service-card-dark"><div class="service-icon-dark"><i class="fa-solid fa-gift"></i></div><div class="service-name">Millas viajero</div><div class="service-desc">Acumula puntos</div></div>
-              </div>
-            </div>
-          </div>
-
-          <!--
-            @section Reseñas de viajeros
-            @brief Sección de comentarios y calificaciones
-            @details Permite a los usuarios:
-                      - Calificar el vuelo con estrellas (1-5)
-                      - Escribir reseñas
-                      - Ver comentarios existentes con respuestas
-                      - Interactuar con "útil" y "responder"
-          -->
-          <div class="detail-section anim-up anim-up-2">
-            <div class="detail-header"><i class="fa-solid fa-star"></i><h2>Reseñas de viajeros</h2></div>
-            <div class="detail-body">
-              <!-- Formulario para nueva reseña -->
-              <div class="comment-form-dark mb-3">
-                <label class="th-label mb-2"><i class="fa-solid fa-star me-1"></i> Tu calificación</label>
-                <div class="mb-3">
-                  <button class="star-btn" data-rating="1"><i class="fa-solid fa-star"></i></button>
-                  <button class="star-btn" data-rating="2"><i class="fa-solid fa-star"></i></button>
-                  <button class="star-btn" data-rating="3"><i class="fa-solid fa-star"></i></button>
-                  <button class="star-btn" data-rating="4"><i class="fa-solid fa-star"></i></button>
-                  <button class="star-btn" data-rating="5"><i class="fa-solid fa-star"></i></button>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-chair"></i></div>
+                  <div><div class="info-lbl">Clase</div><div class="info-val" id="info-asiento">—</div></div>
                 </div>
-                <textarea class="th-textarea mb-3" placeholder="Comparte tu experiencia con este vuelo..."></textarea>
-                <button class="btn-auth" style="width:auto;padding:0.7rem 2rem;font-size:0.85rem;">
-                  <i class="fa-solid fa-paper-plane me-2"></i> Publicar reseña
-                </button>
-              </div>
-
-              <!-- Comentario 1 - María Rodríguez con respuesta de aerolínea -->
-              <div class="comment-card">
-                <div class="comment-head">
-                  <div class="comment-author"><div class="comment-avatar">MR</div><div><div class="comment-name">María Rodríguez</div><div class="comment-date">Hace 2 días</div></div></div>
-                  <span class="stars-gold-sm">★★★★★</span>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-users"></i></div>
+                  <div><div class="info-lbl">Asientos disponibles</div><div class="info-val" id="info-disponibles">—</div></div>
                 </div>
-                <p class="comment-text">Excelente experiencia. El vuelo salió y llegó a tiempo, el personal de cabina fue muy amable. Los asientos son cómodos y el entretenimiento variado. Definitivamente volvería a volar con esta aerolínea.</p>
-                <div class="comment-actions">
-                  <span class="comment-action"><i class="fa-regular fa-thumbs-up"></i> Útil (24)</span>
-                  <span class="comment-action"><i class="fa-regular fa-comment"></i> Responder</span>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-hashtag"></i></div>
+                  <div><div class="info-lbl">Código de vuelo</div><div class="info-val" id="info-codigo">—</div></div>
                 </div>
-                <!-- Respuesta de la aerolínea -->
-                <div class="reply-indent">
-                  <div class="reply-card">
-                    <div class="comment-head"><div class="comment-author"><div class="comment-avatar" style="font-size:0.7rem;">AG</div><div><div class="comment-name">AeroGuatemala</div><div class="comment-date">Hace 1 día</div></div></div></div>
-                    <p class="comment-text" style="margin:0;">¡Muchas gracias por tu reseña, María! Nos alegra que hayas tenido una excelente experiencia. Te esperamos en tu próximo vuelo.</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Comentario 2 - Juan García (calificación 4 estrellas) -->
-              <div class="comment-card">
-                <div class="comment-head">
-                  <div class="comment-author"><div class="comment-avatar">JG</div><div><div class="comment-name">Juan García</div><div class="comment-date">Hace 1 semana</div></div></div>
-                  <span class="stars-gold-sm">★★★★<span style="color:var(--border-gold)">★</span></span>
-                </div>
-                <p class="comment-text">Buen vuelo en general. Servicio correcto aunque la comida podría mejorar. Llegamos incluso unos minutos antes de lo programado. Recomendado.</p>
-                <div class="comment-actions">
-                  <span class="comment-action"><i class="fa-regular fa-thumbs-up"></i> Útil (12)</span>
-                  <span class="comment-action"><i class="fa-regular fa-comment"></i> Responder</span>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-building"></i></div>
+                  <div><div class="info-lbl">Aerolínea</div><div class="info-val" id="info-aerolinea">—</div></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!--
-          @section Sidebar de precios
-          @brief Panel lateral para reserva y cálculo de precios
-          @details Componente interactivo que:
-                    - Muestra precio por persona
-                    - Permite seleccionar número de pasajeros (1-4)
-                    - Calcula precio total dinámicamente
-                    - Incluye desglose de tarifa base e impuestos
-                    - Botón de reserva con enlace a checkout
-                    - Sellos de confianza (pago seguro, mejor precio, soporte)
-        -->
         <div class="col-lg-4">
           <div class="price-sidebar-card anim-up anim-up-1">
             <div class="text-center mb-3" style="padding-bottom:1.2rem;border-bottom:1px solid var(--border-gold);">
               <div class="price-per-person">Precio por persona</div>
-              <div class="big-price-sidebar">$450</div>
-              <div class="price-note">Impuestos y tasas incluidos</div>
+              <div class="big-price-sidebar" id="precio-unitario">$0</div>
+              <div class="price-note">Precio de la agencia con comisión incluida</div>
             </div>
             <label class="th-label"><i class="fa-solid fa-users me-1"></i> Número de pasajeros</label>
             <div class="input-group-custom mb-3">
               <i class="input-icon fa-solid fa-users"></i>
               <select class="th-input" id="num-pasajeros" onchange="actualizarPrecio()">
                 <option value="1">1 Pasajero</option>
-                <option value="2" selected>2 Pasajeros</option>
+                <option value="2">2 Pasajeros</option>
                 <option value="3">3 Pasajeros</option>
                 <option value="4">4 Pasajeros</option>
               </select>
             </div>
-            <!-- Desglose de precios -->
             <div class="price-breakdown-dark">
-              <div class="pb-row"><span id="label-base">Tarifa base (x2)</span><span id="val-base">$900.00</span></div>
-              <div class="pb-row"><span>Impuestos y tasas</span><span>$100.00</span></div>
-              <div class="pb-total"><span>Total</span><span id="val-total">$1,000.00</span></div>
+              <div class="pb-row"><span id="label-base">Tarifa base (x1)</span><span id="val-base">$0.00</span></div>
+              <div class="pb-total"><span>Total</span><span id="val-total">$0.00</span></div>
             </div>
-            <a href="/checkout" class="btn-buscar text-center" style="text-decoration:none;">
+            <a href="#" id="btn-reservar" class="btn-buscar text-center" style="text-decoration:none;">
               <i class="fa-solid fa-cart-plus me-2"></i> Reservar ahora
             </a>
-            <!-- Sellos de confianza -->
             <div class="trust-mini">
               <div class="trust-mini-item"><i class="fa-solid fa-shield-halved"></i>Pago<br>seguro</div>
               <div class="trust-mini-item"><i class="fa-solid fa-tag"></i>Mejor<br>precio</div>
@@ -349,63 +202,120 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    /**
-     * @file Funcionalidades JavaScript de la página de detalles
-     * @description Maneja la interactividad del lado del cliente:
-     *              - Sistema de calificación por estrellas
-     *              - Cálculo dinámico de precios
-     *              - Autenticación de usuario (fetch a API)
-     */
+    const urlParams   = new URLSearchParams(window.location.search);
+    const idVuelo     = urlParams.get('id_vuelo');
+    const idProveedor = urlParams.get('id_proveedor');
 
-    /**
-     * @var {number} selectedRating - Almacena la calificación seleccionada por el usuario (1-5)
-     * @default 0
-     */
-    let selectedRating = 0;
-    
-    /**
-     * @function Inicialización del sistema de estrellas
-     * @description Agrega event listeners a cada botón de estrella para:
-     *              - Registrar la calificación seleccionada
-     *              - Resaltar visualmente las estrellas según la puntuación
-     */
-    document.querySelectorAll('.star-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        selectedRating = parseInt(this.dataset.rating);
-        document.querySelectorAll('.star-btn').forEach((b, i) => {
-          b.classList.toggle('active', i < selectedRating);
-        });
-      });
-    });
-    
-    /**
-     * @function actualizarPrecio
-     * @description Actualiza el precio total dinámicamente según el número de pasajeros
-     * @details Calcula: precio total = (450 * número_pasajeros) + 100 (impuestos)
-     *          Actualiza los elementos DOM:
-     *            - label-base: texto con multiplicador
-     *            - val-base: subtotal de tarifa base
-     *            - val-total: precio final con impuestos
-     */
-    function actualizarPrecio() {
-      const n = parseInt(document.getElementById('num-pasajeros').value);
-      const base = 450 * n;
-      document.getElementById('label-base').textContent = `Tarifa base (x${n})`;
-      document.getElementById('val-base').textContent = `$${base.toFixed(2)}`;
-      document.getElementById('val-total').textContent = `$${(base + 100).toFixed(2)}`;
+    let vueloData = null;
+
+    function showError(msg) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'none';
+      document.getElementById('error-view').style.display   = 'block';
+      document.getElementById('error-msg').textContent      = msg;
     }
-    
-    /**
-     * @function Autenticación de usuario
-     * @description Realiza petición GET al endpoint /api/auth/me para verificar
-     *              si el usuario está autenticado
-     * @details Si el usuario está logueado, reemplaza el botón de login por
-     *          un avatar con el nombre del usuario. Si no, mantiene el login.
-     *          En caso de error de red/API, mantiene el estado por defecto.
-     */
-    fetch('/api/auth/me').then(r=>r.json()).then(d=>{
-      if(d?.ok && d.usuario) document.getElementById('nav-user-area').innerHTML=`<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
-    }).catch(()=>{});
+
+    function formatHora(v) {
+      if (v.hora_salida && v.hora_llegada) return { hs: v.hora_salida, hl: v.hora_llegada };
+      const fmt = f => f ? new Date(f).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) : '—';
+      return { hs: fmt(v.fecha_salida), hl: fmt(v.fecha_llegada) };
+    }
+
+    function formatFecha(f) {
+      return f ? new Date(f).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    }
+
+    async function cargarVuelo() {
+      if (!idVuelo || !idProveedor) {
+        showError('Faltan parámetros para identificar el vuelo.');
+        return;
+      }
+
+      // Reenviamos todos los params de la URL al backend (origen, destino, fecha_salida, etc.)
+      const params = new URLSearchParams(urlParams);
+
+      try {
+        const res  = await fetch(`/api/search/flight/detail?${params.toString()}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'No se pudo obtener el vuelo');
+
+        vueloData = data.data;
+        render(vueloData);
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function render(v) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'block';
+
+      const { hs, hl } = formatHora(v);
+
+      document.getElementById('head-proveedor').textContent = v.nombre_proveedor || 'Aerolínea';
+      document.getElementById('head-codigo').textContent    = v.codigo_vuelo ? `· ${v.codigo_vuelo}` : '';
+
+      document.getElementById('hora-salida').textContent   = hs;
+      document.getElementById('hora-llegada').textContent  = hl;
+      document.getElementById('origen-code').textContent   = v.origen_iata  || v.origen  || '—';
+      document.getElementById('destino-code').textContent  = v.destino_iata || v.destino || '—';
+      document.getElementById('origen-ciudad').textContent = v.origen_ciudad  || '';
+      document.getElementById('destino-ciudad').textContent= v.destino_ciudad || '';
+      document.getElementById('fecha-salida').textContent  = formatFecha(v.fecha_salida);
+      document.getElementById('fecha-llegada').textContent = formatFecha(v.fecha_llegada || v.fecha_salida);
+
+      document.getElementById('info-asiento').textContent     = v.tipo_asiento || '—';
+      document.getElementById('info-disponibles').textContent = v.asientos_disponibles ?? '—';
+      document.getElementById('info-codigo').textContent      = v.codigo_vuelo || '—';
+      document.getElementById('info-aerolinea').textContent   = v.nombre_proveedor || '—';
+
+      const precio = parseFloat(v.precio_agencia || 0);
+      document.getElementById('precio-unitario').textContent = `$${precio.toFixed(2)}`;
+      actualizarPrecio();
+
+      // Link de reservar con todos los datos del vuelo para el checkout
+      const checkoutParams = new URLSearchParams({
+        tipo:          'vuelo',
+        id_vuelo:      v.id_vuelo     || '',
+        id_proveedor:  v.id_proveedor || '',
+        precio:        precio,
+        asiento:       v.tipo_asiento || 'turista',
+        origen:        v.origen_iata  || v.origen  || urlParams.get('origen')  || '',
+        destino:       v.destino_iata || v.destino || urlParams.get('destino') || '',
+        fecha_salida:  v.fecha_salida || urlParams.get('fecha_salida') || '',
+        num_pasajeros: document.getElementById('num-pasajeros').value,
+      });
+      document.getElementById('btn-reservar').href = `/checkout?${checkoutParams.toString()}`;
+    }
+
+    function actualizarPrecio() {
+      if (!vueloData) return;
+      const n = parseInt(document.getElementById('num-pasajeros').value) || 1;
+      const precio = parseFloat(vueloData.precio_agencia || 0);
+      const subtotal = precio * n;
+      document.getElementById('label-base').textContent = `Tarifa base (x${n})`;
+      document.getElementById('val-base').textContent   = `$${subtotal.toFixed(2)}`;
+      document.getElementById('val-total').textContent  = `$${subtotal.toFixed(2)}`;
+
+      // Actualizar link de reservar con el nuevo número de pasajeros
+      const btn = document.getElementById('btn-reservar');
+      if (btn.href) {
+        const u = new URL(btn.href);
+        u.searchParams.set('num_pasajeros', n);
+        btn.href = u.toString();
+      }
+    }
+
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('nav-user-area').innerHTML =
+            `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+        }
+      }).catch(() => {});
+
+    cargarVuelo();
   </script>
 </body>
 </html>

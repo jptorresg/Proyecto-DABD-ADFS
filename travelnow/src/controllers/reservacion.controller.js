@@ -50,25 +50,46 @@ const crear = async (req, res) => {
         );
         const idReservacion = resResult.insertId;
 
-        // ── Vuelo de ida ──────────────────────────────────────────
+        /// Procesar vuelo de ida (para vuelos o paquetes)
+        //
+        // FIX (Bug #4): reservarVuelo ahora devuelve { reservaciones, principal,
+        // codigosConcatenados }. Antes leíamos .codigoReservacion sobre lo que
+        // en realidad era un array, lo que siempre daba undefined y reventaba
+        // con "no devolvio un identificador valido". Ahora:
+        //   - El array completo lo guardamos concatenado en
+        //     codigo_reserva_proveedor (p. ej. "HC123-HC124") para que la
+        //     cancelación posterior pueda ubicar todos los tramos.
+        //   - datos_pasajeros también registra la lista de reservaciones del
+        //     proveedor, para trazabilidad y auditoría.
         if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo) {
             if (!vuelo.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo');
             if (!vuelo.pasajeros?.length) throw new Error('Se requiere al menos un pasajero');
-
+ 
             const prov      = await proveedorService.buscarConfig(vuelo.id_proveedor);
             const respVuelo = await proveedorService.reservarVuelo(vuelo.id_proveedor, {
                 id_vuelo:           vuelo.id_vuelo,
                 metodo_pago:        'agencia',
-                id_usuario_externo: usuario.id_usuario,
                 pasajeros:          vuelo.pasajeros,
             });
-
-            const codigoVueloProv = String(respVuelo?.codigoReservacion ?? respVuelo?.idReservacion ?? '');
-            const precioTotal     = proveedorService.calcularPrecioConGanancia(
+ 
+            // respVuelo.codigosConcatenados maneja tanto vuelos directos (1 tramo)
+            // como con escalas (N tramos) uniforme: "HC123" o "HC123-HC124-HC125".
+            const codigoVueloProv = String(
+                respVuelo?.codigosConcatenados
+                ?? respVuelo?.principal?.codigoReservacion
+                ?? respVuelo?.principal?.idReservacion
+                ?? ''
+            );
+ 
+            if (!codigoVueloProv) {
+                throw new Error('El proveedor no devolvio un codigo de reservacion para el vuelo de ida');
+            }
+ 
+            const precioTotal = proveedorService.calcularPrecioConGanancia(
                 vuelo.precio_proveedor, prov.porcentaje_ganancia
             );
-            totalAgencia += parseFloat(precioTotal) * vuelo.pasajeros.length;
-
+            totalAgencia += parseFloat(precioTotal);
+ 
             await conn.query(
                 `INSERT INTO detalle_vuelo
                    (id_reservacion, id_proveedor, codigo_reserva_proveedor, codigo_vuelo,
@@ -81,27 +102,46 @@ const crear = async (req, res) => {
                     vuelo.codigo_vuelo || '', vuelo.origen || '', vuelo.destino || '',
                     vuelo.fecha_salida || null, vuelo.tipo_asiento || 'turista',
                     vuelo.pasajeros.length, vuelo.precio_proveedor,
-                    prov.porcentaje_ganancia, parseFloat(precioTotal) * vuelo.pasajeros.length,
-                    JSON.stringify(vuelo.pasajeros),
+                    prov.porcentaje_ganancia, precioTotal,
+                    JSON.stringify({
+                        pasajeros: vuelo.pasajeros,
+                        tramos_proveedor: respVuelo?.reservaciones ?? [],
+                    }),
                 ]
             );
         }
-
-        // ── Vuelo de regreso ──────────────────────────────────────
+ 
+        /// Procesar vuelo de regreso (solo para tipo vuelo con ida y vuelta)
+        //
+        // FIX (Bug #4): mismo patrón que el bloque anterior — leemos
+        // codigosConcatenados en vez de asumir objeto plano.
         if (tipo === 'vuelo' && vuelo_regreso) {
+            if (!vuelo_regreso.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo de regreso');
+            if (!vuelo_regreso.pasajeros?.length) throw new Error('Se requiere al menos un pasajero para el vuelo de regreso');
+ 
             const prov   = await proveedorService.buscarConfig(vuelo_regreso.id_proveedor);
             const resReg = await proveedorService.reservarVuelo(vuelo_regreso.id_proveedor, {
                 id_vuelo:           vuelo_regreso.id_vuelo,
                 metodo_pago:        'agencia',
-                id_usuario_externo: usuario.id_usuario,
                 pasajeros:          vuelo_regreso.pasajeros,
             });
-            const codigoReg    = String(resReg?.codigoReservacion ?? resReg?.idReservacion ?? '');
-            const precioReg    = proveedorService.calcularPrecioConGanancia(
+ 
+            const codigoReg = String(
+                resReg?.codigosConcatenados
+                ?? resReg?.principal?.codigoReservacion
+                ?? resReg?.principal?.idReservacion
+                ?? ''
+            );
+ 
+            if (!codigoReg) {
+                throw new Error('El proveedor no devolvio un codigo de reservacion para el vuelo de regreso');
+            }
+ 
+            const precioReg = proveedorService.calcularPrecioConGanancia(
                 vuelo_regreso.precio_proveedor, prov.porcentaje_ganancia
             );
-            totalAgencia += parseFloat(precioReg) * vuelo_regreso.pasajeros.length;
-
+            totalAgencia += parseFloat(precioReg);
+ 
             await conn.query(
                 `INSERT INTO detalle_vuelo
                    (id_reservacion, id_proveedor, codigo_reserva_proveedor, codigo_vuelo,
@@ -111,13 +151,14 @@ const crear = async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
                 [
                     idReservacion, vuelo_regreso.id_proveedor, codigoReg,
-                    vuelo_regreso.codigo_vuelo || '',
-                    vuelo_regreso.origen || '', vuelo_regreso.destino || '',
-                    vuelo_regreso.fecha_salida || null,
-                    vuelo_regreso.tipo_asiento || 'turista',
-                    vuelo_regreso.pasajeros.length, vuelo_regreso.precio_proveedor,
-                    prov.porcentaje_ganancia, parseFloat(precioReg) * vuelo_regreso.pasajeros.length,
-                    JSON.stringify(vuelo_regreso.pasajeros),
+                    vuelo_regreso.codigo_vuelo || '', vuelo_regreso.origen || '',
+                    vuelo_regreso.destino || '', vuelo_regreso.fecha_salida || null,
+                    vuelo_regreso.tipo_asiento || 'turista', vuelo_regreso.pasajeros.length,
+                    vuelo_regreso.precio_proveedor, prov.porcentaje_ganancia, precioReg,
+                    JSON.stringify({
+                        pasajeros: vuelo_regreso.pasajeros,
+                        tramos_proveedor: resReg?.reservaciones ?? [],
+                    }),
                 ]
             );
         }
@@ -134,7 +175,6 @@ const crear = async (req, res) => {
                 fecha_checkout:     hotel.fecha_checkout,
                 num_huespedes:      hotel.num_huespedes,
                 metodo_pago:        'transferencia',
-                id_usuario_externo: usuario.id_usuario,
                 notas:              `Reserva TravelNow - ${codigoReserva}`,
             });
             const codigoHotelProv = String(respHotel?.idReservacion ?? '');
@@ -162,6 +202,17 @@ const crear = async (req, res) => {
                     hotel.precio_noche_proveedor, prov.porcentaje_ganancia, montoHotel,
                 ]
             );
+        }
+
+        // ── PAQUETE: aplicar descuento SOLO si es paquete con vuelo + hotel ──
+        let descuentoPaquete = 0;
+        let totalAntesDescuento = totalAgencia;
+        if (tipo === 'paquete' && vuelo && hotel && porcentajesGananciaUsados.length >= 2) {
+            // Promedio de los % de ganancia de los proveedores elegidos
+            const promedioPct = porcentajesGananciaUsados.reduce((a, b) => a + b, 0) / porcentajesGananciaUsados.length;
+            descuentoPaquete = +(totalAgencia * (promedioPct / 100)).toFixed(2);
+            totalAgencia = +(totalAgencia - descuentoPaquete).toFixed(2);
+            console.log(`[Paquete] Descuento aplicado: ${promedioPct.toFixed(2)}% = $${descuentoPaquete} (de $${totalAntesDescuento} → $${totalAgencia})`);
         }
 
         // Total incluye IVA
@@ -226,8 +277,23 @@ const crear = async (req, res) => {
         );
     } catch (e) {
         await conn.rollback();
-        console.error('[Reservacion] Error al crear la reservacion:', e.message);
-        return err(res, `Error al crear la reservacion: ${e.message}`);
+
+    // Log detallado para diagnóstico
+    console.error('[Reservacion] Error al crear la reservacion:', e.message);
+    if (e.response) {
+        // Es un error de axios → tenemos status, body y URL
+        console.error(`[Reservacion]   → URL:    ${e.config?.method?.toUpperCase()} ${e.config?.baseURL || ''}${e.config?.url || ''}`);
+        console.error(`[Reservacion]   → Status: ${e.response.status} ${e.response.statusText || ''}`);
+        console.error(`[Reservacion]   → Body:   ${JSON.stringify(e.response.data).slice(0, 500)}`);
+    } else if (e.code) {
+        // Error de red puro
+        console.error(`[Reservacion]   → Código de red: ${e.code}`);
+    }
+    if (e.stack) {
+        console.error(`[Reservacion]   → Stack: ${e.stack.split('\n').slice(0, 4).join('\n')}`);
+    }
+
+    return err(res, `Error al crear la reservacion: ${e.message}`);
     } finally {
         conn.release();
     }
@@ -404,21 +470,184 @@ const reenviarCorreo = async (req, res) => {
  * CANCELAR RESERVACIÓN
  * ────────────────────────────────────────────────────────────────────── */
 const cancelar = async (req, res) => {
-    const { id }  = req.params;
-    const usuario = req.user;
+    const { id }    = req.params;
+    const usuario   = req.user;
+    const { motivo } = req.body || {};
+
     try {
-        const [rows] = await db.query('SELECT * FROM reservacion WHERE id_reservacion = ?', [id]);
+        // 1. Buscar reservación
+        const [rows] = await db.query(
+            `SELECT r.*, u.correo, u.nombre, u.apellido
+               FROM reservacion r
+               JOIN usuario u ON u.id_usuario = r.id_usuario
+              WHERE r.id_reservacion = ?`,
+            [id]
+        );
         if (!rows.length) return err(res, 'Reservacion no encontrada', 404);
 
         const reservacion = rows[0];
-        if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
-            return err(res, 'Acceso denegado', 403);
-        if (reservacion.estado === 'cancelada')
-            return err(res, 'La reservacion ya esta cancelada', 400);
 
-        await db.query('UPDATE reservacion SET estado = "cancelada" WHERE id_reservacion = ?', [id]);
-        return ok(res, { message: 'Reservacion cancelada correctamente' });
+        // 2. Validar permisos: admin O dueño de la reserva
+        const esAdmin   = usuario.rol === 'administrador';
+        const esDueno   = reservacion.id_usuario === usuario.id_usuario;
+        if (!esAdmin && !esDueno) {
+            return err(res, 'No tienes permiso para cancelar esta reservacion', 403);
+        }
+
+        // 3. Validar estado
+        if (reservacion.estado === 'cancelada') {
+            return err(res, 'La reservacion ya esta cancelada', 400);
+        }
+
+        // 4. Obtener detalles
+        const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [id]);
+        const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [id]);
+
+        // 5. Cancelar en proveedores. Llevamos registro de qué se canceló para poder revertir.
+        const cancelados = { vuelos: [], hoteles: [] };
+        const errores    = [];
+
+        // 5a. Vuelos primero
+        for (const v of vuelos) {
+            if (!v.codigo_reserva_proveedor) {
+                console.warn(`[Cancelar] Vuelo ${v.id_detalle_vuelo} sin codigo_reserva_proveedor, se omite`);
+                continue;
+            }
+            try {
+                await proveedorService.cancelarVuelo(v.id_proveedor, v.codigo_reserva_proveedor);
+                cancelados.vuelos.push({
+                    id_proveedor:  v.id_proveedor,
+                    codigo:        v.codigo_reserva_proveedor,
+                });
+            } catch (e) {
+                errores.push({
+                    tipo:   'vuelo',
+                    codigo: v.codigo_reserva_proveedor,
+                    error:  e.message,
+                });
+                break; // abortar al primer error
+            }
+        }
+
+        // 5b. Hoteles solo si vuelos OK
+        if (!errores.length) {
+            for (const h of hoteles) {
+                if (!h.codigo_reserva_proveedor) {
+                    console.warn(`[Cancelar] Hotel ${h.id_detalle_hotel} sin codigo_reserva_proveedor, se omite`);
+                    continue;
+                }
+                try {
+                    await proveedorService.cancelarHotel(h.id_proveedor, h.codigo_reserva_proveedor);
+                    cancelados.hoteles.push({
+                        id_proveedor: h.id_proveedor,
+                        codigo:       h.codigo_reserva_proveedor,
+                    });
+                } catch (e) {
+                    errores.push({
+                        tipo:   'hotel',
+                        codigo: h.codigo_reserva_proveedor,
+                        error:  e.message,
+                    });
+                    break;
+                }
+            }
+        }
+
+        // 6. Si hubo error → revert best-effort y abortar
+        if (errores.length) {
+            console.error(`[Cancelar] Error al cancelar reserva ${reservacion.codigo_reserva}:`, errores);
+            const reverts = { exitosos: [], fallidos: [] };
+
+            // No podemos "des-cancelar" en el proveedor, pero lo intentamos por si su API soporta re-activar.
+            // Si no lo soporta, queda en logs para resolución manual.
+            for (const v of cancelados.vuelos) {
+                try {
+                    // Algunos proveedores tienen /:id/reactivar; si el tuyo no, esto fallará y lo dejamos en logs.
+                    // Por seguridad, NO marcamos automáticamente como "ok" — solo intentamos avisar.
+                    console.warn(`[Cancelar] No revertimos vuelo ${v.codigo} automáticamente (revisar manualmente)`);
+                    reverts.fallidos.push({ tipo: 'vuelo', codigo: v.codigo, motivo: 'revert no implementado' });
+                } catch (revertErr) {
+                    reverts.fallidos.push({ tipo: 'vuelo', codigo: v.codigo, error: revertErr.message });
+                }
+            }
+            for (const h of cancelados.hoteles) {
+                console.warn(`[Cancelar] No revertimos hotel ${h.codigo} automáticamente (revisar manualmente)`);
+                reverts.fallidos.push({ tipo: 'hotel', codigo: h.codigo, motivo: 'revert no implementado' });
+            }
+
+            return err(
+                res,
+                `No se pudo cancelar completamente. Detalle: ${errores.map(e => `${e.tipo} ${e.codigo}: ${e.error}`).join(' | ')}` +
+                (cancelados.vuelos.length || cancelados.hoteles.length
+                    ? `. ATENCIÓN: ${cancelados.vuelos.length} vuelo(s) y ${cancelados.hoteles.length} hotel(es) ya fueron cancelados en sus proveedores y requieren revisión manual.`
+                    : ''),
+                502
+            );
+        }
+
+        // 7. Todo OK → actualizar estado en nuestra BD
+        await db.query(
+            'UPDATE reservacion SET estado = "cancelada" WHERE id_reservacion = ?',
+            [id]
+        );
+
+        // 8. Enviar correo de confirmación de cancelación al cliente
+        try {
+            const cliente = `${reservacion.nombre || ''} ${reservacion.apellido || ''}`.trim();
+            const motivoTxt = motivo
+                ? `<p><strong>Motivo:</strong> ${motivo}</p>`
+                : '';
+            const ejecutadoPor = esAdmin && !esDueno
+                ? `<p style="color:#888;font-size:12px;">Cancelación ejecutada por el equipo de TravelNow.</p>`
+                : '';
+
+            await sendMail({
+                to: reservacion.correo,
+                subject: `TravelNow: Reservación ${reservacion.codigo_reserva} cancelada`,
+                html: `
+                    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+                      <div style="background:#0A1628;color:#F5E6B3;padding:20px;text-align:center;border-radius:8px 8px 0 0;">
+                        <h1 style="margin:0;">TravelNow</h1>
+                        <p style="margin:4px 0 0;font-size:13px;opacity:0.8;">Confirmación de cancelación</p>
+                      </div>
+                      <div style="background:#fff;padding:25px;border:1px solid #ddd;border-top:none;">
+                        <h2 style="color:#0A1628;margin-top:0;">Tu reservación fue cancelada</h2>
+                        <p>Hola <strong>${cliente || 'cliente'}</strong>,</p>
+                        <p>Tu reservación <strong style="color:#D4AF37;">${reservacion.codigo_reserva}</strong>
+                           ha sido cancelada exitosamente.</p>
+                        ${motivoTxt}
+                        <ul style="font-size:14px;color:#444;">
+                          <li>Vuelos cancelados: <strong>${cancelados.vuelos.length}</strong></li>
+                          <li>Hoteles cancelados: <strong>${cancelados.hoteles.length}</strong></li>
+                        </ul>
+                        <p style="font-size:13px;color:#666;">
+                           Si tu pago ya fue procesado, recibirás el reembolso según los términos
+                           de cada proveedor en los siguientes días hábiles.
+                        </p>
+                        ${ejecutadoPor}
+                      </div>
+                      <div style="background:#0A1628;color:#8b95a8;padding:15px;text-align:center;border-radius:0 0 8px 8px;font-size:11px;">
+                        Este es un correo automático, no responder.<br>
+                        &copy; ${new Date().getFullYear()} TravelNow - Guatemala
+                      </div>
+                    </div>`,
+            });
+        } catch (mailErr) {
+            console.error('[Cancelar] Correo de cancelación falló:', mailErr.message);
+            // No abortamos: la cancelación sigue siendo válida aunque el correo falle.
+        }
+
+        return ok(res, {
+            message:           'Reservacion cancelada correctamente',
+            codigo_reserva:    reservacion.codigo_reserva,
+            cancelados_proveedor: {
+                vuelos:  cancelados.vuelos.length,
+                hoteles: cancelados.hoteles.length,
+            },
+            ejecutado_por: esAdmin && !esDueno ? 'administrador' : 'usuario',
+        });
     } catch (e) {
+        console.error('[Cancelar] Error inesperado:', e);
         return err(res, e.message);
     }
 };

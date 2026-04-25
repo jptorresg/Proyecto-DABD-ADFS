@@ -51,7 +51,7 @@ const transporter = nodemailer.createTransport({
  */
 const sendMail = async ({ to, subject, html }) => {
     return transporter.sendMail({
-        from: process.env.MAIL_FROM || 'TravelNow <noreply@travelnow.com>',
+        from: process.env.MAIL_FROM || 'TravelNow <noreply@gmail.com>',
         to,
         subject,
         html,

@@ -59,7 +59,7 @@ services:
     environment:
       - DB_URL=jdbc:oracle:thin:@//oracle-db-1:1521/XEPDB1
       - DB_USER=USUARIO_AEROLINEA
-      - DB_PASSWORD=LLego2005/
+      - DB_PASSWORD=1234
       - DB_DRIVER=oracle.jdbc.OracleDriver
     networks:
       - aerolinea-network
@@ -78,7 +78,7 @@ services:
     environment:
       - DB_URL=jdbc:oracle:thin:@//oracle-db-2:1521/XEPDB1
       - DB_USER=USUARIO_AEROLINEA
-      - DB_PASSWORD=LLego2005/
+      - DB_PASSWORD=1234
       - DB_DRIVER=oracle.jdbc.OracleDriver
     networks:
       - aerolinea-network

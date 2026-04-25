@@ -7,22 +7,8 @@ const { ok, err } = require('../utils/response');
 /**
  * @file Controlador de búsquedas para vuelos, hoteles y destinos
  * @module controllers/searchController
- * @requires ../config/db
- * @requires ../services/proveedor.service
- * @requires ../utils/response
  */
 
-/**
- * Obtiene todos los orígenes y destinos disponibles de proveedores activos
- * @async
- * @function getOrigins
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta HTTP con lista de orígenes/destinos
- * @example
- * // GET /api/origins
- * // Respuesta: { data: [{ id_cache_destino, valor, codigo, proveedor, ... }] }
- */
 const getOrigins = async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -38,17 +24,6 @@ const getOrigins = async (req, res) => {
     }
 };
 
-/**
- * Obtiene todas las ciudades disponibles de proveedores activos
- * @async
- * @function getCities
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta HTTP con lista de ciudades
- * @example
- * // GET /api/cities
- * // Respuesta: { data: [{ id_cache_destino, valor, codigo, proveedor, ... }] }
- */
 const getCities = async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -65,21 +40,14 @@ const getCities = async (req, res) => {
 };
 
 /**
- * Busca vuelos en todos los proveedores activos de tipo aerolínea
- * @async
- * @function searchFlights
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.query - Parámetros de consulta
- * @param {string} req.query.origen - Código IATA o nombre del origen
- * @param {string} req.query.destino - Código IATA o nombre del destino
- * @param {string} req.query.fecha_salida - Fecha de salida (YYYY-MM-DD)
- * @param {string} [req.query.fecha_regreso] - Fecha de regreso (YYYY-MM-DD)
- * @param {string} [req.query.tipo_asiento] - Tipo de asiento (economy, business, etc.)
- * @param {number} [req.query.num_pasajeros] - Número de pasajeros
- * @param {string} [req.query.tipo_vuelo] - Tipo de vuelo (ida, ida_vuelta)
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta HTTP con lista de vuelos ordenados por precio
- * @throws {Error} Si faltan parámetros requeridos
+ * Busca vuelos en todos los proveedores activos de tipo aerolínea.
+ *
+ * MEJORA: Antes, si TODOS los proveedores fallaban, el usuario veía
+ * `{ data: [], total: 0 }` sin ninguna pista de que el problema era una falla
+ * del proveedor (no "ausencia de vuelos"). Ahora incluimos un campo
+ * `proveedores_fallidos` con el detalle, y si no hubo vuelos Y hubo fallas,
+ * la respuesta marca `advertencia` para que la UI lo muestre. Los proveedores
+ * que respondieron OK siguen aportando sus vuelos normalmente.
  */
 const searchFlights = async (req, res) => {
     const {
@@ -98,11 +66,17 @@ const searchFlights = async (req, res) => {
 
     try {
         const [proveedores] = await db.query(
-            'SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'
+            `SELECT id_proveedor, nombre
+               FROM proveedor
+              WHERE tipo = "aerolinea" AND estado = "activo"`
         );
 
         if (!proveedores.length) {
-            return ok(res, { data: [], total: 0, mensaje: 'No hay aerolineas activas configuradas' });
+            return ok(res, {
+                data: [],
+                total: 0,
+                mensaje: 'No hay aerolineas activas configuradas',
+            });
         }
 
         const origenNorm  = await _resolverIata(origen);
@@ -122,16 +96,23 @@ const searchFlights = async (req, res) => {
             proveedores.map(p => proveedorService.buscarVuelos(p.id_proveedor, params))
         );
 
+        // Recolectar proveedores caídos con su mensaje, para reportarlos al cliente.
+        const proveedoresFallidos = [];
         resultados.forEach((r, i) => {
             if (r.status === 'rejected') {
+                const msg = r.reason?.message || String(r.reason);
                 console.error(
-                    `[Search] Proveedor ${proveedores[i].id_proveedor} fallo:`,
-                    r.reason?.message
+                    `[Search] Proveedor ${proveedores[i].id_proveedor} (${proveedores[i].nombre}) fallo:`,
+                    msg
                 );
+                proveedoresFallidos.push({
+                    id_proveedor: proveedores[i].id_proveedor,
+                    nombre:       proveedores[i].nombre,
+                    error:        msg,
+                });
             }
         });
 
-        // BUG CORREGIDO: flatMap en lugar de forEach
         const vuelos = resultados
             .filter(r => r.status === 'fulfilled')
             .flatMap(r => r.value)
@@ -145,26 +126,30 @@ const searchFlights = async (req, res) => {
             num_pasajeros,
         });
 
-        return ok(res, { data: vuelos, total: vuelos.length });
+        // Construir respuesta. Si no hay vuelos y hubo proveedores caídos,
+        // armar un mensaje de advertencia útil para la UI.
+        const payload = { data: vuelos, total: vuelos.length };
+
+        if (proveedoresFallidos.length > 0) {
+            payload.proveedores_fallidos = proveedoresFallidos;
+            if (vuelos.length === 0) {
+                payload.advertencia =
+                    `No se obtuvieron resultados porque ${proveedoresFallidos.length} de ` +
+                    `${proveedores.length} proveedor(es) fallo(aron). Revisa el estado del ` +
+                    `servidor de la aerolinea.`;
+            } else {
+                payload.advertencia =
+                    `Mostrando resultados parciales: ${proveedoresFallidos.length} proveedor(es) ` +
+                    `no respondio(eron) correctamente.`;
+            }
+        }
+
+        return ok(res, payload);
     } catch (e) {
         return err(res, e.message);
     }
 };
 
-/**
- * Busca hoteles en todos los proveedores activos de tipo hotel
- * @async
- * @function searchHotels
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} req.query - Parámetros de consulta
- * @param {string} req.query.ciudad - Ciudad de destino
- * @param {string} req.query.fecha_checkin - Fecha de check-in (YYYY-MM-DD)
- * @param {string} req.query.fecha_checkout - Fecha de check-out (YYYY-MM-DD)
- * @param {number} [req.query.num_huespedes] - Número de huéspedes
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Respuesta HTTP con lista de hoteles ordenados por precio
- * @throws {Error} Si faltan parámetros requeridos
- */
 const searchHotels = async (req, res) => {
     const { ciudad, fecha_checkin, fecha_checkout, num_huespedes } = req.query;
 
@@ -196,7 +181,6 @@ const searchHotels = async (req, res) => {
             }
         });
 
-        // BUG CORREGIDO: flatMap en lugar de forEach
         const hoteles = resultados
             .filter(r => r.status === 'fulfilled')
             .flatMap(r => r.value)
@@ -215,29 +199,69 @@ const searchHotels = async (req, res) => {
     }
 };
 
-/**
- * Busca paquetes turísticos (vuelo ida y vuelta)
- * @async
- * @function searchPackages
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {Object} res - Objeto de respuesta HTTP
- * @returns {Promise<Object>} Redirige la búsqueda a searchFlights con tipo_vuelo="ida_vuelta"
- */
 const searchPackages = async (req, res) => {
-    req.query.tipo_vuelo = 'ida_vuelta';
-    return searchFlights(req, res);
+    const {
+        origen,
+        destino,
+        fecha_salida,
+        fecha_regreso,
+        num_pasajeros,
+        tipo_asiento,
+    } = req.query;
+    if(!origen || !destino || !fecha_salida || !fecha_regreso){
+        return err(res, ' Paquetes requieren: origen, destino, fecha salida, fecha regreso ', 400);
+    }
+    try{
+        //Busca vuelos de ida y vuelta en paralelo con hoteles
+        const [vuelosProveedores, hotelesProveedores] = await Promise.all([
+            db.query('SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'),
+            db.query('SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'),
+        ]);
+        const origenNorm = await _resolverIata(origen);
+        const destinoNorm = await _resolverIata(destino);
+        //Vuelos
+        const paramsVuelo = {
+            origen: origenNorm,
+            destino: destinoNorm,
+            fecha_salida,
+            fecha_regreso,
+            tipo_asiento,
+            num_pasajeros,
+            tipo_vuelo: 'ida_vuelta',
+        };
+        const vuelosPromises = vuelosProveedores[0].map(p => proveedorService.buscarVuelos(p.id_proveedor, paramsVuelo).catch(e => { console.err(`[PACKAGES]Aerolinea ${p.id_proveedor} fallo: `, e.message); return [];}));
+        //Para los hoteles usamos el destino como la ciudad de busqueda
+        const paramsHotel = {
+            ciudad: destino,
+            fecha_checkin: fecha_salida,
+            fecha_checkout: fecha_regreso,
+            num_huespedes: num_pasajeros,
+        };
+        const hotelesPromises = hotelesProveedores[0].map(p => proveedorService.buscarHoteles(p.id_proveedor, paramsHotel).catch(e => {console.error(`[Packages] Hotel ${p.id_proveedor} fallo:`, e.message); return [];}));
+        const [vuelosResults, hotelesResults] = await Promise.all([Promise.all(vuelosPromises), Promise.all(hotelesPromises),]);
+        const vuelos = vuelosResults.flat().sort((a,b) => a.precio_agencia - b.precio_agencia);
+        const hoteles = hotelesResults.flat().sort((a,b) => a.precio_noche_agencia - b.precio_noche_agencia);
+        //Se registra la busqueda
+        await _registrarBusqueda(req, 'vuelo', {
+            origen: origenNorm, destino: destinoNorm,
+            fecha_inicio: fecha_salida, fecha_fin: fecha_regreso,
+            num_pasajeros,
+        });
+        await _registrarBusqueda(req, 'hotel', {
+            ciudad: destino,
+            fecha_inicio: fecha_salida, fecha_fin: fecha_regreso,
+            num_pasajeros,
+        });
+        return ok(res,{
+            data: { vuelos, hoteles },
+            total_vuelos: vuelos.length,
+            total_hoteles: hoteles.length,
+        });
+    } catch (e){
+        return err(res, e.message);
+    }
 };
 
-/**
- * Resuelve un nombre de ciudad a su código IATA
- * @private
- * @async
- * @function _resolverIata
- * @param {string} valor - Nombre de ciudad o código IATA
- * @returns {Promise<string>} Código IATA normalizado en mayúsculas
- * @description Si el valor es un código IATA válido (2-4 letras), lo devuelve directamente.
- * Si no, busca en la base de datos el código asociado a ese nombre de ciudad.
- */
 const _resolverIata = async (valor) => {
     if (!valor) return valor;
     const trimmed = valor.trim();
@@ -254,28 +278,10 @@ const _resolverIata = async (valor) => {
     return trimmed.toUpperCase();
 };
 
-/**
- * Registra una búsqueda en el historial
- * @private
- * @async
- * @function _registrarBusqueda
- * @param {Object} req - Objeto de solicitud HTTP
- * @param {string} tipo - Tipo de búsqueda ('vuelo' o 'hotel')
- * @param {Object} datos - Datos de la búsqueda
- * @param {string} [datos.origen] - Origen del vuelo
- * @param {string} [datos.destino] - Destino del vuelo
- * @param {string} [datos.ciudad] - Ciudad para hotel
- * @param {string} [datos.fecha_inicio] - Fecha de inicio
- * @param {string} [datos.fecha_fin] - Fecha de fin
- * @param {number} [datos.num_pasajeros] - Número de pasajeros/huéspedes
- * @returns {Promise<void>}
- * @description Registra la búsqueda en la tabla historial_busqueda.
- * No lanza errores que interrumpan la ejecución principal.
- */
 const _registrarBusqueda = async (req, tipo, datos) => {
     try {
-        const idUsuario  = req.session?.user?.id_usuario ?? null;
-        const origenBusq = req.headers['hx-request'] ? 'web' : 'rest';
+        const idUsuario  = req.user?.id_usuario ?? req.session?.user?.id_usuario ?? null;
+        const origenBusq = req.user?.es_b2b ? 'rest' : (req.headers['hx-request'] ? 'web' : 'web');
         await db.query(
             `INSERT INTO historial_busqueda
              (id_usuario, tipo_busqueda, origen_busqueda, origen, destino,
@@ -298,4 +304,75 @@ const _registrarBusqueda = async (req, tipo, datos) => {
     }
 };
 
-module.exports = { getOrigins, getCities, searchFlights, searchHotels, searchPackages };
+const getFlightDetail = async (req, res) => {
+    const {
+        id_vuelo,
+        id_proveedor,
+        origen,
+        destino,
+        fecha_salida,
+        fecha_regreso,
+        tipo_asiento,
+        num_pasajeros,
+    } = req.query;
+    if(!id_vuelo || !id_proveedor) {
+        return err(res, 'Faltan parametros: id_vuelo, id_proveedor', 400);
+    }
+    if(!origen || !destino || !fecha_salida){
+        return err(res, 'Faltan parametros: origen, destino, fecha_salida', 400);
+    }
+    try {
+        const origenNorm = await _resolverIata(origen);
+        const destinoNorm = await _resolverIata(destino);
+        const params = {
+            origen: origenNorm,
+            destino: destinoNorm,
+            fecha_salida,
+            fecha_regreso,
+            tipo_asiento,
+            num_pasajeros,
+        };
+        const vuelos = await proveedorService.buscarVuelos(parseInt(id_proveedor), params);
+        const vuelo = vuelos.find(v => String(v.id_vuelo) === String(id_vuelo));
+        if(!vuelo){
+            return err(res, ' Vuelo no encontrado o ya no esta disponible ', 404);
+        }
+        return ok(res, { data: vuelo });
+    } catch (e) {
+        return err(res, e.message);
+    }
+};
+
+const getHotelDetail = async (req, res) => {
+    const {
+        id_habitacion,
+        id_proveedor,
+        ciudad,
+        fecha_checkin,
+        fecha_checkout,
+        num_huespedes,
+    } = req.query;
+
+    if (!id_habitacion || !id_proveedor) {
+        return err(res, 'Faltan parametros: id_habitacion, id_proveedor', 400);
+    }
+    if (!ciudad || !fecha_checkin || !fecha_checkout) {
+        return err(res, 'Faltan parametros: ciudad, fecha_checkin, fecha_checkout', 400);
+    }
+
+    try {
+        const params = { ciudad, fecha_checkin, fecha_checkout, num_huespedes };
+        const hoteles = await proveedorService.buscarHoteles(parseInt(id_proveedor), params);
+        const hotel = hoteles.find(h => String(h.id_habitacion) === String(id_habitacion));
+
+        if (!hotel) {
+            return err(res, 'Habitacion no encontrada o ya no esta disponible', 404);
+        }
+
+        return ok(res, { data: hotel });
+    } catch (e) {
+        return err(res, e.message);
+    }
+};
+
+module.exports = { getOrigins, getCities, searchFlights, searchHotels, searchPackages, getFlightDetail, getHotelDetail };

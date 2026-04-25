@@ -1,75 +1,41 @@
 /**
- * @file Módulo de rutas para búsquedas en el sistema de viajes.
- * @description Define los endpoints relacionados con búsquedas de orígenes, ciudades,
- *              vuelos, hoteles y paquetes turísticos.
- * @module routes/search.routes
- * @requires express
- * @requires ../controllers/search.controller
+ * @file Rutas de búsqueda.
+ * @description Las búsquedas son públicas (cualquiera puede buscar), pero si
+ *              viene un token B2B válido, se marca req.user.es_b2b = true para
+ *              que el controlador lo registre en el historial como tipo "rest".
  */
 
 const router = require('express').Router();
 const ctrl   = require('../controllers/search.controller');
+const jwt    = require('jsonwebtoken');
+require('dotenv').config();
 
 /**
- * Obtiene la lista de aeropuertos o ciudades de origen disponibles.
- * @name GET /origins
- * @function
- * @memberof module:routes/search.routes
- * @param {string} path - Ruta del endpoint
- * @param {function} ctrl.getOrigins - Controlador que procesa la solicitud
- * @returns {Array<Object>} Lista de orígenes disponibles
+ * Middleware "ligero": si hay token JWT válido lo decodifica, si no lo deja pasar.
+ * Nunca rechaza la petición, solo enriquece req.user cuando es posible.
  */
+const optionalAuth = (req, res, next) => {
+    const header = req.headers['authorization'];
+    const token  = header && header.startsWith('Bearer ') ? header.slice(7).trim() : null;
+    if (token) {
+        try {
+            const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+            if (payload.rol === 'webservice') {
+                req.user = { ...payload, es_b2b: true };
+            }
+        } catch {/* token inválido → ignorar, sigue como anónimo */}
+    } else if (req.session?.user) {
+        req.user = { ...req.session.user, es_b2b: false };
+    }
+    next();
+};
+
 router.get('/origins',  ctrl.getOrigins);
-
-/**
- * Obtiene la lista de ciudades destino disponibles.
- * @name GET /cities
- * @function
- * @memberof module:routes/search.routes
- * @param {string} path - Ruta del endpoint
- * @param {function} ctrl.getCities - Controlador que procesa la solicitud
- * @returns {Array<Object>} Lista de ciudades disponibles
- */
 router.get('/cities',   ctrl.getCities);
+router.get('/flights',  optionalAuth, ctrl.searchFlights);
+router.get('/hotels',   optionalAuth, ctrl.searchHotels);
+router.get('/packages', optionalAuth, ctrl.searchPackages);
+router.get('/flight/detail', optionalAuth, ctrl.getFlightDetail);
+router.get('/hotel/detail',  optionalAuth, ctrl.getHotelDetail);
 
-/**
- * Busca vuelos según parámetros de consulta (fecha, origen, destino, etc.).
- * @name GET /flights
- * @function
- * @memberof module:routes/search.routes
- * @param {string} path - Ruta del endpoint
- * @param {function} ctrl.searchFlights - Controlador que procesa la búsqueda de vuelos
- * @param {Object} req.query - Parámetros de búsqueda (origin, destination, date, etc.)
- * @returns {Array<Object>} Lista de vuelos que coinciden con la búsqueda
- */
-router.get('/flights',  ctrl.searchFlights);
-
-/**
- * Busca hoteles según parámetros de consulta (ciudad, fechas, huéspedes, etc.).
- * @name GET /hotels
- * @function
- * @memberof module:modules/search.routes
- * @param {string} path - Ruta del endpoint
- * @param {function} ctrl.searchHotels - Controlador que procesa la búsqueda de hoteles
- * @param {Object} req.query - Parámetros de búsqueda (city, checkIn, checkOut, guests)
- * @returns {Array<Object>} Lista de hoteles disponibles
- */
-router.get('/hotels',   ctrl.searchHotels);
-
-/**
- * Busca paquetes turísticos (vuelo + hotel) según parámetros de consulta.
- * @name GET /packages
- * @function
- * @memberof module:routes/search.routes
- * @param {string} path - Ruta del endpoint
- * @param {function} ctrl.searchPackages - Controlador que procesa la búsqueda de paquetes
- * @param {Object} req.query - Parámetros de búsqueda (origin, destination, dates, travelers)
- * @returns {Array<Object>} Lista de paquetes turísticos disponibles
- */
-router.get('/packages', ctrl.searchPackages);
-
-/**
- * Módulo de rutas exportado para ser usado en la aplicación principal.
- * @exports router
- */
 module.exports = router;

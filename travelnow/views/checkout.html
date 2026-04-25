@@ -293,19 +293,60 @@
      *  @{
      */
     const up          = new URLSearchParams(window.location.search);
-    const tipoReserva = up.get('tipo')         || 'vuelo';    /**< Tipo de reserva: vuelo, hotel o paquete */
-    const idVuelo     = up.get('id_vuelo')     || null;       /**< ID del vuelo seleccionado */
-    const idHabitacion= up.get('id_habitacion')|| null;       /**< ID de la habitación seleccionada */
-    const idProveedor = up.get('id_proveedor') || null;       /**< ID del proveedor (aerolínea/hotel) */
-    const precioBase  = parseFloat(up.get('precio') || 0);    /**< Precio base por persona/noche */
-    const asiento     = up.get('asiento')      || 'turista';  /**< Tipo de asiento para vuelos */
-    const numPax      = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1); /**< Número de pasajeros/huéspedes */
-    const origen      = up.get('origen')       || '';         /**< Ciudad origen (vuelos) */
-    const destino     = up.get('destino')      || '';         /**< Ciudad destino (vuelos) */
-    const ciudad      = up.get('ciudad')       || '';         /**< Ciudad del hotel */
-    const fechaSalida = up.get('fecha_salida') || '';         /**< Fecha de salida del vuelo */
-    const fechaCheckin= up.get('fecha_checkin')|| '';         /**< Fecha de check-in del hotel */
-    const fechaCheckout=up.get('fecha_checkout')|| '';        /**< Fecha de check-out del hotel */
+const fromPackage = up.get('from_package') === '1';
+
+// Variables que se llenan según sea checkout normal o desde paquetes
+let tipoReserva, idVuelo, idHabitacion, idProveedor, idProveedorHotel;
+let precioBase, precioHotel, asiento, numPax;
+let origen, destino, ciudad;
+let fechaSalida, fechaRegreso, fechaCheckin, fechaCheckout;
+let paqueteVuelo = null, paqueteHotel = null, paqueteSearch = null;
+
+if (fromPackage) {
+  // ───── Checkout viene del wizard /paquetes ─────
+  try {
+    paqueteVuelo  = JSON.parse(sessionStorage.getItem('paquete_vuelo')  || 'null');
+    paqueteHotel  = JSON.parse(sessionStorage.getItem('paquete_hotel')  || 'null');
+    paqueteSearch = JSON.parse(sessionStorage.getItem('paquete_search') || '{}');
+  } catch { paqueteVuelo = paqueteHotel = null; paqueteSearch = {}; }
+
+  if (!paqueteVuelo) {
+    alert('Sesión de paquete expirada. Vuelve al buscador de paquetes.');
+    window.location.href = '/';
+  }
+
+  tipoReserva      = up.get('tipo') || (paqueteHotel ? 'paquete' : 'vuelo');
+  idVuelo          = paqueteVuelo.id_vuelo;
+  idProveedor      = paqueteVuelo.id_proveedor;
+  idHabitacion     = paqueteHotel?.id_habitacion || null;
+  idProveedorHotel = paqueteHotel?.id_proveedor  || null;
+  precioBase       = parseFloat(paqueteVuelo.precio_agencia || 0);
+  precioHotel      = parseFloat(paqueteHotel?.precio_noche_agencia || 0);
+  asiento          = paqueteVuelo.tipo_asiento || 'turista';
+  numPax           = parseInt(paqueteSearch.num_pasajeros || 1);
+  origen           = paqueteVuelo.origen_ciudad  || paqueteVuelo.origen  || paqueteSearch.origen  || '';
+  destino          = paqueteVuelo.destino_ciudad || paqueteVuelo.destino || paqueteSearch.destino || '';
+  ciudad           = paqueteHotel?.ciudad || paqueteSearch.destino || '';
+  fechaSalida      = paqueteSearch.fecha_salida  || '';
+  fechaRegreso     = paqueteSearch.fecha_regreso || '';
+  fechaCheckin     = paqueteSearch.fecha_salida  || '';
+  fechaCheckout    = paqueteSearch.fecha_regreso || '';
+} else {
+  // ───── Checkout normal (vuelo solo o hotel solo) ─────
+  tipoReserva   = up.get('tipo')          || 'vuelo';
+  idVuelo       = up.get('id_vuelo')      || null;
+  idHabitacion  = up.get('id_habitacion') || null;
+  idProveedor   = up.get('id_proveedor')  || null;
+  precioBase    = parseFloat(up.get('precio') || 0);
+  asiento       = up.get('asiento')       || 'turista';
+  numPax        = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
+  origen        = up.get('origen')        || '';
+  destino       = up.get('destino')       || '';
+  ciudad        = up.get('ciudad')        || '';
+  fechaSalida   = up.get('fecha_salida')  || '';
+  fechaCheckin  = up.get('fecha_checkin') || '';
+  fechaCheckout = up.get('fecha_checkout')|| '';
+}
     /*! @} */
 
     /*! \defgroup PaymentMethods Métodos de pago
@@ -329,59 +370,103 @@
      *  \brief Renderiza el resumen de la reserva en la columna derecha
      *  @{
      */
-    const TAX_RATE = 0.10; /**< Tasa de impuestos (10% estimado) */
+    // const TAX_RATE = 0.10; /**< Tasa de impuestos (10% estimado) */
     
     /**
      * \brief Renderiza el resumen de la reserva y los precios
      * \details Calcula subtotal, impuestos y total, y genera HTML con los detalles
      * de la reserva según el tipo (vuelo, hotel o paquete)
      */
-    (function renderSummary() {
-      const subtotal  = precioBase * numPax;
-      const tax       = subtotal * TAX_RATE;
-      const total     = subtotal + tax;
+     const TAX_RATE = 0.10;
 
-      document.getElementById('sum-subtotal').textContent = `$${subtotal.toFixed(2)}`;
-      document.getElementById('sum-tax').textContent      = `$${tax.toFixed(2)}`;
-      document.getElementById('sum-total').textContent    = `$${total.toFixed(2)}`;
-
-      let html = '';
-      if (tipoReserva === 'vuelo' || tipoReserva === 'paquete') {
-        html += `
-          <div class="order-item">
-            <div class="order-item-head">
-              <div class="order-item-icon"><i class="fa-solid fa-plane"></i></div>
-              <div>
-                <div class="order-item-name">Vuelo ${tipoReserva === 'paquete' ? '+ Hotel' : ''}</div>
-                <div class="order-item-sub">${origen && destino ? `${origen.toUpperCase()} → ${destino.toUpperCase()}` : 'Vuelo seleccionado'}</div>
-              </div>
-            </div>
-            ${fechaSalida ? `<div class="order-info-line"><i class="fa-regular fa-calendar"></i> ${fechaSalida}</div>` : ''}
-            <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} pasajero(s) · ${asiento}</div>
-            <div class="order-info-line"><i class="fa-solid fa-tag"></i> $${precioBase.toFixed(2)} / persona</div>
-          </div>`;
-      }
-      if (tipoReserva === 'hotel' || tipoReserva === 'paquete') {
-        html += `
-          <div class="order-item">
-            <div class="order-item-head">
-              <div class="order-item-icon"><i class="fa-solid fa-building"></i></div>
-              <div>
-                <div class="order-item-name">Hotel</div>
-                <div class="order-item-sub">${ciudad || 'Alojamiento seleccionado'}</div>
-              </div>
-            </div>
-            ${fechaCheckin  ? `<div class="order-info-line"><i class="fa-regular fa-calendar-check"></i> Check-in: ${fechaCheckin}</div>` : ''}
-            ${fechaCheckout ? `<div class="order-info-line"><i class="fa-regular fa-calendar-xmark"></i> Check-out: ${fechaCheckout}</div>` : ''}
-            <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} huésped(es)</div>
-          </div>`;
-      }
-      if (!html) {
-        html = `<p style="color:var(--text-muted);font-size:0.85rem;">Sin información de reserva.<br>
-          <a href="/buscar" style="color:var(--gold);">Volver a buscar</a></p>`;
-      }
-      document.getElementById('order-summary').innerHTML = html;
-    })();
+     (function renderSummary() {
+       let subtotalVuelo = 0, subtotalHotel = 0, descuento = 0, pctDesc = 0;
+     
+       if (fromPackage && paqueteVuelo) {
+         const noches  = fechaCheckin && fechaCheckout
+           ? Math.max(1, Math.ceil((new Date(fechaCheckout) - new Date(fechaCheckin)) / (1000*60*60*24)))
+           : 1;
+         subtotalVuelo = precioBase * numPax;
+         subtotalHotel = paqueteHotel ? precioHotel * noches : 0;
+     
+         // Descuento promedio de los % de ganancia
+         if (paqueteHotel) {
+           const pctV = parseFloat(paqueteVuelo.porcentaje_ganancia) || 0;
+           const pctH = parseFloat(paqueteHotel.porcentaje_ganancia) || 0;
+           pctDesc    = (pctV + pctH) / 2;
+           descuento  = +((subtotalVuelo + subtotalHotel) * (pctDesc / 100)).toFixed(2);
+         }
+       } else {
+         // Checkout normal
+         const noches = (tipoReserva === 'hotel' && fechaCheckin && fechaCheckout)
+           ? Math.max(1, Math.ceil((new Date(fechaCheckout) - new Date(fechaCheckin)) / (1000*60*60*24)))
+           : 1;
+         if (tipoReserva === 'vuelo')  subtotalVuelo = precioBase * numPax;
+         if (tipoReserva === 'hotel')  subtotalHotel = precioBase * noches;
+       }
+     
+       const subtotalTotal = +(subtotalVuelo + subtotalHotel - descuento).toFixed(2);
+       const tax           = +(subtotalTotal * TAX_RATE).toFixed(2);
+       const total         = +(subtotalTotal + tax).toFixed(2);
+     
+       document.getElementById('sum-subtotal').textContent = `$${(subtotalVuelo + subtotalHotel).toFixed(2)}`;
+       document.getElementById('sum-tax').textContent      = `$${tax.toFixed(2)}`;
+       document.getElementById('sum-total').textContent    = `$${total.toFixed(2)}`;
+     
+       let html = '';
+     
+       if (subtotalVuelo > 0) {
+         html += `
+           <div class="order-item">
+             <div class="order-item-head">
+               <div class="order-item-icon"><i class="fa-solid fa-plane"></i></div>
+               <div>
+                 <div class="order-item-name">Vuelo${tipoReserva === 'paquete' ? ' del paquete' : ''}</div>
+                 <div class="order-item-sub">${origen && destino ? `${origen} → ${destino}` : 'Vuelo seleccionado'}</div>
+               </div>
+             </div>
+             ${fechaSalida ? `<div class="order-info-line"><i class="fa-regular fa-calendar"></i> ${fechaSalida}${fechaRegreso ? ' → ' + fechaRegreso : ''}</div>` : ''}
+             <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} pasajero(s) · ${asiento}</div>
+             <div class="order-info-line"><i class="fa-solid fa-tag"></i> Subtotal: $${subtotalVuelo.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (subtotalHotel > 0) {
+         html += `
+           <div class="order-item">
+             <div class="order-item-head">
+               <div class="order-item-icon"><i class="fa-solid fa-building"></i></div>
+               <div>
+                 <div class="order-item-name">Hotel${tipoReserva === 'paquete' ? ' del paquete' : ''}</div>
+                 <div class="order-item-sub">${ciudad || (paqueteHotel?.nombre_hotel || 'Alojamiento')}</div>
+               </div>
+             </div>
+             ${fechaCheckin  ? `<div class="order-info-line"><i class="fa-regular fa-calendar-check"></i> Check-in: ${fechaCheckin}</div>` : ''}
+             ${fechaCheckout ? `<div class="order-info-line"><i class="fa-regular fa-calendar-xmark"></i> Check-out: ${fechaCheckout}</div>` : ''}
+             <div class="order-info-line"><i class="fa-solid fa-tag"></i> Subtotal: $${subtotalHotel.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (descuento > 0) {
+         html += `
+           <div class="order-item" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.3);">
+             <div class="order-item-head">
+               <div class="order-item-icon" style="background:rgba(52,211,153,0.15);color:#34D399;"><i class="fa-solid fa-tag"></i></div>
+               <div>
+                 <div class="order-item-name" style="color:#34D399;">Descuento de paquete</div>
+                 <div class="order-item-sub">${pctDesc.toFixed(1)}% por reservar vuelo + hotel juntos</div>
+               </div>
+             </div>
+             <div class="order-info-line" style="color:#34D399;font-weight:600;">−$${descuento.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (!html) {
+         html = `<p style="color:var(--text-muted);font-size:0.85rem;">Sin información de reserva.<br>
+           <a href="/buscar" style="color:var(--gold);">Volver a buscar</a></p>`;
+       }
+       document.getElementById('order-summary').innerHTML = html;
+     })();
     /*! @} */
 
     /*! \defgroup UserData Pre-carga de datos de usuario
@@ -468,14 +553,22 @@
       }
 
       if ((tipoReserva === 'hotel' || tipoReserva === 'paquete') && idHabitacion) {
+        // Si venimos de paquete, los datos del hotel tienen su propio proveedor y precio
+        const idProvHotel  = fromPackage ? idProveedorHotel : parseInt(idProveedor);
+        const precioNoche  = fromPackage ? (paqueteHotel?.precio_noche_proveedor ?? precioHotel) : precioBase;
+        const nombreHotel  = fromPackage ? (paqueteHotel?.nombre_hotel || '') : '';
+        const tipoHab      = fromPackage ? (paqueteHotel?.tipo_habitacion || 'doble') : 'doble';
+      
         payload.hotel = {
-          id_habitacion:        idHabitacion,
-          id_proveedor:         parseInt(idProveedor),
-          ciudad:               ciudad,
-          fecha_checkin:        fechaCheckin,
-          fecha_checkout:       fechaCheckout,
-          num_huespedes:        numPax,
-          precio_noche_proveedor: precioBase,
+          id_habitacion:          idHabitacion,
+          id_proveedor:           idProvHotel,
+          ciudad:                 ciudad,
+          fecha_checkin:          fechaCheckin,
+          fecha_checkout:         fechaCheckout,
+          num_huespedes:          numPax,
+          precio_noche_proveedor: precioNoche,
+          nombre_hotel:           nombreHotel,
+          tipo_habitacion:        tipoHab,
         };
       }
 
@@ -492,6 +585,14 @@
           mostrarError(data.message || 'Error al procesar la reservación.');
           resetBtn();
           return;
+        }
+
+        // Si venía de paquete, limpiar sessionStorage
+        if (fromPackage) {
+          sessionStorage.removeItem('paquete_vuelo');
+          sessionStorage.removeItem('paquete_hotel');
+          sessionStorage.removeItem('paquete_search');
+          sessionStorage.removeItem('paquete_solo_vuelo');
         }
 
         // FIX #14: si el correo no se envió, mostrar aviso antes de redirigir

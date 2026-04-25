@@ -115,6 +115,57 @@ const requireRole = (...roles) => (req, res, next) => {
 };
 
 /**
+ * @brief Middleware de autenticación dual: acepta JWT o sesión.
+ * 
+ * Prioridad:
+ *   1. Si viene header Authorization: Bearer <token> → valida JWT (cliente B2B).
+ *      El payload del token debe incluir { id_usuario, correo, rol } y rol === 'webservice'.
+ *   2. Si hay sesión activa (req.session.user) → usa la sesión (navegador).
+ *   3. Si no hay ninguna → 401.
+ * 
+ * Marca req.user.es_b2b = true cuando la auth fue por JWT,
+ * para que los controladores puedan diferenciar (logs, registros, etc.).
+ * 
+ * @param {Object} req - Express request
+ * @param {Object} res - Express response
+ * @param {Function} next - Express next
+ */
+const verifyAuth = (req, res, next) => {
+    const header = req.headers['authorization'];
+    const token  = header && header.startsWith('Bearer ') ? header.slice(7).trim() : null;
+
+    // 1) Intentar JWT primero (cliente B2B)
+    if (token) {
+        try {
+            const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+            if (payload.rol !== 'webservice') {
+                return res.status(403).json({
+                    ok: false,
+                    message: 'Token válido pero el rol no es webservice. Solo usuarios B2B pueden usar el API REST.',
+                });
+            }
+            req.user = { ...payload, es_b2b: true };
+            return next();
+        } catch {
+            return res.status(401).json({ ok: false, message: 'Token JWT inválido o expirado' });
+        }
+    }
+
+    // 2) Fallback a sesión del navegador
+    if (req.session?.user) {
+        req.user = { ...req.session.user, es_b2b: false };
+        return next();
+    }
+
+    // 3) Nada autenticado
+    if (req.headers['hx-request']) {
+        res.set('HX-Redirect', '/login');
+        return res.status(401).send();
+    }
+    return res.status(401).json({ ok: false, message: 'No autenticado. Inicia sesión o envía un token JWT.' });
+};
+
+/**
  * @module authMiddleware
  * @description Middlewares exportados para autenticación y autorización
  * 
@@ -122,4 +173,4 @@ const requireRole = (...roles) => (req, res, next) => {
  * @property {Function} verifySession - Middleware para verificar sesión en vistas
  * @property {Function} requireRole - Middleware factory para verificar roles
  */
-module.exports = { verifyToken, verifySession, requireRole };
+module.exports = { verifyToken, verifySession, verifyAuth, requireRole };

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paquetes — TravelNow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    body { background: var(--navy); }
+
+    .pkg-hero {
+      padding: 6rem 0 2rem;
+      background: linear-gradient(160deg, #0A1628 0%, #112240 60%, #0A1628 100%);
+      border-bottom: 1px solid var(--border-gold);
+    }
+
+    /* Stepper */
+    .steps-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; max-width: 700px; margin: 1.5rem auto 0;
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      flex: 0 0 auto;
+    }
+    .step-circle {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1.5px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; color: var(--text-muted);
+      background: var(--navy);
+      transition: var(--trans);
+      font-weight: 600;
+    }
+    .step.active .step-circle {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+      color: var(--gold);
+      box-shadow: 0 0 16px rgba(212,168,67,0.25);
+    }
+    .step.done .step-circle { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+    .step-label {
+      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .step.active .step-label { color: var(--gold); }
+    .step-line { flex: 1 1 auto; height: 1px; background: var(--border-gold); max-width: 120px; margin: 0 0.4rem 1.1rem; }
+
+    /* Selector cards (vuelo/hotel) */
+    .sel-card {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: var(--trans);
+      cursor: pointer;
+    }
+    .sel-card:hover { border-color: rgba(212,168,67,0.6); box-shadow: var(--shadow-gold); }
+    .sel-card.selected { border-color: var(--gold); background: rgba(212,168,67,0.08); }
+    .sel-card.selected::before {
+      content: '✓ Seleccionado';
+      display: inline-block; color: var(--gold); font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem;
+    }
+
+    .airline-badge { background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+    .hotel-badge  { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.3); color: #60A5FA; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+
+    .route-display { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0; }
+    .route-time { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--white); line-height: 1; }
+    .route-code { font-size: 0.88rem; color: var(--cream); }
+    .route-city { font-size: 0.72rem; color: var(--text-muted); }
+    .route-mid  { flex: 1; min-width: 80px; text-align: center; }
+    .route-line { height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); position: relative; }
+    .route-line::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+
+    .big-price { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .big-price small { font-family: var(--font-body); font-size: 0.7rem; color: var(--text-muted); font-weight: 400; }
+
+    /* Resumen */
+    .summary-box {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(10px);
+      margin-bottom: 1.5rem;
+    }
+    .summary-section { padding: 1rem 0; border-bottom: 1px solid rgba(212,168,67,0.15); }
+    .summary-section:last-child { border-bottom: none; }
+    .sum-title { font-family: var(--font-display); font-size: 1.2rem; color: var(--gold); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sum-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.88rem; color: var(--text-muted); }
+    .sum-row strong { color: var(--cream); }
+    .sum-totals { background: rgba(10,22,40,0.5); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1rem 1.3rem; margin-top: 1rem; }
+    .sum-total-final { font-family: var(--font-display); font-size: 1.8rem; color: var(--gold); font-weight: 700; }
+    .sum-discount { color: #34D399; font-weight: 600; }
+
+    /* Botones nav */
+    .nav-btns {
+      display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .btn-nav-back {
+      background: transparent; border: 1px solid var(--border-gold);
+      color: var(--text-muted); padding: 0.8rem 1.8rem;
+      border-radius: var(--radius-sm); font-size: 0.88rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      text-decoration: none; transition: var(--trans);
+    }
+    .btn-nav-back:hover { border-color: var(--gold); color: var(--cream); }
+    .btn-nav-next {
+      background: linear-gradient(135deg, var(--gold) 0%, #B8882E 100%);
+      color: var(--navy); border: none;
+      padding: 0.8rem 2rem; border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: var(--trans);
+    }
+    .btn-nav-next:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,168,67,0.35); }
+    .btn-nav-next:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+    .empty-state i { font-size: 2.5rem; color: var(--gold); display: block; margin-bottom: 0.8rem; }
+
+    .skeleton-card { background: rgba(17,34,64,0.5); border: 1px solid rgba(212,168,67,0.12); border-radius: var(--radius-md); height: 120px; margin-bottom: 1rem; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+    /* Banner sin hoteles */
+    .warn-box {
+      background: rgba(232,99,58,0.1);
+      border: 1px solid rgba(232,99,58,0.35);
+      border-radius: var(--radius-sm);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      color: #F09070;
+      display: flex; align-items: flex-start; gap: 0.8rem;
+    }
+    .warn-box i { flex-shrink: 0; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Now</span></a>
+        <div class="d-none d-lg-flex align-items-center gap-4">
+          <a href="/" class="nav-link-custom">Inicio</a>
+          <a href="/buscar" class="nav-link-custom">Buscar</a>
+          <a href="/historial" class="nav-link-custom" id="link-historial" style="display:none;">Mis reservas</a>
+        </div>
+        <div id="nav-user-area">
+          <a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="pkg-hero">
+    <div class="container">
+      <div class="hero-eyebrow"><i class="fa-solid fa-bag-shopping"></i> Paquete turístico</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:300;color:var(--white);">
+        Arma tu <em style="font-style:italic;color:var(--gold-light)">paquete perfecto</em>
+      </h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;margin-bottom:0;">
+        Primero escoges el vuelo, luego el hotel, y confirmas tu reserva.
+      </p>
+
+      <div class="steps-row">
+        <div class="step active" id="step-1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Vuelo</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Hotel</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Confirmar</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div style="padding:2rem 0 5rem;">
+    <div class="container" style="max-width:1050px;">
+
+      <!-- PASO 1: VUELO -->
+      <div id="pane-1">
+        <h2 style="font-family:var(--font-display);font-size:1.5rem;color:var(--white);margin-bottom:1.2rem;">
+          <i class="fa-solid fa-plane me-2" style="color:var(--gold)"></i>Selecciona tu vuelo ida y vuelta
+        </h2>
+        <div id="lista-vuelos">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div class="nav-btns">
+          <a href="/" class="btn-nav-back"><i class="fa-solid fa-arrow-left"></i> Cancelar</a>
+          <button class="btn-nav-next" id="btn-next-1" onclick="pasoVuelo()" disabled>
+            Continuar al hotel <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- PASO 2: HOTEL -->
+      <div id="pane-2" style="display:none;">
+        <h2 style="font-family:var(--font-display);font-size:1.5rem;color:var(--white);margin-bottom:1.2rem;">
+          <i class="fa-solid fa-building me-2" style="color:var(--gold)"></i>Selecciona tu hotel
+        </h2>
+        <div id="lista-hoteles"></div>
+        <div class="nav-btns">
+          <button class="btn-nav-back" onclick="irAPaso(1)"><i class="fa-solid fa-arrow-left"></i> Cambiar vuelo</button>
+          <div style="display:flex;gap:0.8rem;">
+            <button class="btn-nav-back" id="btn-solo-vuelo" style="display:none;" onclick="saltarHotel()">
+              Continuar sin hotel
+            </button>
+            <button class="btn-nav-next" id="btn-next-2" onclick="pasoHotel()" disabled>
+              Ver resumen <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 3: RESUMEN -->
+      <div id="pane-3" style="display:none;">
+        <h2 style="font-family:var(--font-display);font-size:1.5rem;color:var(--white);margin-bottom:1.2rem;">
+          <i class="fa-solid fa-receipt me-2" style="color:var(--gold)"></i>Resumen de tu paquete
+        </h2>
+        <div id="resumen-content"></div>
+        <div class="nav-btns">
+          <button class="btn-nav-back" onclick="irAPaso(2)"><i class="fa-solid fa-arrow-left"></i> Cambiar hotel</button>
+          <button class="btn-nav-next" onclick="irAlCheckout()">
+            Proceder al pago <i class="fa-solid fa-lock"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /**
+     * Wizard de 3 pasos para armar un paquete turístico.
+     * El estado vive en memoria (searchParams + vueloElegido + hotelElegido).
+     */
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const search = {
+      origen:         urlParams.get('origen')         || '',
+      destino:        urlParams.get('destino')        || '',
+      fecha_salida:   urlParams.get('fecha_salida')   || '',
+      fecha_regreso:  urlParams.get('fecha_regreso')  || '',
+      num_pasajeros:  urlParams.get('num_pasajeros')  || '1',
+      tipo_asiento:   urlParams.get('tipo_asiento')   || 'turista',
+    };
+
+    let vueloElegido   = null;
+    let hotelElegido   = null;
+    let vuelosCache    = [];
+    let hotelesCache   = [];
+    let paqueteSoloVuelo = false;
+
+    /* ── Guards ───────────────── */
+    if (!search.origen || !search.destino || !search.fecha_salida || !search.fecha_regreso) {
+      document.body.innerHTML = `
+        <div style="padding:4rem 2rem;text-align:center;color:var(--text-muted);background:var(--navy);min-height:100vh;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem;color:var(--coral);display:block;margin-bottom:1rem;"></i>
+          <h3 style="font-family:var(--font-display);color:var(--cream);">Falta información de búsqueda</h3>
+          <p>Usa el buscador de paquetes para iniciar.</p>
+          <a href="/" class="btn-reservar mt-3" style="display:inline-block;">Volver al inicio</a>
+        </div>`;
+      throw new Error('Faltan parámetros');
+    }
+
+    /* ── Verificar sesión ───── */
+    async function verificarSesion() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        const d = await r.json();
+        if (!d?.ok || !d.usuario) { window.location.href = '/login'; return; }
+        const linkH = document.getElementById('link-historial');
+        if (linkH) linkH.style.display = '';
+        document.getElementById('nav-user-area').innerHTML =
+          `<a href="/historial" class="btn-nav-user">
+             <div class="avatar"><i class="fa-solid fa-user"></i></div>
+             <span>${d.usuario.nombre}</span>
+           </a>`;
+      } catch { window.location.href = '/login'; }
+    }
+
+    /* ── Cargar vuelos + hoteles en 1 sola llamada ──── */
+    async function cargar() {
+      const params = new URLSearchParams(search);
+      try {
+        const res  = await fetch(`/api/search/packages?${params.toString()}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'Error al buscar paquetes');
+
+        vuelosCache  = data.data.vuelos  || [];
+        hotelesCache = data.data.hoteles || [];
+
+        renderVuelos();
+      } catch (e) {
+        document.getElementById('lista-vuelos').innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);"></i>
+            <h3 style="font-family:var(--font-display);color:var(--cream);">No se pudo cargar</h3>
+            <p>${e.message}</p>
+            <a href="/" class="btn-reservar mt-2" style="display:inline-block;margin-top:1rem;">Volver al inicio</a>
+          </div>`;
+      }
+    }
+
+    /* ── Render vuelos ────────── */
+    function renderVuelos() {
+      const cont = document.getElementById('lista-vuelos');
+      if (!vuelosCache.length) {
+        cont.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-plane-slash"></i>
+            <h3 style="font-family:var(--font-display);color:var(--cream);">No hay vuelos disponibles</h3>
+            <p>Intenta cambiar las fechas o el destino.</p>
+            <a href="/" class="btn-reservar mt-2" style="display:inline-block;margin-top:1rem;">Nueva búsqueda</a>
+          </div>`;
+        return;
+      }
+
+      cont.innerHTML = vuelosCache.map((v, idx) => {
+        const horaS = v.hora_salida  || (v.fecha_salida  ? new Date(v.fecha_salida).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})  : '—');
+        const horaL = v.hora_llegada || (v.fecha_llegada ? new Date(v.fecha_llegada).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}) : '—');
+        return `
+          <div class="sel-card" data-idx="${idx}" onclick="seleccionarVuelo(${idx})">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+              <div style="flex:1;min-width:260px;">
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}</span>
+                <div class="route-display">
+                  <div><div class="route-time">${horaS}</div><div class="route-code">${v.origen_iata || v.origen || '—'}</div><div class="route-city">${v.origen_ciudad || ''}</div></div>
+                  <div class="route-mid">
+                    <div style="font-size:0.72rem;color:var(--text-muted);">${v.codigo_vuelo || 'Directo'}</div>
+                    <div class="route-line"></div>
+                  </div>
+                  <div><div class="route-time">${horaL}</div><div class="route-code">${v.destino_iata || v.destino || '—'}</div><div class="route-city">${v.destino_ciudad || ''}</div></div>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-muted);">
+                  <i class="fa-solid fa-chair me-1" style="color:var(--gold)"></i>${v.tipo_asiento || '—'}
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="big-price">$${(v.precio_agencia || 0).toFixed(2)}<small>/persona</small></div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function seleccionarVuelo(idx) {
+      document.querySelectorAll('#lista-vuelos .sel-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`#lista-vuelos .sel-card[data-idx="${idx}"]`).classList.add('selected');
+      vueloElegido = vuelosCache[idx];
+      document.getElementById('btn-next-1').disabled = false;
+    }
+
+    /* ── Paso 1 → 2 ─────────── */
+    function pasoVuelo() {
+      if (!vueloElegido) return;
+      irAPaso(2);
+      renderHoteles();
+    }
+
+    /* ── Render hoteles ─────── */
+    function renderHoteles() {
+      const cont = document.getElementById('lista-hoteles');
+      const warnHoteles = hotelesCache.length === 0;
+
+      if (warnHoteles) {
+        cont.innerHTML = `
+          <div class="warn-box">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:1.3rem;"></i>
+            <div>
+              <strong>No encontramos hoteles disponibles</strong> en ${search.destino} para estas fechas.
+              Puedes continuar con el vuelo solo (sin descuento de paquete) o cambiar de destino.
+            </div>
+          </div>
+          <div class="empty-state">
+            <i class="fa-solid fa-building-circle-xmark"></i>
+            <p>No hay hoteles en el destino para las fechas seleccionadas.</p>
+          </div>`;
+        document.getElementById('btn-next-2').disabled = true;
+        document.getElementById('btn-solo-vuelo').style.display = 'inline-flex';
+        return;
+      }
+
+      document.getElementById('btn-solo-vuelo').style.display = 'none';
+
+      const noches = Math.max(1, Math.ceil((new Date(search.fecha_regreso) - new Date(search.fecha_salida)) / (1000*60*60*24)));
+
+      cont.innerHTML = hotelesCache.map((h, idx) => `
+        <div class="sel-card" data-idx="${idx}" onclick="seleccionarHotel(${idx})">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div style="flex:1;min-width:260px;">
+              <span class="hotel-badge"><i class="fa-solid fa-building me-1"></i>${h.nombre_proveedor || 'Hotel'}</span>
+              <div style="font-family:var(--font-display);font-size:1.3rem;color:var(--white);margin-top:0.5rem;">
+                ${h.nombre_hotel || 'Alojamiento'}
+              </div>
+              <div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.3rem;">
+                <i class="fa-solid fa-bed me-1" style="color:var(--gold)"></i>${(h.tipo_habitacion || '').replace(/_/g, ' ')}
+                · <i class="fa-solid fa-users ms-2 me-1" style="color:var(--gold)"></i>Máx. ${h.capacidad_max || '—'}
+                · <i class="fa-solid fa-location-dot ms-2 me-1" style="color:var(--gold)"></i>${h.ciudad || ''}
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="big-price">$${(h.precio_noche_agencia || 0).toFixed(2)}<small>/noche</small></div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${noches} noche(s) = $${((h.precio_noche_agencia || 0) * noches).toFixed(2)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('btn-next-2').disabled = true;
+    }
+
+    function seleccionarHotel(idx) {
+      document.querySelectorAll('#lista-hoteles .sel-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`#lista-hoteles .sel-card[data-idx="${idx}"]`).classList.add('selected');
+      hotelElegido = hotelesCache[idx];
+      paqueteSoloVuelo = false;
+      document.getElementById('btn-next-2').disabled = false;
+    }
+
+    function saltarHotel() {
+      hotelElegido = null;
+      paqueteSoloVuelo = true;
+      renderResumen();
+      irAPaso(3);
+    }
+
+    /* ── Paso 2 → 3 ─────────── */
+    function pasoHotel() {
+      if (!hotelElegido) return;
+      renderResumen();
+      irAPaso(3);
+    }
+
+    /* ── Render resumen ─────── */
+    function renderResumen() {
+      const numPax   = parseInt(search.num_pasajeros) || 1;
+      const noches   = Math.max(1, Math.ceil((new Date(search.fecha_regreso) - new Date(search.fecha_salida)) / (1000*60*60*24)));
+
+      const precioVuelo = (vueloElegido?.precio_agencia || 0) * numPax;
+      const precioHotel = hotelElegido ? (hotelElegido.precio_noche_agencia || 0) * noches : 0;
+      const subtotal    = precioVuelo + precioHotel;
+
+      // Descuento = promedio de los % de ganancia de los proveedores
+      let descuento = 0;
+      let pctDesc   = 0;
+      if (vueloElegido && hotelElegido && !paqueteSoloVuelo) {
+        const pctV = parseFloat(vueloElegido.porcentaje_ganancia) || 0;
+        const pctH = parseFloat(hotelElegido.porcentaje_ganancia) || 0;
+        pctDesc    = (pctV + pctH) / 2;
+        descuento  = +(subtotal * (pctDesc / 100)).toFixed(2);
+      }
+
+      const totalSinIva = subtotal - descuento;
+      const iva         = +(totalSinIva * 0.12).toFixed(2);
+      const total       = +(totalSinIva + iva).toFixed(2);
+
+      const horaS = vueloElegido.hora_salida  || (vueloElegido.fecha_salida  ? new Date(vueloElegido.fecha_salida).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})  : '—');
+      const horaL = vueloElegido.hora_llegada || (vueloElegido.fecha_llegada ? new Date(vueloElegido.fecha_llegada).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}) : '—');
+
+      let html = `<div class="summary-box">`;
+
+      // Vuelo
+      html += `
+        <div class="summary-section">
+          <div class="sum-title"><i class="fa-solid fa-plane"></i> Vuelo seleccionado</div>
+          <div class="sum-row"><span>Aerolínea</span><strong>${vueloElegido.nombre_proveedor}</strong></div>
+          <div class="sum-row"><span>Ruta</span><strong>${vueloElegido.origen_ciudad || vueloElegido.origen || search.origen} → ${vueloElegido.destino_ciudad || vueloElegido.destino || search.destino}</strong></div>
+          <div class="sum-row"><span>Fecha / hora</span><strong>${search.fecha_salida} · ${horaS} → ${horaL}</strong></div>
+          <div class="sum-row"><span>Clase</span><strong>${vueloElegido.tipo_asiento}</strong></div>
+          <div class="sum-row"><span>Pasajeros (x${numPax})</span><strong>$${precioVuelo.toFixed(2)}</strong></div>
+        </div>`;
+
+      // Hotel (si aplica)
+      if (hotelElegido) {
+        html += `
+          <div class="summary-section">
+            <div class="sum-title"><i class="fa-solid fa-building"></i> Hotel seleccionado</div>
+            <div class="sum-row"><span>Hotel</span><strong>${hotelElegido.nombre_hotel}</strong></div>
+            <div class="sum-row"><span>Ciudad</span><strong>${hotelElegido.ciudad}</strong></div>
+            <div class="sum-row"><span>Habitación</span><strong>${(hotelElegido.tipo_habitacion || '').replace(/_/g, ' ')}</strong></div>
+            <div class="sum-row"><span>Check-in / Check-out</span><strong>${search.fecha_salida} → ${search.fecha_regreso}</strong></div>
+            <div class="sum-row"><span>${noches} noche(s)</span><strong>$${precioHotel.toFixed(2)}</strong></div>
+          </div>`;
+      } else if (paqueteSoloVuelo) {
+        html += `
+          <div class="summary-section">
+            <div class="warn-box" style="margin:0;">
+              <i class="fa-solid fa-info-circle" style="font-size:1.2rem;"></i>
+              <div>Este paquete continúa <strong>sin hotel</strong>. El descuento de paquete no se aplica.</div>
+            </div>
+          </div>`;
+      }
+
+      // Totales
+      html += `<div class="sum-totals">`;
+      html += `<div class="sum-row"><span>Subtotal</span><strong>$${subtotal.toFixed(2)}</strong></div>`;
+      if (descuento > 0) {
+        html += `<div class="sum-row sum-discount"><span>Descuento de paquete (${pctDesc.toFixed(1)}%)</span><strong>−$${descuento.toFixed(2)}</strong></div>`;
+      }
+      html += `<div class="sum-row"><span>IVA (12%)</span><strong>$${iva.toFixed(2)}</strong></div>`;
+      html += `<div class="sum-row" style="padding-top:0.6rem;margin-top:0.4rem;border-top:1px solid var(--border-gold);">
+                  <span style="color:var(--cream);font-weight:600;">Total</span>
+                  <span class="sum-total-final">$${total.toFixed(2)} USD</span>
+               </div>`;
+      html += `</div>`;
+
+      html += `</div>`;
+      document.getElementById('resumen-content').innerHTML = html;
+    }
+
+    /* ── Checkout ─────────────── */
+    function irAlCheckout() {
+      // Guardamos los objetos completos en sessionStorage y pasamos solo un flag
+      sessionStorage.setItem('paquete_vuelo', JSON.stringify(vueloElegido));
+      sessionStorage.setItem('paquete_hotel', hotelElegido ? JSON.stringify(hotelElegido) : '');
+      sessionStorage.setItem('paquete_search', JSON.stringify(search));
+      sessionStorage.setItem('paquete_solo_vuelo', paqueteSoloVuelo ? '1' : '0');
+
+      const p = new URLSearchParams({
+        tipo: paqueteSoloVuelo ? 'vuelo' : 'paquete',
+        from_package: '1',
+      });
+      window.location.href = `/checkout?${p.toString()}`;
+    }
+
+    /* ── Control del stepper ── */
+    function irAPaso(n) {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`pane-${i}`).style.display = (i === n) ? 'block' : 'none';
+        const step = document.getElementById(`step-${i}`);
+        step.classList.remove('active', 'done');
+        if (i < n) step.classList.add('done');
+        else if (i === n) step.classList.add('active');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── Init ───────────────── */
+    (async () => {
+      await verificarSesion();
+      cargar();
+    })();
+  </script>
+</body>
+</html>
