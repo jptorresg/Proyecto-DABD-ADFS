@@ -1,0 +1,33 @@
+services:
+
+  # ── Backend ASP.NET Core ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./HotelesAPI
+      dockerfile: Dockerfile
+    container_name: bedly_backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5043
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=BedlyHoteles;User Id=sa;Password=BedlyHoteles2026!;TrustServerCertificate=True;
+      - Jwt__Key=BedlyHotelesSecretKey2026UnisSistemas
+      - Jwt__Issuer=HotelesAPI
+      - Jwt__Audience=BedlyFrontend
+      - Jwt__ExpirationHours=8
+    ports:
+      - "5043:5043"
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ── Frontend HTML/Nginx ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend/hotel
+      dockerfile: Dockerfile
+    container_name: bedly_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always
