@@ -23,8 +23,13 @@ public class VueloService {
     /**
      * Constructor que inicializa el servicio con el DAO de vuelos.
      */
+
     public VueloService() {
         this.vueloDAO = new VueloDAO();
+    }
+    
+    public VueloService(VueloDAO vueloDAO) {
+        this.vueloDAO = vueloDAO;
     }
     
     /**

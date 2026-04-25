@@ -123,6 +123,8 @@ public class ComentarioDAO {
 
         ps.setString(5, comentario.getTextoComentario());
 
+        System.out.println("RATING: " + comentario.getRating());
+
         ps.executeUpdate();
         ps.close();
     }

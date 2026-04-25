@@ -13,12 +13,13 @@ nbproject/
 # Configuración sensible
 # =====================
 db.properties
+mail.properties
 application.properties
 
 # =====================
-# NO ignorar ejemplos
+# Ejemplos
 # =====================
-!db.properties.example
+!*.example
 
 # =====================
 # Node / Frontend
@@ -31,3 +32,29 @@ dist/
 # Logs
 # =====================
 logs/
+
+# Ignorar todo target
+target/*
+
+# PERO permitir estas subcarpetas
+!target/test-classes/
+!target/surefire-reports/
+!target/reports
+
+docs/
+docfx_project/_site/
+
+# Otros
+*.class
+*.log
+*.pdf
+# =====================
+# Maven build
+# =====================
+target/
+
+# =====================
+# DatabasConfig
+# =====================
+
+**/DatabaseConfig.java
