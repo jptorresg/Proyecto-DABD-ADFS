@@ -226,8 +226,75 @@ public class VueloService {
         if (existente == null) {
             throw new IllegalArgumentException("Vuelo no encontrado");
         }
-        
-        return vueloDAO.update(vuelo);
+
+        StringBuilder cambios = new StringBuilder();
+
+        if (!existente.getFechaSalida().equals(vuelo.getFechaSalida())) {
+            cambios.append("- Fecha salida: ")
+                .append(existente.getFechaSalida())
+                .append(" → ")
+                .append(vuelo.getFechaSalida())
+                .append("\n");
+        }
+
+        if (!existente.getHoraSalida().equals(vuelo.getHoraSalida())) {
+            cambios.append("- Hora salida: ")
+                .append(existente.getHoraSalida())
+                .append(" → ")
+                .append(vuelo.getHoraSalida())
+                .append("\n");
+        }
+
+        if (!existente.getFechaLlegada().equals(vuelo.getFechaLlegada())) {
+            cambios.append("- Fecha llegada: ")
+                .append(existente.getFechaLlegada())
+                .append(" → ")
+                .append(vuelo.getFechaLlegada())
+                .append("\n");
+        }
+
+        if (!existente.getHoraLlegada().equals(vuelo.getHoraLlegada())) {
+            cambios.append("- Hora llegada: ")
+                .append(existente.getHoraLlegada())
+                .append(" → ")
+                .append(vuelo.getHoraLlegada())
+                .append("\n");
+        }
+
+        if (!existente.getOrigenCiudad().equals(vuelo.getOrigenCiudad())) {
+            cambios.append("- Origen: ")
+                .append(existente.getOrigenCiudad())
+                .append(" → ")
+                .append(vuelo.getOrigenCiudad())
+                .append("\n");
+        }
+
+        if (!existente.getDestinoCiudad().equals(vuelo.getDestinoCiudad())) {
+            cambios.append("- Destino: ")
+                .append(existente.getDestinoCiudad())
+                .append(" → ")
+                .append(vuelo.getDestinoCiudad())
+                .append("\n");
+        }
+
+        boolean huboCambios = cambios.length() > 0;
+
+        boolean actualizado = vueloDAO.update(vuelo);
+
+        if (actualizado && huboCambios) {
+            List<Usuario> usuarios = usuarioDAO.findByVuelo(vuelo.getIdVuelo());
+
+            for (Usuario u : usuarios) {
+                emailService.enviarActualizacionVuelo(
+                        u.getEmail(),
+                        u.getNombres(),
+                        vuelo.getCodigoVuelo(),
+                        cambios.toString()
+                );
+            }
+        }
+
+        return actualizado;
     }
     
     /**

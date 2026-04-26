@@ -146,4 +146,67 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
+    /** 
+     * Enviar correo de actualización de vuelo
+     *  
+     * @param destino
+     * @param nombre
+     * @param codigoVuelo
+     * @param cambios
+     */
+    public void enviarActualizacionVuelo(
+            String destino,
+            String nombre,
+            String codigoVuelo,
+            String cambios) {
+
+        try {
+            Properties config = new Properties();
+
+            try (InputStream input = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("mail.properties")) {
+
+                config.load(input);
+            }
+
+            Properties props = new Properties();
+            props.put("mail.smtp.host", config.getProperty("mail.host"));
+            props.put("mail.smtp.port", config.getProperty("mail.port"));
+            props.put("mail.smtp.auth", config.getProperty("mail.auth"));
+            props.put("mail.smtp.starttls.enable", config.getProperty("mail.starttls.enable"));
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(
+                            config.getProperty("mail.user"),
+                            config.getProperty("mail.password")
+                    );
+                }
+            });
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(config.getProperty("mail.user")));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destino));
+
+            message.setSubject("Actualización de vuelo " + codigoVuelo);
+
+            String contenido =
+                    "Hola " + nombre + ",\n\n" +
+                    "Tu vuelo ha sido actualizado.\n\n" +
+                    "📢 Cambios realizados:\n" +
+                    cambios + "\n\n" +
+                    "Por favor revisa los detalles en la plataforma.\n\n" +
+                    "Atentamente,\nAerolíneas Halcón";
+
+            message.setText(contenido);
+
+            Transport.send(message);
+
+        } catch (Exception e) {
+            System.err.println("Error enviando correo actualización: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
