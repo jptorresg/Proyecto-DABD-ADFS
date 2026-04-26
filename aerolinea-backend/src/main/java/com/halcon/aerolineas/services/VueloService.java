@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 /**
  * Servicio de lógica de negocio para la gestión de vuelos.
@@ -234,7 +236,7 @@ public class VueloService {
      * @throws SQLException Si ocurre un error en la base de datos.
      */
     public boolean eliminarVuelo(Long idVuelo) throws SQLException {
-        return vueloDAO.delete(idVuelo);
+        return vueloDAO.deleteWithReservaciones(idVuelo);
     }
     
     /**

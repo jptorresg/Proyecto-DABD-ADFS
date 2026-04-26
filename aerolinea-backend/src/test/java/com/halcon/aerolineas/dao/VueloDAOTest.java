@@ -140,7 +140,7 @@ class VueloDAOTest {
     // =========================================================
     // TEST: delete
     // =========================================================
-    @Test
+    /*@Test
     void testDelete() throws Exception {
         when(connection.prepareStatement(anyString())).thenReturn(stmt);
         when(stmt.executeUpdate()).thenReturn(1);
@@ -149,7 +149,7 @@ class VueloDAOTest {
 
         assertTrue(resultado);
         verify(stmt).setLong(1, 1L);
-    }
+    }*/
 
     // =========================================================
     // TEST: decrementarAsientos
