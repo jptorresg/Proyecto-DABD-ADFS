@@ -772,7 +772,24 @@ function vuelosAdminData() {
             this.showModal = false;
             this.currentVuelo = {};
         },
+
+        cancelModal: {
+            show: false,
+            vueloId: null,
+            mensaje: ''
+        },
         
+        openCancelModal(vueloId) {
+            this.cancelModal = {
+                show: true,
+                vueloId: vueloId,
+                mensaje: ''
+            };
+        },
+
+        closeCancelModal() {
+            this.cancelModal.show = false;
+        },
         /**
          * Guarda un vuelo (crea o actualiza) en la base de datos.
          * <p>
@@ -882,25 +899,35 @@ function vuelosAdminData() {
          * @param {number} vueloId - Identificador del vuelo a eliminar.
          * @returns {Promise<void>}
          */
-        async deleteVuelo(vueloId) {
-            if (!confirm('¿Estás seguro de eliminar este vuelo?')) return;
+        async confirmCancelVuelo() {
+            if (!this.cancelModal.mensaje.trim()) {
+                showNotification('Debes ingresar un mensaje', 'error');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_BASE}/vuelos/${vueloId}`, {
+                const response = await fetch(`${API_BASE}/vuelos/${this.cancelModal.vueloId}`, {
                     method: 'DELETE',
-                    credentials: 'include'
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        mensaje: this.cancelModal.mensaje
+                    })
                 });
+
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    showNotification('Vuelo eliminado exitosamente', 'success');
+                    showNotification('Vuelo cancelado exitosamente', 'success');
+                    this.closeCancelModal();
                     await this.fetchVuelos();
                 } else {
                     throw new Error(data.message);
                 }
+
             } catch (error) {
-                console.error('Error deleting vuelo:', error);
-                showNotification('Error al eliminar vuelo', 'error');
+                console.error(error);
+                showNotification('Error al cancelar vuelo', 'error');
             }
         },
         

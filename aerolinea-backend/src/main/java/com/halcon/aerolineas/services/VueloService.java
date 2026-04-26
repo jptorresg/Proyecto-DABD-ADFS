@@ -3,6 +3,8 @@ package com.halcon.aerolineas.services;
 import com.halcon.aerolineas.dao.VueloDAO;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.models.VueloConEscala;
+import com.halcon.aerolineas.dao.UsuarioDAO;
+import com.halcon.aerolineas.models.Usuario;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -21,6 +23,9 @@ import java.sql.PreparedStatement;
  */
 public class VueloService {
     private VueloDAO vueloDAO;
+
+    private UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private EmailService emailService = new EmailService();
     
     /**
      * Constructor que inicializa el servicio con el DAO de vuelos.
@@ -235,8 +240,38 @@ public class VueloService {
      * @return {@code true} si la eliminación fue exitosa.
      * @throws SQLException Si ocurre un error en la base de datos.
      */
-    public boolean eliminarVuelo(Long idVuelo) throws SQLException {
-        return vueloDAO.deleteWithReservaciones(idVuelo);
+    public boolean eliminarVuelo(Long idVuelo, String mensaje) throws Exception {
+
+        // 1. Obtener info del vuelo (para el correo)
+        Vuelo vuelo = vueloDAO.findById(idVuelo);
+        if (vuelo == null) {
+            throw new IllegalArgumentException("Vuelo no encontrado");
+        }
+
+        // 2. Obtener usuarios afectados
+        List<Usuario> usuarios = usuarioDAO.findByVuelo(idVuelo);
+
+        // 3. Cancelar en BD (transacción)
+        boolean resultado = vueloDAO.deleteWithReservaciones(idVuelo);
+
+        // 4. Enviar correos (FUERA de transacción)
+        for (Usuario u : usuarios) {
+            try {
+                emailService.enviarCancelacionVuelo(
+                    u.getEmail(),
+                    u.getNombres(),
+                    vuelo.getCodigoVuelo(),
+                    vuelo.getOrigenCiudad(),
+                    vuelo.getDestinoCiudad(),
+                    vuelo.getFechaSalida().toString(),
+                    mensaje
+                );
+            } catch (Exception e) {
+                System.err.println("Error enviando correo a: " + u.getEmail());
+            }
+        }
+
+        return resultado;
     }
     
     /**
