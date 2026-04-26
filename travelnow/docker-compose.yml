@@ -1,0 +1,38 @@
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: travelnow_app
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # permite llegar al MySQL local
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NODE_ENV: development
+
+      DB_HOST: host.docker.internal  # ← tu MySQL local, NO localhost
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ""
+      DB_NAME: agencia_viajes
+
+      JWT_SECRET: travelnow_secret_2026
+      SESSION_SECRET: travelnow_session_2026
+
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+      MAIL_USER: tr4v3l.n0w@gmail.com
+      MAIL_PASS: quih hkvm uztt xgio
+      MAIL_FROM: "TravelNow <tr4v3l.n0w@gmail.com>"
+
+      PDF_OUTPUT_DIR: ./public/comprobantes
+      HOTELES_USUARIO_AGENCIA_ID: 1
+    volumes:
+      - pdf_data:/app/public/comprobantes
+
+volumes:
+  pdf_data:

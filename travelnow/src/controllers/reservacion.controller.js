@@ -208,11 +208,17 @@ const crear = async (req, res) => {
         let descuentoPaquete = 0;
         let totalAntesDescuento = totalAgencia;
         if (tipo === 'paquete' && vuelo && hotel && porcentajesGananciaUsados.length >= 2) {
-            // Promedio de los % de ganancia de los proveedores elegidos
-            const promedioPct = porcentajesGananciaUsados.reduce((a, b) => a + b, 0) / porcentajesGananciaUsados.length;
-            descuentoPaquete = +(totalAgencia * (promedioPct / 100)).toFixed(2);
-            totalAgencia = +(totalAgencia - descuentoPaquete).toFixed(2);
-            console.log(`[Paquete] Descuento aplicado: ${promedioPct.toFixed(2)}% = $${descuentoPaquete} (de $${totalAntesDescuento} → $${totalAgencia})`);
+            // Recalcular porcentajes desde los proveedores ya consultados
+            const provVuelo = await proveedorService.buscarConfig(vuelo.id_proveedor);
+            const provHotel = await proveedorService.buscarConfig(hotel.id_proveedor);
+            const pctV = parseFloat(provVuelo.porcentaje_ganancia) || 0;
+            const pctH = parseFloat(provHotel.porcentaje_ganancia) || 0;
+            const promedioPct = (pctV + pctH) / 2;
+            if (promedioPct > 0) {
+                 descuentoPaquete = +(totalAgencia * (promedioPct / 100)).toFixed(2);
+                totalAgencia = +(totalAgencia - descuentoPaquete).toFixed(2);
+                console.log(`[Paquete] Descuento ${promedioPct.toFixed(2)}% = $${descuentoPaquete}`);
+            }
         }
 
         // Total incluye IVA

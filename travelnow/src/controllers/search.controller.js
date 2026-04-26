@@ -215,7 +215,7 @@ const searchPackages = async (req, res) => {
         //Busca vuelos de ida y vuelta en paralelo con hoteles
         const [vuelosProveedores, hotelesProveedores] = await Promise.all([
             db.query('SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'),
-            db.query('SELECT id_proveedor FROM proveedor WHERE tipo = "aerolinea" AND estado = "activo"'),
+            db.query('SELECT id_proveedor FROM proveedor WHERE tipo = "hotel" AND estado = "activo"'),
         ]);
         const origenNorm = await _resolverIata(origen);
         const destinoNorm = await _resolverIata(destino);
