@@ -88,6 +88,19 @@ public class AdminController extends HttpServlet {
                 List<Map<String, Object>> usuarios = adminService.obtenerUsuarios();
                 out.print(JsonResponse.success(usuarios));
 
+            } else if (path.equals("/reservaciones/recientes")) {
+
+                String limitParam = request.getParameter("limit");
+                int limit = (limitParam != null) ? Integer.parseInt(limitParam) : 5;
+
+                List<Map<String, Object>> reservaciones = adminService.obtenerReservacionesRecientes(limit);
+                out.print(JsonResponse.success(reservaciones));
+
+            } else if (path.equals("/reservaciones/ultimos7dias")) {
+
+                List<Map<String, Object>> data = adminService.obtenerReservacionesUltimos7Dias();
+                out.print(JsonResponse.success(data));
+
             }
 
         } catch (Exception e) {

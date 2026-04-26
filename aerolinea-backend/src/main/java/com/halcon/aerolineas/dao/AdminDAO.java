@@ -192,6 +192,98 @@ public class AdminDAO {
     }
 
     /**
+     * Obtiene las reservaciones recientes de los usuarios.
+     * <p>
+     * Los resultados se ordenan por fecha de reserva en orden descendente
+     * (las más recientes primero).
+     * 
+     * @param limit Límite de reservaciones a obtener.
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     */
+    public List<Map<String, Object>> obtenerReservacionesRecientes(int limit) {
+
+        List<Map<String, Object>> reservaciones = new ArrayList<>();
+
+        String sql =
+            "SELECT r.ID_RESERVACION, r.CODIGO_RESERVACION, r.FECHA_COMPRA, r.ESTADO, r.PRECIO_TOTAL, " +
+            "v.ORIGEN_CIUDAD, v.DESTINO_CIUDAD " +
+            "FROM RESERVACIONES r " +
+            "JOIN VUELOS v ON r.ID_VUELO = v.ID_VUELO " +
+            "ORDER BY r.FECHA_COMPRA DESC " +
+            "FETCH FIRST ? ROWS ONLY";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, limit);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                Map<String, Object> reservacion = new HashMap<>();
+
+                reservacion.put("id", rs.getInt("ID_RESERVACION"));
+                reservacion.put("codigoReservacion", rs.getString("CODIGO_RESERVACION"));
+                reservacion.put("fechaCompra", rs.getDate("FECHA_COMPRA"));
+                reservacion.put("estado", rs.getString("ESTADO"));
+                reservacion.put("precioTotal", rs.getDouble("PRECIO_TOTAL"));
+
+                // Objeto vuelo (IMPORTANTE porque tu HTML lo espera así)
+                Map<String, Object> vuelo = new HashMap<>();
+                vuelo.put("origen", rs.getString("ORIGEN_CIUDAD"));
+                vuelo.put("destino", rs.getString("DESTINO_CIUDAD"));
+
+                reservacion.put("vuelo", vuelo);
+
+                reservaciones.add(reservacion);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return reservaciones;
+    }
+
+    /**
+     * Obtiene las reservaciones realizadas en los últimos 7 días.
+     * <p>
+     * Los resultados se ordenan por fecha de reserva en orden descendente
+     * (las más recientes primero).
+     * 
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     */
+    public List<Map<String, Object>> obtenerReservacionesUltimos7Dias() {
+
+        List<Map<String, Object>> datos = new ArrayList<>();
+
+        String sql =
+            "SELECT TRUNC(fecha_compra) as fecha, COUNT(*) as total " +
+            "FROM RESERVACIONES " +
+            "WHERE fecha_compra >= TRUNC(SYSDATE) - 6 " +
+            "GROUP BY TRUNC(fecha_compra) " +
+            "ORDER BY fecha";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("fecha", rs.getDate("fecha").toString());
+                row.put("total", rs.getInt("total"));
+                datos.add(row);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return datos;
+    }
+
+    /**
      * Actualiza el rol del usuario especificado.
      *
      * @param userId   Identificador del usuario a actualizar.

@@ -70,6 +70,35 @@ public class AdminService {
     }
 
     /**
+     * Obtiene las reservaciones recientes de los usuarios.
+     * <p>
+     * Los resultados se ordenan por fecha de reserva en orden descendente
+     * (las más recientes primero).
+     * </p>
+     *
+     * @param limit Límite de reservaciones a obtener.
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
+    public List<Map<String, Object>> obtenerReservacionesRecientes(int limit) throws SQLException {
+        return adminDAO.obtenerReservacionesRecientes(limit);
+    }
+
+    /**
+     * Obtiene las reservaciones realizadas en los últimos 7 días.
+     * <p>
+     * Los resultados se ordenan por fecha de reserva en orden descendente
+     * (las más recientes primero).
+     * </p>
+     *
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
+    public List<Map<String, Object>> obtenerReservacionesUltimos7Dias() throws SQLException {
+        return adminDAO.obtenerReservacionesUltimos7Dias();
+    }
+
+    /**
      * Actualiza el rol del usuario especificado.
      * <p>
      * Delega la operación en el método correspondiente del {@link AdminDAO}.
