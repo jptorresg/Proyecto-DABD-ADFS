@@ -12,34 +12,133 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/informativas.css">
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
     
-    <!-- Header (incluido como partial) -->
+    <!-- Header -->
     <div id="header-container"></div>
 
-    <!-- Hero Section -->
+    <!-- =============================================
+         HERO SECTION — sin modificaciones
+         ============================================= -->
     <section class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1 class="hero-title">Vuela más alto con Aerolíneas Halcón</h1>
             <p class="hero-subtitle">Conectamos tus sueños con el mundo. Descubre destinos increíbles con la mejor experiencia de vuelo.</p>
-            <a href="resultados.html?openFilters=true"
-                class="btn btn-hero">
+            <a href="resultados.html?openFilters=true" class="btn btn-hero">
                 <i class="fas fa-plane"></i> Explorar Vuelos
             </a>
         </div>
     </section>
 
-    <!-- Info Cards Section -->
+    <!-- =============================================
+         SECCIÓN INFORMATIVA — nueva, debajo del hero
+         ============================================= -->
+    <section class="info-nav-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-label" style="justify-content:center;"><i class="fas fa-compass"></i> Centro de información</span>
+                <h2 class="section-title" style="font-family:'Playfair Display',serif;">Todo lo que necesitas saber</h2>
+                <p class="section-desc">Desde el check-in hasta el aterrizaje, te acompañamos con información clara y completa para que tu viaje sea perfecto.</p>
+            </div>
+
+            <div class="info-nav-grid">
+
+                <!-- Check-in y abordaje -->
+                <a href="checkin.html" class="info-nav-card checkin">
+                    <img
+                        src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=70"
+                        alt="Check-in y abordaje"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-passport"></i></div>
+                        <div class="info-nav-card-title">Check-in & Abordaje</div>
+                        <div class="info-nav-card-sub">Proceso online, en aeropuerto y zonas de embarque</div>
+                    </div>
+                </a>
+
+                <!-- Tipos de asientos -->
+                <a href="asientos.html" class="info-nav-card asientos">
+                    <img
+                        src="https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=600&q=70"
+                        alt="Tipos de asientos"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-chair"></i></div>
+                        <div class="info-nav-card-title">Tipos de Asientos</div>
+                        <div class="info-nav-card-sub">Turista y Business con comparativa completa</div>
+                    </div>
+                </a>
+
+                <!-- Equipaje -->
+                <a href="equipaje.html" class="info-nav-card equipaje">
+                    <img
+                        src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=70"
+                        alt="Política de equipaje"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-suitcase-rolling"></i></div>
+                        <div class="info-nav-card-title">Equipaje</div>
+                        <div class="info-nav-card-sub">Dimensiones, pesos, restricciones e infografía</div>
+                    </div>
+                </a>
+
+                <!-- Destinos -->
+                <a href="destinos.html" class="info-nav-card destinos">
+                    <img
+                        src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=70"
+                        alt="Destinos turísticos"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-globe-americas"></i></div>
+                        <div class="info-nav-card-title">Destinos Turísticos</div>
+                        <div class="info-nav-card-sub">50+ destinos en 6 continentes con precios de referencia</div>
+                    </div>
+                </a>
+
+                <!-- Hoteles -->
+                <a href="hoteles.html" class="info-nav-card hoteles">
+                    <img
+                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=600&q=70"
+                        alt="Hoteles partners"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-hotel"></i></div>
+                        <div class="info-nav-card-title">Hoteles Partners</div>
+                        <div class="info-nav-card-sub">Descuentos exclusivos al reservar vuelo + hotel</div>
+                    </div>
+                </a>
+
+                <!-- Seguridad -->
+                <a href="seguridad.html" class="info-nav-card seguridad">
+                    <img
+                        src="https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=600&q=70"
+                        alt="Reglas de seguridad"
+                        class="info-nav-card-bg">
+                    <div class="info-nav-card-overlay">
+                        <div class="info-nav-card-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="info-nav-card-title">Reglas de Seguridad</div>
+                        <div class="info-nav-card-sub">Protocolos, normas y procedimientos de emergencia</div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- =============================================
+         INFO CARDS SECTION — sin modificaciones
+         ============================================= -->
     <section class="info-cards-section" x-data="infoCardsData()">
         <div class="container">
             <!-- Primera fila de tarjetas -->
@@ -139,7 +238,7 @@
         </div>
     </section>
 
-    <!-- Footer (incluido como partial) -->
+    <!-- Footer -->
     <div id="footer-container"></div>
 
     <!-- Bootstrap JS -->
@@ -147,10 +246,10 @@
     
     <!-- Alpine.js Data -->
     <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
     
     <!-- Cargar Partials -->
     <script>
-        // Función para cargar partials
         async function loadPartial(containerId, partialPath) {
             try {
                 const response = await fetch(partialPath);
@@ -161,7 +260,6 @@
             }
         }
 
-        // Cargar header y footer
         document.addEventListener('DOMContentLoaded', async () => {
             await loadPartial('header-container', '../partials/header.html');
             await loadPartial('footer-container', '../partials/footer.html');

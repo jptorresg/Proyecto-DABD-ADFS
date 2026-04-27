@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reglas de Seguridad — Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/informativas.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="info-page-body">
+
+    <div id="header-container"></div>
+
+    <!-- Hero -->
+    <section class="info-hero">
+        <div class="info-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1400&q=80');"></div>
+        <div class="info-hero-overlay"></div>
+        <div class="info-hero-content">
+            <div class="info-hero-icon"><i class="fas fa-shield-alt"></i></div>
+            <h1 class="info-hero-title">Reglas de Seguridad</h1>
+            <p class="info-hero-subtitle">Tu seguridad es nuestra máxima prioridad. Conoce los protocolos y normas que garantizan un vuelo seguro para todos.</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <a href="../views/index.html"><i class="fas fa-home"></i> Inicio</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">Reglas de Seguridad</span>
+        </div>
+    </div>
+
+    <main class="info-content">
+        <div class="container">
+
+            <!-- Mensaje importante -->
+            <div class="info-box" style="background:rgba(220,53,69,0.07);border-color:rgba(220,53,69,0.3);margin-bottom:3rem;">
+                <div class="info-box-icon" style="color:#dc3545;"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="info-box-content">
+                    <strong>El cumplimiento es obligatorio</strong>
+                    <p>Todas las normas de seguridad a bordo son de cumplimiento obligatorio según la regulación aeronáutica internacional. El incumplimiento puede resultar en sanciones legales y descenso del vuelo en cualquier aeropuerto.</p>
+                </div>
+            </div>
+
+            <div class="security-sections">
+
+                <!-- Cinturón de seguridad -->
+                <div class="security-block">
+                    <div class="security-block-visual">
+                        <div class="security-big-icon"><i class="fas fa-life-ring"></i></div>
+                        <div class="block-label">Cinturón de Seguridad</div>
+                    </div>
+                    <div class="security-block-content">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Obligatorio</span>
+                            <h3 class="section-title" style="font-size:1.5rem;">Uso del cinturón</h3>
+                        </div>
+                        <ul class="security-rules">
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div>Mantén el cinturón abrochado durante <strong>todo el vuelo</strong>, incluso con el indicador apagado. La turbulencia puede ocurrir en cualquier momento sin previo aviso.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div>Cuando la señal luminosa de cinturón esté <strong>encendida</strong>, debes permanecer en tu asiento con el cinturón abrochado en todo momento.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon info"><i class="fas fa-info"></i></div>
+                                <div>Los bebés y niños pequeños deben usar los dispositivos de retención infantil aprobados por aviación civil o ir en brazos del adulto acompañante, con su cinturón extendido.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon warn"><i class="fas fa-exclamation"></i></div>
+                                <div>Los pasajeros embarazadas deben abrochar el cinturón <strong>por debajo del abdomen</strong>. Notifica al personal de cabina para asistencia adicional.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Dispositivos electrónicos -->
+                <div class="security-block reverse">
+                    <div class="security-block-visual" style="background: linear-gradient(135deg, #3A4D63, #2C3E50);">
+                        <div class="security-big-icon"><i class="fas fa-mobile-alt"></i></div>
+                        <div class="block-label">Dispositivos Electrónicos</div>
+                    </div>
+                    <div class="security-block-content">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Uso regulado</span>
+                            <h3 class="section-title" style="font-size:1.5rem;">Electrónicos a bordo</h3>
+                        </div>
+                        <ul class="security-rules">
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div>Está <strong>prohibido el uso de celulares en modo normal</strong> (con señal celular activa) durante todo el vuelo. Debe activarse el modo avión antes del despegue.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div>Teléfonos, tablets y laptops en <strong>modo avión</strong> pueden usarse durante toda la fase de crucero. Solo deben apagarse durante despegue y aterrizaje si así lo indica la tripulación.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div>El <strong>Wi-Fi a bordo</strong> (disponible en vuelos selectos) puede usarse con tus dispositivos en modo avión, conectándote a la red Halcón_WiFi.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div>Las <strong>baterías de litio dañadas, hinchadas o de más de 160 Wh</strong> están completamente prohibidas tanto en cabina como en bodega por riesgo de ignición.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon warn"><i class="fas fa-exclamation"></i></div>
+                                <div>Los <strong>auriculares con cancelación de ruido</strong> pueden interferir con las instrucciones de seguridad. Mantén un auricular fuera durante anuncios del personal de cabina.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Objetos prohibidos -->
+                <div class="security-block">
+                    <div class="security-block-visual" style="background: linear-gradient(135deg, #7a3535, #5a2020);">
+                        <div class="security-big-icon"><i class="fas fa-ban"></i></div>
+                        <div class="block-label">Objetos Prohibidos</div>
+                    </div>
+                    <div class="security-block-content">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Prohibiciones</span>
+                            <h3 class="section-title" style="font-size:1.5rem;">Artículos no permitidos</h3>
+                        </div>
+                        <ul class="security-rules">
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div><strong>Armas y explosivos:</strong> Ningún tipo de arma, munición, explosivo o artículo pirotécnico está permitido en cabina. Las armas declaradas y desactivadas pueden transportarse en bodega según normativa.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div><strong>Sustancias inflamables:</strong> Encendedores, fósforos, gases inflamables, líquidos peligrosos o cualquier sustancia que pueda causar incendio están absolutamente prohibidos.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div><strong>Objetos cortopunzantes en cabina:</strong> Navajas, tijeras (mayores a 6 cm), herramientas metálicas, agujas de tejer largas. Pueden transportarse en equipaje documentado.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon warn"><i class="fas fa-exclamation"></i></div>
+                                <div><strong>Líquidos en cabina:</strong> Máximo 100 ml por envase, en bolsa plástica transparente de máximo 1 litro. Medicamentos, leche materna y alimentos de bebé están exentos con documentación.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div><strong>Fumar:</strong> Terminantemente prohibido fumar en cualquier zona del avión, incluyendo baños. Esto incluye cigarrillos electrónicos y cualquier dispositivo de vapeo.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Conducta a bordo -->
+                <div class="security-block reverse">
+                    <div class="security-block-visual" style="background: linear-gradient(135deg, #2d5a3d, #1a3828);">
+                        <div class="security-big-icon"><i class="fas fa-users"></i></div>
+                        <div class="block-label">Conducta a Bordo</div>
+                    </div>
+                    <div class="security-block-content">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Convivencia</span>
+                            <h3 class="section-title" style="font-size:1.5rem;">Normas de conducta</h3>
+                        </div>
+                        <ul class="security-rules">
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div>Trata con respeto y cortesía a todos los pasajeros y miembros de la tripulación. El personal de cabina tiene autoridad legal sobre todos los pasajeros durante el vuelo.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon deny"><i class="fas fa-times"></i></div>
+                                <div><strong>Conducta perturbadora:</strong> El comportamiento agresivo, amenazante, abusivo o perturbador puede resultar en restricción inmediata, aterrizaje de emergencia y cargos criminales.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon warn"><i class="fas fa-exclamation"></i></div>
+                                <div><strong>Consumo de alcohol:</strong> Aerolíneas Halcón se reserva el derecho de limitar el servicio de bebidas alcohólicas. Está prohibido consumir alcohol traído desde afuera de la aeronave.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon info"><i class="fas fa-info"></i></div>
+                                <div>Si observas comportamiento sospechoso o artículos sin dueño, notifica inmediatamente y discretamente a algún miembro de la tripulación sin alarmar a otros pasajeros.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div><strong>Fotografía y video:</strong> Permitidos para uso personal, siempre que no interfieran con las operaciones del vuelo y que no se fotografíe a otros pasajeros sin su consentimiento.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Emergencias -->
+                <div class="security-block">
+                    <div class="security-block-visual" style="background: linear-gradient(135deg, #5b4a00, #3d3000);">
+                        <div class="security-big-icon"><i class="fas fa-first-aid"></i></div>
+                        <div class="block-label">Procedimientos de Emergencia</div>
+                    </div>
+                    <div class="security-block-content">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Emergencias</span>
+                            <h3 class="section-title" style="font-size:1.5rem;">¿Qué hacer en caso de emergencia?</h3>
+                        </div>
+                        <ul class="security-rules">
+                            <li>
+                                <div class="rule-icon info"><i class="fas fa-info"></i></div>
+                                <div><strong>Presta atención al briefing de seguridad</strong> al inicio de cada vuelo. El personal de cabina explica procedimientos de emergencia, ubicación de salidas y uso de equipos de seguridad.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div><strong>Máscara de oxígeno:</strong> Si se despliegan automáticamente, tira del cordón y colócala primero en ti mismo antes de asistir a otros, incluyendo menores. Respira normalmente.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon allow"><i class="fas fa-check"></i></div>
+                                <div><strong>Chaleco salvavidas:</strong> Ubicado bajo tu asiento. Solo inflar <strong>fuera del avión</strong>. El personal de cabina demostrará el procedimiento al inicio del vuelo.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon warn"><i class="fas fa-exclamation"></i></div>
+                                <div><strong>Posición de impacto:</strong> Si la tripulación indica prepararse para impacto, inclina el torso hacia adelante, cruza los brazos sobre el respaldo y protege la cabeza. Sigue instrucciones exactamente.</div>
+                            </li>
+                            <li>
+                                <div class="rule-icon info"><i class="fas fa-info"></i></div>
+                                <div><strong>Salidas de emergencia:</strong> Identifica las dos salidas más cercanas a tu asiento al inicio del vuelo. Recuerda que la más cercana puede estar detrás de ti.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Nota final -->
+            <div class="info-box green mt-4">
+                <div class="info-box-icon"><i class="fas fa-heart"></i></div>
+                <div class="info-box-content">
+                    <strong>Comprometidos con tu seguridad</strong>
+                    <p>Toda nuestra tripulación está certificada y recibe entrenamiento continuo en seguridad aeronáutica. Nuestros aviones son revisados exhaustivamente antes de cada vuelo. Tu seguridad no es negociable para nosotros.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
+    <script>
+        async function loadPartial(id, path) {
+            try { const r = await fetch(path); document.getElementById(id).innerHTML = await r.text(); } catch(e) {}
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPartial('header-container', '../partials/header.html');
+            await loadPartial('footer-container', '../partials/footer.html');
+        });
+    </script>
+</body>
+</html>
