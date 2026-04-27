@@ -13,6 +13,7 @@ namespace HotelesAPI.Services
         private readonly HabitacionDAO _habitacionDAO;
         private readonly UsuarioDAO _usuarioDAO;
         private readonly EmailService _emailService;
+        private readonly HuespedReservaDAO _huespedDAO;
 
         public ReservacionService()
         {
@@ -20,6 +21,7 @@ namespace HotelesAPI.Services
             _habitacionDAO = new HabitacionDAO();
             _usuarioDAO = new UsuarioDAO();
             _emailService = new EmailService();
+            _huespedDAO = new HuespedReservaDAO();
         }
 
         public Reservacion Crear(ReservacionDto dto)
@@ -42,6 +44,24 @@ namespace HotelesAPI.Services
             if (_reservacionDAO.ExisteConflicto(dto.IdHabitacion, dto.FechaCheckIn, dto.FechaCheckOut))
                 throw new ArgumentException("La habitación ya está reservada en esas fechas");
 
+            // Validar huéspedes si vienen
+            if (dto.Huespedes != null && dto.Huespedes.Count > 0)
+            {
+                if (dto.Huespedes.Count != dto.NumHuespedes)
+                    throw new ArgumentException(
+                        $"Se esperaban {dto.NumHuespedes} huéspedes pero se recibieron {dto.Huespedes.Count}");
+
+                foreach (var h in dto.Huespedes)
+                {
+                    if (string.IsNullOrWhiteSpace(h.Nombre) || string.IsNullOrWhiteSpace(h.Apellidos))
+                        throw new ArgumentException("Todos los huéspedes deben tener nombre y apellidos");
+                    if (h.Edad < 0 || h.Edad > 120)
+                        throw new ArgumentException($"Edad inválida para {h.Nombre}: {h.Edad}");
+                    if (string.IsNullOrWhiteSpace(h.Documento))
+                        throw new ArgumentException($"El huésped {h.Nombre} debe tener un documento");
+                }
+            }
+
             int noches = (dto.FechaCheckOut - dto.FechaCheckIn).Days;
             decimal precioTotal = habitacion.PrecioNoche * noches;
 
@@ -59,6 +79,33 @@ namespace HotelesAPI.Services
             };
 
             int idCreado = _reservacionDAO.Create(reservacion);
+
+            // Sesión 5: Insertar huéspedes asociados a la reserva
+            if (dto.Huespedes != null && dto.Huespedes.Count > 0)
+            {
+                foreach (var huespedDto in dto.Huespedes)
+                {
+                    try
+                    {
+                        var huesped = new HuespedReserva
+                        {
+                            IdReservacion = idCreado,
+                            Nombre = huespedDto.Nombre.Trim(),
+                            Apellidos = huespedDto.Apellidos.Trim(),
+                            Edad = huespedDto.Edad,
+                            TipoDocumento = huespedDto.TipoDocumento,
+                            Documento = huespedDto.Documento.Trim(),
+                            Nacionalidad = huespedDto.Nacionalidad,
+                            EsTitular = huespedDto.EsTitular
+                        };
+                        _huespedDAO.Crear(huesped);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[ReservacionService] Error guardando huésped: {ex.Message}");
+                    }
+                }
+            }
 
             return _reservacionDAO.GetById(idCreado)
                 ?? throw new Exception("Error al crear la reservación");
@@ -80,7 +127,6 @@ namespace HotelesAPI.Services
 
             bool cancelado = _reservacionDAO.Cancelar(idReservacion);
 
-            // Notificar al admin si la cancelación fue exitosa
             if (cancelado)
             {
                 try

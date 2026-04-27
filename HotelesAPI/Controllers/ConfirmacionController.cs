@@ -46,7 +46,11 @@ namespace HotelesAPI.Controllers
                 if (reservacion == null)
                     return NotFound(JsonResponse.Error("Reservación no encontrada"));
 
-                byte[] pdf = _pdfService.GenerarVoucher(reservacion);
+                // Sesión 5: cargar huéspedes asociados
+                var huespedDAO = new HuespedReservaDAO();
+                var huespedes = huespedDAO.GetByReservacion(id);
+
+                byte[] pdf = _pdfService.GenerarVoucher(reservacion, huespedes);
                 return File(pdf, "application/pdf",
                     $"Voucher-Bedly-{reservacion.IdReservacion:D6}.pdf");
             }

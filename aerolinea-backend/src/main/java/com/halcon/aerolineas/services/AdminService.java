@@ -126,4 +126,18 @@ public class AdminService {
     public boolean actualizarRolUsuario(int userId, String nuevoRol) throws SQLException {
         return adminDAO.actualizarRolUsuario(userId, nuevoRol);
     }
+
+    /**
+     * Actualiza el estado de actividad del usuario especificado.
+     * <p>
+     * Delega la operación en el método correspondiente del {@link AdminDAO}.
+     * </p>
+     *
+     * @param userId Identificador del usuario a actualizar.
+     * @return {@code true} si se actualizó correctamente, {@code false} en caso contrario.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
+    public boolean toggleActivoUsuario(int userId) throws SQLException {
+        return adminDAO.toggleActivoUsuario(userId);
+    }
 }

@@ -129,6 +129,26 @@ CREATE TABLE EmailNotifications (
 );
 
 -- =============================================
+-- TABLA: HuespedReserva
+-- (Sesión 5: registro de huéspedes individuales por reserva)
+-- =============================================
+CREATE TABLE HuespedReserva (
+    id_huesped       INT IDENTITY(1,1) PRIMARY KEY,
+    id_reservacion   INT NOT NULL FOREIGN KEY REFERENCES Reservaciones(id_reservacion) ON DELETE CASCADE,
+    nombre           NVARCHAR(100) NOT NULL,
+    apellidos        NVARCHAR(100) NOT NULL,
+    edad             INT NOT NULL,
+    tipo_documento   NVARCHAR(20) NOT NULL,
+    documento        NVARCHAR(50) NOT NULL,
+    nacionalidad     NVARCHAR(50) NOT NULL,
+    es_titular       BIT NOT NULL DEFAULT 0,
+    fecha_registro   DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE INDEX IX_HuespedReserva_Reservacion
+ON HuespedReserva(id_reservacion);
+
+-- =============================================
 -- TABLA: Configuracion
 -- =============================================
 CREATE TABLE Configuracion (

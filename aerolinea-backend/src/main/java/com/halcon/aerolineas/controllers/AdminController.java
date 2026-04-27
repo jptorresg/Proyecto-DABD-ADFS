@@ -162,6 +162,19 @@ public class AdminController extends HttpServlet {
                     out.print(JsonResponse.error("No se pudo actualizar el rol"));
                 }
 
+            } else if (path.matches("/usuarios/\\d+/toggle-activo")) {
+
+                String[] parts = path.split("/");
+                int userId = Integer.parseInt(parts[2]);
+
+                boolean actualizado = adminService.toggleActivoUsuario(userId);
+
+                if (actualizado) {
+                    out.print(JsonResponse.success("Estado actualizado"));
+                } else {
+                    response.setStatus(400);
+                    out.print(JsonResponse.error("No se pudo actualizar el estado"));
+                }
             }
 
         } catch (Exception e) {

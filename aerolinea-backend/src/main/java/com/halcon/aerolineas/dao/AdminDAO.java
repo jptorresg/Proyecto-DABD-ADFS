@@ -365,4 +365,32 @@ public class AdminDAO {
 
         return false;
     }
+    
+    /**
+     * Activa o desactiva un usuario en la base de datos.
+     *
+     * @param userId El ID del usuario a activar o desactivar.
+     * @return {@code true} si se actualizó correctamente, {@code false} en caso contrario.
+     */
+    public boolean toggleActivoUsuario(int userId) {
+
+        String sql =
+            "UPDATE USUARIOS " +
+            "SET ACTIVO = CASE WHEN ACTIVO = 1 THEN 0 ELSE 1 END " +
+            "WHERE ID_USUARIO = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+
+            int rows = stmt.executeUpdate();
+            return rows > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

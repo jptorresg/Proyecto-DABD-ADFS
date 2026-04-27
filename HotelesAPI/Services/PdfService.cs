@@ -8,7 +8,7 @@ namespace HotelesAPI.Services
 {
     public class PdfService
     {
-        public byte[] GenerarVoucher(Reservacion reservacion)
+        public byte[] GenerarVoucher(Reservacion reservacion, List<HuespedReserva>? huespedes = null)
         {
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -123,6 +123,42 @@ namespace HotelesAPI.Services
                                     });
                             });
                         });
+
+                        // Sesión 5: Lista de huéspedes registrados
+                        if (huespedes != null && huespedes.Count > 0)
+                        {
+                            col.Item().PaddingTop(20).Text("HUÉSPEDES REGISTRADOS")
+                                .FontSize(10).Bold()
+                                .FontColor(Color.FromHex("#003580"));
+
+                            col.Item().PaddingTop(8).Border(1)
+                                .BorderColor(Color.FromHex("#e5e7eb"))
+                                .Padding(8).Column(hcol =>
+                                {
+                                    foreach (var h in huespedes)
+                                    {
+                                        hcol.Item().PaddingVertical(4).Row(r =>
+                                        {
+                                            r.RelativeItem().Column(c =>
+                                            {
+                                                c.Item().Text(text =>
+                                                {
+                                                    text.Span($"{h.Nombre} {h.Apellidos}").FontSize(10).Bold();
+                                                    text.Span($"  ({h.Edad} años)").FontSize(9).FontColor(Color.FromHex("#6b7280"));
+                                                });
+                                                c.Item().Text($"{h.TipoDocumento}: {h.Documento}  ·  {h.Nacionalidad}")
+                                                    .FontSize(9).FontColor(Color.FromHex("#6b7280"));
+                                            });
+                                            if (h.EsTitular)
+                                            {
+                                                r.ConstantItem(60).Background(Color.FromHex("#003580"))
+                                                    .Padding(4).AlignCenter()
+                                                    .Text("TITULAR").FontSize(8).Bold().FontColor(Colors.White);
+                                            }
+                                        });
+                                    }
+                                });
+                        }
 
                         col.Item().PaddingTop(20).Background(Color.FromHex("#f0f4f8"))
                             .Padding(12).Column(politica =>
