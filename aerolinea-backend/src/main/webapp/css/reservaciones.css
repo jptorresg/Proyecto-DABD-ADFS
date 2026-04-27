@@ -34,6 +34,21 @@
     border-bottom-color: #4A5F7F;
 }
 
+.filter-input {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 2px solid #E9ECEF;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #495057;
+    transition: border-color 0.2s ease;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #4A5F7F;
+}
+
 /* Cards de Reservaciones */
 .reservaciones-grid {
     display: grid;
