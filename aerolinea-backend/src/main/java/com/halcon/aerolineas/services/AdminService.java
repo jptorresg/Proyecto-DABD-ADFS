@@ -99,6 +99,20 @@ public class AdminService {
     }
 
     /**
+     * Obtiene todas las reservaciones realizadas en el sistema.
+     * <p>
+     * Los resultados se ordenan por fecha de reserva en orden descendente
+     * (las más recientes primero).
+     * </p>
+     *
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     */
+    public List<Map<String, Object>> obtenerTodasReservaciones() throws SQLException {
+        return adminDAO.obtenerTodasReservaciones();
+    }
+
+    /**
      * Actualiza el rol del usuario especificado.
      * <p>
      * Delega la operación en el método correspondiente del {@link AdminDAO}.
