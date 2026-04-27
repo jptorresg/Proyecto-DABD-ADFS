@@ -2281,3 +2281,69 @@ function resultadosData() {
         }
     };
 }
+
+function reservacionesAdminData() {
+    return {
+        reservaciones: [],
+        filteredReservaciones: [],
+
+        filters: {
+            estado: 'TODOS',
+            search: ''
+        },
+
+        pagination: {
+            currentPage: 1,
+            perPage: 10,
+            total: 0
+        },
+
+        isLoading: true,
+
+        async init() {
+            await this.fetchReservaciones();
+        },
+
+        async fetchReservaciones() {
+            this.isLoading = true;
+
+            const response = await fetch(`${API_BASE}/admin/reservaciones`, {
+                headers: {
+                    'Authorization': `Bearer ${getUserSession()?.token}`
+                }
+            });
+
+            const data = await response.json();
+
+            this.reservaciones = data.data;
+            this.applyFilters();
+
+            this.isLoading = false;
+        },
+
+        applyFilters() {
+            let filtered = [...this.reservaciones];
+
+            // estado
+            if (this.filters.estado !== 'TODOS') {
+                filtered = filtered.filter(r => r.estado === this.filters.estado);
+            }
+
+            // búsqueda
+            if (this.filters.search.trim()) {
+                const search = this.filters.search.toLowerCase();
+                filtered = filtered.filter(r =>
+                    r.codigoReservacion.toLowerCase().includes(search)
+                );
+            }
+
+            this.filteredReservaciones = filtered;
+            this.pagination.total = filtered.length;
+        },
+
+        get paginatedReservaciones() {
+            const start = (this.pagination.currentPage - 1) * this.pagination.perPage;
+            return this.filteredReservaciones.slice(start, start + this.pagination.perPage);
+        }
+    }
+}

@@ -284,6 +284,58 @@ public class AdminDAO {
     }
 
     /**
+     * Obtiene todas las reservaciones realizadas en la base de datos.
+     * <p>
+     * Los resultados se ordenan por fecha de compra en orden descendente
+     * (las más recientes primero).
+     * 
+     * @return Lista de objetos {@link Map} con la información de cada reserva.
+     */
+    public List<Map<String, Object>> obtenerTodasReservaciones() {
+
+        List<Map<String, Object>> reservaciones = new ArrayList<>();
+
+        String sql =
+            "SELECT r.ID_RESERVACION, r.CODIGO_RESERVACION, r.FECHA_COMPRA, " +
+            "r.FECHA_CANCELACION, r.ESTADO, r.PRECIO_TOTAL, " +
+            "v.ORIGEN_CIUDAD, v.DESTINO_CIUDAD, v.CODIGO_VUELO " +
+            "FROM RESERVACIONES r " +
+            "JOIN VUELOS v ON r.ID_VUELO = v.ID_VUELO " +
+            "ORDER BY r.FECHA_COMPRA DESC";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> reservacion = new HashMap<>();
+
+                reservacion.put("id", rs.getInt("ID_RESERVACION"));
+                reservacion.put("codigoReservacion", rs.getString("CODIGO_RESERVACION"));
+                reservacion.put("fechaCompra", rs.getDate("FECHA_COMPRA"));
+                reservacion.put("fechaCancelacion", rs.getDate("FECHA_CANCELACION"));
+                reservacion.put("estado", rs.getString("ESTADO"));
+                reservacion.put("precioTotal", rs.getDouble("PRECIO_TOTAL"));
+                reservacion.put("codigoVuelo", rs.getString("CODIGO_VUELO"));
+
+                Map<String, Object> vuelo = new HashMap<>();
+                vuelo.put("origen", rs.getString("ORIGEN_CIUDAD"));
+                vuelo.put("destino", rs.getString("DESTINO_CIUDAD"));
+
+                reservacion.put("vuelo", vuelo);
+
+                reservaciones.add(reservacion);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return reservaciones;
+    }
+
+    /**
      * Actualiza el rol del usuario especificado.
      *
      * @param userId   Identificador del usuario a actualizar.
