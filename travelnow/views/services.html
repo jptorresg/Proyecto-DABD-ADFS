@@ -2,30 +2,642 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Servicios</title>
-    <link rel="stylesheet" href="./css/landing.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios – TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../public/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+        /* ── Page Hero ── */
+        .page-hero {
+            min-height: 60vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .page-hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(160deg, rgba(10,22,40,0.93) 0%, rgba(17,34,64,0.76) 50%, rgba(10,22,40,0.91) 100%),
+                url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&q=80') center/cover no-repeat;
+        }
+        .page-hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(212,168,67,0.02) 120px, rgba(212,168,67,0.02) 121px);
+        }
+        .page-hero-content { position: relative; z-index: 2; }
+
+        /* ── Service Main Card ── */
+        .service-main-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: var(--trans);
+            height: 100%;
+        }
+        .service-main-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-gold);
+            border-color: rgba(212,168,67,0.55);
+        }
+        .service-img-wrap {
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            position: relative;
+        }
+        .service-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        .service-main-card:hover .service-img-wrap img { transform: scale(1.06); }
+        .service-img-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 40%, rgba(10,22,40,0.7) 100%);
+        }
+        .service-badge {
+            position: absolute;
+            top: 1rem; left: 1rem;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            color: var(--gold);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .service-body { padding: 1.8rem; }
+        .service-icon {
+            width: 52px; height: 52px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .service-name {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--white);
+            margin-bottom: 0.7rem;
+        }
+        .service-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 1.4rem;
+        }
+        .service-features { list-style: none; padding: 0; margin: 0 0 1.6rem; }
+        .service-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+        .service-features li i { color: var(--gold); font-size: 0.75rem; }
+
+        /* ── Process steps ── */
+        .process-step {
+            position: relative;
+            text-align: center;
+            padding: 0 1rem;
+        }
+        .process-num {
+            width: 60px; height: 60px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin: 0 auto 1rem;
+        }
+        .process-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+        .process-desc {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+        .process-connector {
+            position: absolute;
+            top: 30px;
+            left: calc(50% + 40px);
+            right: calc(-50% + 40px);
+            height: 1px;
+            background: linear-gradient(to right, var(--gold), transparent);
+        }
+
+        /* ── Guarantee card ── */
+        .guarantee-card {
+            background: linear-gradient(135deg, rgba(212,168,67,0.08), rgba(17,34,64,0.4));
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            text-align: center;
+            height: 100%;
+            transition: var(--trans);
+        }
+        .guarantee-card:hover { box-shadow: var(--shadow-gold); transform: translateY(-4px); }
+        .g-icon { font-size: 2rem; color: var(--gold); margin-bottom: 1rem; }
+        .g-title { font-family: var(--font-display); font-size: 1.2rem; color: var(--white); margin-bottom: 0.5rem; }
+        .g-text { font-size: 0.83rem; color: var(--text-muted); line-height: 1.7; }
+
+        /* ── Pricing ── */
+        .plan-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            height: 100%;
+            transition: var(--trans);
+            position: relative;
+            overflow: hidden;
+        }
+        .plan-card.featured {
+            border-color: var(--gold);
+            background: linear-gradient(160deg, rgba(212,168,67,0.1), var(--navy-mid));
+        }
+        .plan-card.featured::before {
+            content: 'Más popular';
+            position: absolute;
+            top: 1.2rem; right: -2rem;
+            background: var(--gold);
+            color: var(--navy);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 4px 3rem;
+            transform: rotate(35deg);
+        }
+        .plan-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-gold); }
+        .plan-name {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+        .plan-price {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+        .plan-price sup { font-size: 1.2rem; vertical-align: super; }
+        .plan-period { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+        .plan-divider { border-color: var(--border-gold); margin: 1.5rem 0; }
+        .plan-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.7rem;
+        }
+        .plan-feature i { color: var(--gold); font-size: 0.75rem; width: 14px; }
+        .plan-feature.off { opacity: 0.35; text-decoration: line-through; }
+
+        /* ── CTA ── */
+        .cta-band {
+            background: linear-gradient(135deg, rgba(212,168,67,0.1), rgba(17,34,64,0.5));
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 3.5rem;
+        }
+    </style>
 </head>
 <body>
 
-<nav>
-    <a href="/">Inicio</a>
-    <a href="/about">Sobre Nosotros</a>
-    <a href="/contact">Contacto</a>
+<!-- NAV -->
+<nav class="th-navbar" id="mainNav">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/" class="th-logo">
+                <i class="fa-solid fa-plane-departure"></i>
+                Travel<span class="logo-dot">Hub</span>
+            </a>
+            <div class="d-none d-lg-flex align-items-center gap-4">
+                <a href="/buscar" class="nav-link-custom">Buscar</a>
+                <a href="#" class="nav-link-custom">Destinos</a>
+                <a href="/about" class="nav-link-custom">Nosotros</a>
+                <a href="/services" class="nav-link-custom" style="color:var(--gold)!important;">Servicios</a>
+                <a href="/contact" class="nav-link-custom">Contacto</a>
+            </div>
+            <div id="nav-user-area">
+                <a href="/login" class="btn-nav-login">
+                    <i class="fa-regular fa-user me-1"></i> Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </div>
 </nav>
 
-<section class="hero">
-    <div>
-        <h1>Servicios</h1>
-        <p>Todo lo que necesitas en un solo lugar</p>
+<!-- HERO -->
+<section class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="container page-hero-content" style="padding-top:7rem;padding-bottom:4rem;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-eyebrow anim-up"><i class="fa-solid fa-sparkles"></i> Lo que ofrecemos</div>
+                <h1 class="hero-title anim-up anim-up-1">
+                    Todo lo que necesitas<br>
+                    <strong>en un solo lugar</strong>
+                </h1>
+                <p class="hero-sub anim-up anim-up-2">
+                    Desde vuelos internacionales hasta paquetes todo incluido, en TravelHub encontrarás la solución perfecta para cada tipo de viajero. Tecnología avanzada, precios transparentes y atención humana en cada paso.
+                </p>
+            </div>
+        </div>
     </div>
 </section>
 
-<section class="section">
-    <div class="card">✈️ Reserva de vuelos en tiempo real</div>
-    <div class="card">🏨 Reserva de hoteles disponibles</div>
-    <div class="card">📄 Generación automática de vouchers</div>
+<!-- SERVICIOS PRINCIPALES -->
+<section class="py-5 mt-2" id="servicios">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Nuestros servicios</div>
+            <h2 class="section-title">Diseñados para <em>cada viajero</em></h2>
+        </div>
+        <div class="row g-4">
+
+            <!-- Vuelos -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-main-card">
+                    <div class="service-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Vuelos" loading="lazy">
+                        <div class="service-img-overlay"></div>
+                        <span class="service-badge"><i class="fa-solid fa-fire-flame-curved me-1"></i> Más buscado</span>
+                    </div>
+                    <div class="service-body">
+                        <div class="service-icon"><i class="fa-solid fa-plane"></i></div>
+                        <div class="service-name">Reserva de vuelos</div>
+                        <p class="service-desc">Búsqueda en tiempo real entre más de 200 aerolíneas. Encuentra el mejor precio para tu ruta en segundos, con filtros por precio, escalas y horario.</p>
+                        <ul class="service-features">
+                            <li><i class="fa-solid fa-check"></i> Vuelos directos e itinerarios con escalas</li>
+                            <li><i class="fa-solid fa-check"></i> Ida y vuelta o solo ida</li>
+                            <li><i class="fa-solid fa-check"></i> Clase turista y business</li>
+                            <li><i class="fa-solid fa-check"></i> Confirmación instantánea por correo</li>
+                            <li><i class="fa-solid fa-check"></i> Cambios y cancelaciones flexibles</li>
+                        </ul>
+                        <a href="/" class="btn-reservar w-100 text-center">Buscar vuelos <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hoteles -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-main-card">
+                    <div class="service-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80" alt="Hoteles" loading="lazy">
+                        <div class="service-img-overlay"></div>
+                        <span class="service-badge"><i class="fa-solid fa-bed me-1"></i> 50K+ opciones</span>
+                    </div>
+                    <div class="service-body">
+                        <div class="service-icon"><i class="fa-solid fa-building"></i></div>
+                        <div class="service-name">Reserva de hoteles</div>
+                        <p class="service-desc">Más de 50,000 hoteles, hostales, apartamentos y resorts en todo el mundo. Filtra por estrellas, precio, servicios y lee reseñas verificadas.</p>
+                        <ul class="service-features">
+                            <li><i class="fa-solid fa-check"></i> Desde hostales hasta resorts 5 estrellas</li>
+                            <li><i class="fa-solid fa-check"></i> Fotos reales verificadas</li>
+                            <li><i class="fa-solid fa-check"></i> Mapa interactivo de ubicaciones</li>
+                            <li><i class="fa-solid fa-check"></i> Cancelación gratuita disponible</li>
+                            <li><i class="fa-solid fa-check"></i> Precios con impuestos incluidos</li>
+                        </ul>
+                        <a href="/" class="btn-reservar w-100 text-center">Buscar hoteles <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paquetes -->
+            <div class="col-md-6 col-lg-4">
+                <div class="service-main-card">
+                    <div class="service-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80" alt="Paquetes" loading="lazy">
+                        <div class="service-img-overlay"></div>
+                        <span class="service-badge"><i class="fa-solid fa-tags me-1"></i> Mejor valor</span>
+                    </div>
+                    <div class="service-body">
+                        <div class="service-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+                        <div class="service-name">Paquetes completos</div>
+                        <p class="service-desc">Vuelo + hotel en un solo paquete, con descuentos de hasta 30% respecto a reservarlos por separado. Personaliza cada detalle de tu viaje ideal.</p>
+                        <ul class="service-features">
+                            <li><i class="fa-solid fa-check"></i> Vuelo + hotel combinados</li>
+                            <li><i class="fa-solid fa-check"></i> Ahorro garantizado vs. separado</li>
+                            <li><i class="fa-solid fa-check"></i> Seguro de viaje incluido</li>
+                            <li><i class="fa-solid fa-check"></i> Traslado aeropuerto opcional</li>
+                            <li><i class="fa-solid fa-check"></i> Itinerario personalizado</li>
+                        </ul>
+                        <a href="/" class="btn-reservar w-100 text-center">Buscar paquetes <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
-<script src="/js/animations.js"></script>
+<!-- SERVICIOS ADICIONALES -->
+<section class="py-5" style="background:rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Más servicios</div>
+            <h2 class="section-title">El viaje <em>completo</em></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-file-pdf"></i></div>
+                    <h4>Vouchers digitales</h4>
+                    <p>Recibe tu comprobante de reserva en formato PDF al instante, con código QR para check-in sin papel.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h4>Seguro de viaje</h4>
+                    <p>Cobertura médica, equipaje perdido y cancelaciones inesperadas. Viaja tranquilo con protección total.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-car"></i></div>
+                    <h4>Traslados</h4>
+                    <p>Reserva traslados desde el aeropuerto hasta tu hotel. Conductores certificados y vehículos de calidad.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <h4>Tours y excursiones</h4>
+                    <p>Descubre los mejores tours guiados en cada destino. Experiencias auténticas con guías locales certificados.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-sim-card"></i></div>
+                    <h4>SIM Internacional</h4>
+                    <p>Conéctate en más de 100 países con nuestra tarjeta SIM internacional. Datos ilimitados desde $15/semana.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-passport"></i></div>
+                    <h4>Asesoría de visas</h4>
+                    <p>Orientación completa para tramitar visas de los destinos más populares. Sin burocracia confusa.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-money-bill-wave"></i></div>
+                    <h4>Cambio de divisas</h4>
+                    <p>Comparativa de tasas de cambio en tiempo real. Llega a tu destino con la moneda local al mejor precio.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card-dark">
+                    <div class="feature-icon-wrap"><i class="fa-solid fa-headset"></i></div>
+                    <h4>Concierge 24/7</h4>
+                    <p>Agente personal disponible por chat, teléfono o video para asistirte antes, durante y después del viaje.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Proceso</div>
+            <h2 class="section-title">Reservar en <em>4 pasos simples</em></h2>
+        </div>
+        <div class="row g-4 position-relative">
+            <div class="col-6 col-md-3">
+                <div class="process-step">
+                    <div class="process-num">01</div>
+                    <div class="process-title">Busca</div>
+                    <p class="process-desc">Ingresa tu origen, destino y fechas. Filtra por precio, aerolínea y preferencias.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="process-step">
+                    <div class="process-num">02</div>
+                    <div class="process-title">Compara</div>
+                    <p class="process-desc">Revisa las opciones disponibles. Ve precios, horarios, servicios incluidos y reseñas.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="process-step">
+                    <div class="process-num">03</div>
+                    <div class="process-title">Reserva</div>
+                    <p class="process-desc">Selecciona tu opción y completa el pago seguro en menos de 2 minutos.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="process-step">
+                    <div class="process-num">04</div>
+                    <div class="process-title">¡Viaja!</div>
+                    <p class="process-desc">Recibe tu voucher PDF al instante. Llega al aeropuerto y disfruta tu aventura.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- GARANTÍAS -->
+<section class="py-5" style="background:rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Garantías</div>
+            <h2 class="section-title">Viaja con <em>total confianza</em></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="guarantee-card">
+                    <div class="g-icon"><i class="fa-solid fa-lock"></i></div>
+                    <div class="g-title">Pago 100% seguro</div>
+                    <p class="g-text">Encriptación SSL de 256 bits. Nunca almacenamos datos de tu tarjeta.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="guarantee-card">
+                    <div class="g-icon"><i class="fa-solid fa-tags"></i></div>
+                    <div class="g-title">Mejor precio garantizado</div>
+                    <p class="g-text">Si encuentras el mismo vuelo más barato, te devolvemos la diferencia.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="guarantee-card">
+                    <div class="g-icon"><i class="fa-solid fa-rotate-left"></i></div>
+                    <div class="g-title">Reembolso rápido</div>
+                    <p class="g-text">Cancelaciones procesadas en 48 horas. Sin burocracia ni llamadas interminables.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="guarantee-card">
+                    <div class="g-icon"><i class="fa-solid fa-award"></i></div>
+                    <div class="g-title">Agencia certificada</div>
+                    <p class="g-text">Miembros de IATA y OMT. Autorización oficial para operar en toda Latinoamérica.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PLANES / MEMBRESÍAS -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Membresías</div>
+            <h2 class="section-title">TravelHub <em>Gold</em></h2>
+            <p style="color:var(--text-muted);max-width:500px;margin:1rem auto 0;font-size:0.92rem;">Suscríbete y obtén descuentos exclusivos, acceso anticipado a ofertas y beneficios especiales en cada reserva.</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="plan-card">
+                    <div class="plan-name">Gratuito</div>
+                    <div class="plan-price"><sup>$</sup>0</div>
+                    <div class="plan-period">Para siempre</div>
+                    <hr class="plan-divider">
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Búsqueda de vuelos y hoteles</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Reservas ilimitadas</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Voucher PDF automático</div>
+                    <div class="plan-feature off"><i class="fa-solid fa-xmark"></i> Descuentos exclusivos</div>
+                    <div class="plan-feature off"><i class="fa-solid fa-xmark"></i> Soporte prioritario</div>
+                    <div class="plan-feature off"><i class="fa-solid fa-xmark"></i> Acceso anticipado a ofertas</div>
+                    <a href="/register" class="btn-reservar w-100 text-center mt-4" style="background:transparent;border:1px solid var(--border-gold);color:var(--gold)!important;">Crear cuenta gratis</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="plan-card featured">
+                    <div class="plan-name">Gold</div>
+                    <div class="plan-price"><sup>$</sup>9<span style="font-size:1.2rem;font-weight:300">.99</span></div>
+                    <div class="plan-period">por mes, facturado anualmente</div>
+                    <hr class="plan-divider">
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Todo lo del plan gratuito</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Hasta 15% descuento en vuelos</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Hasta 20% descuento en hoteles</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Soporte prioritario 24/7</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Acceso 48h antes a ofertas flash</div>
+                    <div class="plan-feature"><i class="fa-solid fa-check"></i> Seguro de viaje básico incluido</div>
+                    <a href="/register" class="btn-reservar w-100 text-center mt-4">Comenzar Gold <i class="fa-solid fa-crown ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5" style="background:rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="cta-band text-center">
+            <div class="section-eyebrow justify-content-center mb-3"><i class="fa-solid fa-plane-departure"></i> Empieza hoy</div>
+            <h2 class="section-title mb-3">¿Listo para tu<br><em>próximo destino?</em></h2>
+            <p style="color:var(--text-muted);max-width:480px;margin:0 auto 2rem;font-size:0.95rem;line-height:1.8;">Explora más de 500 destinos con los mejores precios del mercado. Tu aventura comienza con un clic.</p>
+            <a href="/" class="btn-reservar">
+                <i class="fa-solid fa-magnifying-glass me-2"></i> Buscar mi viaje
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="th-footer">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="footer-logo">Travel<span>Hub</span></div>
+                <p class="footer-desc">Tu agencia de confianza para descubrir el mundo. Conectamos viajeros con experiencias inolvidables desde 2012.</p>
+                <div class="footer-social mt-3">
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Servicios</div>
+                <a href="/buscar" class="footer-link">Vuelos</a>
+                <a href="/buscar" class="footer-link">Hoteles</a>
+                <a href="/buscar" class="footer-link">Paquetes</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Compañía</div>
+                <a href="/about" class="footer-link">Sobre nosotros</a>
+                <a href="/contact" class="footer-link">Contáctanos</a>
+                <a href="#" class="footer-link">Trabaja con nosotros</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Legal</div>
+                <a href="#" class="footer-link">Términos y condiciones</a>
+                <a href="#" class="footer-link">Política de privacidad</a>
+                <a href="#" class="footer-link">Política de cancelación</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Contacto</div>
+                <p class="footer-link"><i class="fa-solid fa-phone me-2" style="color:var(--gold)"></i>+502 XXXX-XXXX</p>
+                <p class="footer-link"><i class="fa-regular fa-envelope me-2" style="color:var(--gold)"></i>info@travelhub.com</p>
+                <p class="footer-link"><i class="fa-solid fa-location-dot me-2" style="color:var(--gold)"></i>Guatemala City</p>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <p class="footer-copy">© 2026 TravelHub. Todos los derechos reservados.</p>
+            <p class="footer-copy">Hecho con <i class="fa-solid fa-heart" style="color:var(--gold)"></i> en Guatemala</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', () => {
+        document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 60);
+    });
+    fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+            if (d?.ok && d.usuario) {
+                document.getElementById('nav-user-area').innerHTML =
+                    `<div class="d-flex align-items-center gap-3">
+                        <a href="/historial" class="btn-nav-user">
+                            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                            <span>${d.usuario.nombre}</span>
+                        </a>
+                        <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>`;
+            }
+        }).catch(() => {});
+    function logout() {
+        fetch('/api/auth/logout', { method: 'POST' }).then(() => location.reload());
+    }
+</script>
 </body>
 </html>

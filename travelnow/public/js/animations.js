@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const elements = document.querySelectorAll(".card");
+    const elements = document.querySelectorAll(".fade-in");
 
     const showOnScroll = () => {
-        const trigger = window.innerHeight * 0.8;
+        const trigger = window.innerHeight * 0.85;
 
         elements.forEach(el => {
             const top = el.getBoundingClientRect().top;

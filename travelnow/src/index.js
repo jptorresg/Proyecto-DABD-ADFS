@@ -164,6 +164,11 @@ app.get('/admin/usuarios',         view('admin/usuarios.html'));      /**< Gesti
 app.get('/admin/reservaciones',    view('admin/reservaciones.html')); /**< Gestión de reservas */
 app.get('/admin/proveedores',      view('admin/proveedores.html'));   /**< Gestión de proveedores */
 
+// NUEVAS VISTAS INFORMATIVAS
+app.get('/about',    view('about.html'));
+app.get('/services', view('services.html'));
+app.get('/contact',  view('contact.html'));
+
 // ── 404 ────────────────────────────────────────────────────────────────────
 /**
  * Middleware para manejar rutas no encontradas
