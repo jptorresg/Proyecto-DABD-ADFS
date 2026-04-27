@@ -35,6 +35,11 @@
         .metodo-pago-card .metodo-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
         .metodo-pago-card .metodo-nombre { font-weight: 600; font-size: 0.9rem; color: #374151; }
         .metodo-pago-card .metodo-desc { font-size: 0.75rem; color: #9ca3af; }
+        .huesped-card { background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+        .huesped-card.titular { background: #eff6ff; border-color: var(--primary-color); }
+        .huesped-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .huesped-numero { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--primary-color); }
+        .titular-badge { background: var(--primary-color); color: white; font-size: 0.7rem; padding: 0.25rem 0.6rem; border-radius: 12px; font-weight: 600; }
     </style>
 </head>
 <body x-data="reservaApp()" x-init="init()">
@@ -79,18 +84,10 @@
             <!-- Formulario -->
             <div class="col-lg-8">
 
-                <!-- Datos del huésped -->
+                <!-- Datos generales de la reserva -->
                 <div class="card p-4 mb-4">
-                    <h5 class="section-title">Datos del Huésped</h5>
+                    <h5 class="section-title">Datos de la Reserva</h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" x-model="form.nombre" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" x-model="form.email" readonly>
-                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Check-in</label>
                             <input type="date" class="form-control" x-model="form.checkIn" readonly>
@@ -101,13 +98,84 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Número de Huéspedes</label>
-                            <input type="number" class="form-control" x-model="form.huespedes" min="1" max="10">
+                            <select class="form-select" x-model.number="form.huespedes" @change="ajustarHuespedes()">
+                                <template x-for="n in 10" :key="n">
+                                    <option :value="n" x-text="n + (n === 1 ? ' huésped' : ' huéspedes')"></option>
+                                </template>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Noches</label>
                             <input type="text" class="form-control" :value="noches + ' noche(s)'" readonly>
                         </div>
                     </div>
+                </div>
+
+                <!-- Datos de los huéspedes (Sesión 5) -->
+                <div class="card p-4 mb-4">
+                    <h5 class="section-title">
+                        <i class="bi bi-people-fill me-2"></i>Información de los Huéspedes
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Por seguridad, registramos los datos de todas las personas que se hospedarán.
+                    </p>
+
+                    <template x-for="(huesped, index) in huespedes" :key="index">
+                        <div class="huesped-card" :class="huesped.esTitular ? 'titular' : ''">
+                            <div class="huesped-header">
+                                <span class="huesped-numero">
+                                    <i class="bi bi-person-fill me-1"></i>
+                                    Huésped <span x-text="index + 1"></span>
+                                </span>
+                                <span x-show="huesped.esTitular" class="titular-badge">TITULAR</span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" x-model="huesped.nombre"
+                                           placeholder="Ej: María" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Apellidos *</label>
+                                    <input type="text" class="form-control" x-model="huesped.apellidos"
+                                           placeholder="Ej: García López" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Edad *</label>
+                                    <input type="number" class="form-control" x-model.number="huesped.edad"
+                                           min="0" max="120" placeholder="25" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tipo Documento *</label>
+                                    <select class="form-select" x-model="huesped.tipoDocumento"
+                                            @change="huesped.documento = ''">
+                                        <option value="DPI">DPI (Guatemala)</option>
+                                        <option value="Pasaporte">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Documento *</label>
+                                    <input type="text" class="form-control"
+                                           :value="huesped.documento"
+                                           @input="formatearDocumento($event, huesped)"
+                                           :maxlength="huesped.tipoDocumento === 'DPI' ? 13 : 9"
+                                           :placeholder="huesped.tipoDocumento === 'DPI' ? '13 dígitos' : 'AB1234567'"
+                                           required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Nacionalidad *</label>
+                                    <select class="form-select" x-model="huesped.nacionalidad" required>
+                                        <option value="">Selecciona país...</option>
+                                        <template x-for="p in paises" :key="p.codigo">
+                                            <option :value="p.nombre" x-text="p.nombre"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Cupón -->
@@ -151,7 +219,6 @@
                 <div class="card p-4 mb-4">
                     <h5 class="section-title">Método de Pago</h5>
 
-                    <!-- Opciones de pago como cards -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <div class="metodo-pago-card"
@@ -173,7 +240,6 @@
                         </div>
                     </div>
 
-                    <!-- Datos de tarjeta -->
                     <div x-show="form.metodoPago === 'tarjeta'" class="row g-3">
                         <div class="col-12">
                             <label class="form-label">Número de Tarjeta</label>
@@ -193,7 +259,6 @@
                         </div>
                     </div>
 
-                    <!-- Advertencia transferencia bancaria -->
                     <div x-show="form.metodoPago === 'transferencia'" class="alerta-transferencia">
                         <div class="d-flex gap-3">
                             <div style="font-size:1.8rem; flex-shrink:0;">⚠️</div>
@@ -267,6 +332,10 @@
                         <span x-text="noches"></span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 small">
+                        <span>Huéspedes</span>
+                        <span x-text="form.huespedes + ' persona(s)'"></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
                         <span>Método de pago</span>
                         <span x-text="form.metodoPago === 'tarjeta' ? '💳 Tarjeta' : '🏦 Transferencia'"></span>
                     </div>
@@ -313,9 +382,27 @@
             validandoCupon: false,
             errorCupon: '',
             infoCupon: { codigo: '', descripcion: '', descuentoAplicado: 0 },
+            paises: [
+                { codigo: 'GT', nombre: 'Guatemala' }, { codigo: 'MX', nombre: 'México' },
+                { codigo: 'US', nombre: 'Estados Unidos' }, { codigo: 'CA', nombre: 'Canadá' },
+                { codigo: 'HN', nombre: 'Honduras' }, { codigo: 'SV', nombre: 'El Salvador' },
+                { codigo: 'NI', nombre: 'Nicaragua' }, { codigo: 'CR', nombre: 'Costa Rica' },
+                { codigo: 'PA', nombre: 'Panamá' }, { codigo: 'BZ', nombre: 'Belice' },
+                { codigo: 'CO', nombre: 'Colombia' }, { codigo: 'VE', nombre: 'Venezuela' },
+                { codigo: 'EC', nombre: 'Ecuador' }, { codigo: 'PE', nombre: 'Perú' },
+                { codigo: 'BO', nombre: 'Bolivia' }, { codigo: 'CL', nombre: 'Chile' },
+                { codigo: 'AR', nombre: 'Argentina' }, { codigo: 'UY', nombre: 'Uruguay' },
+                { codigo: 'PY', nombre: 'Paraguay' }, { codigo: 'BR', nombre: 'Brasil' },
+                { codigo: 'ES', nombre: 'España' }, { codigo: 'FR', nombre: 'Francia' },
+                { codigo: 'DE', nombre: 'Alemania' }, { codigo: 'IT', nombre: 'Italia' },
+                { codigo: 'GB', nombre: 'Reino Unido' }, { codigo: 'PT', nombre: 'Portugal' },
+                { codigo: 'NL', nombre: 'Países Bajos' }, { codigo: 'JP', nombre: 'Japón' },
+                { codigo: 'CN', nombre: 'China' }, { codigo: 'KR', nombre: 'Corea del Sur' },
+                { codigo: 'IN', nombre: 'India' }, { codigo: 'AU', nombre: 'Australia' },
+                { codigo: 'OTHER', nombre: 'Otro' }
+            ],
+            huespedes: [],
             form: {
-                nombre: '',
-                email: '',
                 checkIn: '',
                 checkOut: '',
                 huespedes: 1,
@@ -331,15 +418,75 @@
                 if (!usuario) { window.location.href = 'login.html'; return; }
 
                 const params = new URLSearchParams(window.location.search);
-                this.form.nombre   = usuario.nombre;
-                this.form.email    = usuario.email;
-                this.form.checkIn  = params.get('checkIn')  || '';
-                this.form.checkOut = params.get('checkOut') || '';
+                this.form.checkIn   = params.get('checkIn')  || '';
+                this.form.checkOut  = params.get('checkOut') || '';
                 this.form.huespedes = parseInt(params.get('huespedes')) || 1;
+
+                // Inicializar primer huésped (titular) con datos del usuario
+                this.inicializarHuespedes(usuario);
 
                 const idHabitacion = params.get('idHabitacion');
                 if (idHabitacion) await this.cargarHabitacion(idHabitacion);
+
+                // Intentar cargar países desde la API (fallback a la lista hardcoded)
+                this.cargarPaises();
+
                 this.loading = false;
+            },
+
+            inicializarHuespedes(usuario) {
+                this.huespedes = [];
+                for (let i = 0; i < this.form.huespedes; i++) {
+                    if (i === 0) {
+                        // Titular: precargado con datos del usuario logueado
+                        this.huespedes.push({
+                            nombre: usuario.nombre || '',
+                            apellidos: usuario.apellidos || '',
+                            edad: usuario.edad || null,
+                            tipoDocumento: (usuario.pasaporte && usuario.pasaporte.length === 13) ? 'DPI' : 'Pasaporte',
+                            documento: usuario.pasaporte || '',
+                            nacionalidad: usuario.pais || '',
+                            esTitular: true
+                        });
+                    } else {
+                        this.huespedes.push({
+                            nombre: '', apellidos: '', edad: null,
+                            tipoDocumento: 'DPI', documento: '',
+                            nacionalidad: '', esTitular: false
+                        });
+                    }
+                }
+            },
+
+            ajustarHuespedes() {
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                const actual = this.huespedes.length;
+                const nuevo = this.form.huespedes;
+
+                if (nuevo > actual) {
+                    // Agregar huéspedes faltantes
+                    for (let i = actual; i < nuevo; i++) {
+                        this.huespedes.push({
+                            nombre: '', apellidos: '', edad: null,
+                            tipoDocumento: 'DPI', documento: '',
+                            nacionalidad: '', esTitular: false
+                        });
+                    }
+                } else if (nuevo < actual) {
+                    // Recortar (preservando el titular)
+                    this.huespedes = this.huespedes.slice(0, nuevo);
+                }
+            },
+
+            async cargarPaises() {
+                try {
+                    const res = await fetch(`${API}/catalogo/nacionalidades`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                        this.paises = data.data;
+                    }
+                } catch (e) { /* fallback hardcoded */ }
             },
 
             async cargarHabitacion(id) {
@@ -348,6 +495,17 @@
                     const data = await res.json();
                     if (data.success) this.habitacion = data.data;
                 } catch (e) {}
+            },
+
+            formatearDocumento(event, huesped) {
+                let valor = event.target.value;
+                if (huesped.tipoDocumento === 'DPI') {
+                    valor = valor.replace(/\D/g, '').substring(0, 13);
+                } else {
+                    valor = valor.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 9);
+                }
+                huesped.documento = valor;
+                event.target.value = valor;
             },
 
             async aplicarCupon() {
@@ -408,6 +566,33 @@
                 this.form.numTarjeta = val.replace(/(.{4})/g, '$1 ').trim();
             },
 
+            validarHuespedes() {
+                for (let i = 0; i < this.huespedes.length; i++) {
+                    const h = this.huespedes[i];
+                    if (!h.nombre || !h.apellidos) {
+                        this.error = `Huésped ${i + 1}: nombre y apellidos son requeridos.`;
+                        return false;
+                    }
+                    if (!h.edad || h.edad < 0 || h.edad > 120) {
+                        this.error = `Huésped ${i + 1}: edad inválida.`;
+                        return false;
+                    }
+                    if (h.tipoDocumento === 'DPI' && !/^\d{13}$/.test(h.documento)) {
+                        this.error = `Huésped ${i + 1}: el DPI debe tener 13 dígitos.`;
+                        return false;
+                    }
+                    if (h.tipoDocumento === 'Pasaporte' && !/^[A-Z0-9]{6,9}$/.test(h.documento)) {
+                        this.error = `Huésped ${i + 1}: el pasaporte debe tener 6-9 caracteres alfanuméricos.`;
+                        return false;
+                    }
+                    if (!h.nacionalidad) {
+                        this.error = `Huésped ${i + 1}: selecciona la nacionalidad.`;
+                        return false;
+                    }
+                }
+                return true;
+            },
+
             async confirmarReserva() {
                 this.error = '';
                 if (!this.form.checkIn || !this.form.checkOut) {
@@ -416,6 +601,7 @@
                 if (this.noches <= 0) {
                     this.error = 'Las fechas seleccionadas no son válidas.'; return;
                 }
+                if (!this.validarHuespedes()) return;
 
                 const usuario = JSON.parse(localStorage.getItem('usuario'));
                 this.cargando = true;
@@ -435,7 +621,8 @@
                             precioTotal:       parseFloat(this.totalFinal),
                             codigoCupon:       this.cuponAplicado ? this.infoCupon.codigo : null,
                             descuentoAplicado: this.cuponAplicado
-                                ? parseFloat(this.infoCupon.descuentoAplicado) : 0
+                                ? parseFloat(this.infoCupon.descuentoAplicado) : 0,
+                            huespedes:         this.huespedes
                         })
                     });
                     const data = await res.json();

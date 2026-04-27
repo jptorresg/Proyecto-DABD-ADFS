@@ -145,6 +145,21 @@ namespace HotelesAPI.Controllers
         }
 
         /// <summary>
+        /// 
+        /// /// <summary>
+        /// Obtiene la lista de huéspedes registrados para una reservación.
+        /// </summary>
+        [HttpGet("{id}/huespedes")]
+        public IActionResult GetHuespedes(int id)
+        {
+            try
+            {
+                var huespedDAO = new HotelesAPI.DAO.HuespedReservaDAO();
+                var huespedes = huespedDAO.GetByReservacion(id);
+                return Ok(JsonResponse.Ok("Huéspedes obtenidos", huespedes));
+            }
+            catch (Exception ex) { return StatusCode(500, JsonResponse.Error(ex.Message)); }
+        }
         /// Modifica las fechas y datos de una reservación existente.
         /// </summary>
         [HttpPut("{id}/modificar")]
