@@ -416,7 +416,7 @@
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Token Bearer</th><th>Registro</th><th>Estado</th><th class="text-center">Acciones</th></tr>
+                                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Token Bearer</th><th>Descuento</th><th>Registro</th><th>Estado</th><th class="text-center">Acciones</th></tr>
                                 </thead>
                                 <tbody>
                                     <template x-for="a in agencias" :key="a.idAgencia">
@@ -425,6 +425,7 @@
                                             <td class="fw-bold small" x-text="a.nombre"></td>
                                             <td class="small text-muted" x-text="a.email"></td>
                                             <td><code class="small" style="font-size:0.7rem;" x-text="a.token"></code></td>
+                                            <td class="fw-bold small text-success" x-text="(a.porcentajeDescuento || 0) + '%'"></td>
                                             <td class="small text-muted" x-text="formatFecha(a.fechaRegistro)"></td>
                                             <td>
                                                 <span class="badge rounded-pill"
@@ -446,7 +447,7 @@
                                         </tr>
                                     </template>
                                     <tr x-show="agencias.length === 0">
-                                        <td colspan="7" class="text-center text-muted py-4">No hay agencias registradas.</td>
+                                        <td colspan="8" class="text-center text-muted py-4">No hay agencias registradas.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -627,6 +628,12 @@
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Email</label>
                         <input type="email" class="form-control" x-model="formAgencia.email" placeholder="agencia@email.com">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">% de Descuento</label>
+                        <input type="number" class="form-control" x-model="formAgencia.porcentajeDescuento"
+                               min="0" max="100" step="0.01" placeholder="Ej: 5.5">
+                        <div class="form-text">Descuento aplicado a los precios devueltos a esta agencia (0-100).</div>
+                    </div>
                     <div x-show="errorAgencia" class="alert alert-danger small" x-text="errorAgencia"></div>
                 </div>
                 <div class="modal-footer">
@@ -698,7 +705,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     const API = 'http://localhost:5043/api';
-
     function adminApp() {
         return {
             seccion: 'dashboard',
@@ -719,7 +725,7 @@
             cupones: [],
             hoteles: [],
             cierreVentas: { fechaCierre: '', ventasCerradas: false },
-            formAgencia: { nombre: '', email: '' },
+            formAgencia: { nombre: '', email: '', porcentajeDescuento: 0 },
             errorAgencia: '',
             formCupon: { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 },
             errorCupon: '',
@@ -735,151 +741,135 @@
                 if (!rolesAdmin.includes(u.rol)) { window.location.href = 'index.html'; return; }
                 this.rolActual = u.rol;
                 this.nombreAdmin = u.nombre;
-                await Promise.all([
-                    this.cargarStats(), this.cargarReservas(), this.cargarUsuarios(),
-                    this.cargarAgencias(), this.cargarCupones(), this.cargarHoteles(),
-                    this.cargarCierreVentas()
-                ]);
+                await this.recargarTodo();
                 this.loading = false;
             },
 
             async recargarTodo() {
-                this.loading = true;
                 await Promise.all([
-                    this.cargarStats(), this.cargarReservas(), this.cargarUsuarios(),
-                    this.cargarAgencias(), this.cargarCupones(), this.cargarHoteles(),
+                    this.cargarStats(),
+                    this.cargarReservas(),
+                    this.cargarUsuarios(),
+                    this.cargarAgencias(),
+                    this.cargarCupones(),
+                    this.cargarHoteles(),
                     this.cargarCierreVentas()
                 ]);
-                this.loading = false;
-                this.exito = 'Datos actualizados correctamente.';
-                setTimeout(() => this.exito = '', 3000);
-            },
-
-            cerrarSesion() {
-                localStorage.removeItem('usuario');
-                window.location.href = 'login.html';
             },
 
             async cargarStats() {
-                try { const r = await fetch(`${API}/admin/dashboard`); const d = await r.json(); if (d.success) this.stats = d.data; } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/dashboard`);
+                    const data = await res.json();
+                    if (data.success) this.stats = data.data;
+                } catch (e) { console.error('Error stats:', e); }
             },
+
             async cargarReservas() {
-                try { const r = await fetch(`${API}/admin/reservaciones`); const d = await r.json(); if (d.success) { this.todasReservas = d.data; this.ultimasReservas = d.data.slice(0, 5); } } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/reservaciones`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.todasReservas = data.data || [];
+                        this.ultimasReservas = this.todasReservas.slice(0, 5);
+                    }
+                } catch (e) { console.error('Error reservas:', e); }
             },
+
             async cargarUsuarios() {
-                try { const r = await fetch(`${API}/admin/usuarios`); const d = await r.json(); if (d.success) this.usuarios = d.data; } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/usuarios`);
+                    const data = await res.json();
+                    if (data.success) this.usuarios = data.data || [];
+                } catch (e) { console.error('Error usuarios:', e); }
             },
+
             async cargarAgencias() {
-                try { const r = await fetch(`${API}/admin/agencias`); const d = await r.json(); if (d.success) this.agencias = d.data; } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/agencias`);
+                    const data = await res.json();
+                    if (data.success) this.agencias = data.data || [];
+                } catch (e) { console.error('Error agencias:', e); }
             },
+
             async cargarCupones() {
-                try { const r = await fetch(`${API}/admin/cupones`); const d = await r.json(); if (d.success) this.cupones = d.data; } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/cupones`);
+                    const data = await res.json();
+                    if (data.success) this.cupones = data.data || [];
+                } catch (e) { console.error('Error cupones:', e); }
             },
+
             async cargarHoteles() {
-                try { const r = await fetch(`${API}/admin/hoteles`); const d = await r.json(); if (d.success) this.hoteles = d.data; } catch (e) {}
+                try {
+                    const res = await fetch(`${API}/admin/hoteles`);
+                    const data = await res.json();
+                    if (data.success) this.hoteles = data.data || [];
+                } catch (e) { console.error('Error hoteles:', e); }
             },
+
             async cargarCierreVentas() {
-                try { const r = await fetch(`${API}/admin/configuracion/cierre-ventas`); const d = await r.json(); if (d.success) this.cierreVentas = d.data; } catch (e) {}
-            },
-
-            async cambiarEstado(id, estado) {
                 try {
-                    const res = await fetch(`${API}/admin/reservaciones/${id}/estado`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ estado })
-                    });
+                    const res = await fetch(`${API}/admin/configuracion/cierre-ventas`);
                     const data = await res.json();
-                    if (data.success) {
-                        await this.cargarReservas();
-                        this.exito = 'Estado actualizado correctamente.';
-                        setTimeout(() => this.exito = '', 3000);
-                    }
-                } catch (e) {}
+                    if (data.success) this.cierreVentas = data.data || { fechaCierre: '', ventasCerradas: false };
+                } catch (e) { console.error('Error cierre:', e); }
             },
 
-            async toggleUsuario(u) {
-                if (u.rol === 'superadmin') return;
-                if (!confirm(`¿Estás seguro de ${u.activo ? 'desactivar' : 'activar'} a ${u.nombre}?`)) return;
-                try {
-                    const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/toggle`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ activo: !u.activo })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        u.activo = !u.activo;
-                        this.exito = `Usuario ${u.nombre} ${u.activo ? 'activado' : 'desactivado'}.`;
-                        setTimeout(() => this.exito = '', 3000);
-                    }
-                } catch (e) {}
-            },
-
-            async cambiarRol(u, nuevoRol) {
-                if (u.rol === 'superadmin') return;
-                if (nuevoRol === u.rol) return;
-                if (!confirm(`¿Cambiar el rol de ${u.nombre} de "${u.rol}" a "${nuevoRol}"?`)) {
-                    await this.cargarUsuarios(); return;
-                }
-                try {
-                    const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/rol`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ rol: nuevoRol })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        u.rol = nuevoRol;
-                        this.exito = `Rol de ${u.nombre} cambiado a "${nuevoRol}" exitosamente.`;
-                        setTimeout(() => this.exito = '', 3000);
-                    } else {
-                        alert(data.message);
-                        await this.cargarUsuarios();
-                    }
-                } catch (e) { await this.cargarUsuarios(); }
-            },
-
-            abrirModalHotel(hotel) {
-                this.errorHotel = '';
-                if (hotel) {
+            // ===== HOTELES =====
+            abrirModalHotel(h) {
+                if (h) {
                     this.modoEdicionHotel = true;
-                    this.formHotel = { idHotel: hotel.idHotel, nombreHotel: hotel.nombreHotel, ubicacion: hotel.ubicacion || '', estrellas: hotel.estrellas };
+                    this.formHotel = { idHotel: h.idHotel, nombreHotel: h.nombreHotel, ubicacion: h.ubicacion, estrellas: h.estrellas };
                 } else {
                     this.modoEdicionHotel = false;
                     this.formHotel = { idHotel: null, nombreHotel: '', ubicacion: '', estrellas: 5 };
                 }
+                this.errorHotel = '';
                 new bootstrap.Modal(document.getElementById('modalHotel')).show();
             },
 
             async guardarHotel() {
                 this.errorHotel = '';
-                if (!this.formHotel.nombreHotel) { this.errorHotel = 'El nombre del hotel es requerido.'; return; }
-                const payload = { nombreHotel: this.formHotel.nombreHotel, ubicacion: this.formHotel.ubicacion, estrellas: parseInt(this.formHotel.estrellas) };
+                if (!this.formHotel.nombreHotel || !this.formHotel.ubicacion) {
+                    this.errorHotel = 'Nombre y ubicación son requeridos.';
+                    return;
+                }
                 try {
-                    const res = await fetch(
-                        this.modoEdicionHotel ? `${API}/admin/hoteles/${this.formHotel.idHotel}` : `${API}/admin/hoteles`,
-                        { method: this.modoEdicionHotel ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-                    );
+                    const url = this.modoEdicionHotel
+                        ? `${API}/admin/hoteles/${this.formHotel.idHotel}`
+                        : `${API}/admin/hoteles`;
+                    const method = this.modoEdicionHotel ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                        method, headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.formHotel)
+                    });
                     const data = await res.json();
                     if (data.success) {
                         bootstrap.Modal.getInstance(document.getElementById('modalHotel')).hide();
                         await this.cargarHoteles();
-                        this.exito = this.modoEdicionHotel ? 'Hotel actualizado.' : 'Hotel creado exitosamente.';
+                        this.exito = this.modoEdicionHotel ? 'Hotel actualizado.' : 'Hotel creado.';
                         setTimeout(() => this.exito = '', 3000);
                     } else { this.errorHotel = data.message; }
                 } catch (e) { this.errorHotel = 'Error al conectar.'; }
             },
 
             async eliminarHotel(h) {
-                if (!confirm(`¿Eliminar "${h.nombreHotel}"? Esta acción no se puede deshacer.`)) return;
+                if (!confirm(`¿Eliminar el hotel "${h.nombreHotel}"?`)) return;
                 try {
                     const res = await fetch(`${API}/admin/hoteles/${h.idHotel}`, { method: 'DELETE' });
                     const data = await res.json();
-                    if (data.success) { await this.cargarHoteles(); this.exito = `Hotel "${h.nombreHotel}" eliminado.`; setTimeout(() => this.exito = '', 3000); }
-                    else { alert(data.message); }
+                    if (data.success) {
+                        await this.cargarHoteles();
+                        this.exito = `Hotel "${h.nombreHotel}" eliminado.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    } else { alert(data.message); }
                 } catch (e) {}
             },
 
+            // ===== AGENCIAS =====
             abrirModalAgencia() {
-                this.formAgencia = { nombre: '', email: '' };
+                this.formAgencia = { nombre: '', email: '', porcentajeDescuento: 0 };
                 this.errorAgencia = '';
                 new bootstrap.Modal(document.getElementById('modalAgencia')).show();
             },
@@ -888,10 +878,15 @@
                 this.errorAgencia = '';
                 if (!this.formAgencia.nombre) { this.errorAgencia = 'El nombre es requerido.'; return; }
                 if (!this.formAgencia.email) { this.errorAgencia = 'El email es requerido.'; return; }
+                const payload = {
+                    nombre: this.formAgencia.nombre,
+                    email: this.formAgencia.email,
+                    porcentajeDescuento: parseFloat(this.formAgencia.porcentajeDescuento) || 0
+                };
                 try {
                     const res = await fetch(`${API}/admin/agencias`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(this.formAgencia)
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -906,25 +901,30 @@
             async toggleAgencia(a) {
                 if (!confirm(`¿${a.activo ? 'Desactivar' : 'Activar'} la agencia ${a.nombre}?`)) return;
                 try {
-                    const res = await fetch(`${API}/admin/agencias/${a.idAgencia}/toggle`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ activo: !a.activo })
-                    });
+                    const res = await fetch(`${API}/admin/agencias/${a.idAgencia}/toggle`, { method: 'PUT' });
                     const data = await res.json();
-                    if (data.success) { a.activo = !a.activo; this.exito = `Agencia ${a.nombre} ${a.activo ? 'activada' : 'desactivada'}.`; setTimeout(() => this.exito = '', 3000); }
+                    if (data.success) {
+                        await this.cargarAgencias();
+                        this.exito = data.message || 'Estado actualizado.';
+                        setTimeout(() => this.exito = '', 3000);
+                    }
                 } catch (e) {}
             },
 
             async eliminarAgencia(a) {
-                if (!confirm(`¿Eliminar la agencia "${a.nombre}"? Esta acción no se puede deshacer.`)) return;
+                if (!confirm(`¿Eliminar la agencia "${a.nombre}"?`)) return;
                 try {
                     const res = await fetch(`${API}/admin/agencias/${a.idAgencia}`, { method: 'DELETE' });
                     const data = await res.json();
-                    if (data.success) { await this.cargarAgencias(); this.exito = `Agencia "${a.nombre}" eliminada.`; setTimeout(() => this.exito = '', 3000); }
-                    else { alert(data.message); }
+                    if (data.success) {
+                        await this.cargarAgencias();
+                        this.exito = `Agencia "${a.nombre}" eliminada.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    } else { alert(data.message); }
                 } catch (e) {}
             },
 
+            // ===== CUPONES =====
             abrirModalCupon() {
                 this.formCupon = { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 };
                 this.errorCupon = '';
@@ -935,7 +935,6 @@
                 this.errorCupon = '';
                 if (!this.formCupon.codigo) { this.errorCupon = 'El código es requerido.'; return; }
                 if (!this.formCupon.fechaInicio || !this.formCupon.fechaFin) { this.errorCupon = 'Las fechas son requeridas.'; return; }
-                if (this.formCupon.valorDescuento <= 0) { this.errorCupon = 'El valor debe ser mayor a 0.'; return; }
                 try {
                     const res = await fetch(`${API}/admin/cupones`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -954,23 +953,77 @@
             async toggleCupon(c) {
                 if (!confirm(`¿${c.activo ? 'Desactivar' : 'Activar'} el cupón ${c.codigo}?`)) return;
                 try {
-                    const res = await fetch(`${API}/admin/cupones/${c.idCupon}/toggle`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ activo: !c.activo })
-                    });
+                    const res = await fetch(`${API}/admin/cupones/${c.idCupon}/toggle`, { method: 'PUT' });
                     const data = await res.json();
-                    if (data.success) { c.activo = !c.activo; this.exito = `Cupón ${c.codigo} ${c.activo ? 'activado' : 'desactivado'}.`; setTimeout(() => this.exito = '', 3000); }
+                    if (data.success) {
+                        await this.cargarCupones();
+                        this.exito = data.message || 'Estado actualizado.';
+                        setTimeout(() => this.exito = '', 3000);
+                    }
                 } catch (e) {}
             },
 
+            // ===== USUARIOS =====
+            async cambiarRol(u, nuevoRol) {
+                if (u.rol === nuevoRol) return;
+                if (!confirm(`¿Cambiar el rol de ${u.nombre} a ${nuevoRol}?`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/rol`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nuevoRol })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        await this.cargarUsuarios();
+                        this.exito = 'Rol actualizado.';
+                        setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            async toggleUsuario(u) {
+                if (!confirm(`¿${u.activo ? 'Desactivar' : 'Activar'} a ${u.nombre}?`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/usuarios/${u.idUsuario}/toggle`, { method: 'PUT' });
+                    const data = await res.json();
+                    if (data.success) {
+                        await this.cargarUsuarios();
+                        this.exito = data.message || 'Estado actualizado.';
+                        setTimeout(() => this.exito = '', 3000);
+                    }
+                } catch (e) {}
+            },
+
+            // ===== RESERVAS =====
+            async cambiarEstado(idReservacion, nuevoEstado) {
+                try {
+                    const res = await fetch(`${API}/admin/reservaciones/${idReservacion}/estado`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nuevoEstado })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        await this.cargarReservas();
+                        this.exito = 'Estado actualizado.';
+                        setTimeout(() => this.exito = '', 3000);
+                    } else { alert(data.message); }
+                } catch (e) {}
+            },
+
+            // ===== CIERRE VENTAS =====
             async guardarCierreVentas() {
+                if (!this.cierreVentas.fechaCierre) return;
                 try {
                     const res = await fetch(`${API}/admin/configuracion/cierre-ventas`, {
                         method: 'PUT', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fechaCierre: this.cierreVentas.fechaCierre })
                     });
                     const data = await res.json();
-                    if (data.success) { await this.cargarCierreVentas(); this.exito = data.message; setTimeout(() => this.exito = '', 4000); }
+                    if (data.success) {
+                        await this.cargarCierreVentas();
+                        this.exito = data.message || 'Cierre guardado.';
+                        setTimeout(() => this.exito = '', 4000);
+                    }
                 } catch (e) {}
             },
 
@@ -982,10 +1035,15 @@
                         body: JSON.stringify({ fechaCierre: '' })
                     });
                     const data = await res.json();
-                    if (data.success) { this.cierreVentas = { fechaCierre: '', ventasCerradas: false }; this.exito = data.message; setTimeout(() => this.exito = '', 4000); }
+                    if (data.success) {
+                        this.cierreVentas = { fechaCierre: '', ventasCerradas: false };
+                        this.exito = data.message || 'Cierre eliminado.';
+                        setTimeout(() => this.exito = '', 4000);
+                    }
                 } catch (e) {}
             },
 
+            // ===== UTILIDADES =====
             formatFecha(fecha) {
                 if (!fecha) return '';
                 return new Date(fecha).toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -994,23 +1052,38 @@
             get estadoHabitaciones() {
                 const total = this.stats.totalHabitaciones || 1;
                 return [
-                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#16a34a', porcentaje: Math.round(this.stats.habitacionesDisponibles / total * 100) },
-                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#dc2626', porcentaje: Math.round(this.stats.habitacionesOcupadas / total * 100) },
-                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b', porcentaje: Math.round(this.stats.habitacionesMantenimiento / total * 100) },
-                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#9ca3af', porcentaje: Math.round(this.stats.habitacionesInactivas / total * 100) }
-                ];
+                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#10b981' },
+                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#3b82f6' },
+                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b' },
+                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#ef4444' }
+                ].map(s => ({ ...s, porcentaje: total > 0 ? Math.round((s.count / total) * 100) : 0 }));
             },
 
             get estadoReservas() {
-                const estados = ['Confirmada', 'Pendiente', 'Completada', 'Cancelada'];
-                const colores = { Confirmada: '#16a34a', Pendiente: '#f59e0b', Completada: '#6366f1', Cancelada: '#dc2626' };
                 const total = this.todasReservas.length || 1;
-                return estados.map(e => ({
-                    estado: e,
-                    count: this.todasReservas.filter(r => r.estado === e).length,
-                    color: colores[e],
-                    porcentaje: Math.round(this.todasReservas.filter(r => r.estado === e).length / total * 100)
+                const grupos = {};
+                this.todasReservas.forEach(r => {
+                    const e = r.estado || 'Pendiente';
+                    grupos[e] = (grupos[e] || 0) + 1;
+                });
+                const colores = {
+                    'Confirmada': '#10b981',
+                    'Pendiente': '#f59e0b',
+                    'Cancelada': '#ef4444',
+                    'Completada': '#6366f1',
+                    'CheckIn': '#3b82f6',
+                    'CheckOut': '#8b5cf6'
+                };
+                return Object.entries(grupos).map(([estado, count]) => ({
+                    estado, count,
+                    color: colores[estado] || '#94a3b8',
+                    porcentaje: Math.round((count / total) * 100)
                 }));
+            },
+
+            cerrarSesion() {
+                localStorage.removeItem('usuario');
+                window.location.href = 'login.html';
             }
         }
     }

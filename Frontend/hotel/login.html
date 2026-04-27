@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bedly | Acceso al Sistema</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,25 +13,188 @@
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-teal-500 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-teal-500 min-h-screen flex flex-col">
+    <main class="flex-grow flex items-center justify-center p-4">
+    <div x-data="loginApp()" x-init="init()"
+         class="glass w-full max-auto max-w-md p-8 rounded-2xl shadow-2xl border border-white/20">
 
-    <div x-data="{
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4 shadow-lg">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800">Bedly</h1>
+            <p class="text-gray-500 text-sm mt-2">Módulo de Gestión Hotelera B2B</p>
+        </div>
+
+        <div x-show="error" x-text="error"
+             class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+        </div>
+
+        <button class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 py-2.5 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-all active:scale-[0.98] mb-6">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-5 h-5" alt="Google">
+            Continuar con Google
+        </button>
+
+        <div class="relative mb-6">
+            <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-gray-300"></span></div>
+            <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-gray-500">O usa tu cuenta</span></div>
+        </div>
+
+        <form @submit.prevent="login()">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico</label>
+                    <input type="email" x-model="email" required
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                           placeholder="tu@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                    <div class="relative">
+                        <input :type="verPassword ? 'text' : 'password'" x-model="password" required
+                               class="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                               placeholder="••••••••">
+                        <button type="button" @click="verPassword = !verPassword"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i x-show="!verPassword" class="bi bi-eye"></i>
+                            <i x-show="verPassword" class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">
+                        <i class="bi bi-shield-check mr-1"></i>Verificación de seguridad
+                    </label>
+                    <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                        <div class="text-xl font-bold text-blue-700 mb-2">
+                            <span x-text="captcha.a"></span> + <span x-text="captcha.b"></span> = ?
+                            <button type="button" @click="generarCaptcha()"
+                                    class="ml-2 text-sm text-blue-600 hover:text-blue-800" title="Cambiar pregunta">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                        <input type="number" x-model.number="captchaRespuesta" required
+                               class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                               placeholder="Respuesta">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-4 mb-6">
+                <label class="flex items-center text-sm text-gray-700">
+                    <input type="checkbox" x-model="recordarme" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2">Recordarme</span>
+                </label>
+                <a href="#" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" :disabled="loading"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all active:scale-[0.98] disabled:opacity-50">
+                <span x-show="!loading">Iniciar Sesión</span>
+                <span x-show="loading">Iniciando...</span>
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-gray-500 mt-8">
+            ¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 font-semibold hover:underline">Regístrate</a>
+        </p>
+    </div>
+    </main>
+
+    <footer class="bg-[#003580] text-white pt-12 pb-4">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-6">
+                <div class="md:col-span-4">
+                    <h4 class="text-3xl font-black mb-4" style="font-family:'Playfair Display',serif;">Bed<span style="color:#f5a623;">ly</span></h4>
+                    <p class="text-sm opacity-80 leading-relaxed">
+                        Tu cadena de hoteles de confianza en Guatemala. Reservas seguras, mejores precios y experiencias inolvidables.
+                    </p>
+                    <div class="flex gap-3 mt-4">
+                        <a href="#" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-white opacity-70 hover:opacity-100 text-xl"><i class="bi bi-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Información</h6>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="amenidades.html" class="text-white opacity-80 hover:opacity-100">Amenidades</a></li>
+                        <li><a href="tipos-habitaciones.html" class="text-white opacity-80 hover:opacity-100">Habitaciones</a></li>
+                        <li><a href="checkin-checkout.html" class="text-white opacity-80 hover:opacity-100">Check-in / Check-out</a></li>
+                        <li><a href="reglas-hotel.html" class="text-white opacity-80 hover:opacity-100">Reglas del Hotel</a></li>
+                        <li><a href="evacuacion.html" class="text-white opacity-80 hover:opacity-100">Plan de Evacuación</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-2">
+                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Cuenta</h6>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="login.html" class="text-white opacity-80 hover:opacity-100">Iniciar Sesión</a></li>
+                        <li><a href="registro.html" class="text-white opacity-80 hover:opacity-100">Registrarse</a></li>
+                        <li><a href="landing.html" class="text-white opacity-80 hover:opacity-100">Ver Habitaciones</a></li>
+                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">Términos y Condiciones</a></li>
+                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-4">
+                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Contáctanos</h6>
+                    <p class="opacity-80 text-sm mb-2"><i class="bi bi-telephone-fill mr-2"></i>+502 2200-0000</p>
+                    <p class="opacity-80 text-sm mb-2"><i class="bi bi-envelope-fill mr-2"></i>info@bedly.com</p>
+                    <p class="opacity-80 text-sm mb-2"><i class="bi bi-geo-alt-fill mr-2"></i>16 Calle 0-55, Zona 10<br><span class="ml-6">Guatemala City, Guatemala</span></p>
+                    <p class="opacity-80 text-sm mb-0"><i class="bi bi-clock-fill mr-2"></i>Recepción 24/7</p>
+                </div>
+            </div>
+            <hr class="border-white border-opacity-10">
+            <div class="flex justify-between items-center flex-wrap gap-2 pt-4">
+                <p class="m-0 opacity-70 text-xs">© 2026 Bedly — Sistema de Gestión Hotelera · UNIS</p>
+                <p class="m-0 opacity-70 text-xs">Hecho con <i class="bi bi-heart-fill" style="color:#f5a623;"></i> en Guatemala</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    function loginApp() {
+        return {
             loading: false,
             email: '',
             password: '',
             recordarme: false,
             verPassword: false,
             error: '',
+            captcha: { a: 0, b: 0, resultado: 0 },
+            captchaRespuesta: null,
+
             init() {
+                this.generarCaptcha();
                 const emailGuardado = localStorage.getItem('bedly_email');
                 if (emailGuardado) {
                     this.email = emailGuardado;
                     this.recordarme = true;
                 }
             },
+
+            generarCaptcha() {
+                this.captcha.a = Math.floor(Math.random() * 10) + 1;
+                this.captcha.b = Math.floor(Math.random() * 10) + 1;
+                this.captcha.resultado = this.captcha.a + this.captcha.b;
+                this.captchaRespuesta = null;
+            },
+
             async login() {
-                this.loading = true;
                 this.error = '';
+
+                if (this.captchaRespuesta !== this.captcha.resultado) {
+                    this.error = 'La respuesta del CAPTCHA es incorrecta. Inténtalo de nuevo.';
+                    this.generarCaptcha();
+                    return;
+                }
+
+                this.loading = true;
                 try {
                     const response = await fetch('http://localhost:5043/api/auth/login', {
                         method: 'POST',
@@ -53,101 +217,17 @@
                         }
                     } else {
                         this.error = data.message;
+                        this.generarCaptcha();
                     }
                 } catch (e) {
                     this.error = 'Error al conectar con el servidor';
+                    this.generarCaptcha();
                 } finally {
                     this.loading = false;
                 }
             }
-         }" 
-         x-init="init()"
-         class="glass w-full max-auto max-w-md p-8 rounded-2xl shadow-2xl border border-white/20">
-        
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4 shadow-lg">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                </svg>
-            </div>
-            <h1 class="text-3xl font-bold text-gray-800">Bedly</h1>
-            <p class="text-gray-500 text-sm mt-2">Módulo de Gestión Hotelera B2B</p>
-        </div>
-
-        <!-- Error -->
-        <div x-show="error" x-text="error"
-             class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
-        </div>
-
-        <button class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 py-2.5 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-all active:scale-[0.98] mb-6">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-5 h-5" alt="Google">
-            Continuar con Google
-        </button>
-
-        <div class="relative mb-6">
-            <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-gray-300"></span></div>
-            <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-gray-500">O usa tu cuenta</span></div>
-        </div>
-
-        <form @submit.prevent="login()">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                    <input type="email" x-model="email" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                           placeholder="admin@hotel.com">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                    <div class="relative">
-                        <input :type="verPassword ? 'text' : 'password'" 
-                               x-model="password" required
-                               class="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                               placeholder="••••••••">
-                        <button type="button"
-                                @click="verPassword = !verPassword"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg x-show="!verPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                            <svg x-show="verPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between mt-4 mb-6">
-                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
-                    <input type="checkbox" x-model="recordarme"
-                           class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer">
-                    <span>Recordarme</span>
-                    <span x-show="recordarme" class="text-blue-500 font-medium">(email guardado)</span>
-                </label>
-                <a href="#" class="text-xs text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
-            </div>
-
-            <button type="submit" 
-                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
-                    :class="loading ? 'opacity-70 cursor-not-allowed' : ''"
-                    :disabled="loading">
-                <template x-if="loading">
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </template>
-                <span x-text="loading ? 'Validando...' : 'Iniciar Sesión'"></span>
-            </button>
-        </form>
-
-        <p class="text-center text-sm text-gray-500 mt-8">
-            ¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 font-semibold hover:underline">Regístrate</a>
-        </p>
-    </div>
-
+        }
+    }
+    </script>
 </body>
 </html>

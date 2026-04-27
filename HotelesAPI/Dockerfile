@@ -1,4 +1,4 @@
-# ── Etapa 1: Build ──────────────────────────────────────────────────
+# ── Etapa 1: Build ───────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
@@ -6,9 +6,14 @@ COPY HotelesAPI.csproj .
 RUN dotnet restore
 
 COPY . .
+
+# Si appsettings.json no existe, copiar la plantilla example.
+# Permite que el build funcione aunque el dev haya clonado sin appsettings.json
+RUN if [ ! -f appsettings.json ]; then cp appsettings.example.json appsettings.json; fi
+
 RUN dotnet publish -c Release -o /app/publish
 
-# ── Etapa 2: Runtime ─────────────────────────────────────────────────
+# ── Etapa 2: Runtime ─────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS final
 WORKDIR /app
 

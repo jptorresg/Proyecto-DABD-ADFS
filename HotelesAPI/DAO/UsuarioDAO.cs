@@ -46,16 +46,20 @@ namespace HotelesAPI.DAO
         public int Create(Usuario usuario)
         {
             string sql = @"INSERT INTO Usuario 
-                          (nombre, email, password_hash, telefono, rol, activo, fecha_registro)
-                          VALUES (@nombre, @email, @hash, @telefono, @rol, 1, GETDATE());
+                          (nombre, apellidos, email, password_hash, telefono, edad, pais, pasaporte, rol, activo, fecha_registro)
+                          VALUES (@nombre, @apellidos, @email, @hash, @telefono, @edad, @pais, @pasaporte, @rol, 1, GETDATE());
                           SELECT SCOPE_IDENTITY();";
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add(new SqlParameter("@nombre", usuario.Nombre));
+            cmd.Parameters.Add(new SqlParameter("@apellidos", (object?)usuario.Apellidos ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@email", usuario.Email));
             cmd.Parameters.Add(new SqlParameter("@hash", usuario.PasswordHash!));
             cmd.Parameters.Add(new SqlParameter("@telefono", usuario.Telefono));
+            cmd.Parameters.Add(new SqlParameter("@edad", (object?)usuario.Edad ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@pais", (object?)usuario.Pais ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@pasaporte", (object?)usuario.Pasaporte ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@rol", usuario.Rol));
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -64,8 +68,12 @@ namespace HotelesAPI.DAO
         {
             string sql = @"UPDATE Usuario SET
                           nombre = @nombre,
+                          apellidos = @apellidos,
                           email = @email,
                           telefono = @telefono,
+                          edad = @edad,
+                          pais = @pais,
+                          pasaporte = @pasaporte,
                           password_hash = @hash,
                           activo = @activo
                           WHERE id_usuario = @id";
@@ -73,8 +81,12 @@ namespace HotelesAPI.DAO
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.Add(new SqlParameter("@nombre", usuario.Nombre));
+            cmd.Parameters.Add(new SqlParameter("@apellidos", (object?)usuario.Apellidos ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@email", usuario.Email));
             cmd.Parameters.Add(new SqlParameter("@telefono", usuario.Telefono));
+            cmd.Parameters.Add(new SqlParameter("@edad", (object?)usuario.Edad ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@pais", (object?)usuario.Pais ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@pasaporte", (object?)usuario.Pasaporte ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@hash", (object?)usuario.PasswordHash ?? DBNull.Value));
             cmd.Parameters.Add(new SqlParameter("@activo", usuario.Activo));
             cmd.Parameters.Add(new SqlParameter("@id", usuario.IdUsuario));
@@ -109,9 +121,13 @@ namespace HotelesAPI.DAO
             {
                 IdUsuario = rs.GetInt32(rs.GetOrdinal("id_usuario")),
                 Nombre = rs.GetString(rs.GetOrdinal("nombre")),
+                Apellidos = rs.IsDBNull(rs.GetOrdinal("apellidos")) ? null : rs.GetString(rs.GetOrdinal("apellidos")),
                 Email = rs.GetString(rs.GetOrdinal("email")),
                 PasswordHash = rs.IsDBNull(rs.GetOrdinal("password_hash")) ? null : rs.GetString(rs.GetOrdinal("password_hash")),
                 Telefono = rs.IsDBNull(rs.GetOrdinal("telefono")) ? "" : rs.GetString(rs.GetOrdinal("telefono")),
+                Edad = rs.IsDBNull(rs.GetOrdinal("edad")) ? null : rs.GetInt32(rs.GetOrdinal("edad")),
+                Pais = rs.IsDBNull(rs.GetOrdinal("pais")) ? null : rs.GetString(rs.GetOrdinal("pais")),
+                Pasaporte = rs.IsDBNull(rs.GetOrdinal("pasaporte")) ? null : rs.GetString(rs.GetOrdinal("pasaporte")),
                 Rol = rs.GetString(rs.GetOrdinal("rol")),
                 Activo = rs.GetBoolean(rs.GetOrdinal("activo")),
                 FechaRegistro = rs.GetDateTime(rs.GetOrdinal("fecha_registro"))

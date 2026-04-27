@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in & Abordaje — Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/informativas.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="info-page-body">
+
+    <div id="header-container"></div>
+
+    <!-- Hero -->
+    <section class="info-hero">
+        <div class="info-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1400&q=80');"></div>
+        <div class="info-hero-overlay"></div>
+        <div class="info-hero-content">
+            <div class="info-hero-icon"><i class="fas fa-passport"></i></div>
+            <h1 class="info-hero-title">Check-in & Abordaje</h1>
+            <p class="info-hero-subtitle">Todo lo que necesitas saber para vivir una experiencia de viaje sin contratiempos, desde casa hasta tu asiento.</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <a href="../views/index.html"><i class="fas fa-home"></i> Inicio</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">Check-in & Abordaje</span>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <main class="info-content" x-data="checkinPage()">
+        <div class="container">
+
+            <!-- Tabs de navegación -->
+            <div class="d-flex gap-3 mb-4 flex-wrap">
+                <template x-for="tab in tabs" :key="tab.id">
+                    <button
+                        class="filter-chip"
+                        :class="{ 'active': isActive(tab.id) }"
+                        @click="setTab(tab.id)">
+                        <i class="fas me-2" :class="tab.icon"></i>
+                        <span x-text="tab.label"></span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- ======================== TAB: Online ======================== -->
+            <div x-show="isActive('online')" x-transition:enter="fadeInUp">
+
+                <div class="section-header">
+                    <span class="section-label"><i class="fas fa-laptop"></i> Check-in Online</span>
+                    <h2 class="section-title">Haz tu check-in desde donde estés</h2>
+                    <p class="section-desc">Disponible entre 48 horas y 2 horas antes de tu vuelo. Solo necesitas tu número de reserva y documento de identidad.</p>
+                </div>
+
+                <div class="info-box blue mb-4">
+                    <div class="info-box-icon"><i class="fas fa-clock"></i></div>
+                    <div class="info-box-content">
+                        <strong>Ventana de Check-in Online</strong>
+                        <p>Puedes hacer check-in desde <strong>48 horas</strong> hasta <strong>2 horas antes</strong> de la salida de tu vuelo. Recibirás tu pase de abordar digital directamente en tu correo electrónico.</p>
+                    </div>
+                </div>
+
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Ingresa al portal</div>
+                        <p class="step-desc">Visita aerolineashalcon.com/checkin o utiliza nuestra app móvil disponible en iOS y Android.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Ingresa tu reserva</div>
+                        <p class="step-desc">Introduce tu número de confirmación (6 caracteres) y el apellido del pasajero principal para localizar tu vuelo.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Confirma datos</div>
+                        <p class="step-desc">Revisa que los datos de todos los pasajeros sean correctos. Verifica nombres tal como aparecen en tus documentos.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Descarga tu pase</div>
+                        <p class="step-desc">Descarga o guarda en tu wallet el pase de abordar digital. También puedes imprimirlo en casa.</p>
+                    </div>
+                </div>
+
+                <div class="info-box green">
+                    <div class="info-box-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="info-box-content">
+                        <strong>Pase de abordar digital</strong>
+                        <p>Acepto en todos nuestros vuelos. Guárdalo en Apple Wallet o Google Wallet para accederlo sin internet. El código QR se genera al completar el proceso.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== TAB: Aeropuerto ======================== -->
+            <div x-show="isActive('airport')" x-transition:enter="fadeInUp">
+
+                <div class="section-header">
+                    <span class="section-label"><i class="fas fa-building"></i> En Aeropuerto</span>
+                    <h2 class="section-title">Check-in en los mostradores</h2>
+                    <p class="section-desc">Si no completaste el check-in online, nuestros agentes te asistirán en el aeropuerto. Te recomendamos llegar con tiempo.</p>
+                </div>
+
+                <div class="info-box amber mb-4">
+                    <div class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="info-box-content">
+                        <strong>Tiempos mínimos de llegada</strong>
+                        <p>Vuelos domésticos: llega al menos <strong>90 minutos</strong> antes. Vuelos internacionales: llega al menos <strong>3 horas</strong> antes de la salida.</p>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Proceso en mostrador</span>
+                        </div>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">Paso 1</div>
+                                <div class="timeline-title">Localiza el mostrador Halcón</div>
+                                <p class="timeline-desc">Busca los mostradores de Aerolíneas Halcón señalizados en el área de check-in del aeropuerto. Tenemos mostradores exclusivos en todos los aeropuertos que operamos.</p>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">Paso 2</div>
+                                <div class="timeline-title">Presenta tus documentos</div>
+                                <p class="timeline-desc">Pasaporte vigente (o DPI para vuelos nacionales), número de reserva y en vuelos internacionales, visado correspondiente si aplica.</p>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">Paso 3</div>
+                                <div class="timeline-title">Despacha tu equipaje</div>
+                                <p class="timeline-desc">Nuestro agente pesará y etiquetará tu maleta. Asegúrate de cumplir los límites de peso. El exceso tiene cargos adicionales.</p>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">Paso 4</div>
+                                <div class="timeline-title">Recibe tu pase de abordar</div>
+                                <p class="timeline-desc">Recibirás tu tarjeta de embarque física con número de puerta, asiento y horario de abordaje.</p>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-time">Paso 5</div>
+                                <div class="timeline-title">Pasa por seguridad</div>
+                                <p class="timeline-desc">Dirígete a los controles de seguridad. Recuerda las restricciones de líquidos y retira laptop, cinturón y artículos metálicos antes del escáner.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="section-header mb-3">
+                            <span class="section-label">Documentos requeridos</span>
+                        </div>
+                        <div class="step-card mb-3">
+                            <div class="step-icon"><i class="fas fa-id-card"></i></div>
+                            <div class="step-title">Vuelos nacionales</div>
+                            <p class="step-desc">DPI o Pasaporte vigente. Para menores de edad, presentar certificado de nacimiento y autorización de viaje si viajan sin ambos padres.</p>
+                        </div>
+                        <div class="step-card mb-3">
+                            <div class="step-icon"><i class="fas fa-passport"></i></div>
+                            <div class="step-title">Vuelos internacionales</div>
+                            <p class="step-desc">Pasaporte con vigencia mínima de 6 meses. Visa del país destino (si aplica). Formularios migratorios del destino. Documentos de regreso si se solicitan.</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-icon"><i class="fas fa-baby"></i></div>
+                            <div class="step-title">Viajeros especiales</div>
+                            <p class="step-desc">Bebés (menores de 2 años): acta de nacimiento. Menores no acompañados: servicio especial de asistencia. Pasajeros con discapacidad: notifica con 48h de anticipación.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== TAB: Abordaje ======================== -->
+            <div x-show="isActive('abordaje')" x-transition:enter="fadeInUp">
+
+                <div class="section-header">
+                    <span class="section-label"><i class="fas fa-plane-departure"></i> Reglas de Abordaje</span>
+                    <h2 class="section-title">El proceso de abordaje</h2>
+                    <p class="section-desc">Para garantizar un abordaje ordenado y puntual, seguimos un sistema de zonas de embarque que agiliza el proceso para todos.</p>
+                </div>
+
+                <div class="info-box blue mb-4">
+                    <div class="info-box-icon"><i class="fas fa-door-open"></i></div>
+                    <div class="info-box-content">
+                        <strong>Cierre de puerta de embarque</strong>
+                        <p>Las puertas se cierran <strong>15 minutos</strong> antes de la salida del vuelo. Pasajeros que no se presenten a tiempo perderán su lugar sin derecho a reembolso.</p>
+                    </div>
+                </div>
+
+                <div class="steps-grid mb-4">
+                    <div class="step-card">
+                        <span class="step-badge">Zona 1</span>
+                        <div class="step-icon"><i class="fas fa-wheelchair"></i></div>
+                        <div class="step-title">Prioridad especial</div>
+                        <p class="step-desc">Personas con discapacidad, adultos mayores, familias con niños menores de 5 años y pasajeros que requieran asistencia especial.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-badge">Zona 2</span>
+                        <div class="step-icon"><i class="fas fa-gem"></i></div>
+                        <div class="step-title">Business Class</div>
+                        <p class="step-desc">Todos los pasajeros de clase Business y miembros Gold y Platinum del programa Halcón Viajero frecuente.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-badge">Zona 3</span>
+                        <div class="step-icon"><i class="fas fa-star"></i></div>
+                        <div class="step-title">Turista — Filas A-F (traseras)</div>
+                        <p class="step-desc">Pasajeros asignados a asientos en las filas traseras del avión, desde la última fila hacia adelante para evitar congestión en los pasillos.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-badge">Zona 4</span>
+                        <div class="step-icon"><i class="fas fa-user"></i></div>
+                        <div class="step-title">Turista — Filas G-N (centrales)</div>
+                        <p class="step-desc">Pasajeros en asientos de las filas centrales del avión. Por favor aguarda tu turno en la sala de espera hasta que se anuncie tu zona.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-badge">Zona 5</span>
+                        <div class="step-icon"><i class="fas fa-users"></i></div>
+                        <div class="step-title">Turista — Filas O-Z (delanteras)</div>
+                        <p class="step-desc">Pasajeros en asientos delanteros del avión. Abordaje al final para evitar bloqueo de los pasillos durante el proceso.</p>
+                    </div>
+                </div>
+
+                <div class="section-header mt-4">
+                    <span class="section-label">Recuerda</span>
+                    <h2 class="section-title">Reglas de equipaje de mano en cabina</h2>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-box green">
+                            <div class="info-box-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="info-box-content">
+                                <strong>Permitido en cabina</strong>
+                                <p>1 maleta de mano (56×36×23 cm, máx. 10 kg) + 1 artículo personal (cartera, laptop, mochila pequeña). Todos los objetos deben caber en el compartimiento superior o bajo el asiento.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box amber">
+                            <div class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="info-box-content">
+                                <strong>Artículos que van en bodega</strong>
+                                <p>Si tu equipaje de mano excede las medidas o el espacio en cabina está lleno, podrá ser despachado a bodega sin costo extra en la puerta de embarque.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
+    <script>
+        async function loadPartial(id, path) {
+            try {
+                const r = await fetch(path);
+                document.getElementById(id).innerHTML = await r.text();
+            } catch(e) { console.error(e); }
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPartial('header-container', '../partials/header.html');
+            await loadPartial('footer-container', '../partials/footer.html');
+        });
+    </script>
+</body>
+</html>
