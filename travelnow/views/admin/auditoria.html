@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoría de búsquedas — Admin TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .audit-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .audit-stat {
+      background: var(--navy-mid);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.2rem;
+    }
+    .audit-stat-num {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .audit-stat-lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 0.3rem;
+    }
+    .filter-row-end {
+      margin-left: auto;
+      display: flex;
+      gap: 0.6rem;
+    }
+    .btn-download {
+      background: linear-gradient(135deg, var(--gold) 0%, #B8882E 100%);
+      color: var(--navy);
+      border: none;
+      padding: 0.55rem 1.3rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--trans);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+    .btn-download:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(212,168,67,0.35);
+    }
+    .btn-download:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .badge-canal-web  { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--border-gold); }
+    .badge-canal-rest { background: rgba(96,165,250,0.12); color: #60A5FA; border: 1px solid rgba(96,165,250,0.25); }
+    .anon-text { color: var(--text-muted); font-style: italic; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"     class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"      class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones" class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"   class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+    <a href="/admin/auditoria"     class="sidebar-nav-item active"><i class="fas fa-shield-halved"></i> Auditoría</a>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-shield-halved"></i> Auditoría de búsquedas</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem;">
+        Registro completo de búsquedas realizadas por usuarios y clientes B2B.
+        Útil para auditorías, análisis de uso y trazabilidad.
+      </p>
+
+      <!-- Estadísticas rápidas -->
+      <div class="audit-stats">
+        <div class="audit-stat"><div class="audit-stat-num" id="s-total">—</div><div class="audit-stat-lbl">Total</div></div>
+        <div class="audit-stat"><div class="audit-stat-num" id="s-vuelos">—</div><div class="audit-stat-lbl">De vuelos</div></div>
+        <div class="audit-stat"><div class="audit-stat-num" id="s-hoteles">—</div><div class="audit-stat-lbl">De hoteles</div></div>
+        <div class="audit-stat"><div class="audit-stat-num" id="s-web">—</div><div class="audit-stat-lbl">Vía web</div></div>
+        <div class="audit-stat"><div class="audit-stat-num" id="s-api">—</div><div class="audit-stat-lbl">Vía API</div></div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="admin-filters">
+        <select class="th-select-sm" id="f-tipo" onchange="cargar()">
+          <option value="">Todos los tipos</option>
+          <option value="vuelo">Vuelo</option>
+          <option value="hotel">Hotel</option>
+        </select>
+        <select class="th-select-sm" id="f-canal" onchange="cargar()">
+          <option value="">Todos los canales</option>
+          <option value="web">Web</option>
+          <option value="rest">API REST (B2B)</option>
+        </select>
+        <input type="date" class="th-select-sm" id="f-desde" onchange="cargar()" title="Desde">
+        <input type="date" class="th-select-sm" id="f-hasta" onchange="cargar()" title="Hasta">
+
+        <div class="filter-row-end">
+          <button class="btn-sm-gold" onclick="limpiarFiltros()">
+            <i class="fas fa-eraser"></i> Limpiar
+          </button>
+          <button class="btn-download" id="btn-pdf" onclick="descargarPDF()">
+            <i class="fas fa-file-pdf"></i> Descargar PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h2>Registro de búsquedas</h2>
+          <span id="busquedas-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
+        </div>
+        <div class="admin-panel-body" style="overflow-x:auto;">
+          <table class="th-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Canal</th>
+                <th>Usuario</th>
+                <th>Ruta / Ciudad</th>
+                <th>Fechas viaje</th>
+                <th>Pax</th>
+              </tr>
+            </thead>
+            <tbody id="busquedas-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Cargando...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
+          <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-sm-gold" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
+            <button class="btn-sm-gold" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted);font-size:0.78rem;margin-top:1rem;">
+        <i class="fas fa-info-circle me-1" style="color:var(--gold);"></i>
+        El PDF descargado respeta los filtros aplicados arriba e incluye <strong>todos</strong>
+        los registros que coincidan, no solo la página actual.
+      </p>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  let pagina = 1;
+  const limit = 50;
+
+  async function cargar() {
+    pagina = 1;
+    await fetchPagina();
+  }
+
+  function getQueryString(extra = {}) {
+    const params = new URLSearchParams();
+    const tipo  = document.getElementById('f-tipo').value;
+    const canal = document.getElementById('f-canal').value;
+    const desde = document.getElementById('f-desde').value;
+    const hasta = document.getElementById('f-hasta').value;
+    if (tipo)  params.append('tipo', tipo);
+    if (canal) params.append('origen_busqueda', canal);
+    if (desde) params.append('desde', desde);
+    if (hasta) params.append('hasta', hasta);
+    Object.entries(extra).forEach(([k, v]) => params.append(k, v));
+    return params.toString();
+  }
+
+  async function fetchPagina() {
+    const tbody = document.getElementById('busquedas-tbody');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
+    </td></tr>`;
+
+    try {
+      const res  = await fetch(`/api/admin/busquedas/data?${getQueryString({ page: pagina, limit })}`, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+          Error: ${data.message || 'No autorizado'}
+        </td></tr>`;
+        return;
+      }
+
+      const busquedas = data.data  || [];
+      const total     = data.total || 0;
+
+      document.getElementById('busquedas-count').textContent  = `${total} búsqueda(s)`;
+      document.getElementById('pagination-info').textContent  =
+        `Página ${pagina} · Mostrando ${busquedas.length} de ${total}`;
+      document.getElementById('btn-prev').disabled = pagina <= 1;
+      document.getElementById('btn-next').disabled = pagina * limit >= total;
+
+      cargarStats();
+
+      if (!busquedas.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+          No se encontraron búsquedas con los filtros aplicados.
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = busquedas.map(b => {
+        const fecha = b.fecha_busqueda
+          ? new Date(b.fecha_busqueda).toLocaleString('es-GT', {
+              day:'2-digit', month:'2-digit', year:'numeric',
+              hour:'2-digit', minute:'2-digit',
+            })
+          : '—';
+        const usuario = b.nombre
+          ? `${b.nombre} ${b.apellido || ''}<br><span style="color:var(--text-muted);font-size:0.78rem;">${b.correo || ''}</span>`
+          : `<span class="anon-text">— anónimo —</span>`;
+        const ruta = b.tipo_busqueda === 'hotel'
+          ? (b.ciudad || '—')
+          : `${b.origen || '?'} → ${b.destino || '?'}`;
+        const fechas = (b.fecha_inicio || b.fecha_fin)
+          ? `${b.fecha_inicio || '—'} → ${b.fecha_fin || '—'}`
+          : '—';
+        const canalCls = b.origen_busqueda === 'web' ? 'badge-canal-web' : 'badge-canal-rest';
+
+        return `
+          <tr>
+            <td style="font-size:0.8rem;">${fecha}</td>
+            <td><span class="badge-custom ${b.tipo_busqueda === 'hotel' ? 'badge-blue' : 'badge-gold'}">${(b.tipo_busqueda || '').toUpperCase()}</span></td>
+            <td><span class="badge-custom ${canalCls}">${(b.origen_busqueda || '—').toUpperCase()}</span></td>
+            <td>${usuario}</td>
+            <td>${ruta}</td>
+            <td style="font-size:0.82rem;color:var(--text-muted);">${fechas}</td>
+            <td style="text-align:center;">${b.num_pasajeros ?? '—'}</td>
+          </tr>`;
+      }).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+        Error de conexión: ${e.message}
+      </td></tr>`;
+    }
+  }
+
+  async function cargarStats() {
+    try {
+      const baseQS = getQueryString();
+      const totalRes = await fetch(`/api/admin/busquedas/data?${baseQS}&limit=1`, { credentials: 'include' });
+      const totalData = await totalRes.json();
+      if (totalData.ok) document.getElementById('s-total').textContent = totalData.total || 0;
+
+      const promesas = [
+        fetch(`/api/admin/busquedas/data?${baseQS}&tipo=vuelo&limit=1`, { credentials:'include' }).then(r=>r.json()),
+        fetch(`/api/admin/busquedas/data?${baseQS}&tipo=hotel&limit=1`, { credentials:'include' }).then(r=>r.json()),
+        fetch(`/api/admin/busquedas/data?${baseQS}&origen_busqueda=web&limit=1`, { credentials:'include' }).then(r=>r.json()),
+        fetch(`/api/admin/busquedas/data?${baseQS}&origen_busqueda=rest&limit=1`, { credentials:'include' }).then(r=>r.json()),
+      ];
+      const [v, h, w, r] = await Promise.all(promesas);
+      document.getElementById('s-vuelos').textContent  = v.ok ? (v.total || 0) : '—';
+      document.getElementById('s-hoteles').textContent = h.ok ? (h.total || 0) : '—';
+      document.getElementById('s-web').textContent     = w.ok ? (w.total || 0) : '—';
+      document.getElementById('s-api').textContent     = r.ok ? (r.total || 0) : '—';
+    } catch {}
+  }
+
+  function cambiarPagina(dir) {
+    pagina += dir;
+    fetchPagina();
+  }
+
+  function limpiarFiltros() {
+    document.getElementById('f-tipo').value  = '';
+    document.getElementById('f-canal').value = '';
+    document.getElementById('f-desde').value = '';
+    document.getElementById('f-hasta').value = '';
+    cargar();
+  }
+
+  async function descargarPDF() {
+    const btn = document.getElementById('btn-pdf');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+
+    try {
+      const res = await fetch(`/api/admin/busquedas/pdf?${getQueryString()}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        let msg = 'Error al generar PDF';
+        try { const j = await res.json(); msg = j.message || msg; } catch {}
+        throw new Error(msg);
+      }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const fechaArchivo = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `auditoria-busquedas-${fechaArchivo}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('No se pudo descargar el PDF: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  }
+
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      .then(() => window.location.href = '/login');
+  }
+
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario)
+        document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
+    }).catch(() => {});
+
+  cargar();
+</script>
+</body>
+</html>

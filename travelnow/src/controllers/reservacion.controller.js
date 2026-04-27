@@ -5,12 +5,15 @@
  * @description Maneja todas las operaciones relacionadas con reservaciones de vuelos, hoteles y paquetes
  * @module controllers/reservacionController
  *
- * FIX 2026-04-20:
- *   - `_generarPDF` ahora incluye datos del cliente, método de pago, subtotal/impuestos
- *     y datos de pasajeros/huéspedes.
- *   - Se agrega la función `historialUsuario` que faltaba (referenciada en routes).
- *   - Se agrega `reenviarCorreo` para que el usuario pueda pedir un reenvío.
- *   - `descargarPDF` ahora valida mejor y responde con `Content-Length`.
+ * FIX 2026-04-27:
+ *   - `obtener()` ahora extrae correctamente el array `pasajeros` del objeto
+ *     `datos_pasajeros` (antes asignaba el objeto entero).
+ *   - `_generarPDF` aplica el mismo parseo correcto.
+ *   - `_enviarCorreoConfirmacion` reescrito con detalle completo y soporte
+ *     para adjuntar el PDF.
+ *   - `crear()` genera el PDF antes de enviar el correo para que el adjunto
+ *     llegue desde el primer envío.
+ *   - `reenviarCorreo()` también adjunta el PDF (regenera si hace falta).
  */
 
 const db = require('../config/db');
@@ -51,45 +54,33 @@ const crear = async (req, res) => {
         const idReservacion = resResult.insertId;
 
         /// Procesar vuelo de ida (para vuelos o paquetes)
-        //
-        // FIX (Bug #4): reservarVuelo ahora devuelve { reservaciones, principal,
-        // codigosConcatenados }. Antes leíamos .codigoReservacion sobre lo que
-        // en realidad era un array, lo que siempre daba undefined y reventaba
-        // con "no devolvio un identificador valido". Ahora:
-        //   - El array completo lo guardamos concatenado en
-        //     codigo_reserva_proveedor (p. ej. "HC123-HC124") para que la
-        //     cancelación posterior pueda ubicar todos los tramos.
-        //   - datos_pasajeros también registra la lista de reservaciones del
-        //     proveedor, para trazabilidad y auditoría.
         if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo) {
             if (!vuelo.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo');
             if (!vuelo.pasajeros?.length) throw new Error('Se requiere al menos un pasajero');
- 
+
             const prov      = await proveedorService.buscarConfig(vuelo.id_proveedor);
             const respVuelo = await proveedorService.reservarVuelo(vuelo.id_proveedor, {
                 id_vuelo:           vuelo.id_vuelo,
                 metodo_pago:        'agencia',
                 pasajeros:          vuelo.pasajeros,
             });
- 
-            // respVuelo.codigosConcatenados maneja tanto vuelos directos (1 tramo)
-            // como con escalas (N tramos) uniforme: "HC123" o "HC123-HC124-HC125".
+
             const codigoVueloProv = String(
                 respVuelo?.codigosConcatenados
                 ?? respVuelo?.principal?.codigoReservacion
                 ?? respVuelo?.principal?.idReservacion
                 ?? ''
             );
- 
+
             if (!codigoVueloProv) {
                 throw new Error('El proveedor no devolvio un codigo de reservacion para el vuelo de ida');
             }
- 
+
             const precioTotal = proveedorService.calcularPrecioConGanancia(
                 vuelo.precio_proveedor, prov.porcentaje_ganancia
             );
             totalAgencia += parseFloat(precioTotal);
- 
+
             await conn.query(
                 `INSERT INTO detalle_vuelo
                    (id_reservacion, id_proveedor, codigo_reserva_proveedor, codigo_vuelo,
@@ -110,38 +101,35 @@ const crear = async (req, res) => {
                 ]
             );
         }
- 
+
         /// Procesar vuelo de regreso (solo para tipo vuelo con ida y vuelta)
-        //
-        // FIX (Bug #4): mismo patrón que el bloque anterior — leemos
-        // codigosConcatenados en vez de asumir objeto plano.
         if (tipo === 'vuelo' && vuelo_regreso) {
             if (!vuelo_regreso.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo de regreso');
             if (!vuelo_regreso.pasajeros?.length) throw new Error('Se requiere al menos un pasajero para el vuelo de regreso');
- 
+
             const prov   = await proveedorService.buscarConfig(vuelo_regreso.id_proveedor);
             const resReg = await proveedorService.reservarVuelo(vuelo_regreso.id_proveedor, {
                 id_vuelo:           vuelo_regreso.id_vuelo,
                 metodo_pago:        'agencia',
                 pasajeros:          vuelo_regreso.pasajeros,
             });
- 
+
             const codigoReg = String(
                 resReg?.codigosConcatenados
                 ?? resReg?.principal?.codigoReservacion
                 ?? resReg?.principal?.idReservacion
                 ?? ''
             );
- 
+
             if (!codigoReg) {
                 throw new Error('El proveedor no devolvio un codigo de reservacion para el vuelo de regreso');
             }
- 
+
             const precioReg = proveedorService.calcularPrecioConGanancia(
                 vuelo_regreso.precio_proveedor, prov.porcentaje_ganancia
             );
             totalAgencia += parseFloat(precioReg);
- 
+
             await conn.query(
                 `INSERT INTO detalle_vuelo
                    (id_reservacion, id_proveedor, codigo_reserva_proveedor, codigo_vuelo,
@@ -206,16 +194,14 @@ const crear = async (req, res) => {
 
         // ── PAQUETE: aplicar descuento SOLO si es paquete con vuelo + hotel ──
         let descuentoPaquete = 0;
-        let totalAntesDescuento = totalAgencia;
-        if (tipo === 'paquete' && vuelo && hotel && porcentajesGananciaUsados.length >= 2) {
-            // Recalcular porcentajes desde los proveedores ya consultados
+        if (tipo === 'paquete' && vuelo && hotel) {
             const provVuelo = await proveedorService.buscarConfig(vuelo.id_proveedor);
             const provHotel = await proveedorService.buscarConfig(hotel.id_proveedor);
             const pctV = parseFloat(provVuelo.porcentaje_ganancia) || 0;
             const pctH = parseFloat(provHotel.porcentaje_ganancia) || 0;
             const promedioPct = (pctV + pctH) / 2;
             if (promedioPct > 0) {
-                 descuentoPaquete = +(totalAgencia * (promedioPct / 100)).toFixed(2);
+                descuentoPaquete = +(totalAgencia * (promedioPct / 100)).toFixed(2);
                 totalAgencia = +(totalAgencia - descuentoPaquete).toFixed(2);
                 console.log(`[Paquete] Descuento ${promedioPct.toFixed(2)}% = $${descuentoPaquete}`);
             }
@@ -241,7 +227,7 @@ const crear = async (req, res) => {
         );
         const reservacion = rows[0];
 
-        // Generar PDF (no bloquea la respuesta si falla)
+        // 1) Generar PDF PRIMERO (necesario para adjuntarlo al correo)
         let pdfGenerado = false;
         try {
             const pdfPath = await _generarPDF(reservacion, idReservacion);
@@ -254,11 +240,11 @@ const crear = async (req, res) => {
             console.error('[Reservacion] Error generando PDF:', pdfErr.message);
         }
 
-        // Enviar correo (no bloquea la respuesta si falla)
+        // 2) Enviar correo DESPUÉS, adjuntando el PDF si se generó OK
         let emailEnviado = false;
         let emailError   = null;
         try {
-            await _enviarCorreoConfirmacion(reservacion, totalConIva);
+            await _enviarCorreoConfirmacion(reservacion, totalConIva, { adjuntarPDF: pdfGenerado });
             emailEnviado = true;
         } catch (mailErr) {
             emailError = mailErr.message;
@@ -284,22 +270,19 @@ const crear = async (req, res) => {
     } catch (e) {
         await conn.rollback();
 
-    // Log detallado para diagnóstico
-    console.error('[Reservacion] Error al crear la reservacion:', e.message);
-    if (e.response) {
-        // Es un error de axios → tenemos status, body y URL
-        console.error(`[Reservacion]   → URL:    ${e.config?.method?.toUpperCase()} ${e.config?.baseURL || ''}${e.config?.url || ''}`);
-        console.error(`[Reservacion]   → Status: ${e.response.status} ${e.response.statusText || ''}`);
-        console.error(`[Reservacion]   → Body:   ${JSON.stringify(e.response.data).slice(0, 500)}`);
-    } else if (e.code) {
-        // Error de red puro
-        console.error(`[Reservacion]   → Código de red: ${e.code}`);
-    }
-    if (e.stack) {
-        console.error(`[Reservacion]   → Stack: ${e.stack.split('\n').slice(0, 4).join('\n')}`);
-    }
+        console.error('[Reservacion] Error al crear la reservacion:', e.message);
+        if (e.response) {
+            console.error(`[Reservacion]   → URL:    ${e.config?.method?.toUpperCase()} ${e.config?.baseURL || ''}${e.config?.url || ''}`);
+            console.error(`[Reservacion]   → Status: ${e.response.status} ${e.response.statusText || ''}`);
+            console.error(`[Reservacion]   → Body:   ${JSON.stringify(e.response.data).slice(0, 500)}`);
+        } else if (e.code) {
+            console.error(`[Reservacion]   → Código de red: ${e.code}`);
+        }
+        if (e.stack) {
+            console.error(`[Reservacion]   → Stack: ${e.stack.split('\n').slice(0, 4).join('\n')}`);
+        }
 
-    return err(res, `Error al crear la reservacion: ${e.message}`);
+        return err(res, `Error al crear la reservacion: ${e.message}`);
     } finally {
         conn.release();
     }
@@ -329,20 +312,37 @@ const obtener = async (req, res) => {
         const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [id]);
         const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [id]);
 
-        // Parsear datos_cobro y datos_pasajeros que están como JSON string
+        // Parsear datos_cobro
         let datosCobro = {};
         try { datosCobro = typeof reservacion.datos_cobro === 'string'
             ? JSON.parse(reservacion.datos_cobro) : (reservacion.datos_cobro || {}); }
         catch { datosCobro = {}; }
 
+        // FIX: extraer correctamente el array `pasajeros` del objeto
+        // datos_pasajeros, que tiene forma { pasajeros: [...], tramos_proveedor: [...] }.
+        // Antes se asignaba el objeto entero a v.pasajeros y el frontend
+        // hacía .map() sobre algo que no era array → mostraba "—" siempre.
         vuelos.forEach(v => {
             try {
-                v.pasajeros = typeof v.datos_pasajeros === 'string'
-                    ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || []);
-            } catch { v.pasajeros = []; }
+                const parsed = typeof v.datos_pasajeros === 'string'
+                    ? JSON.parse(v.datos_pasajeros)
+                    : (v.datos_pasajeros || {});
+
+                if (Array.isArray(parsed)) {
+                    // Formato legacy: el campo era directamente un array.
+                    v.pasajeros = parsed;
+                    v.tramos_proveedor = [];
+                } else {
+                    v.pasajeros        = Array.isArray(parsed.pasajeros) ? parsed.pasajeros : [];
+                    v.tramos_proveedor = Array.isArray(parsed.tramos_proveedor) ? parsed.tramos_proveedor : [];
+                }
+            } catch {
+                v.pasajeros = [];
+                v.tramos_proveedor = [];
+            }
         });
 
-        // Calcular subtotal (total / (1+IVA))
+        // Calcular subtotal e IVA
         const total    = parseFloat(reservacion.total) || 0;
         const subtotal = +(total / (1 + TAX_RATE)).toFixed(2);
         const iva      = +(total - subtotal).toFixed(2);
@@ -415,7 +415,6 @@ const descargarPDF = async (req, res) => {
             || path.join(__dirname, '../../public/comprobantes');
         const pdfFile = path.join(pdfDir, `reserva-${reservacion.codigo_reserva}.pdf`);
 
-        // Regenerar PDF si no existe o está corrupto/vacio
         if (!fs.existsSync(pdfFile) || fs.statSync(pdfFile).size === 0) {
             try { await _generarPDF(reservacion, id); }
             catch (genErr) {
@@ -465,8 +464,31 @@ const reenviarCorreo = async (req, res) => {
         if (reservacion.id_usuario !== usuario.id_usuario && usuario.rol !== 'administrador')
             return err(res, 'Acceso denegado', 403);
 
-        await _enviarCorreoConfirmacion(reservacion, parseFloat(reservacion.total));
-        return ok(res, { message: 'Correo reenviado correctamente a ' + reservacion.correo });
+        // Asegurar que exista el PDF (lo regenera si hace falta)
+        const pdfDir  = process.env.PDF_OUTPUT_DIR
+            || path.join(__dirname, '../../public/comprobantes');
+        const pdfFile = path.join(pdfDir, `reserva-${reservacion.codigo_reserva}.pdf`);
+
+        let pdfDisponible = fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 0;
+        if (!pdfDisponible) {
+            try {
+                await _generarPDF(reservacion, id);
+                pdfDisponible = fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 0;
+            } catch (e) {
+                console.warn('[reenviarCorreo] No se pudo regenerar el PDF:', e.message);
+            }
+        }
+
+        await _enviarCorreoConfirmacion(
+            reservacion,
+            parseFloat(reservacion.total),
+            { adjuntarPDF: pdfDisponible }
+        );
+
+        return ok(res, {
+            message: 'Correo reenviado correctamente a ' + reservacion.correo,
+            pdf_adjunto: pdfDisponible,
+        });
     } catch (e) {
         return err(res, `No se pudo reenviar el correo: ${e.message}`);
     }
@@ -481,7 +503,6 @@ const cancelar = async (req, res) => {
     const { motivo } = req.body || {};
 
     try {
-        // 1. Buscar reservación
         const [rows] = await db.query(
             `SELECT r.*, u.correo, u.nombre, u.apellido
                FROM reservacion r
@@ -493,27 +514,22 @@ const cancelar = async (req, res) => {
 
         const reservacion = rows[0];
 
-        // 2. Validar permisos: admin O dueño de la reserva
         const esAdmin   = usuario.rol === 'administrador';
         const esDueno   = reservacion.id_usuario === usuario.id_usuario;
         if (!esAdmin && !esDueno) {
             return err(res, 'No tienes permiso para cancelar esta reservacion', 403);
         }
 
-        // 3. Validar estado
         if (reservacion.estado === 'cancelada') {
             return err(res, 'La reservacion ya esta cancelada', 400);
         }
 
-        // 4. Obtener detalles
         const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [id]);
         const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [id]);
 
-        // 5. Cancelar en proveedores. Llevamos registro de qué se canceló para poder revertir.
         const cancelados = { vuelos: [], hoteles: [] };
         const errores    = [];
 
-        // 5a. Vuelos primero
         for (const v of vuelos) {
             if (!v.codigo_reserva_proveedor) {
                 console.warn(`[Cancelar] Vuelo ${v.id_detalle_vuelo} sin codigo_reserva_proveedor, se omite`);
@@ -531,11 +547,10 @@ const cancelar = async (req, res) => {
                     codigo: v.codigo_reserva_proveedor,
                     error:  e.message,
                 });
-                break; // abortar al primer error
+                break;
             }
         }
 
-        // 5b. Hoteles solo si vuelos OK
         if (!errores.length) {
             for (const h of hoteles) {
                 if (!h.codigo_reserva_proveedor) {
@@ -559,28 +574,8 @@ const cancelar = async (req, res) => {
             }
         }
 
-        // 6. Si hubo error → revert best-effort y abortar
         if (errores.length) {
             console.error(`[Cancelar] Error al cancelar reserva ${reservacion.codigo_reserva}:`, errores);
-            const reverts = { exitosos: [], fallidos: [] };
-
-            // No podemos "des-cancelar" en el proveedor, pero lo intentamos por si su API soporta re-activar.
-            // Si no lo soporta, queda en logs para resolución manual.
-            for (const v of cancelados.vuelos) {
-                try {
-                    // Algunos proveedores tienen /:id/reactivar; si el tuyo no, esto fallará y lo dejamos en logs.
-                    // Por seguridad, NO marcamos automáticamente como "ok" — solo intentamos avisar.
-                    console.warn(`[Cancelar] No revertimos vuelo ${v.codigo} automáticamente (revisar manualmente)`);
-                    reverts.fallidos.push({ tipo: 'vuelo', codigo: v.codigo, motivo: 'revert no implementado' });
-                } catch (revertErr) {
-                    reverts.fallidos.push({ tipo: 'vuelo', codigo: v.codigo, error: revertErr.message });
-                }
-            }
-            for (const h of cancelados.hoteles) {
-                console.warn(`[Cancelar] No revertimos hotel ${h.codigo} automáticamente (revisar manualmente)`);
-                reverts.fallidos.push({ tipo: 'hotel', codigo: h.codigo, motivo: 'revert no implementado' });
-            }
-
             return err(
                 res,
                 `No se pudo cancelar completamente. Detalle: ${errores.map(e => `${e.tipo} ${e.codigo}: ${e.error}`).join(' | ')}` +
@@ -591,13 +586,11 @@ const cancelar = async (req, res) => {
             );
         }
 
-        // 7. Todo OK → actualizar estado en nuestra BD
         await db.query(
             'UPDATE reservacion SET estado = "cancelada" WHERE id_reservacion = ?',
             [id]
         );
 
-        // 8. Enviar correo de confirmación de cancelación al cliente
         try {
             const cliente = `${reservacion.nombre || ''} ${reservacion.apellido || ''}`.trim();
             const motivoTxt = motivo
@@ -640,7 +633,6 @@ const cancelar = async (req, res) => {
             });
         } catch (mailErr) {
             console.error('[Cancelar] Correo de cancelación falló:', mailErr.message);
-            // No abortamos: la cancelación sigue siendo válida aunque el correo falle.
         }
 
         return ok(res, {
@@ -663,61 +655,207 @@ const cancelar = async (req, res) => {
  * ══════════════════════════════════════════════════════════════════════ */
 
 /**
- * Envía correo de confirmación con el detalle completo de la reservación.
+ * @brief Envía correo de confirmación enriquecido con detalle completo de
+ *        vuelos, hoteles y totales. Opcionalmente adjunta el PDF.
+ *
+ * @param {Object}  reservacion        Fila de la tabla reservacion + datos del usuario.
+ * @param {number}  totalConIva        Total final con IVA.
+ * @param {Object}  [opciones]
+ * @param {boolean} [opciones.adjuntarPDF=false]  Si true, busca el PDF en disco
+ *                  y lo adjunta. Si no existe, envía el correo sin él.
  */
-const _enviarCorreoConfirmacion = async (reservacion, totalConIva) => {
+const _enviarCorreoConfirmacion = async (reservacion, totalConIva, opciones = {}) => {
+    const { adjuntarPDF = false } = opciones;
+
+    // Cargar detalles para enriquecer el correo
+    const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [reservacion.id_reservacion]);
+    const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [reservacion.id_reservacion]);
+
     const codigo   = reservacion.codigo_reserva;
     const cliente  = `${reservacion.nombre || ''} ${reservacion.apellido || ''}`.trim();
     const total    = parseFloat(totalConIva).toFixed(2);
     const subtotal = (parseFloat(totalConIva) / (1 + TAX_RATE)).toFixed(2);
     const iva      = (parseFloat(totalConIva) - parseFloat(subtotal)).toFixed(2);
 
+    const fmtFecha = f => f ? new Date(f).toLocaleDateString('es-GT', { day:'numeric', month:'long', year:'numeric' }) : '—';
+
+    // ── Bloque de vuelos ─────────────────────────────────────────────
+    let bloqueVuelos = '';
+    if (vuelos.length) {
+        bloqueVuelos = `
+            <h3 style="font-family:Georgia,serif;color:#0A1628;margin:24px 0 8px;padding-bottom:6px;border-bottom:2px solid #D4AF37;">
+                ✈ Detalle de vuelos
+            </h3>`;
+        vuelos.forEach(v => {
+            // Mismo parseo robusto que en obtener()
+            let pasajeros = [];
+            try {
+                const parsed = typeof v.datos_pasajeros === 'string'
+                    ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || {});
+                pasajeros = Array.isArray(parsed)
+                    ? parsed
+                    : (Array.isArray(parsed.pasajeros) ? parsed.pasajeros : []);
+            } catch { pasajeros = []; }
+
+            const nombrePas = pasajeros.length
+                ? pasajeros.map(p => `${p.nombres||''} ${p.apellidos||''}`.trim()).filter(Boolean).join(', ')
+                : '—';
+
+            bloqueVuelos += `
+                <div style="background:#F5F0E8;border-left:4px solid #D4AF37;padding:14px 18px;margin-bottom:10px;border-radius:4px;">
+                    <div style="font-weight:600;color:#0A1628;margin-bottom:6px;">
+                        ${v.es_regreso ? '🔄 REGRESO' : '➡ IDA'}: ${v.origen || '?'} → ${v.destino || '?'}
+                    </div>
+                    <table style="width:100%;font-size:13px;color:#444;border-collapse:collapse;">
+                        <tr><td style="padding:3px 0;width:42%;">Fecha:</td><td><strong>${fmtFecha(v.fecha_salida)}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Código de vuelo:</td><td><strong>${v.codigo_vuelo || '—'}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Clase:</td><td><strong>${v.tipo_asiento || '—'}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Pasajeros (${v.num_pasajeros || 1}):</td><td><strong>${nombrePas}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Código del proveedor:</td><td><strong>${v.codigo_reserva_proveedor || '—'}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Subtotal vuelo:</td><td><strong>$${parseFloat(v.precio_total||0).toFixed(2)} USD</strong></td></tr>
+                    </table>
+                </div>`;
+        });
+    }
+
+    // ── Bloque de hoteles ────────────────────────────────────────────
+    let bloqueHoteles = '';
+    if (hoteles.length) {
+        bloqueHoteles = `
+            <h3 style="font-family:Georgia,serif;color:#0A1628;margin:24px 0 8px;padding-bottom:6px;border-bottom:2px solid #D4AF37;">
+                🏨 Detalle de hospedaje
+            </h3>`;
+        hoteles.forEach(h => {
+            const noches = Math.max(1, Math.round(
+                (new Date(h.fecha_checkout) - new Date(h.fecha_checkin)) / (1000*60*60*24)
+            ));
+            bloqueHoteles += `
+                <div style="background:#F5F0E8;border-left:4px solid #60A5FA;padding:14px 18px;margin-bottom:10px;border-radius:4px;">
+                    <div style="font-weight:600;color:#0A1628;margin-bottom:6px;">
+                        ${h.nombre_hotel || 'Hotel'} — ${h.ciudad || ''}
+                    </div>
+                    <table style="width:100%;font-size:13px;color:#444;border-collapse:collapse;">
+                        <tr><td style="padding:3px 0;width:42%;">Habitación:</td><td><strong>${(h.tipo_habitacion||'—').replace(/_/g,' ')}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Check-in:</td><td><strong>${fmtFecha(h.fecha_checkin)}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Check-out:</td><td><strong>${fmtFecha(h.fecha_checkout)}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Noches:</td><td><strong>${noches}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Huéspedes:</td><td><strong>${h.num_huespedes || 1}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Precio por noche:</td><td><strong>$${parseFloat(h.precio_por_noche_proveedor||0).toFixed(2)}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Código del proveedor:</td><td><strong>${h.codigo_reserva_proveedor || '—'}</strong></td></tr>
+                        <tr><td style="padding:3px 0;">Subtotal hospedaje:</td><td><strong>$${parseFloat(h.precio_total||0).toFixed(2)} USD</strong></td></tr>
+                    </table>
+                </div>`;
+        });
+    }
+
+    // ── HTML completo ────────────────────────────────────────────────
     const html = `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-          <div style="background:#0A1628;color:#F5E6B3;padding:20px;text-align:center;border-radius:8px 8px 0 0;">
-            <h1 style="margin:0;font-size:28px;">TravelNow</h1>
-            <p style="margin:4px 0 0;font-size:13px;opacity:0.8;">Confirmación de reservación</p>
-          </div>
-          <div style="background:#fff;padding:25px;border:1px solid #ddd;border-top:none;">
-            <h2 style="color:#0A1628;margin-top:0;">¡Tu reserva está confirmada!</h2>
-            <p>Hola <strong>${cliente || 'cliente'}</strong>,</p>
-            <p>Tu reservación <strong style="color:#D4AF37;">${codigo}</strong> fue procesada correctamente.</p>
-            <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-              <tr style="background:#F5F5F0;">
-                <td style="padding:10px;border:1px solid #ddd;"><strong>Tipo</strong></td>
-                <td style="padding:10px;border:1px solid #ddd;">${(reservacion.tipo || '').toUpperCase()}</td>
-              </tr>
-              <tr>
-                <td style="padding:10px;border:1px solid #ddd;"><strong>Estado</strong></td>
-                <td style="padding:10px;border:1px solid #ddd;color:green;">Confirmada</td>
-              </tr>
-              <tr style="background:#F5F5F0;">
-                <td style="padding:10px;border:1px solid #ddd;"><strong>Subtotal</strong></td>
-                <td style="padding:10px;border:1px solid #ddd;">$${subtotal} USD</td>
-              </tr>
-              <tr>
-                <td style="padding:10px;border:1px solid #ddd;"><strong>IVA (12%)</strong></td>
-                <td style="padding:10px;border:1px solid #ddd;">$${iva} USD</td>
-              </tr>
-              <tr style="background:#D4AF37;color:#0A1628;">
-                <td style="padding:10px;border:1px solid #ddd;"><strong>Total</strong></td>
-                <td style="padding:10px;border:1px solid #ddd;"><strong>$${total} USD</strong></td>
-              </tr>
-            </table>
-            <p style="font-size:13px;color:#666;">
-              Puedes descargar tu comprobante en PDF ingresando a tu historial de reservas en TravelNow.
-            </p>
-          </div>
-          <div style="background:#0A1628;color:#8b95a8;padding:15px;text-align:center;border-radius:0 0 8px 8px;font-size:11px;">
-            Este es un correo automático, no responder.<br>
-            &copy; 2026 TravelNow - Guatemala
-          </div>
-        </div>`;
+    <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;">
+      <div style="background:linear-gradient(135deg,#0A1628 0%,#112240 100%);color:#F5E6B3;padding:30px 24px;text-align:center;border-radius:8px 8px 0 0;">
+        <h1 style="margin:0;font-size:30px;letter-spacing:1px;">TravelNow</h1>
+        <p style="margin:6px 0 0;font-size:13px;opacity:0.85;letter-spacing:0.1em;text-transform:uppercase;">
+          Confirmación de reservación
+        </p>
+      </div>
+
+      <div style="padding:30px 24px;border:1px solid #ddd;border-top:none;">
+        <h2 style="color:#0A1628;margin:0 0 8px;font-family:Georgia,serif;font-weight:400;">
+          ¡Tu reserva está <span style="color:#D4AF37;font-style:italic;">confirmada</span>!
+        </h2>
+        <p style="color:#444;font-size:14px;line-height:1.6;margin:0 0 18px;">
+          Hola <strong>${cliente || 'cliente'}</strong>, gracias por confiar en TravelNow.
+          A continuación encontrarás todos los detalles de tu reserva
+          <strong style="color:#D4AF37;font-family:monospace;letter-spacing:0.05em;">${codigo}</strong>.
+        </p>
+
+        <div style="background:#0A1628;color:#F5E6B3;padding:18px 22px;border-radius:6px;margin:18px 0;">
+          <table style="width:100%;font-size:13px;">
+            <tr>
+              <td style="padding:4px 0;color:#8b95a8;">Código de reserva:</td>
+              <td style="text-align:right;color:#D4AF37;font-family:monospace;font-size:15px;font-weight:600;">${codigo}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#8b95a8;">Tipo:</td>
+              <td style="text-align:right;font-weight:600;">${(reservacion.tipo || '').toUpperCase()}</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#8b95a8;">Estado:</td>
+              <td style="text-align:right;color:#34D399;font-weight:600;">CONFIRMADA</td>
+            </tr>
+            <tr>
+              <td style="padding:4px 0;color:#8b95a8;">Método de pago:</td>
+              <td style="text-align:right;font-weight:600;">${String(reservacion.metodo_pago || '—').replace(/_/g,' ').toUpperCase()}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${bloqueVuelos}
+        ${bloqueHoteles}
+
+        <h3 style="font-family:Georgia,serif;color:#0A1628;margin:24px 0 8px;padding-bottom:6px;border-bottom:2px solid #D4AF37;">
+          💳 Resumen de pago
+        </h3>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr style="background:#F5F0E8;">
+            <td style="padding:10px 14px;color:#444;">Subtotal</td>
+            <td style="padding:10px 14px;text-align:right;color:#444;">$${subtotal} USD</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px;color:#444;border-top:1px solid #eee;">IVA (12%)</td>
+            <td style="padding:10px 14px;text-align:right;color:#444;border-top:1px solid #eee;">$${iva} USD</td>
+          </tr>
+          <tr style="background:#D4AF37;color:#0A1628;">
+            <td style="padding:14px;font-size:16px;font-weight:700;">TOTAL</td>
+            <td style="padding:14px;text-align:right;font-size:18px;font-weight:700;">$${total} USD</td>
+          </tr>
+        </table>
+
+        ${adjuntarPDF ? `
+        <div style="background:#F0F8E8;border:1px solid #34D399;border-radius:6px;padding:14px 18px;margin:22px 0;">
+          <table><tr>
+            <td style="font-size:24px;padding-right:10px;">📎</td>
+            <td style="font-size:13px;color:#0A1628;line-height:1.5;">
+              Adjuntamos tu <strong>comprobante oficial en PDF</strong> a este correo.
+              Guárdalo o imprímelo para presentarlo en el aeropuerto y/o hotel.
+            </td>
+          </tr></table>
+        </div>` : ''}
+
+        <p style="font-size:12px;color:#888;line-height:1.7;margin-top:22px;">
+          También puedes ver el detalle completo y descargar tu comprobante en cualquier momento
+          ingresando a tu cuenta en TravelNow → "Mis reservas".
+        </p>
+      </div>
+
+      <div style="background:#0A1628;color:#8b95a8;padding:16px;text-align:center;border-radius:0 0 8px 8px;font-size:11px;line-height:1.7;">
+        Este es un correo automático, no responder.<br>
+        ¿Necesitas ayuda? Escríbenos a <a href="mailto:soporte@travelnow.com" style="color:#D4AF37;">soporte@travelnow.com</a><br>
+        © ${new Date().getFullYear()} TravelNow · Guatemala
+      </div>
+    </div>`;
+
+    // ── Adjuntos ─────────────────────────────────────────────────────
+    const attachments = [];
+    if (adjuntarPDF) {
+        const pdfDir  = process.env.PDF_OUTPUT_DIR
+            || path.join(__dirname, '../../public/comprobantes');
+        const pdfFile = path.join(pdfDir, `reserva-${codigo}.pdf`);
+        if (fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 0) {
+            attachments.push({
+                filename:    `TravelNow-${codigo}.pdf`,
+                path:        pdfFile,
+                contentType: 'application/pdf',
+            });
+        } else {
+            console.warn(`[Correo] No se adjuntó PDF: ${pdfFile} no existe o está vacío.`);
+        }
+    }
 
     await sendMail({
         to:      reservacion.correo,
-        subject: `Confirmación de reserva ${codigo} - TravelNow`,
+        subject: `✓ Reserva confirmada ${codigo} — TravelNow`,
         html,
+        attachments,
     });
 };
 
@@ -733,12 +871,10 @@ const _generarPDF = async (reservacion, idReservacion) => {
     const [vuelos]  = await db.query('SELECT * FROM detalle_vuelo WHERE id_reservacion = ?', [idReservacion]);
     const [hoteles] = await db.query('SELECT * FROM detalle_hotel  WHERE id_reservacion = ?', [idReservacion]);
 
-    // Calcular montos
     const total    = parseFloat(reservacion.total) || 0;
     const subtotal = +(total / (1 + TAX_RATE)).toFixed(2);
     const iva      = +(total - subtotal).toFixed(2);
 
-    // Parse datos de cobro
     let datosCobro = {};
     try {
         datosCobro = typeof reservacion.datos_cobro === 'string'
@@ -756,7 +892,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
         const GOLD = '#D4AF37';
         const GRAY = '#666666';
 
-        // ── Encabezado ──────────────────────────────────────────
+        // Encabezado
         doc.rect(0, 0, doc.page.width, 90).fill(NAVY);
         doc.fillColor(GOLD).fontSize(28).font('Helvetica-Bold').text('TravelNow', 50, 30);
         doc.fillColor('white').fontSize(10).font('Helvetica')
@@ -771,7 +907,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
         doc.fillColor('black').moveDown(4);
         doc.y = 110;
 
-        // ── Datos de la reserva ─────────────────────────────────
+        // Datos de la reserva
         doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Datos de la reservación');
         doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
         doc.moveDown(0.8);
@@ -786,7 +922,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
            .text(new Date(reservacion.fecha_reserva).toLocaleString('es-GT'), col2 + 90, yStart + 18);
         doc.y = yStart + 40;
 
-        // ── Datos del cliente ───────────────────────────────────
+        // Datos del cliente
         doc.moveDown(0.5);
         doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Datos del cliente');
         doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
@@ -803,7 +939,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
         doc.font('Helvetica').text('Nacionalidad:', col2, y2 + 18).font('Helvetica-Bold').text(String(reservacion.nacionalidad || '—'), col2 + 90, y2 + 18);
         doc.y = y2 + 40;
 
-        // ── Vuelos ──────────────────────────────────────────────
+        // Vuelos
         if (vuelos.length) {
             doc.moveDown(0.5);
             doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Detalle de vuelos');
@@ -819,12 +955,16 @@ const _generarPDF = async (reservacion, idReservacion) => {
                 doc.text(`Fecha: ${fecha}   Código vuelo: ${v.codigo_vuelo || '—'}   Asiento: ${v.tipo_asiento || '—'}   Pasajeros: ${v.num_pasajeros || 1}`);
                 doc.text(`Código proveedor: ${v.codigo_reserva_proveedor || '—'}   Precio: $${parseFloat(v.precio_total || 0).toFixed(2)} USD`);
 
-                // Pasajeros
+                // FIX: extraer correctamente el array `pasajeros` del objeto datos_pasajeros.
                 let pasajeros = [];
                 try {
-                    pasajeros = typeof v.datos_pasajeros === 'string'
-                        ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || []);
+                    const parsed = typeof v.datos_pasajeros === 'string'
+                        ? JSON.parse(v.datos_pasajeros) : (v.datos_pasajeros || {});
+                    pasajeros = Array.isArray(parsed)
+                        ? parsed
+                        : (Array.isArray(parsed.pasajeros) ? parsed.pasajeros : []);
                 } catch { pasajeros = []; }
+
                 if (pasajeros.length) {
                     doc.fontSize(9).font('Helvetica-Oblique').fillColor(GRAY)
                        .text('Pasajeros: ' + pasajeros.map(p =>
@@ -835,7 +975,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
             doc.fillColor('black');
         }
 
-        // ── Hoteles ─────────────────────────────────────────────
+        // Hoteles
         if (hoteles.length) {
             doc.moveDown(0.5);
             doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Detalle de hospedaje');
@@ -856,7 +996,7 @@ const _generarPDF = async (reservacion, idReservacion) => {
             });
         }
 
-        // ── Pago y totales ──────────────────────────────────────
+        // Pago y totales
         doc.moveDown(0.8);
         doc.fontSize(13).font('Helvetica-Bold').fillColor(NAVY).text('Información de pago');
         doc.moveTo(50, doc.y + 3).lineTo(doc.page.width - 50, doc.y + 3).strokeColor(GOLD).lineWidth(1.5).stroke();
@@ -872,7 +1012,6 @@ const _generarPDF = async (reservacion, idReservacion) => {
         }
         doc.y = y3 + 25;
 
-        // Caja de totales
         const boxX = doc.page.width - 250;
         const boxY = doc.y;
         doc.rect(boxX, boxY, 200, 80).strokeColor(GOLD).lineWidth(1).stroke();
@@ -885,7 +1024,6 @@ const _generarPDF = async (reservacion, idReservacion) => {
 
         doc.y = boxY + 95;
 
-        // ── Pie de página ───────────────────────────────────────
         doc.moveDown(1);
         doc.fontSize(8).fillColor(GRAY).font('Helvetica-Oblique')
            .text('Este comprobante es un documento oficial de TravelNow y sirve como constancia de reservación confirmada.',
