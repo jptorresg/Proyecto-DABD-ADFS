@@ -321,4 +321,22 @@ public class ReservacionDAO {
             }
         }
     }
+
+    /**
+     * Cancela todas las reservaciones asociadas a un vuelo.
+     * <p>
+     * Acceso exclusivo para administradores.
+     * </p>
+     * 
+     * @param idVuelo Identificador del vuelo.
+     * @throws SQLException Si ocurre un error en la base de datos.
+     */
+    public void cancelarPorVuelo(Long idVuelo, Connection conn) throws SQLException {
+        String sql = "UPDATE RESERVACIONES SET estado = 'CANCELADA' WHERE id_vuelo = ? AND estado = 'CONFIRMADA'";
+        
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, idVuelo);
+            stmt.executeUpdate();
+        }
+    }
 }

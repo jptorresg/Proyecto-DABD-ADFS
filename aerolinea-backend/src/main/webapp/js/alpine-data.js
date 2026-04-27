@@ -300,6 +300,9 @@ function dashboardData() {
         
         /** @type {boolean} Indica si se están cargando los datos del dashboard. */
         isLoading: true,
+
+        /** @type {Chart} Objeto de gráfica de Highcharts. */
+        chart: null,
         
         /**
          * Inicializa el objeto cargando las estadísticas del sistema.
@@ -350,25 +353,97 @@ function dashboardData() {
                 }
                 
                 // Fetch recent reservations
-                /*
                 const reservationsResponse = await fetch(`${API_BASE}/admin/reservaciones/recientes?limit=5`, {
                     headers: {
                         'Authorization': `Bearer ${getUserSession()?.token}`
-                    },
-                    credentials: 'include'
+                    }
                 });
-                
-                
+
                 if (reservationsResponse.ok) {
-                    this.recentReservations = await reservationsResponse.json();
+                    const result = await reservationsResponse.json();
+                    this.recentReservations = result.data;
                 }
-                */
+
+                const chartResponse = await fetch(`${API_BASE}/admin/reservaciones/ultimos7dias`, {
+                    headers: {
+                        'Authorization': `Bearer ${getUserSession()?.token}`
+                    }
+                });
+
+                if (chartResponse.ok) {
+                    const result = await chartResponse.json();
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            this.renderChart(result.data);
+                        }, 100);
+                    });
+                }
+                
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 showNotification('Error al cargar datos del dashboard', 'error');
             } finally {
                 this.isLoading = false;
             }
+        },
+
+        renderChart(data) {
+
+            const canvas = this.$refs.reservationsChart;
+
+            if (!canvas) {
+                console.warn("Canvas aún no disponible");
+                return;
+            }
+
+            if (this.chart) {
+                this.chart.destroy();
+            }
+
+            // Generar últimos 7 días
+            const labels = [];
+            const values = [];
+
+            const today = new Date();
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+
+                const label = d.toLocaleDateString("es-GT", { day: '2-digit', month: 'short' });
+                labels.push(label);
+
+                // Buscar si hay data para ese día
+                const found = data.find(item => {
+                    const itemDate = new Date(item.fecha);
+                    return itemDate.toDateString() === d.toDateString();
+                });
+
+                values.push(found ? found.total : 0);
+            }
+
+            const ctx = this.$refs.reservationsChart;
+            console.log(this.$refs.reservationsChart);
+
+            this.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Reservaciones',
+                        data: values,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
         },
         
         /**
@@ -382,6 +457,17 @@ function dashboardData() {
          */
         navigateTo(page) {
             window.location.href = `${BASE_PATH}/views/admin/${page}.html`;
+        },
+
+        formatDate(date) {
+            return new Date(date).toLocaleDateString("es-GT");
+        },
+
+        formatCurrency(value) {
+            return new Intl.NumberFormat("es-GT", {
+                style: "currency",
+                currency: "GTQ"
+            }).format(value);
         }
     };
 }
@@ -686,7 +772,24 @@ function vuelosAdminData() {
             this.showModal = false;
             this.currentVuelo = {};
         },
+
+        cancelModal: {
+            show: false,
+            vueloId: null,
+            mensaje: ''
+        },
         
+        openCancelModal(vueloId) {
+            this.cancelModal = {
+                show: true,
+                vueloId: vueloId,
+                mensaje: ''
+            };
+        },
+
+        closeCancelModal() {
+            this.cancelModal.show = false;
+        },
         /**
          * Guarda un vuelo (crea o actualiza) en la base de datos.
          * <p>
@@ -796,25 +899,35 @@ function vuelosAdminData() {
          * @param {number} vueloId - Identificador del vuelo a eliminar.
          * @returns {Promise<void>}
          */
-        async deleteVuelo(vueloId) {
-            if (!confirm('¿Estás seguro de eliminar este vuelo?')) return;
+        async confirmCancelVuelo() {
+            if (!this.cancelModal.mensaje.trim()) {
+                showNotification('Debes ingresar un mensaje', 'error');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_BASE}/vuelos/${vueloId}`, {
+                const response = await fetch(`${API_BASE}/vuelos/${this.cancelModal.vueloId}`, {
                     method: 'DELETE',
-                    credentials: 'include'
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        mensaje: this.cancelModal.mensaje
+                    })
                 });
+
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    showNotification('Vuelo eliminado exitosamente', 'success');
+                    showNotification('Vuelo cancelado exitosamente', 'success');
+                    this.closeCancelModal();
                     await this.fetchVuelos();
                 } else {
                     throw new Error(data.message);
                 }
+
             } catch (error) {
-                console.error('Error deleting vuelo:', error);
-                showNotification('Error al eliminar vuelo', 'error');
+                console.error(error);
+                showNotification('Error al cancelar vuelo', 'error');
             }
         },
         

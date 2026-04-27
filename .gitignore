@@ -36,11 +36,6 @@ logs/
 # Ignorar todo target
 target/*
 
-# PERO permitir estas subcarpetas
-!target/test-classes/
-!target/surefire-reports/
-!target/reports
-
 docs/
 docfx_project/_site/
 

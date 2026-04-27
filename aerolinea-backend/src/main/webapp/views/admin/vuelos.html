@@ -136,7 +136,7 @@
                                         <button class="btn-action btn-edit" @click="openEditModal(vuelo)" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn-action btn-danger" @click="deleteVuelo(vuelo.id)" title="Eliminar">
+                                        <button class="btn-action btn-danger" @click="openCancelModal(vuelo.id)" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -332,6 +332,35 @@
                     <span x-text="modalMode === 'create' ? 'Crear Vuelo' : 'Guardar Cambios'"></span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Cancelación -->
+    <div x-show="cancelModal.show" x-cloak class="modal-overlay">
+
+        <div class="modal-content" @click.away="closeCancelModal()">
+
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Cancelar Vuelo</h3>
+            </div>
+
+            <div class="modal-body">
+                <p>Ingresa el mensaje que se enviará a los clientes:</p>
+
+                <textarea class="form-input"
+                        rows="4"
+                        x-model="cancelModal.mensaje"
+                        placeholder="Ej: El vuelo ha sido cancelado por condiciones climáticas...">
+                </textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" @click="closeCancelModal()">Cancelar</button>
+                <button class="btn-danger" @click="confirmCancelVuelo()">
+                    Confirmar Cancelación
+                </button>
+            </div>
+
         </div>
     </div>
 

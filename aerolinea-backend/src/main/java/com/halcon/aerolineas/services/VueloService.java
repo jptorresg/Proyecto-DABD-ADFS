@@ -3,12 +3,16 @@ package com.halcon.aerolineas.services;
 import com.halcon.aerolineas.dao.VueloDAO;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.models.VueloConEscala;
+import com.halcon.aerolineas.dao.UsuarioDAO;
+import com.halcon.aerolineas.models.Usuario;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 /**
  * Servicio de lógica de negocio para la gestión de vuelos.
@@ -19,6 +23,9 @@ import java.util.ArrayList;
  */
 public class VueloService {
     private VueloDAO vueloDAO;
+
+    private UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private EmailService emailService = new EmailService();
     
     /**
      * Constructor que inicializa el servicio con el DAO de vuelos.
@@ -219,8 +226,75 @@ public class VueloService {
         if (existente == null) {
             throw new IllegalArgumentException("Vuelo no encontrado");
         }
-        
-        return vueloDAO.update(vuelo);
+
+        StringBuilder cambios = new StringBuilder();
+
+        if (!existente.getFechaSalida().equals(vuelo.getFechaSalida())) {
+            cambios.append("- Fecha salida: ")
+                .append(existente.getFechaSalida())
+                .append(" → ")
+                .append(vuelo.getFechaSalida())
+                .append("\n");
+        }
+
+        if (!existente.getHoraSalida().equals(vuelo.getHoraSalida())) {
+            cambios.append("- Hora salida: ")
+                .append(existente.getHoraSalida())
+                .append(" → ")
+                .append(vuelo.getHoraSalida())
+                .append("\n");
+        }
+
+        if (!existente.getFechaLlegada().equals(vuelo.getFechaLlegada())) {
+            cambios.append("- Fecha llegada: ")
+                .append(existente.getFechaLlegada())
+                .append(" → ")
+                .append(vuelo.getFechaLlegada())
+                .append("\n");
+        }
+
+        if (!existente.getHoraLlegada().equals(vuelo.getHoraLlegada())) {
+            cambios.append("- Hora llegada: ")
+                .append(existente.getHoraLlegada())
+                .append(" → ")
+                .append(vuelo.getHoraLlegada())
+                .append("\n");
+        }
+
+        if (!existente.getOrigenCiudad().equals(vuelo.getOrigenCiudad())) {
+            cambios.append("- Origen: ")
+                .append(existente.getOrigenCiudad())
+                .append(" → ")
+                .append(vuelo.getOrigenCiudad())
+                .append("\n");
+        }
+
+        if (!existente.getDestinoCiudad().equals(vuelo.getDestinoCiudad())) {
+            cambios.append("- Destino: ")
+                .append(existente.getDestinoCiudad())
+                .append(" → ")
+                .append(vuelo.getDestinoCiudad())
+                .append("\n");
+        }
+
+        boolean huboCambios = cambios.length() > 0;
+
+        boolean actualizado = vueloDAO.update(vuelo);
+
+        if (actualizado && huboCambios) {
+            List<Usuario> usuarios = usuarioDAO.findByVuelo(vuelo.getIdVuelo());
+
+            for (Usuario u : usuarios) {
+                emailService.enviarActualizacionVuelo(
+                        u.getEmail(),
+                        u.getNombres(),
+                        vuelo.getCodigoVuelo(),
+                        cambios.toString()
+                );
+            }
+        }
+
+        return actualizado;
     }
     
     /**
@@ -233,8 +307,38 @@ public class VueloService {
      * @return {@code true} si la eliminación fue exitosa.
      * @throws SQLException Si ocurre un error en la base de datos.
      */
-    public boolean eliminarVuelo(Long idVuelo) throws SQLException {
-        return vueloDAO.delete(idVuelo);
+    public boolean eliminarVuelo(Long idVuelo, String mensaje) throws Exception {
+
+        // 1. Obtener info del vuelo (para el correo)
+        Vuelo vuelo = vueloDAO.findById(idVuelo);
+        if (vuelo == null) {
+            throw new IllegalArgumentException("Vuelo no encontrado");
+        }
+
+        // 2. Obtener usuarios afectados
+        List<Usuario> usuarios = usuarioDAO.findByVuelo(idVuelo);
+
+        // 3. Cancelar en BD (transacción)
+        boolean resultado = vueloDAO.deleteWithReservaciones(idVuelo);
+
+        // 4. Enviar correos (FUERA de transacción)
+        for (Usuario u : usuarios) {
+            try {
+                emailService.enviarCancelacionVuelo(
+                    u.getEmail(),
+                    u.getNombres(),
+                    vuelo.getCodigoVuelo(),
+                    vuelo.getOrigenCiudad(),
+                    vuelo.getDestinoCiudad(),
+                    vuelo.getFechaSalida().toString(),
+                    mensaje
+                );
+            } catch (Exception e) {
+                System.err.println("Error enviando correo a: " + u.getEmail());
+            }
+        }
+
+        return resultado;
     }
     
     /**

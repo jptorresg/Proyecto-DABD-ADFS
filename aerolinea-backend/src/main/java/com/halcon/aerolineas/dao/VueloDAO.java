@@ -487,14 +487,56 @@ public class VueloDAO {
      * @return {@code true} si se actualizó al menos un registro, {@code false} en caso contrario.
      * @throws SQLException Si ocurre un error durante la actualización.
      */
-    public boolean delete(Long id) throws SQLException {
+    public boolean delete(Long id, Connection conn) throws SQLException {
         String sql = "UPDATE VUELOS SET estado = 'CANCELADO' WHERE id_vuelo = ?";
         
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Elimina lógicamente un vuelo junto con sus reservaciones (cambia su estado a 'CANCELADO').
+     *
+     * @param idVuelo Identificador del vuelo a eliminar.
+     * @return {@code true} si se actualizó al menos un registro, {@code false} en caso contrario.
+     * @throws SQLException Si ocurre un error durante la actualización.
+     */
+    public boolean deleteWithReservaciones(Long idVuelo) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Cancelar reservaciones
+            String cancelRes = "UPDATE RESERVACIONES SET estado = 'CANCELADA' WHERE id_vuelo = ? AND estado = 'CONFIRMADA'";
+            stmt = conn.prepareStatement(cancelRes);
+            stmt.setLong(1, idVuelo);
+            stmt.executeUpdate();
+            stmt.close();
+
+            // 2. Cancelar vuelo
+            String cancelVuelo = "UPDATE VUELOS SET estado = 'CANCELADO' WHERE id_vuelo = ?";
+            stmt = conn.prepareStatement(cancelVuelo);
+            stmt.setLong(1, idVuelo);
+            boolean result = stmt.executeUpdate() > 0;
+
+            conn.commit();
+            return result;
+
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+
+        } finally {
+            if (stmt != null) stmt.close();
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
         }
     }
     

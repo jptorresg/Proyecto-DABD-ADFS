@@ -206,6 +206,44 @@ public class UsuarioDAO {
         
         return null;
     }
+
+
+    /** Busca los usuarios asociados a un vuelo.
+     * <p>
+     * Los resultados incluyen la información del país de origen y se ordenan
+     * por fecha de registro en orden descendente (los más recientes primero).
+     * </p>
+     *
+     * @param idVuelo El ID del vuelo para el cual se buscan los usuarios.
+     * @return Una lista de objetos {@link Usuario} asociados al vuelo.
+     * @throws SQLException Si ocurre un error en la consulta a la base de datos.
+     * */
+    public List<Usuario> findByVuelo(Long idVuelo) throws SQLException {
+        List<Usuario> usuarios = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT " +
+            "u.*, " +
+            "p.name AS nombre_pais, " +
+            "p.alfa2 AS codigo_pais " +
+        "FROM USUARIOS u " +
+        "JOIN RESERVACIONES r ON u.id_usuario = r.id_usuario " +
+        "LEFT JOIN PAISES p ON u.pais_origen = p.id " +
+        "WHERE r.id_vuelo = ? AND r.estado = 'CONFIRMADA' " +
+        "ORDER BY u.fecha_registro DESC";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, idVuelo);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                usuarios.add(mapResultSetToUsuario(rs));
+            }
+        }
+
+        return usuarios;
+    }
     
     /**
      * Método auxiliar para mapear un {@link ResultSet} a un objeto {@link Usuario}.

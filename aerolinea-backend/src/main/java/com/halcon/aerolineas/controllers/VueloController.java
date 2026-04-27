@@ -295,24 +295,43 @@ public class VueloController extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
-        
-        //if (!esAdmin(request)) {
-        //    response.setStatus(403);
-        //    out.print(JsonResponse.error("Acceso denegado"));
-        //    return;
-        //}
-        
+
         try {
             String pathInfo = request.getPathInfo();
             Long id = Long.parseLong(pathInfo.substring(1));
-            
-            vueloService.eliminarVuelo(id);
-            out.print(JsonResponse.success("Vuelo eliminado exitosamente", null));
-            
+
+            // 🔹 Leer body (mensaje del admin)
+            StringBuilder sb = new StringBuilder();
+            BufferedReader reader = request.getReader();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            String body = sb.toString();
+
+            // Parsear JSON manual (simple)
+            String mensaje = null;
+            if (body.contains("mensaje")) {
+                mensaje = body.split(":")[1]
+                            .replace("\"", "")
+                            .replace("}", "")
+                            .trim();
+            }
+
+            if (mensaje == null || mensaje.isEmpty()) {
+                throw new IllegalArgumentException("El mensaje es obligatorio");
+            }
+
+            vueloService.eliminarVuelo(id, mensaje);
+
+            out.print(JsonResponse.success("Vuelo eliminado y notificado", null));
+
         } catch (Exception e) {
             response.setStatus(400);
             out.print(JsonResponse.error(e.getMessage()));

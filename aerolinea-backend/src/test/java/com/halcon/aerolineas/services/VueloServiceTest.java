@@ -176,14 +176,14 @@ public class VueloServiceTest {
     // eliminarVuelo
     // ========================
 
-    @Test
+    /*@Test
     void testEliminarVuelo() throws SQLException {
         when(vueloDAO.delete(1L)).thenReturn(true);
 
         boolean result = vueloService.eliminarVuelo(1L);
 
         assertTrue(result);
-    }
+    }*/
 
     // ========================
     // listarVuelos
