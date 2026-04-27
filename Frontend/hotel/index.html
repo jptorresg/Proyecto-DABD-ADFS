@@ -28,10 +28,46 @@
         .city-header .city-line { flex: 1; height: 2px; background: linear-gradient(to right, #003580, transparent); }
         .city-header .city-count { font-size: 0.8rem; color: #9ca3af; background: #f0f4f8; border: 1px solid #e5e7eb; border-radius: 20px; padding: 2px 10px; }
         .room-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px 12px 0 0; }
+        .compare-checkbox-wrap { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border-radius: 20px; padding: 4px 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; user-select: none; }
+        .compare-checkbox-wrap:hover { background: white; transform: scale(1.05); }
+        .compare-checkbox-wrap.checked { background: var(--primary-color); color: white; }
+        .compare-checkbox-wrap input { cursor: pointer; }
+        .compare-label { font-size: 0.78rem; font-weight: 600; }
+        .compare-bar { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #003580, #0055b3); color: white; padding: 1rem 0; box-shadow: 0 -4px 24px rgba(0,0,0,0.2); z-index: 1000; }
+        .compare-bar-info { font-size: 0.95rem; }
+        .compare-chip { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 14px; font-size: 0.82rem; display: inline-flex; align-items: center; }
         .card-body { padding: 1.2rem !important; }
     </style>
 </head>
 <body x-data="appHabitaciones()" x-init="init()">
+
+    <!-- Barra flotante de comparación (Sesión 6) -->
+    <div class="compare-bar" x-show="comparacion.length > 0" x-transition>
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="compare-bar-info">
+                <i class="bi bi-clipboard-check me-2"></i>
+                <strong><span x-text="comparacion.length"></span> habitación(es)</strong> seleccionada(s) para comparar
+                <small class="ms-2 opacity-75" x-show="comparacion.length < 2">(elige al menos 2)</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <template x-for="h in comparacion" :key="h.idHabitacion">
+                    <span class="compare-chip">
+                        <span x-text="h.tipoHabitacion + ' ' + h.numHabitacion"></span>
+                        <i class="bi bi-x ms-1" style="cursor:pointer;" @click="toggleComparar(h)"></i>
+                    </span>
+                </template>
+                <button class="btn btn-light btn-sm rounded-pill px-3 ms-2"
+                        :disabled="comparacion.length < 2"
+                        @click="irAComparar()">
+                    <i class="bi bi-arrows-angle-expand me-1"></i>Comparar
+                </button>
+                <button class="btn btn-outline-light btn-sm rounded-pill px-2"
+                        @click="comparacion = []" title="Limpiar">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <nav class="navbar-bedly">
         <div class="container">
@@ -241,9 +277,19 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100">
                                 <!-- Imagen por tipo -->
-                                <img :src="imagenPorTipo(h.tipoHabitacion)"
-                                     :alt="h.tipoHabitacion"
-                                     class="room-img">
+                                <div style="position: relative;">
+                                    <img :src="imagenPorTipo(h.tipoHabitacion)"
+                                         :alt="h.tipoHabitacion"
+                                         class="room-img">
+                                    <!-- Checkbox de comparación (Sesión 6) -->
+                                    <div class="compare-checkbox-wrap"
+                                         @click.prevent="toggleComparar(h)"
+                                         :class="estaEnComparacion(h.idHabitacion) ? 'checked' : ''">
+                                        <input type="checkbox" :checked="estaEnComparacion(h.idHabitacion)"
+                                               @click.stop="toggleComparar(h)">
+                                        <span class="compare-label">Comparar</span>
+                                    </div>
+                                </div>
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h5 class="fw-bold mb-0" style="color:var(--primary-color); font-size:1rem;"
@@ -353,6 +399,8 @@
     function appHabitaciones() {
         return {
             habitaciones: [],
+            comparacion: [],
+            MAX_COMPARAR: 3,
             opcionesFiltro: { tipos: [], ciudades: [] },
             loading: false,
             usuario: null,
@@ -411,6 +459,28 @@
                 return IMAGENES_TIPO[tipo] || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&fit=crop';
             },
 
+            toggleComparar(h) {
+                const idx = this.comparacion.findIndex(x => x.idHabitacion === h.idHabitacion);
+                if (idx >= 0) {
+                    this.comparacion.splice(idx, 1);
+                } else {
+                    if (this.comparacion.length >= this.MAX_COMPARAR) {
+                        alert(`Solo puedes comparar hasta ${this.MAX_COMPARAR} habitaciones a la vez.`);
+                        return;
+                    }
+                    this.comparacion.push(h);
+                }
+            },
+
+            estaEnComparacion(id) {
+                return this.comparacion.some(x => x.idHabitacion === id);
+            },
+
+            irAComparar() {
+                if (this.comparacion.length < 2) return;
+                const ids = this.comparacion.map(h => h.idHabitacion).join(',');
+                window.location.href = `comparar.html?ids=${ids}`;
+            },
             get habitacionesPorCiudad() {
                 const grupos = {};
                 for (const h of this.habitaciones) {

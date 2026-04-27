@@ -129,6 +129,74 @@ CREATE TABLE EmailNotifications (
 );
 
 -- =============================================
+-- TABLA: HabitacionImagen
+-- (Sesión 6: galería de imágenes por habitación)
+-- =============================================
+CREATE TABLE HabitacionImagen (
+    id_imagen        INT IDENTITY(1,1) PRIMARY KEY,
+    id_habitacion    INT NOT NULL FOREIGN KEY REFERENCES Habitaciones(id_habitacion) ON DELETE CASCADE,
+    url              NVARCHAR(500) NOT NULL,
+    descripcion      NVARCHAR(200) NULL,
+    es_principal     BIT NOT NULL DEFAULT 0,
+    orden            INT NOT NULL DEFAULT 0,
+    fecha_registro   DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE INDEX IX_HabitacionImagen_Habitacion
+ON HabitacionImagen(id_habitacion);
+
+-- Datos de ejemplo: 4 imágenes por cada habitación existente
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=80', 'Vista principal', 1, 1
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=80', 'Cama y mobiliario', 0, 2
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=80', 'Baño', 0, 3
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=900&q=80', 'Vista exterior', 0, 4
+FROM Habitaciones h;
+
+-- =============================================
+-- TABLA: HabitacionImagen
+-- (Sesión 6: galería de imágenes por habitación)
+-- =============================================
+CREATE TABLE HabitacionImagen (
+    id_imagen        INT IDENTITY(1,1) PRIMARY KEY,
+    id_habitacion    INT NOT NULL FOREIGN KEY REFERENCES Habitaciones(id_habitacion) ON DELETE CASCADE,
+    url              NVARCHAR(500) NOT NULL,
+    descripcion      NVARCHAR(200) NULL,
+    es_principal     BIT NOT NULL DEFAULT 0,
+    orden            INT NOT NULL DEFAULT 0,
+    fecha_registro   DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE INDEX IX_HabitacionImagen_Habitacion
+ON HabitacionImagen(id_habitacion);
+
+-- Datos de ejemplo: 4 imágenes por cada habitación existente
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=80', 'Vista principal', 1, 1
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=80', 'Cama y mobiliario', 0, 2
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=80', 'Baño', 0, 3
+FROM Habitaciones h;
+
+INSERT INTO HabitacionImagen (id_habitacion, url, descripcion, es_principal, orden)
+SELECT h.id_habitacion, 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=900&q=80', 'Vista exterior', 0, 4
+FROM Habitaciones h;
+
+-- =============================================
 -- TABLA: HuespedReserva
 -- (Sesión 5: registro de huéspedes individuales por reserva)
 -- =============================================
