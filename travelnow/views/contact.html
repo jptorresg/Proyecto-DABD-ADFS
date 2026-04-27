@@ -1,16 +1,36 @@
-<section class="container">
-    <h2>Contacto</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contacto</title>
+    <link rel="stylesheet" href="./css/landing.css">
+</head>
+<body>
 
-    <form>
-        <label>Nombre</label>
-        <input type="text" required>
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/about">Sobre Nosotros</a>
+    <a href="/services">Servicios</a>
+</nav>
 
-        <label>Email</label>
-        <input type="email" required>
-
-        <label>Mensaje</label>
-        <textarea required></textarea>
-
-        <button type="submit">Enviar</button>
-    </form>
+<section class="hero">
+    <div>
+        <h1>Contacto</h1>
+        <p>Estamos para ayudarte</p>
+    </div>
 </section>
+
+<section class="section">
+    <div class="card">
+        <form>
+            <input type="text" placeholder="Nombre" required>
+            <input type="email" placeholder="Correo" required>
+            <textarea placeholder="Mensaje"></textarea>
+            <button class="btn">Enviar</button>
+        </form>
+    </div>
+</section>
+
+<script src="/js/animations.js"></script>
+</body>
+</html>
