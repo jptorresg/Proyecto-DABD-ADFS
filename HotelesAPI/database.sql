@@ -2,6 +2,7 @@
 -- BEDLY - Sistema de Gestión Hotelera
 -- Script de creación de Base de Datos
 -- SQL Server
+-- Versión: Sesiones 1-4 (descuento B2B, datos completos usuario, logging, emails)
 -- =============================================
 
 CREATE DATABASE BedlyHoteles;
@@ -12,13 +13,18 @@ GO
 
 -- =============================================
 -- TABLA: Usuario
+-- (Sesión 3: agregadas columnas apellidos, edad, pais, pasaporte)
 -- =============================================
 CREATE TABLE Usuario (
     id_usuario      INT IDENTITY(1,1) PRIMARY KEY,
     nombre          NVARCHAR(100) NOT NULL,
+    apellidos       NVARCHAR(100) NULL,
     email           NVARCHAR(100) NOT NULL UNIQUE,
     password_hash   NVARCHAR(255) NOT NULL,
     telefono        NVARCHAR(20),
+    edad            INT NULL,
+    pais            NVARCHAR(50) NULL,
+    pasaporte       NVARCHAR(50) NULL,
     rol             NVARCHAR(20) NOT NULL DEFAULT 'cliente',
     activo          BIT NOT NULL DEFAULT 1,
     fecha_registro  DATETIME NOT NULL DEFAULT GETDATE()
@@ -40,9 +46,7 @@ CREATE TABLE Hoteles (
     fecha_registro       DATETIME NOT NULL DEFAULT GETDATE()
 );
 
--- Índice para búsquedas B2B por ciudad
-CREATE INDEX IX_Hoteles_Ubicacion
-ON Hoteles(ubicacion);
+CREATE INDEX IX_Hoteles_Ubicacion ON Hoteles(ubicacion);
 
 -- =============================================
 -- TABLA: Habitaciones
@@ -94,6 +98,7 @@ CREATE TABLE Comentarios (
 
 -- =============================================
 -- TABLA: LogsApi
+-- (Sesión 4: usada por LoggingMiddleware)
 -- =============================================
 CREATE TABLE LogsApi (
     id_log        INT IDENTITY(1,1) PRIMARY KEY,
@@ -109,6 +114,21 @@ CREATE TABLE LogsApi (
 );
 
 -- =============================================
+-- TABLA: EmailNotifications
+-- (Sesión 4: notificaciones de cancelación al admin)
+-- =============================================
+CREATE TABLE EmailNotifications (
+    id_email      INT IDENTITY(1,1) PRIMARY KEY,
+    destinatario  NVARCHAR(150) NOT NULL,
+    asunto        NVARCHAR(200) NOT NULL,
+    cuerpo        NVARCHAR(MAX) NOT NULL,
+    tipo_evento   NVARCHAR(50) NOT NULL,
+    enviado       BIT NOT NULL DEFAULT 1,
+    fecha_envio   DATETIME NOT NULL DEFAULT GETDATE(),
+    metadata      NVARCHAR(MAX) NULL
+);
+
+-- =============================================
 -- TABLA: Configuracion
 -- =============================================
 CREATE TABLE Configuracion (
@@ -118,33 +138,32 @@ CREATE TABLE Configuracion (
 );
 
 -- =============================================
--- TABLA: Agencias (REQUERIDA PARA B2B)
+-- TABLA: Agencias
+-- (Sesión 1: agregada columna porcentaje_descuento)
 -- =============================================
 CREATE TABLE Agencias (
-    id_agencia     INT IDENTITY(1,1) PRIMARY KEY,
-    nombre         NVARCHAR(100) NOT NULL,
-    email          NVARCHAR(100) NOT NULL,
-    token          NVARCHAR(255) NOT NULL,
-    activo         BIT NOT NULL DEFAULT 1,
-    fecha_registro DATETIME NOT NULL DEFAULT GETDATE()
+    id_agencia           INT IDENTITY(1,1) PRIMARY KEY,
+    nombre               NVARCHAR(100) NOT NULL,
+    email                NVARCHAR(100) NOT NULL,
+    token                NVARCHAR(255) NOT NULL,
+    porcentaje_descuento DECIMAL(5,2) NOT NULL DEFAULT 0,
+    activo               BIT NOT NULL DEFAULT 1,
+    fecha_registro       DATETIME NOT NULL DEFAULT GETDATE()
 );
 
 -- =============================================
 -- DATOS DE PRUEBA
 -- =============================================
 
--- Usuarios
-INSERT INTO Usuario (nombre, email, password_hash, telefono, rol) VALUES
-('Admin Bedly', 'admin@bedly.com', '$2a$11$dummy_hash_here', '502-1234-5678', 'admin'),
-('Juan Pérez', 'juan@correo.com', '$2a$11$dummy_hash_here', '502-9876-5432', 'cliente'),
-('María García', 'maria@correo.com', '$2a$11$dummy_hash_here', '502-5555-1234', 'cliente');
+INSERT INTO Usuario (nombre, apellidos, email, password_hash, telefono, edad, pais, pasaporte, rol) VALUES
+('Admin', 'Bedly', 'admin@bedly.com', '$2a$11$dummy_hash_here', '5012-3456', 35, 'Guatemala', '0000000000000', 'admin'),
+('Juan', 'Pérez', 'juan@correo.com', '$2a$11$dummy_hash_here', '5098-7654', 28, 'Guatemala', '1234567890101', 'cliente'),
+('María', 'García', 'maria@correo.com', '$2a$11$dummy_hash_here', '5055-5512', 32, 'México', 'AB1234567', 'cliente');
 
--- Hoteles
 INSERT INTO Hoteles (nombre_hotel, ubicacion, estrellas, descripcion) VALUES
 ('Hotel Grand UNIS', 'Zona 10, Guatemala City', 5, 'Hotel de lujo en el corazón de la zona viva'),
 ('UNIS Central Hotel', 'Zona 1, Guatemala City', 4, 'Hotel céntrico con vistas históricas');
 
--- Habitaciones
 INSERT INTO Habitaciones (id_hotel, num_habitacion, tipo_habitacion, precio_noche, capacidad_max, estado, amenidades) VALUES
 (1, '101', 'Sencilla',  380.00, 1, 'Disponible', 'WiFi,A/C,TV'),
 (1, '201', 'Doble',     650.00, 2, 'Disponible', 'WiFi,A/C,TV,Desayuno'),
@@ -154,16 +173,15 @@ INSERT INTO Habitaciones (id_hotel, num_habitacion, tipo_habitacion, precio_noch
 (2, '201', 'Doble',     700.00, 2, 'Disponible', 'WiFi,A/C,TV,Desayuno'),
 (2, '301', 'Suite',    1350.00, 3, 'Disponible', 'WiFi,A/C,TV,Desayuno,Gym');
 
--- Configuracion inicial
 INSERT INTO Configuracion (clave, valor) VALUES
 ('fecha_cierre_ventas', '');
 
--- Agencia TravelNow
-INSERT INTO Agencias (nombre, email, token)
-VALUES ('TravelNow', 'admin@travelnow.com', NEWID());
+-- Agencia TravelNow (token fijo para que tu compañero lo configure en su .env)
+INSERT INTO Agencias (nombre, email, token, porcentaje_descuento)
+VALUES ('TravelNow', 'admin@travelnow.com', NEWID(), 10.00);
 
--- IMPORTANTE: Copia este token y dáselo a tu compañero
-SELECT nombre, token
+-- IMPORTANTE: Copia este token y úsalo en TravelNow
+SELECT nombre, token, porcentaje_descuento
 FROM Agencias
 WHERE nombre = 'TravelNow';
 GO

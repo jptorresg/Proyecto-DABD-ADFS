@@ -53,3 +53,66 @@ target/
 # =====================
 
 **/DatabaseConfig.java
+# =====================
+# .NET / C#
+# =====================
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.cache
+*.user
+*.suo
+*.userprefs
+.vs/
+
+# =====================
+# appsettings con credenciales (Sesión 4: SMTP Gmail)
+# =====================
+HotelesAPI/appsettings.json
+HotelesAPI/appsettings.Development.json
+HotelesAPI/appsettings.Production.json
+
+# Permitir el archivo plantilla
+!HotelesAPI/appsettings.example.json
+
+# =====================
+# Archivos temporales del proyecto Bedly
+# =====================
+admin_html_parte.txt
+test_adminapp.js
+test_admin.js
+*.backup
+# =====================
+# .NET / C# (Sesión 4: ignorar binarios compilados)
+# =====================
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.cache
+*.user
+*.suo
+*.userprefs
+.vs/
+
+# =====================
+# appsettings con credenciales (Sesión 4: SMTP Gmail App Password)
+# =====================
+HotelesAPI/appsettings.json
+HotelesAPI/appsettings.Development.json
+HotelesAPI/appsettings.Production.json
+
+# Permitir el archivo plantilla
+!HotelesAPI/appsettings.example.json
+
+# =====================
+# Archivos temporales del proyecto
+# =====================
+admin_html_parte.txt
+test_adminapp.js
+test_admin.js
+*.backup
+*.tmp

@@ -1,4 +1,5 @@
 using HotelesAPI.Config;
+using HotelesAPI.Middleware;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +29,10 @@ DatabaseConfig.ConnectionString = builder.Configuration.GetConnectionString("Def
     ?? throw new Exception("No se encontró cadena de conexión");
 
 app.UseCors("AllowFrontend");
+
+// Middleware de logging automático para todos los endpoints /api/*
+app.UseMiddleware<LoggingMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -47,15 +47,36 @@ namespace HotelesAPI.Controllers
                     return BadRequest(JsonResponse.Error("Fechas invalidas"));
 
                 var habitaciones = _habitacionDAO.GetDisponibles(checkIn, checkOut, capacidad, ciudad);
+
+                decimal factorDescuento = 1 - (agencia.PorcentajeDescuento / 100m);
+                var habitacionesConDescuento = habitaciones.Select(h => new
+                {
+                    h.IdHabitacion,
+                    h.IdHotel,
+                    h.NombreHotel,
+                    h.NumHabitacion,
+                    h.TipoHabitacion,
+                    precioNocheOriginal = h.PrecioNoche,
+                    precioNocheConDescuento = Math.Round(h.PrecioNoche * factorDescuento, 2),
+                    h.CapacidadMax,
+                    h.Estado,
+                    h.Ubicacion,
+                    h.Estrellas,
+                    h.Amenidades,
+                    h.Descripcion,
+                    h.ImagenUrl
+                }).ToList();
+
                 return Ok(JsonResponse.Ok("Disponibilidad obtenida", new
                 {
-                    agencia          = agencia.Nombre,
+                    agencia           = agencia.Nombre,
+                    descuentoAplicado = agencia.PorcentajeDescuento + "%",
                     checkIn,
                     checkOut,
                     capacidad,
-                    ciudad           = ciudad ?? "todas",
-                    totalDisponibles = habitaciones.Count,
-                    habitaciones
+                    ciudad            = ciudad ?? "todas",
+                    totalDisponibles  = habitacionesConDescuento.Count,
+                    habitaciones      = habitacionesConDescuento
                 }));
             }
             catch (Exception ex)
@@ -90,8 +111,9 @@ namespace HotelesAPI.Controllers
                     return Conflict(JsonResponse.Error("La habitacion no esta disponible"));
 
                 int noches      = (int)(dto.FechaCheckOut - dto.FechaCheckIn).TotalDays;
-                decimal subtotal = habitacion.PrecioNoche * noches;
-                decimal iva      = subtotal * 0.12m;
+                decimal precioNocheConDescuento = habitacion.PrecioNoche * (1 - agencia.PorcentajeDescuento / 100m);
+                decimal subtotal = Math.Round(precioNocheConDescuento * noches, 2);
+                decimal iva      = Math.Round(subtotal * 0.12m, 2);
                 decimal total    = subtotal + iva;
 
                 var reservacion = new Reservacion
@@ -113,18 +135,21 @@ namespace HotelesAPI.Controllers
 
                 return StatusCode(201, JsonResponse.Ok("Reservacion B2B creada exitosamente", new
                 {
-                    idReservacion          = id,
-                    agencia                = agencia.Nombre,
-                    habitacion             = habitacion.TipoHabitacion + " " + habitacion.NumHabitacion,
-                    hotel                  = habitacion.NombreHotel,
-                    checkIn                = dto.FechaCheckIn,
-                    checkOut               = dto.FechaCheckOut,
+                    idReservacion           = id,
+                    agencia                 = agencia.Nombre,
+                    descuentoAgencia        = agencia.PorcentajeDescuento + "%",
+                    habitacion              = habitacion.TipoHabitacion + " " + habitacion.NumHabitacion,
+                    hotel                   = habitacion.NombreHotel,
+                    checkIn                 = dto.FechaCheckIn,
+                    checkOut                = dto.FechaCheckOut,
                     noches,
+                    precioNocheOriginal     = habitacion.PrecioNoche,
+                    precioNocheConDescuento = Math.Round(precioNocheConDescuento, 2),
                     subtotal,
                     iva,
                     total,
-                    estado                 = "Confirmada",
-                    inventarioSincronizado = true
+                    estado                  = "Confirmada",
+                    inventarioSincronizado  = true
                 }));
             }
             catch (Exception ex)

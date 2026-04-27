@@ -34,8 +34,8 @@ namespace HotelesAPI.Services
             if (estado == "Cancelada")
                 throw new ArgumentException("La reservación ya está cancelada");
 
-            if (fechaCheckIn <= DateTime.Today)
-                throw new ArgumentException("No se puede cancelar una reservación en curso o pasada");
+            if (fechaCheckIn <= DateTime.Now.AddHours(24))
+                throw new ArgumentException("Solo se puede cancelar hasta 24 horas antes del check-in");
         }
 
         public static void ValidarModificacion(string estado, DateTime checkIn, DateTime checkOut)
