@@ -116,6 +116,15 @@
                                 Canceladas
                             </button>
                         </div>
+                        <div class="filters-bar" style="margin-top: 1rem;">
+                            <div class="filter-group">
+                                <input type="text"
+                                    class="filter-input"
+                                    placeholder="Buscar por código de reservación..."
+                                    x-model="search"
+                                    @input="filtrarReservaciones()">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Loading State -->
@@ -200,11 +209,11 @@
                                         <i class="fas fa-eye"></i>
                                         Ver Detalles
                                     </button>
-                                    <button @click="descargarPDF(reservacion.codigoReservacion)" 
+                                    <!--<button @click="descargarPDF(reservacion.codigoReservacion)" 
                                             class="btn-reservacion btn-descargar">
                                         <i class="fas fa-download"></i>
                                         Descargar Comprobante
-                                    </button>
+                                    </button>-->
                                     <button x-show="puedeSerCancelada(reservacion)"
                                             @click="cancelarReservacion(reservacion.idReservacion)" 
                                             class="btn-reservacion btn-cancelar">

@@ -1611,6 +1611,9 @@ function reservacionesData() {
         
         /** @type {boolean} Indica si se están cargando los datos. */
         isLoading: true,
+
+        /** @type {string} Palabra de búsqueda para filtrar las reservaciones. */
+        search: '',
         
         /**
          * Inicializa el componente verificando la sesión del usuario.
@@ -1676,14 +1679,25 @@ function reservacionesData() {
          * </p>
          */
         filtrarReservaciones() {
-            if (this.filtroActivo === 'todas') {
-                this.filteredReservaciones = this.reservaciones;
-                console.log("🎯 Reservaciones filtradas:", this.filteredReservaciones);
-            } else {
-                this.filteredReservaciones = this.reservaciones.filter(r => 
+            let filtered = [...this.reservaciones];
+
+            // 🔹 FILTRO POR ESTADO (tabs)
+            if (this.filtroActivo !== 'todas') {
+                filtered = filtered.filter(r => 
                     r.estado.toLowerCase() === this.filtroActivo
                 );
             }
+
+            // 🔹 FILTRO POR BÚSQUEDA (código)
+            if (this.search.trim()) {
+                const search = this.search.toLowerCase();
+
+                filtered = filtered.filter(r =>
+                    r.codigoReservacion.toLowerCase().includes(search)
+                );
+            }
+
+            this.filteredReservaciones = filtered;
         },
         
         /**
@@ -1693,6 +1707,7 @@ function reservacionesData() {
          */
         cambiarFiltro(filtro) {
             this.filtroActivo = filtro;
+            this.search = '';
             this.filtrarReservaciones();
         },
         
