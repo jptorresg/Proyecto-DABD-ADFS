@@ -98,6 +98,68 @@ namespace HotelesAPI.Controllers
         }
 
         /// <summary>
+        /// Retorna la lista de países donde opera la cadena, junto con sus ciudades y conteo de hoteles.
+        /// Útil para integración con sistemas externos (aerolíneas, agencias).
+        /// Sesión 7: soporte multi-país.
+        /// </summary>
+        [HttpGet("paises")]
+        public IActionResult GetPaises()
+        {
+            try
+            {
+                string sql = @"SELECT pais, ubicacion AS ciudad, COUNT(*) AS num_hoteles
+                              FROM Hoteles
+                              WHERE pais IS NOT NULL AND pais != ''
+                              GROUP BY pais, ubicacion
+                              ORDER BY pais, ubicacion";
+
+                var paisesDict = new Dictionary<string, List<object>>();
+                int totalHoteles = 0;
+
+                using var conn = DatabaseConfig.GetConnection();
+                conn.Open();
+                using var cmd = new SqlCommand(sql, conn);
+                using var rs = cmd.ExecuteReader();
+
+                while (rs.Read())
+                {
+                    string pais = rs.GetString(rs.GetOrdinal("pais"));
+                    string ciudad = rs.IsDBNull(rs.GetOrdinal("ciudad")) ? "" : rs.GetString(rs.GetOrdinal("ciudad"));
+                    int numHoteles = rs.GetInt32(rs.GetOrdinal("num_hoteles"));
+
+                    if (!paisesDict.ContainsKey(pais))
+                        paisesDict[pais] = new List<object>();
+
+                    paisesDict[pais].Add(new
+                    {
+                        ciudad,
+                        numHoteles
+                    });
+                    totalHoteles += numHoteles;
+                }
+
+                var data = paisesDict.Select(kvp => new
+                {
+                    pais = kvp.Key,
+                    totalHotelesPais = ((List<object>)kvp.Value).Count,
+                    ciudades = kvp.Value
+                }).ToList();
+
+                return Ok(JsonResponse.Ok("Países y ciudades obtenidos", new
+                {
+                    totalPaises = data.Count,
+                    totalHoteles,
+                    cadena = "Bedly Hoteles",
+                    paises = data
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
         /// Retorna el catálogo de nacionalidades aceptadas por el sistema.
         /// Webservice público utilizado en formularios de registro y reservación.
         /// </summary>
@@ -106,38 +168,38 @@ namespace HotelesAPI.Controllers
         {
             var nacionalidades = new List<object>
             {
-                new { codigo = "GT", nombre = "Guatemala" },
-                new { codigo = "MX", nombre = "México" },
-                new { codigo = "US", nombre = "Estados Unidos" },
-                new { codigo = "CA", nombre = "Canadá" },
-                new { codigo = "HN", nombre = "Honduras" },
-                new { codigo = "SV", nombre = "El Salvador" },
-                new { codigo = "NI", nombre = "Nicaragua" },
-                new { codigo = "CR", nombre = "Costa Rica" },
-                new { codigo = "PA", nombre = "Panamá" },
-                new { codigo = "BZ", nombre = "Belice" },
-                new { codigo = "CO", nombre = "Colombia" },
-                new { codigo = "VE", nombre = "Venezuela" },
-                new { codigo = "EC", nombre = "Ecuador" },
-                new { codigo = "PE", nombre = "Perú" },
-                new { codigo = "BO", nombre = "Bolivia" },
-                new { codigo = "CL", nombre = "Chile" },
-                new { codigo = "AR", nombre = "Argentina" },
-                new { codigo = "UY", nombre = "Uruguay" },
-                new { codigo = "PY", nombre = "Paraguay" },
-                new { codigo = "BR", nombre = "Brasil" },
-                new { codigo = "ES", nombre = "España" },
-                new { codigo = "FR", nombre = "Francia" },
-                new { codigo = "DE", nombre = "Alemania" },
-                new { codigo = "IT", nombre = "Italia" },
-                new { codigo = "GB", nombre = "Reino Unido" },
-                new { codigo = "PT", nombre = "Portugal" },
-                new { codigo = "NL", nombre = "Países Bajos" },
-                new { codigo = "JP", nombre = "Japón" },
-                new { codigo = "CN", nombre = "China" },
-                new { codigo = "KR", nombre = "Corea del Sur" },
-                new { codigo = "IN", nombre = "India" },
-                new { codigo = "AU", nombre = "Australia" },
+                new { codigo = "GT",    nombre = "Guatemala" },
+                new { codigo = "MX",    nombre = "México" },
+                new { codigo = "US",    nombre = "Estados Unidos" },
+                new { codigo = "CA",    nombre = "Canadá" },
+                new { codigo = "HN",    nombre = "Honduras" },
+                new { codigo = "SV",    nombre = "El Salvador" },
+                new { codigo = "NI",    nombre = "Nicaragua" },
+                new { codigo = "CR",    nombre = "Costa Rica" },
+                new { codigo = "PA",    nombre = "Panamá" },
+                new { codigo = "BZ",    nombre = "Belice" },
+                new { codigo = "CO",    nombre = "Colombia" },
+                new { codigo = "VE",    nombre = "Venezuela" },
+                new { codigo = "EC",    nombre = "Ecuador" },
+                new { codigo = "PE",    nombre = "Perú" },
+                new { codigo = "BO",    nombre = "Bolivia" },
+                new { codigo = "CL",    nombre = "Chile" },
+                new { codigo = "AR",    nombre = "Argentina" },
+                new { codigo = "UY",    nombre = "Uruguay" },
+                new { codigo = "PY",    nombre = "Paraguay" },
+                new { codigo = "BR",    nombre = "Brasil" },
+                new { codigo = "ES",    nombre = "España" },
+                new { codigo = "FR",    nombre = "Francia" },
+                new { codigo = "DE",    nombre = "Alemania" },
+                new { codigo = "IT",    nombre = "Italia" },
+                new { codigo = "GB",    nombre = "Reino Unido" },
+                new { codigo = "PT",    nombre = "Portugal" },
+                new { codigo = "NL",    nombre = "Países Bajos" },
+                new { codigo = "JP",    nombre = "Japón" },
+                new { codigo = "CN",    nombre = "China" },
+                new { codigo = "KR",    nombre = "Corea del Sur" },
+                new { codigo = "IN",    nombre = "India" },
+                new { codigo = "AU",    nombre = "Australia" },
                 new { codigo = "OTHER", nombre = "Otro" }
             };
 

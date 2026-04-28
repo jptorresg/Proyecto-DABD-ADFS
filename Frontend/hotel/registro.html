@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -111,7 +111,10 @@
                                 </button>
                             </div>
                             <input type="number" class="form-control text-center" style="max-width:200px; margin:auto;"
-                                   x-model.number="captchaRespuesta" placeholder="Tu respuesta" required>
+                                   x-model.number="captchaRespuesta" placeholder="Tu respuesta" 
+                                   min="0" max="20" step="1"
+                                   onkeydown="return event.key !== '-' && event.key !== 'e' && event.key !== '+' && event.key !== '.';"
+                                   required>
                         </div>
                     </div>
                     <div class="col-12">
@@ -191,7 +194,7 @@
     </footer>
 
     <script>
-    const API = '/api';
+    const API = 'http://localhost:5043/api';
 
     function registroApp() {
         return {

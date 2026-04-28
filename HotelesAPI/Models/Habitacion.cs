@@ -11,14 +11,8 @@ namespace HotelesAPI.Models
         public int CapacidadMax { get; set; }
         public string Estado { get; set; } = "Disponible";
         public string Ubicacion { get; set; } = string.Empty;
-
-        // Alias de Ubicacion para compatibilidad con clientes que envían 'ciudad'
-        public string Ciudad
-        {
-            get => Ubicacion;
-            set => Ubicacion = value;
-        }
-
+        public string Ciudad { get; set; } = string.Empty;
+        public string Pais { get; set; } = "Guatemala";
         public int Estrellas { get; set; }
         public string? Amenidades { get; set; }
         public string? Descripcion { get; set; }
