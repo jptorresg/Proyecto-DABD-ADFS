@@ -303,6 +303,8 @@ function dashboardData() {
 
         /** @type {Chart} Objeto de gráfica de Highcharts. */
         chart: null,
+
+        pieChart: null,
         
         /**
          * Inicializa el objeto cargando las estadísticas del sistema.
@@ -378,6 +380,22 @@ function dashboardData() {
                         }, 100);
                     });
                 }
+
+                const pieResponse = await fetch(`${API_BASE}/admin/reservaciones/estado`, {
+                    headers: {
+                        'Authorization': `Bearer ${getUserSession()?.token}`
+                    }
+                });
+
+                if (pieResponse.ok) {
+                    const result = await pieResponse.json();
+
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            this.renderPieChart(result.data);
+                        }, 100);
+                    });
+                }
                 
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
@@ -440,6 +458,38 @@ function dashboardData() {
                     plugins: {
                         legend: {
                             display: false
+                        }
+                    }
+                }
+            });
+        },
+
+        renderPieChart(data) {
+
+            const canvas = this.$refs.reservationsPieChart;
+
+            if (!canvas) return;
+
+            if (this.pieChart) {
+                this.pieChart.destroy();
+            }
+
+            this.pieChart = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: ['Confirmadas', 'Canceladas'],
+                    datasets: [{
+                        data: [
+                            data.confirmadas || 0,
+                            data.canceladas || 0
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         }
                     }
                 }

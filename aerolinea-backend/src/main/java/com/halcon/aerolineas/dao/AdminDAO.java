@@ -393,4 +393,41 @@ public class AdminDAO {
 
         return false;
     }
+
+    public Map<String, Integer> contarReservacionesPorEstado() {
+
+        Map<String, Integer> result = new HashMap<>();
+
+        String sql =
+            "SELECT ESTADO, COUNT(*) as total " +
+            "FROM RESERVACIONES " +
+            "GROUP BY ESTADO";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
+            int confirmadas = 0;
+            int canceladas = 0;
+
+            while (rs.next()) {
+                String estado = rs.getString("ESTADO");
+                int total = rs.getInt("total");
+
+                if ("CONFIRMADA".equalsIgnoreCase(estado)) {
+                    confirmadas = total;
+                } else if ("CANCELADA".equalsIgnoreCase(estado)) {
+                    canceladas = total;
+                }
+            }
+
+            result.put("confirmadas", confirmadas);
+            result.put("canceladas", canceladas);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 }

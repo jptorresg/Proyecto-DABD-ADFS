@@ -140,4 +140,8 @@ public class AdminService {
     public boolean toggleActivoUsuario(int userId) throws SQLException {
         return adminDAO.toggleActivoUsuario(userId);
     }
+
+    public Map<String, Integer> obtenerReservacionesPorEstado() throws SQLException {
+        return adminDAO.contarReservacionesPorEstado();
+    }
 }
