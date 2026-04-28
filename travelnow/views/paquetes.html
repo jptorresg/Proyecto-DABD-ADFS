@@ -271,6 +271,20 @@
     let hotelesCache   = [];
     let paqueteSoloVuelo = false;
 
+    // Resolución del destino devuelta por el backend en /api/search/packages.
+    // Forma: { iata: "GUA", ciudad: "Guatemala" }. Cuando esté disponible
+    // (después de cargar()), la usamos para mostrar mensajes legibles al
+    // usuario en vez del IATA crudo. Ver fix relacionado en search.controller.js.
+    let destinoResuelto = { iata: search.destino, ciudad: search.destino };
+
+    /**
+     * Devuelve el nombre de ciudad mejor disponible para mostrar al usuario.
+     * Prefiere el resuelto por el backend; si aún no está, cae al input crudo.
+     */
+    function nombreDestinoLegible() {
+      return destinoResuelto.ciudad || search.destino || 'el destino seleccionado';
+    }
+
     /* ── Guards ───────────────── */
     if (!search.origen || !search.destino || !search.fecha_salida || !search.fecha_regreso) {
       document.body.innerHTML = `
@@ -309,6 +323,15 @@
 
         vuelosCache  = data.data.vuelos  || [];
         hotelesCache = data.data.hoteles || [];
+
+        // Guardamos lo que el backend resolvió para mostrar al usuario.
+        // Si por alguna razón no viene, conservamos el fallback al input crudo.
+        if (data.destino_resuelto) {
+          destinoResuelto = {
+            iata:   data.destino_resuelto.iata   || search.destino,
+            ciudad: data.destino_resuelto.ciudad || search.destino,
+          };
+        }
 
         renderVuelos();
       } catch (e) {
@@ -384,11 +407,14 @@
       const warnHoteles = hotelesCache.length === 0;
 
       if (warnHoteles) {
+        // Usamos el nombre resuelto por el backend (ej. "Guatemala") en lugar
+        // del input crudo (ej. "GUA"). Así el aviso es legible aunque el
+        // usuario haya llegado con un IATA en la URL.
         cont.innerHTML = `
           <div class="warn-box">
             <i class="fa-solid fa-triangle-exclamation" style="font-size:1.3rem;"></i>
             <div>
-              <strong>No encontramos hoteles disponibles</strong> en ${search.destino} para estas fechas.
+              <strong>No encontramos hoteles disponibles</strong> en ${nombreDestinoLegible()} para estas fechas.
               Puedes continuar con el vuelo solo (sin descuento de paquete) o cambiar de destino.
             </div>
           </div>
@@ -485,7 +511,7 @@
         <div class="summary-section">
           <div class="sum-title"><i class="fa-solid fa-plane"></i> Vuelo seleccionado</div>
           <div class="sum-row"><span>Aerolínea</span><strong>${vueloElegido.nombre_proveedor}</strong></div>
-          <div class="sum-row"><span>Ruta</span><strong>${vueloElegido.origen_ciudad || vueloElegido.origen || search.origen} → ${vueloElegido.destino_ciudad || vueloElegido.destino || search.destino}</strong></div>
+          <div class="sum-row"><span>Ruta</span><strong>${vueloElegido.origen_ciudad || vueloElegido.origen || search.origen} → ${vueloElegido.destino_ciudad || vueloElegido.destino || nombreDestinoLegible()}</strong></div>
           <div class="sum-row"><span>Fecha / hora</span><strong>${search.fecha_salida} · ${horaS} → ${horaL}</strong></div>
           <div class="sum-row"><span>Clase</span><strong>${vueloElegido.tipo_asiento}</strong></div>
           <div class="sum-row"><span>Pasajeros (x${numPax})</span><strong>$${precioVuelo.toFixed(2)}</strong></div>

@@ -1,9 +1,9 @@
-    <!DOCTYPE html>
+﻿    <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Hoteles - Bedly</title>
+    <title>CatÃ¡logo de Hoteles - Bedly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -41,12 +41,12 @@
 </head>
 <body x-data="appHabitaciones()" x-init="init()">
 
-    <!-- Barra flotante de comparación (Sesión 6) -->
+    <!-- Barra flotante de comparaciÃ³n (SesiÃ³n 6) -->
     <div class="compare-bar" x-show="comparacion.length > 0" x-transition>
         <div class="container d-flex justify-content-between align-items-center">
             <div class="compare-bar-info">
                 <i class="bi bi-clipboard-check me-2"></i>
-                <strong><span x-text="comparacion.length"></span> habitación(es)</strong> seleccionada(s) para comparar
+                <strong><span x-text="comparacion.length"></span> habitaciÃ³n(es)</strong> seleccionada(s) para comparar
                 <small class="ms-2 opacity-75" x-show="comparacion.length < 2">(elige al menos 2)</small>
             </div>
             <div class="d-flex gap-2 align-items-center">
@@ -76,7 +76,7 @@
                 
                 <form class="d-flex flex-grow-1 mx-3" style="max-width:500px;" onsubmit="event.preventDefault(); buscarBedly(this);">
                     <div class="input-group">
-                        <input type="text" name="q" class="form-control" placeholder="Buscar hotel, ciudad o tipo de habitación..." aria-label="Buscar" style="border:none; padding:0.5rem 1rem;">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar hotel, ciudad o tipo de habitaciÃ³n..." aria-label="Buscar" style="border:none; padding:0.5rem 1rem;">
                         <button class="btn btn-warning fw-bold px-3" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
@@ -90,12 +90,12 @@
                         <i class="bi bi-speedometer2 me-1"></i>Dashboard
                     </a>
                     
-                    <a href="#" class="position-relative text-white text-decoration-none mx-2" title="Carrito (próximamente)">
+                    <a href="#" class="position-relative text-white text-decoration-none mx-2" title="Carrito (prÃ³ximamente)">
                         <i class="bi bi-cart3" style="font-size:1.4rem;"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size:0.65rem;">0</span>
                     </a>
                     
-                    <span class="text-white-50 small d-none d-lg-inline" x-text="usuario ? '👤 ' + usuario.nombre : ''"></span>
+                    <span class="text-white-50 small d-none d-lg-inline" x-text="usuario ? 'ðŸ‘¤ ' + usuario.nombre : ''"></span>
                     
                     <a href="landing.html" class="btn btn-outline-light btn-sm rounded-pill"
                        @click="localStorage.removeItem('usuario')">
@@ -117,13 +117,13 @@
     <div class="hero text-center">
         <div class="container">
             <h1>Bienvenido, <span x-text="usuario ? usuario.nombre.split(' ')[0] : ''"></span></h1>
-            <p class="lead mb-0" style="opacity:0.85;">Explora y reserva la habitación perfecta para ti.</p>
+            <p class="lead mb-0" style="opacity:0.85;">Explora y reserva la habitaciÃ³n perfecta para ti.</p>
         </div>
     </div>
     <div class="container" style="margin-top:-40px; position:relative; z-index:10;">
         <div class="card p-4" style="box-shadow:0 8px 32px rgba(0,0,0,0.15); border-radius:15px;">
             <h6 class="fw-bold mb-3" style="color:var(--primary-color);">
-                <i class="bi bi-search me-2"></i>Encuentra tu habitación ideal
+                <i class="bi bi-search me-2"></i>Encuentra tu habitaciÃ³n ideal
             </h6>
             <form class="row g-3 align-items-end" onsubmit="event.preventDefault(); buscarHomeBedly(this);">
                 <div class="col-md-3">
@@ -134,7 +134,7 @@
                         <option value="">Cualquier ciudad</option>
                         <option value="Antigua Guatemala">Antigua Guatemala</option>
                         <option value="Escuintla">Escuintla</option>
-                        <option value="Flores, Petén">Flores, Petén</option>
+                        <option value="Flores, PetÃ©n">Flores, PetÃ©n</option>
                         <option value="Quetzaltenango">Quetzaltenango</option>
                         <option value="Zona 10, Guatemala City">Zona 10, Guatemala City</option>
                     </select>
@@ -153,15 +153,15 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label fw-bold small text-muted text-uppercase">
-                        <i class="bi bi-people me-1"></i>Huéspedes
+                        <i class="bi bi-people me-1"></i>HuÃ©spedes
                     </label>
                     <select name="huespedes" class="form-select">
-                        <option value="1">1 huésped</option>
-                        <option value="2" selected>2 huéspedes</option>
-                        <option value="3">3 huéspedes</option>
-                        <option value="4">4 huéspedes</option>
-                        <option value="5">5 huéspedes</option>
-                        <option value="6">6+ huéspedes</option>
+                        <option value="1">1 huÃ©sped</option>
+                        <option value="2" selected>2 huÃ©spedes</option>
+                        <option value="3">3 huÃ©spedes</option>
+                        <option value="4">4 huÃ©spedes</option>
+                        <option value="5">5 huÃ©spedes</option>
+                        <option value="6">6+ huÃ©spedes</option>
                     </select>
                 </div>
                 <div class="col-md-1">
@@ -191,7 +191,7 @@
         <div class="search-box mb-5">
             <div class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Tipo de habitación</label>
+                    <label class="form-label fw-bold small text-muted text-uppercase">Tipo de habitaciÃ³n</label>
                     <select class="form-select" x-model="filtros.tipo" @change="filtrar()">
                         <option value="">Todos los tipos</option>
                         <template x-for="tipo in opcionesFiltro.tipos" :key="tipo">
@@ -210,7 +210,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">Precio máximo</label>
+                    <label class="form-label fw-bold small text-muted text-uppercase">Precio mÃ¡ximo</label>
                     <select class="form-select" x-model="filtros.precioMax" @change="filtrar()">
                         <option value="">Cualquier precio</option>
                         <option value="500">Hasta Q500</option>
@@ -221,9 +221,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold small text-muted text-uppercase">País</label>
+                    <label class="form-label fw-bold small text-muted text-uppercase">PaÃ­s</label>
                     <select class="form-select" x-model="filtros.pais" @change="onPaisChange()">
-                        <option value="">Todos los países</option>
+                        <option value="">Todos los paÃ­ses</option>
                         <template x-for="p in opcionesFiltro.paises" :key="p.pais">
                             <option :value="p.pais" x-text="p.pais"></option>
                         </template>
@@ -270,10 +270,10 @@
             <span class="text-muted small" x-text="habitaciones.length + ' habitaciones encontradas'"></span>
         </div>
 
-        <!-- Habitaciones agrupadas por país → ciudad -->
+        <!-- Habitaciones agrupadas por paÃ­s â†’ ciudad -->
         <template x-for="grupoPais in habitacionesPorPais" :key="grupoPais.pais">
             <div class="mb-5">
-                <!-- Header del país -->
+                <!-- Header del paÃ­s -->
                 <div class="d-flex align-items-center mb-3" style="border-bottom: 3px solid var(--primary-color); padding-bottom: 10px;">
                     <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-color); font-weight: 900; margin: 0;">
                         <i class="bi bi-globe-americas me-2"></i><span x-text="grupoPais.pais"></span>
@@ -282,7 +282,7 @@
                           x-text="grupoPais.ciudades.reduce((sum, c) => sum + c.habitaciones.length, 0) + ' habitaciones'"></span>
                 </div>
 
-                <!-- Ciudades de este país -->
+                <!-- Ciudades de este paÃ­s -->
                 <template x-for="grupo in grupoPais.ciudades" :key="grupo.ciudad">
             <div>
                 <!-- Header de ciudad -->
@@ -303,7 +303,7 @@
                                     <img :src="imagenPorTipo(h.tipoHabitacion)"
                                          :alt="h.tipoHabitacion"
                                          class="room-img">
-                                    <!-- Checkbox de comparación (Sesión 6) -->
+                                    <!-- Checkbox de comparaciÃ³n (SesiÃ³n 6) -->
                                     <div class="compare-checkbox-wrap"
                                          @click.prevent="toggleComparar(h)"
                                          :class="estaEnComparacion(h.idHabitacion) ? 'checked' : ''">
@@ -325,7 +325,7 @@
                                     <p class="text-muted small mb-3">
                                         <i class="bi bi-people me-1"></i>
                                         Capacidad: <strong x-text="h.capacidadMax + ' personas'"></strong>
-                                        <span x-text="' · ' + '⭐'.repeat(h.estrellas)"></span>
+                                        <span x-text="' Â· ' + 'â­'.repeat(h.estrellas)"></span>
                                     </p>
                                     <div class="d-flex flex-wrap gap-1 mb-3">
                                         <template x-for="amenidad in (h.amenidades ? h.amenidades.split(',').slice(0,3) : [])" :key="amenidad">
@@ -373,13 +373,13 @@
                     </div>
                 </div>
                 <div class="col-md-2 col-6">
-                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Información</h6>
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">InformaciÃ³n</h6>
                     <ul style="list-style:none; padding:0; font-size:0.88rem;">
                         <li class="mb-2"><a href="amenidades.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Amenidades</a></li>
                         <li class="mb-2"><a href="tipos-habitaciones.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Habitaciones</a></li>
                         <li class="mb-2"><a href="checkin-checkout.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Check-in / Check-out</a></li>
                         <li class="mb-2"><a href="reglas-hotel.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Reglas del Hotel</a></li>
-                        <li class="mb-2"><a href="evacuacion.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Plan de Evacuación</a></li>
+                        <li class="mb-2"><a href="evacuacion.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Plan de EvacuaciÃ³n</a></li>
                     </ul>
                 </div>
                 <div class="col-md-2 col-6">
@@ -388,12 +388,12 @@
                         <li class="mb-2"><a href="perfil.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Mi Perfil</a></li>
                         <li class="mb-2"><a href="historial.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Mis Reservas</a></li>
                         <li class="mb-2"><a href="index.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Ver Habitaciones</a></li>
-                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Términos y Condiciones</a></li>
-                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Política de Privacidad</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">TÃ©rminos y Condiciones</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">PolÃ­tica de Privacidad</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Contáctanos</h6>
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">ContÃ¡ctanos</h6>
                     <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;">
                         <i class="bi bi-telephone-fill me-2"></i>+502 2200-0000
                     </p>
@@ -404,7 +404,7 @@
                         <i class="bi bi-geo-alt-fill me-2"></i>16 Calle 0-55, Zona 10<br><span style="margin-left:1.5rem;">Guatemala City, Guatemala</span>
                     </p>
                     <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0;">
-                        <i class="bi bi-clock-fill me-2"></i>Recepción 24/7
+                        <i class="bi bi-clock-fill me-2"></i>RecepciÃ³n 24/7
                     </p>
                 </div>
 
@@ -452,14 +452,14 @@
                         this.opcionesFiltro.tipos = data.data.tipos || [];
                         this.opcionesFiltro.ciudades = data.data.ciudades || [];
                     }
-                    // Cargar países desde endpoint /api/catalogo/paises
+                    // Cargar paÃ­ses desde endpoint /api/catalogo/paises
                     try {
                         const resPaises = await fetch(`${API}/catalogo/paises`);
                         const dataPaises = await resPaises.json();
                         if (dataPaises.success && dataPaises.data && Array.isArray(dataPaises.data.paises)) {
                             this.opcionesFiltro.paises = dataPaises.data.paises;
                         }
-                    } catch (e) { console.warn('Error cargando países:', e); }
+                    } catch (e) { console.warn('Error cargando paÃ­ses:', e); }
                 } catch (e) {}
             },
 
@@ -491,7 +491,7 @@
             },
 
             onPaisChange() {
-                // Si cambia el país, resetea la ciudad para evitar inconsistencias
+                // Si cambia el paÃ­s, resetea la ciudad para evitar inconsistencias
                 this.filtros.ciudad = '';
                 this.filtrar();
             },
@@ -530,7 +530,7 @@
             get habitacionesPorPais() {
                 const grupos = {};
                 for (const h of this.habitaciones) {
-                    const pais = h.pais || 'Sin país';
+                    const pais = h.pais || 'Sin paÃ­s';
                     const ciudad = h.ciudad || h.ubicacion || 'Sin ciudad';
                     if (!grupos[pais]) grupos[pais] = {};
                     if (!grupos[pais][ciudad]) grupos[pais][ciudad] = [];
@@ -547,14 +547,14 @@
 
             get ciudadesDisponibles() {
                 if (!this.filtros.pais) {
-                    // Sin filtro de país: todas las ciudades de todas las habitaciones
+                    // Sin filtro de paÃ­s: todas las ciudades de todas las habitaciones
                     const set = new Set();
                     for (const h of this.habitaciones) {
                         if (h.ciudad) set.add(h.ciudad);
                     }
                     return [...set].sort();
                 }
-                // Con filtro de país: solo ciudades de ese país
+                // Con filtro de paÃ­s: solo ciudades de ese paÃ­s
                 const set = new Set();
                 for (const h of this.habitaciones) {
                     if (h.pais === this.filtros.pais && h.ciudad) set.add(h.ciudad);
@@ -579,3 +579,4 @@
     </script>
 </body>
 </html>
+

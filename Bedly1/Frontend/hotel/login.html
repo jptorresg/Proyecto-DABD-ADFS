@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -25,7 +25,7 @@
                 </svg>
             </div>
             <h1 class="text-3xl font-bold text-gray-800">Bedly</h1>
-            <p class="text-gray-500 text-sm mt-2">Módulo de Gestión Hotelera B2B</p>
+            <p class="text-gray-500 text-sm mt-2">MÃ³dulo de GestiÃ³n Hotelera B2B</p>
         </div>
 
         <div x-show="error" x-text="error"
@@ -45,18 +45,18 @@
         <form @submit.prevent="login()">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrónico</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Correo electrÃ³nico</label>
                     <input type="email" x-model="email" required
                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                            placeholder="tu@email.com">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">ContraseÃ±a</label>
                     <div class="relative">
                         <input :type="verPassword ? 'text' : 'password'" x-model="password" required
                                class="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                               placeholder="••••••••">
+                               placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
                         <button type="button" @click="verPassword = !verPassword"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                             <i x-show="!verPassword" class="bi bi-eye"></i>
@@ -73,18 +73,18 @@
                     <input type="checkbox" x-model="recordarme" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <span class="ml-2">Recordarme</span>
                 </label>
-                <a href="#" class="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</a>
+                <a href="#" class="text-sm text-blue-600 hover:underline">Â¿Olvidaste tu contraseÃ±a?</a>
             </div>
 
             <button type="submit" :disabled="loading"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all active:scale-[0.98] disabled:opacity-50">
-                <span x-show="!loading">Iniciar Sesión</span>
+                <span x-show="!loading">Iniciar SesiÃ³n</span>
                 <span x-show="loading">Iniciando...</span>
             </button>
         </form>
 
         <p class="text-center text-sm text-gray-500 mt-8">
-            ¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 font-semibold hover:underline">Regístrate</a>
+            Â¿No tienes una cuenta? <a href="registro.html" class="text-blue-600 font-semibold hover:underline">RegÃ­strate</a>
         </p>
     </div>
     </main>
@@ -106,36 +106,36 @@
                     </div>
                 </div>
                 <div class="md:col-span-2">
-                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Información</h6>
+                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">InformaciÃ³n</h6>
                     <ul class="space-y-2 text-sm">
                         <li><a href="amenidades.html" class="text-white opacity-80 hover:opacity-100">Amenidades</a></li>
                         <li><a href="tipos-habitaciones.html" class="text-white opacity-80 hover:opacity-100">Habitaciones</a></li>
                         <li><a href="checkin-checkout.html" class="text-white opacity-80 hover:opacity-100">Check-in / Check-out</a></li>
                         <li><a href="reglas-hotel.html" class="text-white opacity-80 hover:opacity-100">Reglas del Hotel</a></li>
-                        <li><a href="evacuacion.html" class="text-white opacity-80 hover:opacity-100">Plan de Evacuación</a></li>
+                        <li><a href="evacuacion.html" class="text-white opacity-80 hover:opacity-100">Plan de EvacuaciÃ³n</a></li>
                     </ul>
                 </div>
                 <div class="md:col-span-2">
                     <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Cuenta</h6>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="login.html" class="text-white opacity-80 hover:opacity-100">Iniciar Sesión</a></li>
+                        <li><a href="login.html" class="text-white opacity-80 hover:opacity-100">Iniciar SesiÃ³n</a></li>
                         <li><a href="registro.html" class="text-white opacity-80 hover:opacity-100">Registrarse</a></li>
                         <li><a href="landing.html" class="text-white opacity-80 hover:opacity-100">Ver Habitaciones</a></li>
-                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">Términos y Condiciones</a></li>
-                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">Política de Privacidad</a></li>
+                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">TÃ©rminos y Condiciones</a></li>
+                        <li><a href="#" class="text-white opacity-80 hover:opacity-100">PolÃ­tica de Privacidad</a></li>
                     </ul>
                 </div>
                 <div class="md:col-span-4">
-                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">Contáctanos</h6>
+                    <h6 class="font-bold uppercase text-xs mb-4" style="color:#f5a623;">ContÃ¡ctanos</h6>
                     <p class="opacity-80 text-sm mb-2"><i class="bi bi-telephone-fill mr-2"></i>+502 2200-0000</p>
                     <p class="opacity-80 text-sm mb-2"><i class="bi bi-envelope-fill mr-2"></i>info@bedly.com</p>
                     <p class="opacity-80 text-sm mb-2"><i class="bi bi-geo-alt-fill mr-2"></i>16 Calle 0-55, Zona 10<br><span class="ml-6">Guatemala City, Guatemala</span></p>
-                    <p class="opacity-80 text-sm mb-0"><i class="bi bi-clock-fill mr-2"></i>Recepción 24/7</p>
+                    <p class="opacity-80 text-sm mb-0"><i class="bi bi-clock-fill mr-2"></i>RecepciÃ³n 24/7</p>
                 </div>
             </div>
             <hr class="border-white border-opacity-10">
             <div class="flex justify-between items-center flex-wrap gap-2 pt-4">
-                <p class="m-0 opacity-70 text-xs">© 2026 Bedly — Sistema de Gestión Hotelera · UNIS</p>
+                <p class="m-0 opacity-70 text-xs">Â© 2026 Bedly â€” Sistema de GestiÃ³n Hotelera Â· UNIS</p>
                 <p class="m-0 opacity-70 text-xs">Hecho con <i class="bi bi-heart-fill" style="color:#f5a623;"></i> en Guatemala</p>
             </div>
         </div>
@@ -197,3 +197,4 @@
     </script>
 </body>
 </html>
+

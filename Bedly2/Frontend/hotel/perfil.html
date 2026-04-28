@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -96,7 +96,7 @@
                         <div class="avatar"><i class="bi bi-person-fill"></i></div>
                         <div class="profile-name" x-text="usuario.nombres + ' ' + usuario.apellidos"></div>
                         <div class="profile-email" x-text="usuario.email"></div>
-                        <div class="member-badge">⭐ Miembro Bedly</div>
+                        <div class="member-badge">â­ Miembro Bedly</div>
                     </div>
                     <nav class="sidebar-nav">
                         <a href="#datos" class="sidebar-link active" @click.prevent="seccion='datos'"><i class="bi bi-person"></i> Mis Datos</a>
@@ -104,7 +104,7 @@
                         <a href="historial.html" class="sidebar-link"><i class="bi bi-calendar-check"></i> Mis Reservas</a>
                         <a href="#preferencias" class="sidebar-link" @click.prevent="seccion='preferencias'"><i class="bi bi-sliders"></i> Preferencias</a>
                         <hr class="my-1">
-                        <a href="auth.html" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
+                        <a href="auth.html" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar SesiÃ³n</a>
                     </nav>
                 </div>
 
@@ -133,7 +133,7 @@
                     <div class="card">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h5 class="section-title mb-0">Información Personal</h5>
+                                <h5 class="section-title mb-0">InformaciÃ³n Personal</h5>
                                 <button class="btn btn-sm btn-outline-primary rounded-pill" @click="editando = !editando">
                                     <i class="bi" :class="editando ? 'bi-x' : 'bi-pencil'"></i>
                                     <span x-text="editando ? 'Cancelar' : 'Editar'"></span>
@@ -149,28 +149,28 @@
                                     <input type="text" class="form-control" x-model="usuario.apellidos" :disabled="!editando">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Correo Electrónico</label>
+                                    <label class="form-label">Correo ElectrÃ³nico</label>
                                     <input type="email" class="form-control" x-model="usuario.email" :disabled="!editando">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Teléfono</label>
+                                    <label class="form-label">TelÃ©fono</label>
                                     <input type="tel" class="form-control" x-model="usuario.telefono" :disabled="!editando">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Nacionalidad</label>
                                     <select class="form-select" x-model="usuario.nacionalidad" :disabled="!editando">
                                         <option value="GT">Guatemala</option>
-                                        <option value="MX">México</option>
+                                        <option value="MX">MÃ©xico</option>
                                         <option value="US">Estados Unidos</option>
                                         <option value="OTHER">Otro</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">NIT / Facturación</label>
+                                    <label class="form-label">NIT / FacturaciÃ³n</label>
                                     <input type="text" class="form-control" x-model="usuario.nit" :disabled="!editando" placeholder="CF">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Número de Documento</label>
+                                    <label class="form-label">NÃºmero de Documento</label>
                                     <input type="text" class="form-control" x-model="usuario.numDocumento" :disabled="!editando">
                                 </div>
                                 <div class="col-md-6">
@@ -178,7 +178,7 @@
                                     <select class="form-select" x-model="usuario.tipoDocumento" :disabled="!editando">
                                         <option value="DPI">DPI</option>
                                         <option value="PASAPORTE">Pasaporte</option>
-                                        <option value="CEDULA">Cédula</option>
+                                        <option value="CEDULA">CÃ©dula</option>
                                     </select>
                                 </div>
                                 <div x-show="editando" class="col-12">
@@ -195,23 +195,23 @@
                 <div x-show="seccion === 'seguridad'">
                     <div class="card">
                         <div class="card-body p-4">
-                            <h5 class="section-title mb-4">Cambiar Contraseña</h5>
+                            <h5 class="section-title mb-4">Cambiar ContraseÃ±a</h5>
                             <div class="row g-3" style="max-width:480px;">
                                 <div class="col-12">
-                                    <label class="form-label">Contraseña actual</label>
-                                    <input type="password" class="form-control" placeholder="••••••••">
+                                    <label class="form-label">ContraseÃ±a actual</label>
+                                    <input type="password" class="form-control" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label">Nueva contraseña</label>
-                                    <input type="password" class="form-control" placeholder="Mínimo 8 caracteres">
+                                    <label class="form-label">Nueva contraseÃ±a</label>
+                                    <input type="password" class="form-control" placeholder="MÃ­nimo 8 caracteres">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label">Confirmar nueva contraseña</label>
-                                    <input type="password" class="form-control" placeholder="Repite la contraseña">
+                                    <label class="form-label">Confirmar nueva contraseÃ±a</label>
+                                    <input type="password" class="form-control" placeholder="Repite la contraseÃ±a">
                                 </div>
                                 <div class="col-12">
                                     <button class="btn btn-primary px-4">
-                                        <i class="bi bi-shield-lock me-2"></i>Actualizar Contraseña
+                                        <i class="bi bi-shield-lock me-2"></i>Actualizar ContraseÃ±a
                                     </button>
                                 </div>
                             </div>
@@ -228,7 +228,7 @@
                                 <label class="form-label">Moneda preferida</label>
                                 <select class="form-select" style="max-width:200px;" x-model="usuario.moneda">
                                     <option value="GTQ">Q Quetzales (GTQ)</option>
-                                    <option value="USD">$ Dólares (USD)</option>
+                                    <option value="USD">$ DÃ³lares (USD)</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -264,7 +264,7 @@
             editando: false,
             guardado: false,
             usuario: {
-                nombres: 'Juan Carlos', apellidos: 'Pérez García',
+                nombres: 'Juan Carlos', apellidos: 'PÃ©rez GarcÃ­a',
                 email: 'juan.perez@correo.com', telefono: '+502 5555-1234',
                 nacionalidad: 'GT', nit: 'CF',
                 numDocumento: '1234 56789 0101', tipoDocumento: 'DPI',
@@ -281,3 +281,4 @@
     </script>
 </body>
 </html>
+

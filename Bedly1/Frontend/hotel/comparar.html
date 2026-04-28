@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -86,7 +86,7 @@
         <div class="container d-flex justify-content-between align-items-center">
             <a class="brand" href="index.html">Bed<span>ly</span></a>
             <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill">
-                <i class="bi bi-arrow-left me-1"></i>Volver al Catálogo
+                <i class="bi bi-arrow-left me-1"></i>Volver al CatÃ¡logo
             </a>
         </div>
     </nav>
@@ -96,7 +96,7 @@
             <h1 class="page-title">Comparar Habitaciones</h1>
             <p class="mb-0 opacity-75">
                 <i class="bi bi-clipboard-check me-1"></i>
-                Comparativa lado a lado para tomar la mejor decisión
+                Comparativa lado a lado para tomar la mejor decisiÃ³n
             </p>
         </div>
     </div>
@@ -113,10 +113,10 @@
         <div x-show="!loading && habitaciones.length === 0" class="empty-state">
             <i class="bi bi-clipboard-x" style="font-size:4rem; color:#9ca3af;"></i>
             <h3 class="fw-bold mt-3" style="color: var(--primary-color);">No hay habitaciones para comparar</h3>
-            <p class="text-muted">Selecciona al menos 2 habitaciones desde el catálogo.</p>
+            <p class="text-muted">Selecciona al menos 2 habitaciones desde el catÃ¡logo.</p>
             <a href="index.html" class="btn btn-primary rounded-pill px-4 mt-3"
                style="background: var(--primary-color); border: none;">
-                <i class="bi bi-arrow-left me-2"></i>Volver al Catálogo
+                <i class="bi bi-arrow-left me-2"></i>Volver al CatÃ¡logo
             </a>
         </div>
 
@@ -125,7 +125,7 @@
             <template x-for="h in habitaciones" :key="h.idHabitacion">
                 <div class="compare-card" :class="h.idHabitacion === idMasBarata ? 'winner' : ''">
                     <span class="winner-badge" x-show="h.idHabitacion === idMasBarata">
-                        <i class="bi bi-trophy me-1"></i>MÁS BARATA
+                        <i class="bi bi-trophy me-1"></i>MÃS BARATA
                     </span>
                     <img :src="(h.imagenes && h.imagenes[0]) ? h.imagenes[0].url : 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600'"
                          class="compare-img"
@@ -157,8 +157,8 @@
                             </span>
                         </div>
                         <div class="feature-row">
-                            <span class="feature-label"><i class="bi bi-geo-alt me-1"></i>Ubicación</span>
-                            <span class="feature-value" x-text="h.ubicacion || '—'"></span>
+                            <span class="feature-label"><i class="bi bi-geo-alt me-1"></i>UbicaciÃ³n</span>
+                            <span class="feature-value" x-text="h.ubicacion || 'â€”'"></span>
                         </div>
                         <div class="feature-row">
                             <span class="feature-label"><i class="bi bi-list me-1"></i>Tipo</span>
@@ -208,7 +208,7 @@
 
     <footer style="background:#003580; color:white; padding:2rem 0; margin-top:3rem;">
         <div class="container text-center">
-            <p class="mb-0 opacity-75 small">© 2026 Bedly · Sistema de Gestión Hotelera UNIS</p>
+            <p class="mb-0 opacity-75 small">Â© 2026 Bedly Â· Sistema de GestiÃ³n Hotelera UNIS</p>
         </div>
     </footer>
 
@@ -223,7 +223,7 @@
             yaInicializado: false,
 
             async init() {
-                // Prevenir doble ejecución de init()
+                // Prevenir doble ejecuciÃ³n de init()
                 if (this.yaInicializado) return;
                 this.yaInicializado = true;
 
