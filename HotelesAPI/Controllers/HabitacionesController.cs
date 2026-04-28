@@ -81,6 +81,96 @@ namespace HotelesAPI.Controllers
             }
         }
 
+        // ============================================================
+        // SESIÓN 6: GALERÍA DE IMÁGENES POR HABITACIÓN
+        // ============================================================
+
+        /// <summary>
+        /// GET api/habitaciones/{id}/imagenes
+        /// Devuelve todas las imágenes de la galería de una habitación.
+        /// </summary>
+        [HttpGet("{id:int}/imagenes")]
+        public IActionResult GetImagenes(int id)
+        {
+            try
+            {
+                var dao = new HabitacionImagenDAO();
+                var imagenes = dao.GetByHabitacion(id);
+                return Ok(JsonResponse.Ok("Imágenes obtenidas", imagenes));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// POST api/habitaciones/{id}/imagenes
+        /// Agrega una imagen a la galería (admin).
+        /// </summary>
+        [HttpPost("{id:int}/imagenes")]
+        public IActionResult AgregarImagen(int id, [FromBody] HotelesAPI.Models.HabitacionImagen imagen)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imagen.Url))
+                    return BadRequest(JsonResponse.Error("La URL es requerida"));
+
+                imagen.IdHabitacion = id;
+                var dao = new HabitacionImagenDAO();
+                int idImagen = dao.Crear(imagen);
+                return StatusCode(201, JsonResponse.Ok("Imagen agregada", new { idImagen }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// DELETE api/habitaciones/imagenes/{idImagen}
+        /// Elimina una imagen de la galería (admin).
+        /// </summary>
+        [HttpDelete("imagenes/{idImagen:int}")]
+        public IActionResult EliminarImagen(int idImagen)
+        {
+            try
+            {
+                var dao = new HabitacionImagenDAO();
+                bool ok = dao.Eliminar(idImagen);
+                if (!ok)
+                    return NotFound(JsonResponse.Error("Imagen no encontrada"));
+                return Ok(JsonResponse.Ok("Imagen eliminada", null));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// PUT api/habitaciones/imagenes/{idImagen}/principal
+        /// Marca una imagen como la principal de la habitación.
+        /// </summary>
+        [HttpPut("imagenes/{idImagen:int}/principal")]
+        public IActionResult MarcarPrincipal(int idImagen, [FromQuery] int idHabitacion)
+        {
+            try
+            {
+                var dao = new HabitacionImagenDAO();
+                bool ok = dao.MarcarComoPrincipal(idImagen, idHabitacion);
+                if (!ok)
+                    return StatusCode(500, JsonResponse.Error("No se pudo actualizar"));
+                return Ok(JsonResponse.Ok("Imagen marcada como principal", null));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonResponse.Error(ex.Message));
+            }
+        }
+
+        // ============================================================
+
         // GET api/habitaciones/{id}  ← debe ir AL FINAL
         [HttpGet("{id:int}")]
         public IActionResult GetById(int id)

@@ -14,7 +14,23 @@
         .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
         .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
         .brand span { color: #f5a623; }
-        .gallery-main { width: 100%; height: 380px; object-fit: cover; border-radius: 15px; cursor: pointer; }
+        .gallery-container { position: relative; }
+        .gallery-main { width: 100%; height: 380px; object-fit: cover; border-radius: 15px; cursor: pointer; transition: transform 0.2s; }
+        .gallery-main:hover { transform: scale(1.01); }
+        .thumbnails-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; }
+        .thumbnail-wrapper { flex-shrink: 0; width: 90px; height: 70px; border-radius: 10px; overflow: hidden; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .thumbnail-wrapper:hover { border-color: rgba(0,53,128,0.4); }
+        .thumbnail-wrapper.active { border-color: var(--primary-color); }
+        .thumbnail-img { width: 100%; height: 100%; object-fit: cover; }
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .lightbox-content { position: relative; max-width: 90%; max-height: 90%; }
+        .lightbox-img { max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: -40px; right: 0; background: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .lightbox-prev, .lightbox-next { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.2s; }
+        .lightbox-prev { left: -70px; }
+        .lightbox-next { right: -70px; }
+        .lightbox-prev:hover, .lightbox-next:hover { background: white; transform: translateY(-50%) scale(1.1); }
+        @media (max-width: 768px) { .lightbox-prev { left: 10px; } .lightbox-next { right: 10px; } }
         .room-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--primary-color); }
         .hotel-name { font-size: 0.95rem; color: #6b7280; }
         .stars { color: #f5a623; }
@@ -86,8 +102,43 @@
         <div class="row g-4">
             <!-- Contenido principal -->
             <div class="col-lg-8">
-                <img :src="habitacion.imagenUrl || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop'"
-                     alt="Habitación" class="gallery-main mb-4">
+                <!-- Galería de imágenes (Sesión 6) -->
+                <div class="gallery-container mb-4" x-show="habitacion">
+                    <img :src="imagenActiva || (habitacion && habitacion.imagenUrl) || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop'"
+                         alt="Habitación" class="gallery-main mb-2"
+                         @click="abrirLightbox()">
+
+                    <!-- Thumbnails -->
+                    <div class="thumbnails-row" x-show="imagenes.length > 1">
+                        <template x-for="(img, index) in imagenes" :key="img.idImagen">
+                            <div class="thumbnail-wrapper"
+                                 :class="imagenActiva === img.url ? 'active' : ''"
+                                 @click="imagenActiva = img.url">
+                                <img :src="img.url" :alt="img.descripcion || 'Foto ' + (index+1)" class="thumbnail-img">
+                            </div>
+                        </template>
+                    </div>
+                    <p class="text-muted small mt-2" x-show="imagenes.length > 0">
+                        <i class="bi bi-images me-1"></i>
+                        <span x-text="imagenes.length"></span> foto(s) · Click en una imagen para verla en grande
+                    </p>
+                </div>
+
+                <!-- Lightbox modal -->
+                <div class="lightbox" x-show="lightboxAbierto" @click="lightboxAbierto = false" x-transition>
+                    <div class="lightbox-content" @click.stop>
+                        <button class="lightbox-close" @click="lightboxAbierto = false">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <button class="lightbox-prev" @click="prevImagen()" x-show="imagenes.length > 1">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <img :src="imagenActiva" alt="Foto en detalle" class="lightbox-img">
+                        <button class="lightbox-next" @click="nextImagen()" x-show="imagenes.length > 1">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
 
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
@@ -354,6 +405,10 @@
             calCheckIn:  { year: new Date().getFullYear(), month: new Date().getMonth() },
             calCheckOut: { year: new Date().getFullYear(), month: new Date().getMonth() },
 
+            imagenes: [],
+            imagenActiva: '',
+            lightboxAbierto: false,
+
             async init() {
                 const params = new URLSearchParams(window.location.search);
                 const id = params.get('id');
@@ -367,10 +422,37 @@
                     return;
                 }
                 await this.cargarHabitacion(id);
+                await this.cargarImagenes(id);
                 await this.cargarComentarios(id);
                 await this.cargarFechasOcupadas(id);
             },
 
+            async cargarImagenes(id) {
+                try {
+                    const res = await fetch(`http://localhost:5043/api/habitaciones/${id}/imagenes`);
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                        this.imagenes = data.data;
+                        this.imagenActiva = this.imagenes[0].url;
+                    }
+                } catch (e) { console.warn('Error cargando imágenes:', e); }
+            },
+
+            abrirLightbox() {
+                if (this.imagenes.length > 0) this.lightboxAbierto = true;
+            },
+
+            prevImagen() {
+                const idx = this.imagenes.findIndex(i => i.url === this.imagenActiva);
+                const nuevoIdx = idx <= 0 ? this.imagenes.length - 1 : idx - 1;
+                this.imagenActiva = this.imagenes[nuevoIdx].url;
+            },
+
+            nextImagen() {
+                const idx = this.imagenes.findIndex(i => i.url === this.imagenActiva);
+                const nuevoIdx = idx >= this.imagenes.length - 1 ? 0 : idx + 1;
+                this.imagenActiva = this.imagenes[nuevoIdx].url;
+            },
             async cargarHabitacion(id) {
                 try {
                     const res = await fetch(`${API}/habitaciones/${id}`);
