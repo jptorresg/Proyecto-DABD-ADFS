@@ -221,10 +221,20 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">País</label>
+                    <select class="form-select" x-model="filtros.pais" @change="onPaisChange()">
+                        <option value="">Todos los países</option>
+                        <template x-for="p in opcionesFiltro.paises" :key="p.pais">
+                            <option :value="p.pais" x-text="p.pais"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-lg-2">
                     <label class="form-label fw-bold small text-muted text-uppercase">Ciudad</label>
                     <select class="form-select" x-model="filtros.ciudad" @change="filtrar()">
                         <option value="">Todas las ciudades</option>
-                        <template x-for="ciudad in opcionesFiltro.ciudades" :key="ciudad">
+                        <template x-for="ciudad in ciudadesDisponibles" :key="ciudad">
                             <option :value="ciudad" x-text="ciudad"></option>
                         </template>
                     </select>
@@ -260,8 +270,20 @@
             <span class="text-muted small" x-text="habitaciones.length + ' habitaciones encontradas'"></span>
         </div>
 
-        <!-- Habitaciones agrupadas por ciudad -->
-        <template x-for="grupo in habitacionesPorCiudad" :key="grupo.ciudad">
+        <!-- Habitaciones agrupadas por país → ciudad -->
+        <template x-for="grupoPais in habitacionesPorPais" :key="grupoPais.pais">
+            <div class="mb-5">
+                <!-- Header del país -->
+                <div class="d-flex align-items-center mb-3" style="border-bottom: 3px solid var(--primary-color); padding-bottom: 10px;">
+                    <h2 style="font-family: 'Playfair Display', serif; color: var(--primary-color); font-weight: 900; margin: 0;">
+                        <i class="bi bi-globe-americas me-2"></i><span x-text="grupoPais.pais"></span>
+                    </h2>
+                    <span class="badge ms-3" style="background:#f5a623; color:white; font-size:0.85rem;"
+                          x-text="grupoPais.ciudades.reduce((sum, c) => sum + c.habitaciones.length, 0) + ' habitaciones'"></span>
+                </div>
+
+                <!-- Ciudades de este país -->
+                <template x-for="grupo in grupoPais.ciudades" :key="grupo.ciudad">
             <div>
                 <!-- Header de ciudad -->
                 <div class="city-header">
@@ -330,6 +352,8 @@
                 </div>
             </div>
         </template>
+            </div>
+        </template>
     </main>
 
    <footer style="background:#003580; color:white; padding:3rem 0 1rem; margin-top:5rem;">
@@ -385,7 +409,7 @@
                 </div>
 
     <script>
-    const API = '/api';
+    const API = 'http://localhost:5043/api';
 
     const IMAGENES_TIPO = {
         'Sencilla':   'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&fit=crop',
@@ -401,10 +425,10 @@
             habitaciones: [],
             comparacion: [],
             MAX_COMPARAR: 3,
-            opcionesFiltro: { tipos: [], ciudades: [] },
+            opcionesFiltro: { tipos: [], ciudades: [], paises: [] },
             loading: false,
             usuario: null,
-            filtros: { tipo: '', capacidad: '', precioMax: '', ciudad: '' },
+            filtros: { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '' },
 
             async init() {
     this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
@@ -424,7 +448,18 @@
                 try {
                     const res  = await fetch(`${API}/habitaciones/opciones-filtro`);
                     const data = await res.json();
-                    if (data.success) this.opcionesFiltro = data.data;
+                    if (data.success) {
+                        this.opcionesFiltro.tipos = data.data.tipos || [];
+                        this.opcionesFiltro.ciudades = data.data.ciudades || [];
+                    }
+                    // Cargar países desde endpoint /api/catalogo/paises
+                    try {
+                        const resPaises = await fetch(`${API}/catalogo/paises`);
+                        const dataPaises = await resPaises.json();
+                        if (dataPaises.success && dataPaises.data && Array.isArray(dataPaises.data.paises)) {
+                            this.opcionesFiltro.paises = dataPaises.data.paises;
+                        }
+                    } catch (e) { console.warn('Error cargando países:', e); }
                 } catch (e) {}
             },
 
@@ -439,10 +474,15 @@
                     const data = await res.json();
                     if (data.success) {
                         let resultado = data.data;
+                        if (this.filtros.pais) {
+                            resultado = resultado.filter(h =>
+                                (h.pais || '').toLowerCase() === this.filtros.pais.toLowerCase()
+                            );
+                        }
                         if (this.filtros.ciudad) {
                             resultado = resultado.filter(h =>
                                 h.ubicacion && h.ubicacion.toLowerCase()
-                                    .includes(this.filtros.ciudad.toLowerCase())
+                                    === this.filtros.ciudad.toLowerCase()
                             );
                         }
                         this.habitaciones = resultado;
@@ -450,8 +490,14 @@
                 } catch (e) {} finally { this.loading = false; }
             },
 
+            onPaisChange() {
+                // Si cambia el país, resetea la ciudad para evitar inconsistencias
+                this.filtros.ciudad = '';
+                this.filtrar();
+            },
+
             limpiarFiltros() {
-                this.filtros = { tipo: '', capacidad: '', precioMax: '', ciudad: '' };
+                this.filtros = { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '' };
                 this.cargarHabitaciones();
             },
 
@@ -481,6 +527,41 @@
                 const ids = this.comparacion.map(h => h.idHabitacion).join(',');
                 window.location.href = `comparar.html?ids=${ids}`;
             },
+            get habitacionesPorPais() {
+                const grupos = {};
+                for (const h of this.habitaciones) {
+                    const pais = h.pais || 'Sin país';
+                    const ciudad = h.ciudad || h.ubicacion || 'Sin ciudad';
+                    if (!grupos[pais]) grupos[pais] = {};
+                    if (!grupos[pais][ciudad]) grupos[pais][ciudad] = [];
+                    grupos[pais][ciudad].push(h);
+                }
+                return Object.keys(grupos).sort().map(pais => ({
+                    pais,
+                    ciudades: Object.keys(grupos[pais]).sort().map(ciudad => ({
+                        ciudad,
+                        habitaciones: grupos[pais][ciudad]
+                    }))
+                }));
+            },
+
+            get ciudadesDisponibles() {
+                if (!this.filtros.pais) {
+                    // Sin filtro de país: todas las ciudades de todas las habitaciones
+                    const set = new Set();
+                    for (const h of this.habitaciones) {
+                        if (h.ciudad) set.add(h.ciudad);
+                    }
+                    return [...set].sort();
+                }
+                // Con filtro de país: solo ciudades de ese país
+                const set = new Set();
+                for (const h of this.habitaciones) {
+                    if (h.pais === this.filtros.pais && h.ciudad) set.add(h.ciudad);
+                }
+                return [...set].sort();
+            },
+
             get habitacionesPorCiudad() {
                 const grupos = {};
                 for (const h of this.habitaciones) {

@@ -9,7 +9,7 @@ namespace HotelesAPI.DAO
         public List<Habitacion> GetAll()
         {
             var lista = new List<Habitacion>();
-            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas 
+            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas, ho.pais, ho.ciudad
                           FROM Habitaciones h
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
                           WHERE h.estado = 'Disponible'";
@@ -41,13 +41,13 @@ namespace HotelesAPI.DAO
                 while (rs.Read())
                     tipos.Add(rs.GetString(0));
 
-            string sqlCiudades = @"SELECT DISTINCT ho.ubicacion
+            string sqlCiudades = @"SELECT DISTINCT ho.ciudad
                                    FROM Hoteles ho
                                    INNER JOIN Habitaciones h ON h.id_hotel = ho.id_hotel
                                    WHERE h.estado = 'Disponible'
-                                   AND ho.ubicacion IS NOT NULL
-                                   AND ho.ubicacion != ''
-                                   ORDER BY ho.ubicacion";
+                                   AND ho.ciudad IS NOT NULL
+                                   AND ho.ciudad != ''
+                                   ORDER BY ho.ciudad";
             using (var cmd = new SqlCommand(sqlCiudades, conn))
             using (var rs = cmd.ExecuteReader())
                 while (rs.Read())
@@ -60,7 +60,7 @@ namespace HotelesAPI.DAO
                                                 int? capacidad, string? amenidad)
         {
             var lista = new List<Habitacion>();
-            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas 
+            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas, ho.pais, ho.ciudad
                           FROM Habitaciones h
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
                           WHERE h.estado = 'Disponible'";
@@ -96,7 +96,7 @@ namespace HotelesAPI.DAO
 
         public Habitacion? GetById(int id)
         {
-            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas 
+            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas, ho.pais, ho.ciudad
                           FROM Habitaciones h
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
                           WHERE h.id_habitacion = @id";
@@ -117,7 +117,7 @@ namespace HotelesAPI.DAO
                                                int capacidad, string? ciudad = null)
         {
             var lista = new List<Habitacion>();
-            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas 
+            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas, ho.pais, ho.ciudad
                           FROM Habitaciones h
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
                           WHERE h.estado = 'Disponible'
@@ -130,7 +130,7 @@ namespace HotelesAPI.DAO
                           )";
 
             if (!string.IsNullOrEmpty(ciudad))
-                sql += " AND ho.ubicacion LIKE @ciudad";
+                sql += " AND (ho.ciudad LIKE @ciudad OR ho.ubicacion LIKE @ciudad)";
 
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
@@ -256,7 +256,7 @@ namespace HotelesAPI.DAO
         public List<Habitacion> GetAllAdmin()
         {
             var lista = new List<Habitacion>();
-            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas 
+            string sql = @"SELECT h.*, ho.nombre_hotel, ho.ubicacion, ho.estrellas, ho.pais, ho.ciudad
                           FROM Habitaciones h
                           INNER JOIN Hoteles ho ON h.id_hotel = ho.id_hotel
                           ORDER BY h.id_hotel, h.num_habitacion";
@@ -311,6 +311,8 @@ namespace HotelesAPI.DAO
                 Estado         = rs.GetString(rs.GetOrdinal("estado")),
                 Ubicacion      = rs.IsDBNull(rs.GetOrdinal("ubicacion")) ? "" : rs.GetString(rs.GetOrdinal("ubicacion")),
                 Estrellas      = rs.IsDBNull(rs.GetOrdinal("estrellas")) ? 0 : rs.GetInt32(rs.GetOrdinal("estrellas")),
+                Pais           = rs.IsDBNull(rs.GetOrdinal("pais")) ? "Guatemala" : rs.GetString(rs.GetOrdinal("pais")),
+                Ciudad         = rs.IsDBNull(rs.GetOrdinal("ciudad")) ? "" : rs.GetString(rs.GetOrdinal("ciudad")),
                 Amenidades     = rs.IsDBNull(rs.GetOrdinal("amenidades")) ? "" : rs.GetString(rs.GetOrdinal("amenidades")),
                 Descripcion    = rs.IsDBNull(rs.GetOrdinal("descripcion")) ? null : rs.GetString(rs.GetOrdinal("descripcion")),
                 ImagenUrl      = rs.IsDBNull(rs.GetOrdinal("imagen_url")) ? null : rs.GetString(rs.GetOrdinal("imagen_url"))
