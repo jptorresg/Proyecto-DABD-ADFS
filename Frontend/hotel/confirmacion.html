@@ -194,7 +194,7 @@
                     <button @click="window.print()" class="btn btn-outline-primary rounded-pill px-4">
                         <i class="bi bi-printer me-2"></i>Imprimir
                     </button>
-                    <a :href="'http://localhost:5043/api/confirmacion/' + (reserva ? reserva.idReservacion : '') + '/pdf'"
+                    <a :href="'/api/confirmacion/' + (reserva ? reserva.idReservacion : '') + '/pdf'"
                        class="btn btn-outline-secondary rounded-pill px-4" target="_blank">
                         <i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF
                     </a>
@@ -207,7 +207,7 @@
     </main>
 
     <script>
-    const API = 'http://localhost:5043/api';
+    const API = '/api';
 
     function confirmacionApp() {
         return {
