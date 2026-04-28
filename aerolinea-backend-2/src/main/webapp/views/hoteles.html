@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoteles Partners — Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/informativas.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="info-page-body">
+
+    <div id="header-container"></div>
+
+    <!-- Hero -->
+    <section class="info-hero">
+        <div class="info-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1400&q=80');"></div>
+        <div class="info-hero-overlay"></div>
+        <div class="info-hero-content">
+            <div class="info-hero-icon"><i class="fas fa-hotel"></i></div>
+            <h1 class="info-hero-title">Hoteles Partners</h1>
+            <p class="info-hero-subtitle">Completa tu experiencia con hospedaje premium. Hasta 25% de descuento al reservar vuelo + hotel en el mismo proceso.</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <a href="../views/index.html"><i class="fas fa-home"></i> Inicio</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">Hoteles Partners</span>
+        </div>
+    </div>
+
+    <main class="info-content" x-data="hotelesPage()">
+        <div class="container">
+
+            <!-- Beneficios del programa -->
+            <div class="section-header">
+                <span class="section-label"><i class="fas fa-handshake"></i> Programa de partners</span>
+                <h2 class="section-title">¿Por qué reservar vuelo + hotel?</h2>
+                <p class="section-desc">Al combinar tu vuelo con uno de nuestros hoteles aliados, obtienes beneficios exclusivos que no encontrarás en ningún otro lado.</p>
+            </div>
+
+            <div class="steps-grid mb-5">
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="step-title">Descuentos exclusivos</div>
+                    <p class="step-desc">Hasta un 25% de descuento en tarifa de hotel al combinarlo con tu vuelo Halcón. El ahorro se aplica automáticamente al confirmar ambos.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-star"></i></div>
+                    <div class="step-title">Millas dobles</div>
+                    <p class="step-desc">Acumula el doble de millas Halcón Viajero en tu estadía cuando reservas junto con tu vuelo. Úsalas en futuros viajes o upgrades.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
+                    <div class="step-title">Check-in prioritario</div>
+                    <p class="step-desc">Los pasajeros Halcón tienen garantizado check-in anticipado (desde las 12:00) y late check-out (hasta las 15:00) en todos los hoteles partner.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-headset"></i></div>
+                    <div class="step-title">Soporte integrado</div>
+                    <p class="step-desc">Un solo punto de contacto para vuelo y hotel. Si hay cambios en tu vuelo, coordinamos automáticamente tu reserva hotelera sin costo adicional.</p>
+                </div>
+            </div>
+
+            <!-- Grid de hoteles -->
+            <div class="section-header">
+                <span class="section-label"><i class="fas fa-building"></i> Nuestros hoteles</span>
+                <h2 class="section-title">Propiedades seleccionadas</h2>
+                <p class="section-desc">Cada hotel partner ha sido evaluado por nuestro equipo para garantizar estándares de calidad, servicio y ubicación excepcionales.</p>
+            </div>
+
+            <div class="hoteles-grid">
+                <template x-for="hotel in hoteles" :key="hotel.name">
+                    <div class="hotel-card">
+                        <div class="hotel-card-img-wrap">
+                            <img :src="hotel.img" :alt="hotel.name" class="hotel-card-img">
+                            <div class="hotel-stars">
+                                <template x-for="s in starsArray(hotel.stars)" :key="s">
+                                    <i class="fas fa-star"></i>
+                                </template>
+                            </div>
+                            <span class="hotel-partner-badge">Partner Oficial</span>
+                        </div>
+                        <div class="hotel-card-body">
+                            <div class="hotel-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span x-text="hotel.location"></span>
+                            </div>
+                            <h3 class="hotel-name" x-text="hotel.name"></h3>
+                            <p class="hotel-desc" x-text="hotel.desc"></p>
+                            <div class="hotel-amenities">
+                                <template x-for="am in hotel.amenities" :key="am">
+                                    <span class="amenity-tag">
+                                        <i class="fas" :class="amenityIcon(am)"></i>
+                                        <span x-text="amenityLabel(am)"></span>
+                                    </span>
+                                </template>
+                            </div>
+                            <div class="hotel-footer">
+                                <span class="hotel-discount" x-text="hotel.discount"></span>
+                                <a href="#" class="hotel-cta">
+                                    Ver disponibilidad <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Proceso de reserva combinada -->
+            <div class="section-header mt-4">
+                <span class="section-label"><i class="fas fa-list-ol"></i> ¿Cómo reservar?</span>
+                <h2 class="section-title">Proceso de reserva combinada</h2>
+            </div>
+
+            <div class="steps-grid mb-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Busca tu vuelo</div>
+                    <p class="step-desc">Inicia la búsqueda de vuelos en nuestra plataforma. Selecciona origen, destino y fechas de viaje.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Activa "Añadir hotel"</div>
+                    <p class="step-desc">Al seleccionar tu vuelo, marca la opción "Reservar con hotel". Se desplegará la selección de partners disponibles en tu destino.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Elige tu hotel</div>
+                    <p class="step-desc">Filtra por categoría, amenidades o ubicación. El descuento se aplica automáticamente en la tarifa mostrada.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Confirma y paga</div>
+                    <p class="step-desc">Realiza un solo pago que incluye vuelo y hotel. Recibirás confirmaciones separadas para cada servicio en tu correo.</p>
+                </div>
+            </div>
+
+            <div class="info-box blue">
+                <div class="info-box-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="info-box-content">
+                    <strong>Garantía de mejor precio</strong>
+                    <p>Si encuentras el mismo hotel a menor precio dentro de las 24 horas de tu reserva, igualamos el precio y te damos un voucher adicional de $25 para tu próximo viaje.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
+    <script>
+        async function loadPartial(id, path) {
+            try { const r = await fetch(path); document.getElementById(id).innerHTML = await r.text(); } catch(e) {}
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPartial('header-container', '../partials/header.html');
+            await loadPartial('footer-container', '../partials/footer.html');
+        });
+    </script>
+</body>
+</html>

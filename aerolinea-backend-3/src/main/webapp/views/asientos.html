@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipos de Asientos — Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/informativas.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="info-page-body">
+
+    <div id="header-container"></div>
+
+    <!-- Hero -->
+    <section class="info-hero">
+        <div class="info-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1400&q=80');"></div>
+        <div class="info-hero-overlay"></div>
+        <div class="info-hero-content">
+            <div class="info-hero-icon"><i class="fas fa-chair"></i></div>
+            <h1 class="info-hero-title">Tipos de Asientos</h1>
+            <p class="info-hero-subtitle">Dos experiencias diseñadas para brindarte el máximo confort. Desde la comodidad esencial hasta el lujo absoluto.</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <a href="../views/index.html"><i class="fas fa-home"></i> Inicio</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">Tipos de Asientos</span>
+        </div>
+    </div>
+
+    <main class="info-content">
+        <div class="container">
+
+            <!-- Seat Cards -->
+            <div class="section-header">
+                <span class="section-label"><i class="fas fa-chair"></i> Nuestras cabinas</span>
+                <h2 class="section-title">Elige tu experiencia de vuelo</h2>
+                <p class="section-desc">Cada clase está pensada para ofrecerte lo mejor en su categoría. El confort es nuestra prioridad en cada asiento.</p>
+            </div>
+
+            <div class="seat-cards-grid">
+
+                <!-- Turista -->
+                <div class="seat-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1540339832862-474599807836?w=800&q=80"
+                        alt="Clase Turista Aerolíneas Halcón"
+                        class="seat-card-image">
+                    <div class="seat-card-body">
+                        <span class="seat-card-badge economy"><i class="fas fa-plane"></i> Clase Turista</span>
+                        <h3 class="seat-card-title">Economy Class</h3>
+                        <p class="seat-card-desc">La opción inteligente para viajar sin sacrificar comodidad. Asientos ergonómicos con reclinación ajustable, ideal para trayectos cortos y medianos.</p>
+                        <ul class="seat-features">
+                            <li><i class="fas fa-check-circle"></i> Espacio estándar para piernas (76 cm)</li>
+                            <li><i class="fas fa-check-circle"></i> Reclinación de hasta 15°</li>
+                            <li><i class="fas fa-check-circle"></i> Pantalla personal de entretenimiento</li>
+                            <li><i class="fas fa-check-circle"></i> Puerto USB de carga</li>
+                            <li><i class="fas fa-check-circle"></i> Aperitivos y bebidas incluidos</li>
+                            <li><i class="fas fa-check-circle"></i> 1 maleta de bodega (23 kg)</li>
+                        </ul>
+                        <div class="seat-price-bar">
+                            <div>
+                                <div class="price-from">desde</div>
+                                <div class="price-val">$89</div>
+                                <div class="price-from">por trayecto</div>
+                            </div>
+                            <a href="resultados.html" class="btn btn-primary" style="border-radius:12px; font-size:0.875rem;">
+                                Buscar vuelos <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business -->
+                <div class="seat-card">
+                    <img
+                        src="https://images.unsplash.com/photo-1628160357941-471eedfe4691?w=800&q=80"
+                        alt="Clase Business Aerolíneas Halcón"
+                        class="seat-card-image">
+                    <div class="seat-card-body">
+                        <span class="seat-card-badge business"><i class="fas fa-gem"></i> Business Class</span>
+                        <h3 class="seat-card-title">Business Class</h3>
+                        <p class="seat-card-desc">La experiencia premium por excelencia. Asientos que se convierten en camas completamente planas, gastronomía de alta cocina y atención personalizada.</p>
+                        <ul class="seat-features">
+                            <li><i class="fas fa-check-circle"></i> Cama plana 180° (vuelos largos)</li>
+                            <li><i class="fas fa-check-circle"></i> Espacio extra de 120 cm entre asientos</li>
+                            <li><i class="fas fa-check-circle"></i> Kit de amenidades premium</li>
+                            <li><i class="fas fa-check-circle"></i> Gastronomía de chef invitado</li>
+                            <li><i class="fas fa-check-circle"></i> Acceso a sala VIP en aeropuerto</li>
+                            <li><i class="fas fa-check-circle"></i> 2 maletas de bodega (32 kg c/u)</li>
+                        </ul>
+                        <div class="seat-price-bar">
+                            <div>
+                                <div class="price-from">desde</div>
+                                <div class="price-val">$389</div>
+                                <div class="price-from">por trayecto</div>
+                            </div>
+                            <a href="resultados.html" class="btn btn-primary" style="border-radius:12px; font-size:0.875rem; background: linear-gradient(135deg, #a07840, #c9a96e); border:none;">
+                                Ver disponibilidad <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Mapa visual del avión -->
+            <div class="seat-map">
+                <div class="row align-items-start">
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <h3 class="seat-map-title">Distribución de cabinas</h3>
+                        <p class="seat-map-desc">Representación del mapa de asientos típico en nuestra flota. La configuración puede variar según el tipo de aeronave.</p>
+                        <div class="d-flex gap-3 mt-3 flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:20px;height:16px;background:rgba(201,169,110,0.5);border:1px solid #c9a96e;border-radius:3px;"></div>
+                                <span style="font-size:0.8rem;opacity:0.8;">Business</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:20px;height:16px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:3px;"></div>
+                                <span style="font-size:0.8rem;opacity:0.8;">Turista</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="aircraft-visual">
+                            <!-- Business cabin -->
+                            <div class="cabin-zone">
+                                <div class="cabin-label">Business (Filas 1–5)</div>
+                                <div class="seat-row"><span class="seat-row-num">1</span><div class="seat-box biz"></div><div class="seat-box biz"></div><div class="seat-box aisle"></div><div class="seat-box biz"></div><div class="seat-box biz"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">2</span><div class="seat-box biz"></div><div class="seat-box biz"></div><div class="seat-box aisle"></div><div class="seat-box biz"></div><div class="seat-box biz"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">3</span><div class="seat-box biz"></div><div class="seat-box biz"></div><div class="seat-box aisle"></div><div class="seat-box biz"></div><div class="seat-box biz"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">4</span><div class="seat-box biz"></div><div class="seat-box biz"></div><div class="seat-box aisle"></div><div class="seat-box biz"></div><div class="seat-box biz"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">5</span><div class="seat-box biz"></div><div class="seat-box biz"></div><div class="seat-box aisle"></div><div class="seat-box biz"></div><div class="seat-box biz"></div></div>
+                            </div>
+                            <!-- Economy cabin -->
+                            <div class="cabin-zone">
+                                <div class="cabin-label">Turista (Filas 6–30)</div>
+                                <div class="seat-row"><span class="seat-row-num">6</span><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box aisle"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">7</span><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box aisle"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">8</span><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box aisle"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">9</span><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box aisle"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div></div>
+                                <div class="seat-row"><span class="seat-row-num">10</span><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box aisle"></div><div class="seat-box eco"></div><div class="seat-box eco"></div><div class="seat-box eco"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparativa -->
+            <div class="section-header mt-5">
+                <span class="section-label"><i class="fas fa-table"></i> Comparativa</span>
+                <h2 class="section-title">¿Cuál clase elegir?</h2>
+            </div>
+
+            <div class="luggage-table-wrap">
+                <table class="luggage-table">
+                    <thead>
+                        <tr>
+                            <th>Beneficio</th>
+                            <th><i class="fas fa-plane me-2"></i>Turista</th>
+                            <th><i class="fas fa-gem me-2"></i>Business</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Espacio para piernas</strong></td>
+                            <td>76 cm estándar</td>
+                            <td>120 cm extra ancho</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reclinación de asiento</strong></td>
+                            <td>15°</td>
+                            <td>180° (cama plana)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Equipaje en bodega</strong></td>
+                            <td>1 maleta — 23 kg</td>
+                            <td>2 maletas — 32 kg c/u</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Equipaje de mano</strong></td>
+                            <td>10 kg</td>
+                            <td>15 kg</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Comidas a bordo</strong></td>
+                            <td>Aperitivos y bebidas</td>
+                            <td>Menú gourmet de chef</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bebidas alcohólicas</strong></td>
+                            <td><i class="fas fa-times cross-icon"></i> No incluido</td>
+                            <td><i class="fas fa-check check-icon"></i> Incluido (selección premium)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Acceso sala VIP</strong></td>
+                            <td><i class="fas fa-times cross-icon"></i> No incluido</td>
+                            <td><i class="fas fa-check check-icon"></i> Incluido en todos los vuelos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pantalla de entretenimiento</strong></td>
+                            <td>Pantalla 9" por asiento</td>
+                            <td>Pantalla 18" HD touch</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wi-Fi a bordo</strong></td>
+                            <td><i class="fas fa-exclamation-triangle warn-icon"></i> Disponible (cargo extra)</td>
+                            <td><i class="fas fa-check check-icon"></i> Incluido</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Abordaje prioritario</strong></td>
+                            <td><i class="fas fa-times cross-icon"></i> No</td>
+                            <td><i class="fas fa-check check-icon"></i> Zona 2 (segundo en abordar)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kit de amenidades</strong></td>
+                            <td>Almohada y manta</td>
+                            <td>Kit premium (pijama, antifaz, productos de cuidado)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Millas Halcón Viajero</strong></td>
+                            <td>Acumulación estándar (×1)</td>
+                            <td>Acumulación acelerada (×3)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Info extra -->
+            <div class="info-box blue">
+                <div class="info-box-icon"><i class="fas fa-arrow-up"></i></div>
+                <div class="info-box-content">
+                    <strong>Upgrades disponibles</strong>
+                    <p>¿Reservaste en turista? Puedes hacer upgrade a Business en el check-in o durante el vuelo según disponibilidad. Consulta precios en nuestra app o en los mostradores del aeropuerto.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
+    <script>
+        async function loadPartial(id, path) {
+            try {
+                const r = await fetch(path);
+                document.getElementById(id).innerHTML = await r.text();
+            } catch(e) {}
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPartial('header-container', '../partials/header.html');
+            await loadPartial('footer-container', '../partials/footer.html');
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@ namespace HotelesAPI.Services
             QuestPDF.Settings.License = LicenseType.Community;
 
             // QR apunta a la página de check-in
-            string qrUrl = $"http://localhost:5500/hotel/checkin.html?id={reservacion.IdReservacion}";
+            string qrUrl = $"http://localhost:5043/hotel/checkin.html?id={reservacion.IdReservacion}";
             byte[] qrBytes = GenerarQR(qrUrl);
 
             var pdf = Document.Create(container =>

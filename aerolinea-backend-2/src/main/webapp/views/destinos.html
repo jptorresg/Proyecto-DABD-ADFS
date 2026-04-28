@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destinos Turísticos — Aerolíneas Halcón</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/informativas.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="info-page-body">
+
+    <div id="header-container"></div>
+
+    <!-- Hero -->
+    <section class="info-hero">
+        <div class="info-hero-bg" style="background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1400&q=80');"></div>
+        <div class="info-hero-overlay"></div>
+        <div class="info-hero-content">
+            <div class="info-hero-icon"><i class="fas fa-globe-americas"></i></div>
+            <h1 class="info-hero-title">Destinos Turísticos</h1>
+            <p class="info-hero-subtitle">Más de 50 destinos en 6 continentes. Descubre los lugares más increíbles del mundo con Aerolíneas Halcón.</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="container">
+            <a href="../views/index.html"><i class="fas fa-home"></i> Inicio</a>
+            <span class="sep"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">Destinos Turísticos</span>
+        </div>
+    </div>
+
+    <main class="info-content" x-data="destinosPage()">
+        <div class="container">
+
+            <div class="section-header">
+                <span class="section-label"><i class="fas fa-map-marker-alt"></i> Explora el mundo</span>
+                <h2 class="section-title">¿A dónde quieres volar?</h2>
+                <p class="section-desc">Filtra por región y encuentra tu próxima aventura. Precios de referencia en clase turista desde Guatemala.</p>
+            </div>
+
+            <!-- Filtros -->
+            <div class="destinos-filter-bar">
+                <template x-for="f in filters" :key="f">
+                    <button
+                        class="filter-chip"
+                        :class="{ active: activeFilter === f }"
+                        @click="setFilter(f)"
+                        x-text="f">
+                    </button>
+                </template>
+            </div>
+
+            <!-- Grid de destinos -->
+            <div class="destinos-grid">
+                <template x-for="d in filteredDestinos" :key="d.city">
+                    <div class="destino-card">
+                        <img :src="d.img" :alt="d.city" class="destino-card-img">
+                        <div class="destino-card-overlay">
+                            <div class="destino-region" x-text="d.region"></div>
+                            <div class="destino-city" x-text="d.city"></div>
+                            <div class="destino-country" x-text="d.country"></div>
+                            <div class="destino-tags">
+                                <template x-for="tag in d.tags" :key="tag">
+                                    <span class="destino-tag" x-text="tag"></span>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="destino-price-pill" x-text="d.price"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- CTA -->
+            <div class="text-center mt-2">
+                <div class="info-box blue" style="display:inline-flex; max-width:700px;">
+                    <div class="info-box-icon"><i class="fas fa-search"></i></div>
+                    <div class="info-box-content" style="text-align:left;">
+                        <strong>¿Listo para reservar?</strong>
+                        <p>Explora disponibilidad y precios en tiempo real. Los precios mostrados son de referencia y están sujetos a disponibilidad en la fecha de búsqueda.</p>
+                        <a href="resultados.html?openFilters=true" class="btn btn-primary mt-2" style="border-radius:12px;">
+                            <i class="fas fa-plane me-2"></i>Buscar vuelos
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Highlights de viaje -->
+            <div class="section-header mt-5">
+                <span class="section-label"><i class="fas fa-star"></i> Destinos destacados</span>
+                <h2 class="section-title">Experiencias únicas te esperan</h2>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-umbrella-beach"></i></div>
+                    <div class="step-title">Playas del Caribe</div>
+                    <p class="step-desc">Cancún, Punta Cana, Aruba y más. Aguas cristalinas, arenas blancas y resorts de ensueño. El paraíso está más cerca de lo que crees.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-landmark"></i></div>
+                    <div class="step-title">Ciudades Europeas</div>
+                    <p class="step-desc">París, Barcelona, Roma, Amsterdam. Arte, arquitectura, gastronomía y cultura en cada esquina. Europa te espera en todos los idiomas.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-torii-gate"></i></div>
+                    <div class="step-title">Asia Fascinante</div>
+                    <p class="step-desc">Tokio, Bangkok, Bali, Singapur. Una mezcla perfecta de tradición milenaria y modernidad futurista que no puedes dejar de vivir.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-city"></i></div>
+                    <div class="step-title">Norteamérica</div>
+                    <p class="step-desc">Nueva York, Miami, Chicago, Los Ángeles. La energía de las grandes ciudades estadounidenses disponible con vuelos directos y conexiones.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-mountain"></i></div>
+                    <div class="step-title">Sudamérica</div>
+                    <p class="step-desc">Buenos Aires, Río de Janeiro, Lima, Bogotá. Diversidad cultural, naturaleza salvaje y gastronomía que ha conquistado el mundo.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-concierge-bell"></i></div>
+                    <div class="step-title">Paquetes Todo Incluido</div>
+                    <p class="step-desc">Vuelo + hotel + traslados + tours. Planifica sin estrés con nuestros paquetes de vacaciones diseñados por expertos en cada destino.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/alpine-data.js"></script>
+    <script src="../js/informativas.js"></script>
+    <script>
+        async function loadPartial(id, path) {
+            try { const r = await fetch(path); document.getElementById(id).innerHTML = await r.text(); } catch(e) {}
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPartial('header-container', '../partials/header.html');
+            await loadPartial('footer-container', '../partials/footer.html');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Búsqueda - Aerolíneas Halcón</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../css/global.css" rel="stylesheet">
+    <link href="../css/index.css" rel="stylesheet">
+    <link href="../css/resultados.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/alpine-data.js"></script>
+
+</head>
+<body x-data="resultadosData()"  x-init="init()">
+    
+    <!-- Header (incluir partial) -->
+    <div id="header-placeholder"></div>
+
+    <!-- Barra de Resumen de Búsqueda -->
+    <section class="search-summary-bar">
+        <div class="container">
+            <div class="summary-content">
+                <div class="summary-route">
+                    <span class="summary-city" x-text="searchParams.origen"></span>
+                    <span class="summary-arrow">
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                    </span>
+                    <span class="summary-city" x-text="searchParams.destino"></span>
+                </div>
+
+                <div class="summary-details">
+                    <span class="summary-tag">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span x-text="searchParams.fechaSalida"></span>
+                    </span>
+
+                    <!-- Fecha regreso: solo si es ida y vuelta -->
+                    <template x-if="searchParams.fechaRegreso">
+                        <span class="summary-tag">
+                            <i class="fas fa-calendar-check"></i>
+                            <span x-text="searchParams.fechaRegreso"></span>
+                        </span>
+                    </template>
+
+                    <span class="summary-tag">
+                        <i class="fas fa-users"></i>
+                        <span x-text="searchParams.pasajeros"></span> Pasajeros
+                    </span>
+
+                    <span class="summary-tag">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span x-text="searchParams.tipoViaje === 'idaVuelta' ? 'Ida y vuelta' : 'Solo ida'"></span>
+                    </span>
+                </div>
+                <button class="btn btn-outline"
+                        @click.stop="window.dispatchEvent(new CustomEvent('toggle-filters'))">
+                    <i class="fas fa-pen"></i> Editar Búsqueda
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contenido Principal -->
+    <main class="results-main">
+        <div class="container">
+            <div class="row">
+
+                <!-- SIDEBAR FILTROS -->
+                <aside class="col-lg-3">
+                    <div class="filters-panel">
+
+                        <div class="filters-header">
+                            <h5><i class="fas fa-sliders-h"></i> Filtros</h5>
+                            <button class="clear-filters" @click="clearFilters()">Limpiar</button>
+                        </div>
+
+                        <!-- Filtro: Rango de precio -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Precio por persona</h6>
+                            <div class="price-range">
+                                <div class="price-labels">
+                                    <span>Q800</span>
+                                    <span x-text="'Q' + filters.precioMax.toLocaleString()"></span>
+                                </div>
+                                <input type="range" 
+                                       class="form-range" 
+                                       min="800" 
+                                       max="3500" 
+                                       x-model="filters.precioMax"
+                                       @input="updatePriceProgress(); applyFilters()">
+                            </div>
+                        </div>
+
+                        <!-- Filtro: Tipo de vuelo -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Tipo de Vuelo</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" x-model="filters.tipoVuelo.directo" @change="applyFilters()">
+                                <span>Directo</span>
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" x-model="filters.tipoVuelo.escala" @change="applyFilters()">
+                                <span>Con Escala</span>
+                            </label>
+                        </div>
+
+                        <!-- Filtro: Clase de asiento -->
+                        <div class="filter-group">
+                            <h6 class="filter-title">Clase de Asiento</h6>
+                            <label class="filter-check">
+                                <input type="checkbox" x-model="filters.claseAsiento.turista" @change="applyFilters()">
+                                <span>Turista</span>
+                            </label>
+                            <label class="filter-check">
+                                <input type="checkbox" x-model="filters.claseAsiento.business" @change="applyFilters()">
+                                <span>Business</span>
+                            </label>
+                        </div>
+
+                    </div>
+                </aside>
+
+                <!-- RESULTADOS -->
+                <section class="col-lg-9">
+
+                    <!-- Barra superior resultados -->
+                    <div class="results-topbar">
+                        <span class="results-count">
+                            <strong x-text="filteredVuelos.length"></strong> vuelos encontrados
+                        </span>
+                        <div class="sort-control">
+                            <label for="sortSelect">Ordenar por:</label>
+                            <select class="form-select" id="sortSelect" x-model="sortBy" @change="applySort()">
+                                <option value="price-asc">Precio: Menor a Mayor</option>
+                                <option value="price-desc">Precio: Mayor a Menor</option>
+                                <option value="duration">Duración del vuelo</option>
+                                <option value="rating">Mejor calificado</option>
+                                <option value="departure">Hora de salida</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Lista de vuelos -->
+                    <div class="flights-list">
+                        <template x-for="(vuelo, index) in displayedVuelos" :key="vuelo.id">
+                            <div class="flight-card" 
+                                 :class="{ 'best-price': vuelo.bestPrice }"
+                                 @click="navigateToDetalle(vuelo.id)"
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0 transform translate-y-4"
+                                 x-transition:enter-end="opacity-100 transform translate-y-0">
+                                
+                                <div x-show="vuelo.bestPrice" class="best-price-badge">
+                                    <i class="fas fa-tag"></i> Mejor Precio
+                                </div>
+
+                                <div class="flight-card-inner">
+
+                                    <!-- 1. Horarios -->
+                                    <div class="flight-times">
+                                        <div class="flight-time-block">
+                                            <div class="time-value" x-text="vuelo.from.time"></div>
+                                            <div class="time-zone" x-text="vuelo.from.zone"></div>
+                                        </div>
+
+                                        <div class="time-divider">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+
+                                        <div class="flight-time-block">
+                                            <div class="time-value" x-text="vuelo.to.time"></div>
+                                            <div class="time-zone" x-text="vuelo.to.zone"></div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- 2. Ruta visual -->
+                                    <div class="flight-route-graphic">
+                                        <div class="route-visual"
+                                            x-html="renderRouteGraphic(vuelo.type)">
+                                        </div>
+
+                                        <div class="route-duration"
+                                            x-text="vuelo.duration">
+                                        </div>
+                                    </div>
+
+
+                                    <!-- 3. Información central -->
+                                    <div class="flight-info">
+
+                                        <div class="flight-code-row">
+                                            <span class="flight-code" x-text="vuelo.code"></span>
+
+                                            <span class="flight-type-badge"
+                                                :class="{
+                                                    'badge-direct':    vuelo.type === 'direct',
+                                                    'badge-layover':   vuelo.type === 'layover',
+                                                    'badge-roundtrip': vuelo.type === 'roundtrip'
+                                                }">
+                                                <i :class="{
+                                                    'fas fa-minus':        vuelo.type === 'direct',
+                                                    'fas fa-circle':       vuelo.type === 'layover',
+                                                    'fas fa-exchange-alt': vuelo.type === 'roundtrip'
+                                                }" style="font-size:0.6rem;"></i>
+                                                <span x-text="vuelo.type === 'direct' ? 'Directo' : vuelo.type === 'roundtrip' ? 'Ida y Vuelta' : 'Con Escala'"></span>
+                                            </span>
+
+                                            <span class="flight-class">
+                                                <i class="fas fa-chair"></i>
+                                                <span x-text="vuelo.class"></span>
+                                            </span>
+                                        </div>
+
+                                        <div class="flight-cities">
+                                            <span class="city-from" x-text="vuelo.from.city"></span>
+                                            <span class="cities-arrow">
+                                                <i class="fas fa-long-arrow-alt-right"></i>
+                                            </span>
+                                            <span class="city-to" x-text="vuelo.to.city"></span>
+                                        </div>
+
+                                        <template x-if="vuelo.layover">
+                                            <div class="flight-layover">
+                                                Escala en
+                                                <strong x-text="vuelo.layover.city"></strong>
+                                                (<span x-text="vuelo.layover.duration"></span>)
+                                            </div>
+                                        </template>
+
+                                        <div class="flight-rating">
+                                            <span class="rating-stars"
+                                                x-html="renderStars(vuelo.rating)"></span>
+                                            <span class="rating-value"
+                                                x-text="vuelo.rating"></span>
+                                            <span class="rating-count"
+                                                x-text="`(${vuelo.reviews})`"></span>
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- 4. Precio -->
+                                    <div class="flight-price-section">
+                                        <div class="price-label">PRECIO POR PERSONA</div>
+
+                                        <div class="price-value">
+                                            <span class="price-currency">Q</span>
+                                            <span x-text="vuelo.price.toLocaleString()"></span>
+                                        </div>
+
+                                        <div class="price-per"
+                                            x-text="`Total: Q${(vuelo.price * searchParams.pasajeros).toLocaleString()}`">
+                                        </div>
+
+                                        <button class="btn-select-flight"
+                                                @click.stop="navigateToDetalle(vuelo.id)">
+                                            Ver Detalle
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (incluir partial) -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast"></div>
+
+    <!-- Scripts para incluir partials -->
+    <script>
+        // Cargar header
+        fetch('../partials/header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+            });
+
+        // Cargar footer
+        fetch('../partials/footer.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+            });
+
+        // Cargar notification toast
+        fetch('../partials/notification-toast.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('notification-toast').innerHTML = html;
+            });
+    </script>
+
+</body>
+</html>

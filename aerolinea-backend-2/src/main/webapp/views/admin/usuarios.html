@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Gestión de Usuarios</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+    <link href="../../css/usuarios.css" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script src="../../js/alpine-data.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-guard.js"></script>
+
+</head>
+<body x-data="usuariosAdminData()">
+    
+    <!-- Layout con Sidebar -->
+    <div class="admin-layout">
+        
+        <!-- Sidebar (incluir partial) -->
+        <div id="admin-sidebar"></div>
+
+        <!-- Contenido Principal -->
+        <main class="admin-main">
+            
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-users"></i> Gestión de Usuarios
+                </h1>
+                <p class="page-subtitle">Administra usuarios, roles y permisos del sistema</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon stat-icon-blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" x-text="stats.total"></div>
+                    <div class="stat-label">Total Usuarios</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon stat-icon-purple">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" x-text="stats.admins"></div>
+                    <div class="stat-label">Administradores</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon stat-icon-green">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" x-text="stats.registrados"></div>
+                    <div class="stat-label">Usuarios Registrados</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon stat-icon-orange">
+                            <i class="fas fa-code"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" x-text="stats.webservices"></div>
+                    <div class="stat-label">WebServices</div>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="filters-bar">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label><i class="fas fa-search"></i> Buscar</label>
+                        <input type="text" 
+                               class="filter-input" 
+                               placeholder="Buscar por email o nombre..."
+                               x-model="filters.search"
+                               @input="applyFilters()">
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-user-tag"></i> Tipo de Usuario</label>
+                        <select class="filter-input" x-model="filters.tipo" @change="applyFilters()">
+                            <option value="TODOS">Todos</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="REGISTRADO">Registrado</option>
+                            <option value="WEBSERVICE">WebService</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-toggle-on"></i> Estado</label>
+                        <select class="filter-input" x-model="filters.estado" @change="applyFilters()">
+                            <option value="TODOS">Todos</option>
+                            <option value="ACTIVO">Activos</option>
+                            <option value="INACTIVO">Inactivos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <button class="btn-filter-clear" @click="filters = { tipo: 'TODOS', estado: 'TODOS', search: '' }; applyFilters()">
+                            <i class="fas fa-redo"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="isLoading" x-cloak class="loading-container">
+                <div class="spinner"></div>
+                <p>Cargando usuarios...</p>
+            </div>
+
+            <!-- Table -->
+            <div x-show="!isLoading" x-cloak class="table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Nombre Completo</th>
+                            <th>País</th>
+                            <th>Tipo</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="usuario in paginatedUsuarios" :key="usuario.id">
+                            <tr>
+                                <td x-text="usuario.id"></td>
+                                <td>
+                                    <strong x-text="usuario.email"></strong>
+                                </td>
+                                <td x-text="`${usuario.nombres} ${usuario.apellidos}`"></td>
+                                <td x-text="usuario.pais || 'N/A'"></td>
+                                <td>
+                                    <span class="badge" 
+                                          :class="{
+                                              'badge-admin': usuario.tipoUsuario === 'ADMIN',
+                                              'badge-registrado': usuario.tipoUsuario === 'REGISTRADO',
+                                              'badge-webservice': usuario.tipoUsuario === 'WEBSERVICE'
+                                          }">
+                                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                        <span x-text="usuario.tipoUsuario"></span>
+                                    </span>
+                                </td>
+                                <td x-text="formatDate(usuario.fechaRegistro)"></td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" 
+                                               :checked="usuario.activo"
+                                               @change="toggleActivo(usuario)">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="dropdown-role" x-data="{ open: false }">
+                                        <button @click="open = !open" class="dropdown-btn">
+                                            <i class="fas fa-user-cog"></i>
+                                            Cambiar Rol
+                                        </button>
+                                        <div x-show="open" 
+                                             @click.away="open = false"
+                                             x-cloak
+                                             class="dropdown-menu">
+                                            <button class="dropdown-item" @click="cambiarRol(usuario.id, 'ADMIN'); open = false">
+                                                <i class="fas fa-user-shield"></i> Admin
+                                            </button>
+                                            <button class="dropdown-item" @click="cambiarRol(usuario.id, 'REGISTRADO'); open = false">
+                                                <i class="fas fa-user"></i> Registrado
+                                            </button>
+                                            <button class="dropdown-item" @click="cambiarRol(usuario.id, 'WEBSERVICE'); open = false">
+                                                <i class="fas fa-code"></i> WebService
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination (incluir partial) -->
+            <div id="pagination"></div>
+
+        </main>
+    </div>
+
+    <!-- Incluir partials (simulado con fetch en producción) -->
+    <script>
+        // Cargar sidebar
+        fetch('../../partials/admin-sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('admin-sidebar').innerHTML = html;
+            });
+
+        // Cargar pagination
+        fetch('../../partials/pagination.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('pagination').innerHTML = html;
+            });
+    </script>
+
+    <script>
+    // Verificar autenticación al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAuth()) {
+            // Ya redirige automáticamente en requireAuth()
+        }
+    });
+    </script>
+
+    <script>
+    // Verificar que sea admin al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!requireAdmin()) {
+            // Ya redirige automáticamente en requireAdmin()
+        }
+    });
+    </script>
+
+</body>
+</html>
