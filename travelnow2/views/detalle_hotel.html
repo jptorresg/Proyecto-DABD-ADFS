@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Hotel — TravelNow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    body { background: var(--navy); }
+    .hotel-section {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+    .hotel-section-header {
+      background: rgba(10,22,40,0.5);
+      border-bottom: 1px solid var(--border-gold);
+      padding: 1.2rem 2rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .hotel-section-header h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; color: var(--white); margin: 0; }
+    .hotel-section-header i { color: var(--gold); }
+    .hotel-section-body { padding: 2rem; }
+    .hotel-header-info h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 600; color: var(--white); margin-bottom: 0.5rem; }
+    .hotel-location { color: var(--text-muted); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; }
+    .chain-pill { display: inline-block; background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-top: 0.6rem; }
+    .amenity-item { display: flex; align-items: center; gap: 0.8rem; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.5rem; padding: 0.6rem 0.9rem; background: rgba(10,22,40,0.4); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); }
+    .amenity-item i { color: var(--gold); width: 20px; text-align: center; font-size: 0.85rem; }
+    .room-card {
+      background: rgba(10,22,40,0.5);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+    }
+    .room-name { font-family: var(--font-display); font-size: 1.4rem; color: var(--white); }
+    .room-specs { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .room-price-big { font-family: var(--font-display); font-size: 2.4rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .room-price-label { font-size: 0.75rem; color: var(--text-muted); }
+    .room-feature { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted); }
+    .room-feature i { color: var(--gold); font-size: 0.75rem; }
+    .booking-sidebar {
+      background: rgba(6,15,28,0.9);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      position: sticky;
+      top: 90px;
+    }
+    .booking-sidebar-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--white); margin-bottom: 1.5rem; }
+    .pb-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+    .pb-total { display: flex; justify-content: space-between; padding-top: 0.8rem; margin-top: 0.4rem; border-top: 1px solid var(--border-gold); font-weight: 600; color: var(--white); }
+    .btn-back-res { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.6rem 1.3rem; font-size: 0.82rem; text-decoration: none; transition: var(--trans); }
+    .btn-back-res:hover { border-color: var(--gold); color: var(--gold); }
+    .loading-full { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
+    .error-box { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+    .error-box i { font-size: 3rem; color: var(--coral); display: block; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Now</span></a>
+        <div class="d-flex align-items-center gap-3">
+          <a href="javascript:history.back()" class="btn-back-res"><i class="fa-solid fa-arrow-left"></i> Volver a resultados</a>
+          <div id="nav-user-area"><a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Loading -->
+  <div id="loading-view" style="padding-top:90px;">
+    <div class="loading-full">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--gold);"></i>
+      <p style="margin-top:1rem;">Cargando detalles del hotel...</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-view" style="padding-top:90px;display:none;">
+    <div class="error-box">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <h3 style="font-family:var(--font-display);color:var(--cream);">No se pudo cargar el hotel</h3>
+      <p id="error-msg"></p>
+      <a href="/buscar" class="btn-reservar mt-3">Nueva búsqueda</a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main-view" style="padding:90px 0 5rem;display:none;">
+    <div class="container">
+      <div class="row g-4">
+
+        <div class="col-lg-8">
+
+          <!-- Info principal -->
+          <div class="hotel-section anim-up">
+            <div class="hotel-section-body">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div class="hotel-header-info">
+                  <h1 id="h-nombre">—</h1>
+                  <div class="hotel-location"><i class="fa-solid fa-location-dot" style="color:var(--gold)"></i> <span id="h-ciudad">—</span></div>
+                  <div class="chain-pill" id="h-proveedor"><i class="fa-solid fa-gem me-1"></i> —</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Habitación -->
+          <div class="hotel-section anim-up anim-up-1">
+            <div class="hotel-section-header"><i class="fa-solid fa-bed"></i><h2>Habitación seleccionada</h2></div>
+            <div class="hotel-section-body">
+              <div class="room-card">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                  <div>
+                    <div class="room-name" id="r-tipo">—</div>
+                    <div class="room-specs" id="r-num">—</div>
+                  </div>
+                  <div class="text-end">
+                    <div class="room-price-big" id="r-precio">$0</div>
+                    <div class="room-price-label">por noche</div>
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col-6 col-md-4"><div class="room-feature"><i class="fa-solid fa-users"></i> <span id="r-cap">—</span> huéspedes máx</div></div>
+                  <div class="col-6 col-md-4"><div class="room-feature"><i class="fa-solid fa-hashtag"></i> <span id="r-id">—</span></div></div>
+                  <div class="col-6 col-md-4"><div class="room-feature"><i class="fa-solid fa-circle-check"></i> <span id="r-estado">Disponible</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amenidades -->
+          <div class="hotel-section anim-up anim-up-2" id="amenidades-section" style="display:none;">
+            <div class="hotel-section-header"><i class="fa-solid fa-concierge-bell"></i><h2>Amenidades</h2></div>
+            <div class="hotel-section-body">
+              <div class="row g-2" id="amenidades-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <div class="booking-sidebar anim-up anim-up-1">
+            <div class="booking-sidebar-title"><i class="fa-solid fa-calendar-check me-2" style="color:var(--gold)"></i>Reserva tu estadía</div>
+
+            <div class="pb-row"><span>Check-in</span><strong id="s-ci" style="color:var(--cream);">—</strong></div>
+            <div class="pb-row"><span>Check-out</span><strong id="s-co" style="color:var(--cream);">—</strong></div>
+            <div class="pb-row"><span>Huéspedes</span><strong id="s-hu" style="color:var(--cream);">—</strong></div>
+            <div class="pb-row"><span>Noches</span><strong id="s-n" style="color:var(--cream);">—</strong></div>
+
+            <div style="background:rgba(10,22,40,0.5);border:1px solid rgba(212,168,67,0.1);border-radius:var(--radius-sm);padding:1.2rem;margin-top:1.2rem;">
+              <div class="pb-row"><span id="s-label-base">Precio x 1 noche</span><span id="s-base">$0.00</span></div>
+              <div class="pb-total"><span>Total</span><span id="s-total">$0.00</span></div>
+            </div>
+
+            <a href="#" id="btn-reservar" class="btn-buscar mt-3" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+              <i class="fa-solid fa-check"></i> Reservar ahora
+            </a>
+
+            <div style="display:flex;justify-content:space-around;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border-gold);">
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="display:block;font-size:1.1rem;color:var(--gold);margin-bottom:0.3rem;"></i>Pago<br>seguro</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-tag" style="display:block;font-size:1.1rem;color:var(--gold);margin-bottom:0.3rem;"></i>Mejor<br>precio</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-headset" style="display:block;font-size:1.1rem;color:var(--gold);margin-bottom:0.3rem;"></i>Soporte<br>24/7</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const urlParams    = new URLSearchParams(window.location.search);
+    const idHabitacion = urlParams.get('id_habitacion');
+    const idProveedor  = urlParams.get('id_proveedor');
+    const ci           = urlParams.get('fecha_checkin');
+    const co           = urlParams.get('fecha_checkout');
+    const hu           = urlParams.get('num_huespedes') || 1;
+
+    function showError(msg) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'none';
+      document.getElementById('error-view').style.display   = 'block';
+      document.getElementById('error-msg').textContent      = msg;
+    }
+
+    function formatFecha(f) {
+      return f ? new Date(f).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    }
+
+    function calcularNoches(ci, co) {
+      if (!ci || !co) return 1;
+      const n = Math.ceil((new Date(co) - new Date(ci)) / (1000 * 60 * 60 * 24));
+      return Math.max(1, n);
+    }
+
+    async function cargarHotel() {
+      if (!idHabitacion || !idProveedor) {
+        showError('Faltan parámetros para identificar la habitación.');
+        return;
+      }
+
+      const params = new URLSearchParams(urlParams);
+
+      try {
+        const res  = await fetch(`/api/search/hotel/detail?${params.toString()}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'No se pudo obtener la habitación');
+
+        render(data.data);
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function render(h) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'block';
+
+      document.getElementById('h-nombre').textContent     = h.nombre_hotel || 'Hotel';
+      document.getElementById('h-ciudad').textContent     = h.ciudad || urlParams.get('ciudad') || '—';
+      document.getElementById('h-proveedor').innerHTML    = `<i class="fa-solid fa-gem me-1"></i> ${h.nombre_proveedor || 'Cadena'}`;
+
+      document.getElementById('r-tipo').textContent       = (h.tipo_habitacion || '—').replace(/_/g, ' ');
+      document.getElementById('r-num').textContent        = h.num_habitacion ? `Habitación N° ${h.num_habitacion}` : '';
+      document.getElementById('r-cap').textContent        = h.capacidad_max ?? '—';
+      document.getElementById('r-id').textContent         = h.id_habitacion ?? '—';
+      document.getElementById('r-estado').textContent     = h.estado || 'Disponible';
+
+      const precio = parseFloat(h.precio_noche_agencia || 0);
+      const noches = calcularNoches(ci, co);
+      const total  = precio * noches;
+
+      document.getElementById('r-precio').textContent     = `$${precio.toFixed(2)}`;
+      document.getElementById('s-ci').textContent         = formatFecha(ci);
+      document.getElementById('s-co').textContent         = formatFecha(co);
+      document.getElementById('s-hu').textContent         = hu;
+      document.getElementById('s-n').textContent          = noches;
+      document.getElementById('s-label-base').textContent = `Precio x ${noches} noche(s)`;
+      document.getElementById('s-base').textContent       = `$${total.toFixed(2)}`;
+      document.getElementById('s-total').textContent      = `$${total.toFixed(2)}`;
+
+      // Amenidades dinámicas (si el proveedor las envía)
+      if (Array.isArray(h.amenidades) && h.amenidades.length) {
+        const section = document.getElementById('amenidades-section');
+        const list    = document.getElementById('amenidades-list');
+        section.style.display = 'block';
+        list.innerHTML = h.amenidades.map(a =>
+          `<div class="col-6 col-md-4"><div class="amenity-item"><i class="fa-solid fa-check"></i> ${a}</div></div>`
+        ).join('');
+      }
+
+      // Link a checkout
+      const checkoutParams = new URLSearchParams({
+        tipo:           'hotel',
+        id_habitacion:  h.id_habitacion  || '',
+        id_proveedor:   h.id_proveedor   || '',
+        precio:         precio,
+        ciudad:         h.ciudad || urlParams.get('ciudad') || '',
+        fecha_checkin:  ci || '',
+        fecha_checkout: co || '',
+        num_huespedes:  hu,
+      });
+      document.getElementById('btn-reservar').href = `/checkout?${checkoutParams.toString()}`;
+    }
+
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('nav-user-area').innerHTML =
+            `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+        }
+      }).catch(() => {});
+
+    cargarHotel();
+  </script>
+</body>
+</html>

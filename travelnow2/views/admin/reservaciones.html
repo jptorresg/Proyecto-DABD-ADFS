@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservaciones — Admin TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"    class="sidebar-nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"     class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones"class="sidebar-nav-item active"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"  class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-plane"></i> Gestión de Reservaciones</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+
+      <!-- Filtros -->
+      <div class="admin-filters">
+        <select class="th-select-sm" id="filter-estado" onchange="cargarReservaciones()">
+          <option value="">Todos los estados</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select class="th-select-sm" id="filter-tipo" onchange="cargarReservaciones()">
+          <option value="">Todos los tipos</option>
+          <option value="vuelo">Vuelo</option>
+          <option value="hotel">Hotel</option>
+          <option value="paquete">Paquete</option>
+        </select>
+        <input type="text" class="th-select-sm" id="filter-search"
+               placeholder="Buscar código o cliente..."
+               oninput="debounceSearch()"
+               style="min-width:220px;padding:0.5rem 0.9rem;">
+      </div>
+
+      <!-- Estadísticas -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem;">
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-total">0</div>
+              <div class="admin-stat-lbl">Total</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-confirmadas">0</div>
+              <div class="admin-stat-lbl">Confirmadas</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-pendientes">0</div>
+              <div class="admin-stat-lbl">Pendientes</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-ingresos">$0</div>
+              <div class="admin-stat-lbl">Ingresos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h2>Reservaciones</h2>
+          <span id="reservaciones-count" style="color:var(--text-muted);font-size:0.85rem;">Cargando...</span>
+        </div>
+        <div class="admin-panel-body" style="overflow-x:auto;">
+          <table class="th-table">
+            <thead>
+              <tr>
+                <th>Código</th><th>Cliente</th><th>Correo</th>
+                <th>Tipo</th><th>Total</th><th>Estado</th><th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="reservaciones-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Cargando reservaciones...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-top:1px solid var(--border-gold);">
+          <span id="pagination-info" style="font-size:0.82rem;color:var(--text-muted);"></span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-sm-gold" id="btn-prev" onclick="cambiarPagina(-1)" disabled>← Anterior</button>
+            <button class="btn-sm-gold" id="btn-next" onclick="cambiarPagina(1)">Siguiente →</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  let paginaActual = 1;
+  const limit = 25;
+  let searchTimeout = null;
+
+  async function cargarReservaciones() {
+    paginaActual = 1;
+    await fetchReservaciones();
+  }
+
+  async function fetchReservaciones() {
+    const estado = document.getElementById('filter-estado').value;
+    const tipo   = document.getElementById('filter-tipo').value;
+    const search = document.getElementById('filter-search').value;
+
+    const params = new URLSearchParams({ page: paginaActual, limit });
+    if (estado) params.append('estado', estado);
+    if (tipo)   params.append('tipo',   tipo);
+    if (search) params.append('search', search);
+
+    const tbody = document.getElementById('reservaciones-tbody');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+      <i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:0.5rem;"></i>Cargando...
+    </td></tr>`;
+
+    try {
+      const res  = await fetch(`/api/admin/reservaciones/data?${params}`, { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.ok) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+          Error: ${data.message || 'No autorizado'}
+        </td></tr>`;
+        return;
+      }
+
+      const s = data.stats || {};
+      document.getElementById('stat-total').textContent       = s.total       || 0;
+      document.getElementById('stat-confirmadas').textContent = s.confirmadas || 0;
+      document.getElementById('stat-pendientes').textContent  = s.pendientes  || 0;
+      document.getElementById('stat-ingresos').textContent    = '$' + parseFloat(s.ingresos || 0).toFixed(2);
+
+      const reservaciones = data.data  || [];
+      const total         = data.total || 0;
+
+      document.getElementById('reservaciones-count').textContent = `${total} reservación(es)`;
+      document.getElementById('pagination-info').textContent =
+        `Página ${paginaActual} · Mostrando ${reservaciones.length} de ${total}`;
+      document.getElementById('btn-prev').disabled = paginaActual <= 1;
+      document.getElementById('btn-next').disabled = paginaActual * limit >= total;
+
+      if (!reservaciones.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+          No se encontraron reservaciones
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = reservaciones.map(r => {
+        const puedeCancelar = r.estado === 'confirmada' || r.estado === 'pendiente';
+        return `
+          <tr>
+            <td><strong style="color:var(--gold);font-size:0.82rem;">${r.codigo_reserva}</strong></td>
+            <td>${r.nombre} ${r.apellido}</td>
+            <td style="font-size:0.82rem;color:var(--text-muted);">${r.correo}</td>
+            <td>${badgeTipo(r.tipo)}</td>
+            <td><strong>$${parseFloat(r.total).toFixed(2)}</strong></td>
+            <td>${badgeEstado(r.estado)}</td>
+            <td style="font-size:0.78rem;color:var(--text-muted);">${formatFecha(r.fecha_reserva)}</td>
+            <td style="white-space:nowrap;">
+              ${puedeCancelar ? `
+                <button class="btn-sm-danger" title="Cancelar reservación"
+                        onclick="abrirModalCancelar(${r.id_reservacion}, '${r.codigo_reserva}', '${(r.tipo || '').toUpperCase()}', '${r.nombre.replace(/'/g, "\\'")} ${r.apellido.replace(/'/g, "\\'")}')">
+                  <i class="fas fa-ban"></i> Cancelar
+                </button>
+              ` : `<span style="color:var(--text-muted);font-size:0.78rem;">—</span>`}
+            </td>
+          </tr>`;
+      }).join('');
+
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#F87171;">
+        Error de conexión: ${e.message}
+      </td></tr>`;
+    }
+  }
+
+  function cambiarPagina(dir) {
+    paginaActual += dir;
+    fetchReservaciones();
+  }
+
+  function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(cargarReservaciones, 400);
+  }
+
+  function badgeTipo(tipo) {
+    const map = {
+      vuelo:   '<span class="badge-custom badge-blue">Vuelo</span>',
+      hotel:   '<span class="badge-custom badge-gold">Hotel</span>',
+      paquete: '<span class="badge-custom badge-green">Paquete</span>',
+    };
+    return map[tipo] || `<span class="badge-custom">${tipo}</span>`;
+  }
+
+  function badgeEstado(estado) {
+    const map = {
+      confirmada: '<span class="badge-custom badge-green">Confirmada</span>',
+      pendiente:  '<span class="badge-custom badge-gold">Pendiente</span>',
+      cancelada:  '<span class="badge-custom badge-red">Cancelada</span>',
+    };
+    return map[estado] || `<span class="badge-custom">${estado}</span>`;
+  }
+
+  function formatFecha(f) {
+    if (!f) return '—';
+    return new Date(f).toLocaleDateString('es-GT');
+  }
+
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      .then(() => window.location.href = '/login');
+  }
+
+  fetchReservaciones();
+  setInterval(fetchReservaciones, 30000);
+
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario)
+        document.getElementById('topbar-user').textContent = d.usuario.nombre + ' (' + d.usuario.rol + ')';
+    }).catch(() => {});
+
+
+    /* ──── Modal cancelar reservación ──── */
+let cancelarIdActivo = null;
+
+function abrirModalCancelar(id, codigo, tipo, cliente) {
+  cancelarIdActivo = id;
+  document.getElementById('cancel-codigo').textContent  = codigo;
+  document.getElementById('cancel-cliente').textContent = cliente;
+  document.getElementById('cancel-tipo').textContent    = tipo;
+  document.getElementById('cancel-motivo').value        = '';
+  document.getElementById('cancel-error').style.display   = 'none';
+  document.getElementById('cancel-success').style.display = 'none';
+  document.getElementById('btn-cancel-confirm').disabled  = false;
+  document.getElementById('btn-cancel-confirm').innerHTML = '<i class="fas fa-ban"></i> Sí, cancelar';
+  document.getElementById('modal-cancelar').style.display = 'flex';
+}
+
+function cerrarModalCancelar() {
+  document.getElementById('modal-cancelar').style.display = 'none';
+  cancelarIdActivo = null;
+}
+
+async function ejecutarCancelacion() {
+  if (!cancelarIdActivo) return;
+  const motivo = document.getElementById('cancel-motivo').value.trim();
+
+  const btn = document.getElementById('btn-cancel-confirm');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelando...';
+  document.getElementById('cancel-error').style.display   = 'none';
+  document.getElementById('cancel-success').style.display = 'none';
+
+  try {
+    const res = await fetch(`/api/reservaciones/${cancelarIdActivo}/cancelar`, {
+      method:      'PUT',
+      credentials: 'include',
+      headers:     { 'Content-Type': 'application/json' },
+      body:        JSON.stringify({ motivo }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      const errEl = document.getElementById('cancel-error');
+      errEl.textContent = data.message || 'No se pudo cancelar';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-ban"></i> Reintentar';
+      return;
+    }
+
+    const okEl = document.getElementById('cancel-success');
+    const v = data.cancelados_proveedor?.vuelos  ?? 0;
+    const h = data.cancelados_proveedor?.hoteles ?? 0;
+    okEl.innerHTML = `<i class="fas fa-check-circle me-2"></i>Cancelación exitosa. Se cancelaron ${v} vuelo(s) y ${h} hotel(es) en proveedores.`;
+    okEl.style.display = 'block';
+
+    // Recargar datos y cerrar modal en 2s
+    setTimeout(() => {
+      cerrarModalCancelar();
+      fetchReservaciones();
+    }, 2000);
+  } catch (e) {
+    const errEl = document.getElementById('cancel-error');
+    errEl.textContent = 'Error de conexión: ' + e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-ban"></i> Reintentar';
+  }
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('modal-cancelar').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalCancelar();
+});
+
+
+</script>
+
+<!-- Modal cancelar reservación -->
+<div id="modal-cancelar" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,0.9);backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--navy-mid);border:1px solid var(--border-gold);border-radius:var(--radius-lg);max-width:520px;width:100%;">
+    <div class="admin-panel-header" style="padding:1.5rem;">
+      <h2><i class="fas fa-triangle-exclamation" style="color:#F87171;"></i> Cancelar reservación</h2>
+      <button class="btn-sm-gold" onclick="cerrarModalCancelar()">✕</button>
+    </div>
+    <div style="padding:0 1.5rem 1.5rem;">
+      <p style="color:var(--text-muted);font-size:0.92rem;line-height:1.6;">
+        Estás a punto de cancelar la reservación
+        <strong style="color:var(--gold);" id="cancel-codigo">—</strong>
+        de <strong style="color:var(--cream);" id="cancel-cliente">—</strong>
+        (tipo <span id="cancel-tipo">—</span>).
+      </p>
+      <p style="color:var(--text-muted);font-size:0.86rem;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);padding:0.8rem 1rem;border-radius:var(--radius-sm);margin:1rem 0;">
+        <i class="fas fa-info-circle me-2" style="color:#F87171;"></i>
+        Esto cancelará la reserva en todos los proveedores asociados (aerolínea y/o hotel)
+        y enviará un correo automático al cliente. La acción <strong>no se puede deshacer</strong>.
+      </p>
+
+      <label class="th-label">Motivo de cancelación (opcional)</label>
+      <textarea id="cancel-motivo" class="th-input" rows="3"
+                style="resize:vertical;min-height:80px;"
+                placeholder="Ej: Solicitud del cliente, fraude, error de captura..."></textarea>
+
+      <div id="cancel-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius-sm);padding:0.8rem;color:#F87171;font-size:0.85rem;margin-top:1rem;"></div>
+      <div id="cancel-success" style="display:none;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:var(--radius-sm);padding:0.8rem;color:#34D399;font-size:0.85rem;margin-top:1rem;"></div>
+
+      <div style="display:flex;gap:0.6rem;margin-top:1.5rem;">
+        <button class="btn-sm-gold" style="flex:1;padding:0.7rem;" onclick="cerrarModalCancelar()" id="btn-cancel-cancel">
+          Volver
+        </button>
+        <button class="btn-sm-danger" style="flex:1;padding:0.7rem;font-weight:600;" onclick="ejecutarCancelacion()" id="btn-cancel-confirm">
+          <i class="fas fa-ban"></i> Sí, cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

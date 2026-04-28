@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto – TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../public/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+        /* ── Page Hero ── */
+        .page-hero {
+            min-height: 55vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .page-hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(160deg, rgba(10,22,40,0.93) 0%, rgba(17,34,64,0.78) 50%, rgba(10,22,40,0.91) 100%),
+                url('https://images.unsplash.com/photo-1596524430615-b46475ddff6e?w=1800&q=80') center/cover no-repeat;
+        }
+        .page-hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(212,168,67,0.02) 120px, rgba(212,168,67,0.02) 121px);
+        }
+        .page-hero-content { position: relative; z-index: 2; }
+
+        /* ── Contact form card ── */
+        .contact-form-card {
+            background: rgba(17,34,64,0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 2.8rem;
+            box-shadow: var(--shadow-card);
+        }
+        .contact-form-card .th-label {
+            margin-bottom: 0.5rem;
+        }
+        .th-textarea {
+            background: rgba(10,22,40,0.6) !important;
+            border: 1px solid var(--border-gold) !important;
+            color: var(--cream) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 0.85rem 1rem !important;
+            font-family: var(--font-body) !important;
+            font-size: 0.93rem !important;
+            transition: var(--trans) !important;
+            width: 100%;
+            resize: vertical;
+            min-height: 130px;
+        }
+        .th-textarea::placeholder { color: rgba(245,240,232,0.35) !important; }
+        .th-textarea:focus {
+            outline: none !important;
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(212,168,67,0.12) !important;
+            background: rgba(17,34,64,0.8) !important;
+        }
+
+        /* ── Contact info card ── */
+        .contact-info-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            height: 100%;
+        }
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-gold);
+        }
+        .contact-info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .contact-info-icon {
+            width: 48px; height: 48px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .contact-info-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--gold);
+            margin-bottom: 0.3rem;
+        }
+        .contact-info-value {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            color: var(--white);
+            margin-bottom: 0.2rem;
+        }
+        .contact-info-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Office cards ── */
+        .office-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: var(--trans);
+        }
+        .office-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-gold);
+            border-color: rgba(212,168,67,0.5);
+        }
+        .office-img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            filter: grayscale(20%);
+            transition: filter 0.4s;
+        }
+        .office-card:hover .office-img { filter: grayscale(0%); }
+        .office-body { padding: 1.5rem; }
+        .office-city {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--white);
+            margin-bottom: 0.3rem;
+        }
+        .office-country {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+            margin-bottom: 0.8rem;
+        }
+        .office-details {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+        .office-details i { color: var(--gold); width: 14px; margin-right: 0.4rem; }
+
+        /* ── FAQ ── */
+        .faq-item {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.8rem;
+            overflow: hidden;
+            transition: var(--trans);
+        }
+        .faq-item:hover { border-color: rgba(212,168,67,0.45); }
+        .faq-question {
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            color: var(--white);
+            user-select: none;
+        }
+        .faq-question i {
+            color: var(--gold);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 1rem;
+        }
+        .faq-item.open .faq-question i { transform: rotate(45deg); }
+        .faq-answer {
+            display: none;
+            padding: 0 1.5rem 1.2rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            border-top: 1px solid var(--border-gold);
+            padding-top: 1rem;
+        }
+        .faq-item.open .faq-answer { display: block; }
+
+        /* ── Success toast ── */
+        .toast-success {
+            display: none;
+            background: rgba(52,211,153,0.1);
+            border: 1px solid rgba(52,211,153,0.3);
+            border-radius: var(--radius-sm);
+            color: #34D399;
+            padding: 1rem 1.2rem;
+            font-size: 0.88rem;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 1.5rem;
+        }
+        .toast-success.show { display: flex; }
+
+        /* ── Social links ── */
+        .social-big-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-md);
+            padding: 1.2rem 1.5rem;
+            text-decoration: none;
+            color: var(--cream);
+            transition: var(--trans);
+        }
+        .social-big-link:hover {
+            border-color: rgba(212,168,67,0.5);
+            transform: translateX(4px);
+            color: var(--gold);
+        }
+        .social-big-link .s-icon {
+            width: 42px; height: 42px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .social-big-link .s-name { font-family: var(--font-display); font-size: 1.05rem; }
+        .social-big-link .s-handle { font-size: 0.78rem; color: var(--text-muted); }
+        .social-big-link .s-arrow { margin-left: auto; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="th-navbar" id="mainNav">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/" class="th-logo">
+                <i class="fa-solid fa-plane-departure"></i>
+                Travel<span class="logo-dot">Hub</span>
+            </a>
+            <div class="d-none d-lg-flex align-items-center gap-4">
+                <a href="/buscar" class="nav-link-custom">Buscar</a>
+                <a href="#" class="nav-link-custom">Destinos</a>
+                <a href="/about" class="nav-link-custom">Nosotros</a>
+                <a href="/services" class="nav-link-custom">Servicios</a>
+                <a href="/contact" class="nav-link-custom" style="color:var(--gold)!important;">Contacto</a>
+            </div>
+            <div id="nav-user-area">
+                <a href="/login" class="btn-nav-login">
+                    <i class="fa-regular fa-user me-1"></i> Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="container page-hero-content" style="padding-top:7rem;padding-bottom:4rem;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-eyebrow anim-up"><i class="fa-solid fa-headset"></i> Estamos para ayudarte</div>
+                <h1 class="hero-title anim-up anim-up-1">
+                    Habla con nuestro<br>
+                    <strong>equipo experto</strong>
+                </h1>
+                <p class="hero-sub anim-up anim-up-2">
+                    ¿Tienes preguntas sobre una reserva? ¿Necesitas ayuda planificando tu viaje? Nuestro equipo de especialistas está disponible 24/7 para brindarte la mejor atención personalizada.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FORMULARIO + INFO -->
+<section class="py-5 mt-2">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+
+            <!-- FORMULARIO -->
+            <div class="col-lg-7">
+                <div class="contact-form-card">
+                    <div class="section-eyebrow mb-2">Escríbenos</div>
+                    <h2 class="section-title mb-1">Envíanos un <em>mensaje</em></h2>
+                    <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:2rem;">Responderemos en menos de 24 horas. Para urgencias, usa el chat o llámanos.</p>
+
+                    <div class="toast-success" id="formSuccess">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>¡Mensaje enviado! Te contactaremos muy pronto.</span>
+                    </div>
+
+                    <form id="contactForm" onsubmit="handleSubmit(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="th-label"><i class="fa-solid fa-user me-1"></i> Nombre completo</label>
+                                <div class="input-group-custom">
+                                    <i class="input-icon fa-solid fa-user"></i>
+                                    <input class="th-input" type="text" name="nombre" placeholder="Tu nombre" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="th-label"><i class="fa-regular fa-envelope me-1"></i> Correo electrónico</label>
+                                <div class="input-group-custom">
+                                    <i class="input-icon fa-regular fa-envelope"></i>
+                                    <input class="th-input" type="email" name="email" placeholder="tu@correo.com" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="th-label"><i class="fa-solid fa-phone me-1"></i> Teléfono (opcional)</label>
+                                <div class="input-group-custom">
+                                    <i class="input-icon fa-solid fa-phone"></i>
+                                    <input class="th-input" type="tel" name="telefono" placeholder="+502 XXXX-XXXX">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="th-label"><i class="fa-solid fa-tag me-1"></i> Motivo de contacto</label>
+                                <div class="input-group-custom">
+                                    <i class="input-icon fa-solid fa-tag"></i>
+                                    <select class="th-input" name="motivo">
+                                        <option value="">Selecciona...</option>
+                                        <option value="reserva">Ayuda con reserva</option>
+                                        <option value="cancelacion">Cancelación o cambio</option>
+                                        <option value="paquete">Cotizar paquete</option>
+                                        <option value="factura">Facturación</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="th-label"><i class="fa-solid fa-hashtag me-1"></i> Número de reserva (si aplica)</label>
+                                <div class="input-group-custom">
+                                    <i class="input-icon fa-solid fa-ticket"></i>
+                                    <input class="th-input" type="text" name="reserva" placeholder="TH-XXXXXXXX">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="th-label"><i class="fa-solid fa-message me-1"></i> Mensaje</label>
+                                <textarea class="th-textarea" name="mensaje" placeholder="Cuéntanos en qué podemos ayudarte..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-buscar" id="submitBtn">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Enviar mensaje</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- INFO CONTACTO -->
+            <div class="col-lg-5">
+                <div class="contact-info-card">
+                    <div class="section-eyebrow mb-3">Canales directos</div>
+                    <h3 style="font-family:var(--font-display);font-size:1.6rem;color:var(--white);margin-bottom:2rem;font-weight:300;">Otras formas de <em style="color:var(--gold-light);">contactarnos</em></h3>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon"><i class="fa-solid fa-phone"></i></div>
+                        <div>
+                            <div class="contact-info-label">Teléfono</div>
+                            <div class="contact-info-value">+502 2345-6789</div>
+                            <div class="contact-info-sub">Lunes a viernes, 8am – 8pm</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div>
+                            <div class="contact-info-label">WhatsApp</div>
+                            <div class="contact-info-value">+502 5678-9012</div>
+                            <div class="contact-info-sub">Disponible 24/7 para emergencias</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon"><i class="fa-regular fa-envelope"></i></div>
+                        <div>
+                            <div class="contact-info-label">Correo electrónico</div>
+                            <div class="contact-info-value">info@travelhub.com</div>
+                            <div class="contact-info-sub">Respuesta en menos de 24 horas</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon"><i class="fa-solid fa-location-dot"></i></div>
+                        <div>
+                            <div class="contact-info-label">Oficina principal</div>
+                            <div class="contact-info-value">Guatemala City</div>
+                            <div class="contact-info-sub">Zona 10, 7a Av. 11-59, Torre Empresarial</div>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-info-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div>
+                            <div class="contact-info-label">Horario de atención</div>
+                            <div class="contact-info-value">Lun – Vie: 8am – 8pm</div>
+                            <div class="contact-info-sub">Sáb: 9am – 5pm &nbsp;|&nbsp; Dom: emergencias</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- REDES SOCIALES -->
+<section class="py-5" style="background:rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-4">
+                <div class="section-eyebrow">Síguenos</div>
+                <h2 class="section-title mb-3">Encuéntranos en <em>redes</em></h2>
+                <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;">Únete a nuestra comunidad de viajeros. Compartimos ofertas exclusivas, inspiración y tips de viaje cada día.</p>
+            </div>
+            <div class="col-lg-8">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="#" class="social-big-link">
+                            <div class="s-icon"><i class="fa-brands fa-instagram"></i></div>
+                            <div>
+                                <div class="s-name">Instagram</div>
+                                <div class="s-handle">@travelhub.gt</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right s-arrow"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="#" class="social-big-link">
+                            <div class="s-icon"><i class="fa-brands fa-facebook-f"></i></div>
+                            <div>
+                                <div class="s-name">Facebook</div>
+                                <div class="s-handle">/TravelHubGT</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right s-arrow"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="#" class="social-big-link">
+                            <div class="s-icon"><i class="fa-brands fa-x-twitter"></i></div>
+                            <div>
+                                <div class="s-name">X / Twitter</div>
+                                <div class="s-handle">@TravelHubGT</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right s-arrow"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="#" class="social-big-link">
+                            <div class="s-icon"><i class="fa-brands fa-tiktok"></i></div>
+                            <div>
+                                <div class="s-name">TikTok</div>
+                                <div class="s-handle">@travelhub.gt</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-right s-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NUESTRAS OFICINAS -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Ubicaciones</div>
+            <h2 class="section-title">Nuestras <em>oficinas</em></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="office-card">
+                    <img class="office-img" src="https://images.unsplash.com/photo-1590674899484-13da0e55e4b3?w=400&q=80" alt="Guatemala" loading="lazy">
+                    <div class="office-body">
+                        <div class="office-city">Guatemala City</div>
+                        <div class="office-country"><i class="fa-solid fa-circle" style="font-size:0.5rem;vertical-align:middle;"></i> Sede principal</div>
+                        <div class="office-details">
+                            <p><i class="fa-solid fa-location-dot"></i> Zona 10, Torre Empresarial</p>
+                            <p><i class="fa-solid fa-phone"></i> +502 2345-6789</p>
+                            <p><i class="fa-solid fa-clock"></i> Lun–Vie 8am–8pm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="office-card">
+                    <img class="office-img" src="https://images.unsplash.com/photo-1512813195386-6cf811ad3542?w=400&q=80" alt="Ciudad de México" loading="lazy">
+                    <div class="office-body">
+                        <div class="office-city">Ciudad de México</div>
+                        <div class="office-country">México</div>
+                        <div class="office-details">
+                            <p><i class="fa-solid fa-location-dot"></i> Polanco, Torre Reforma</p>
+                            <p><i class="fa-solid fa-phone"></i> +52 55 1234-5678</p>
+                            <p><i class="fa-solid fa-clock"></i> Lun–Vie 9am–7pm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="office-card">
+                    <img class="office-img" src="https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=400&q=80" alt="Bogotá" loading="lazy">
+                    <div class="office-body">
+                        <div class="office-city">Bogotá</div>
+                        <div class="office-country">Colombia</div>
+                        <div class="office-details">
+                            <p><i class="fa-solid fa-location-dot"></i> El Chicó, Cra 15</p>
+                            <p><i class="fa-solid fa-phone"></i> +57 1 234-5678</p>
+                            <p><i class="fa-solid fa-clock"></i> Lun–Vie 9am–7pm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="office-card">
+                    <img class="office-img" src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=80" alt="Buenos Aires" loading="lazy">
+                    <div class="office-body">
+                        <div class="office-city">Buenos Aires</div>
+                        <div class="office-country">Argentina</div>
+                        <div class="office-details">
+                            <p><i class="fa-solid fa-location-dot"></i> Puerto Madero, Edif. Sur</p>
+                            <p><i class="fa-solid fa-phone"></i> +54 11 2345-6789</p>
+                            <p><i class="fa-solid fa-clock"></i> Lun–Vie 9am–7pm</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-5" style="background:rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="row g-5 align-items-start">
+            <div class="col-lg-4">
+                <div class="section-eyebrow">Preguntas frecuentes</div>
+                <h2 class="section-title mb-3">Resolvemos tus <em>dudas</em></h2>
+                <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;">¿No encontraste lo que buscabas? Escríbenos y te respondemos en menos de 24 horas.</p>
+                <a href="#contactForm" class="btn-reservar mt-3 d-inline-block">
+                    <i class="fa-solid fa-message me-2"></i> Hacer otra pregunta
+                </a>
+            </div>
+            <div class="col-lg-8">
+                <div class="faq-item open">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿Cómo puedo cancelar o cambiar mi reserva?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Puedes gestionar tus reservas desde la sección "Mis reservas" en tu perfil. Para cancelaciones con más de 48 horas de anticipación, el reembolso se procesa en 1-3 días hábiles. Para cambios de fecha, aplica una tarifa según la aerolínea o proveedor. También puedes contactarnos directamente por WhatsApp o teléfono para asistencia inmediata.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿Es seguro pagar con tarjeta en TravelHub?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Sí, completamente. Utilizamos encriptación SSL de 256 bits y nunca almacenamos los datos de tu tarjeta. Nuestro sistema de pagos está certificado por PCI DSS Nivel 1, el estándar más alto de seguridad para transacciones en línea. Aceptamos Visa, Mastercard, American Express y PayPal.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿Cuánto tiempo tarda en llegar el voucher de confirmación?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        El voucher PDF se envía al correo registrado de forma inmediata tras confirmar el pago, generalmente en menos de 2 minutos. Si no lo recibes, revisa tu carpeta de spam. También puedes descargarlo desde "Mis reservas" en tu cuenta en cualquier momento.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿TravelHub garantiza el mejor precio?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Sí. Si encuentras el mismo vuelo u hotel exacto (misma fecha, clase y condiciones) a un precio menor en otra plataforma dentro de las 24 horas siguientes a tu reserva, te devolvemos la diferencia. Solo necesitas enviarnos el enlace como comprobante y procesamos el reembolso en 48 horas.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿Puedo reservar para otras personas?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Por supuesto. Al momento de completar la reserva podrás ingresar los datos de cada pasajero por separado. El voucher se enviará al correo del titular de la cuenta y también puedes reenviarlo a los demás viajeros desde tu panel de reservas.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        ¿Cómo funciona el soporte de emergencia 24/7?
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Nuestro equipo de soporte de emergencia está disponible las 24 horas a través de WhatsApp (+502 5678-9012) y correo electrónico (urgencias@travelhub.com). Para usuarios Gold, contamos con una línea directa exclusiva con tiempo de respuesta garantizado de menos de 15 minutos.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="th-footer">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="footer-logo">Travel<span>Hub</span></div>
+                <p class="footer-desc">Tu agencia de confianza para descubrir el mundo. Conectamos viajeros con experiencias inolvidables desde 2012.</p>
+                <div class="footer-social mt-3">
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Servicios</div>
+                <a href="/buscar" class="footer-link">Vuelos</a>
+                <a href="/buscar" class="footer-link">Hoteles</a>
+                <a href="/buscar" class="footer-link">Paquetes</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Compañía</div>
+                <a href="/about" class="footer-link">Sobre nosotros</a>
+                <a href="/contact" class="footer-link">Contáctanos</a>
+                <a href="#" class="footer-link">Trabaja con nosotros</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Legal</div>
+                <a href="#" class="footer-link">Términos y condiciones</a>
+                <a href="#" class="footer-link">Política de privacidad</a>
+                <a href="#" class="footer-link">Política de cancelación</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Contacto</div>
+                <p class="footer-link"><i class="fa-solid fa-phone me-2" style="color:var(--gold)"></i>+502 2345-6789</p>
+                <p class="footer-link"><i class="fa-regular fa-envelope me-2" style="color:var(--gold)"></i>info@travelhub.com</p>
+                <p class="footer-link"><i class="fa-solid fa-location-dot me-2" style="color:var(--gold)"></i>Guatemala City, Zona 10</p>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <p class="footer-copy">© 2026 TravelHub. Todos los derechos reservados.</p>
+            <p class="footer-copy">Hecho con <i class="fa-solid fa-heart" style="color:var(--gold)"></i> en Guatemala</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', () => {
+        document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+            if (d?.ok && d.usuario) {
+                document.getElementById('nav-user-area').innerHTML =
+                    `<div class="d-flex align-items-center gap-3">
+                        <a href="/historial" class="btn-nav-user">
+                            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                            <span>${d.usuario.nombre}</span>
+                        </a>
+                        <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>`;
+            }
+        }).catch(() => {});
+
+    function logout() {
+        fetch('/api/auth/logout', { method: 'POST' }).then(() => location.reload());
+    }
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Enviando...</span>';
+        setTimeout(() => {
+            document.getElementById('contactForm').reset();
+            document.getElementById('formSuccess').classList.add('show');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Enviar mensaje</span>';
+            setTimeout(() => document.getElementById('formSuccess').classList.remove('show'), 5000);
+        }, 1200);
+    }
+
+    function toggleFaq(el) {
+        const item = el.parentElement;
+        item.classList.toggle('open');
+    }
+</script>
+</body>
+</html>

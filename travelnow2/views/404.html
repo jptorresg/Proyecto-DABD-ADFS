@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+/**
+ * @file 404.html
+ * @brief Página de error 404 personalizada para TravelHub con temática de viajes
+ * @version 1.0
+ * @date 2026
+ * 
+ * @section description Descripción
+ * Esta página se muestra cuando un usuario intenta acceder a una ruta inexistente.
+ * Presenta una animación de avión volando, fondo con cuadrícula estilo coordenadas
+ * y opciones de navegación rápidas para redirigir al usuario.
+ * 
+ * @author TravelHub Team
+ * @copyright © 2026 TravelHub - Todos los derechos reservados
+ */
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página no encontrada — TravelHub</title>
+  
+  /** @defgroup fonts Fuentes externas
+   *  @brief Preconexión a Google Fonts para optimizar carga de tipografías
+   *  @{
+   */
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  /** @} */
+  
+  /** @defgroup styles Estilos externos
+   *  @brief Bibliotecas CSS y hoja de estilos principal
+   *  @{
+   */
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  /** @} */
+  
+  <style>
+    /**
+     * @brief Estilos principales de la página 404
+     * 
+     * Define la apariencia del fondo animado, el avión en vuelo,
+     * el número 404 decorativo y los elementos interactivos.
+     * 
+     * @section layout Layout principal
+     * @subsection background Fondo y animaciones
+     */
+    body { background: var(--navy); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Fondo animado con coordenadas de vuelo */
+    /**
+     * @brief Genera un patrón de cuadrícula superpuesto como fondo
+     * 
+     * Utiliza repeating-linear-gradient para crear líneas horizontales y verticales
+     * con un espaciado de 80px y un color dorado tenue (opacidad 0.03).
+     * Las líneas tienen 1px de grosor.
+     */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg,   transparent, transparent 80px, rgba(212,168,67,0.03) 80px, rgba(212,168,67,0.03) 81px),
+        repeating-linear-gradient(90deg,  transparent, transparent 80px, rgba(212,168,67,0.03) 80px, rgba(212,168,67,0.03) 81px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Avión animado que cruza la pantalla */
+    /**
+     * @brief Animación de avión que atraviesa la pantalla horizontalmente
+     * 
+     * El avión comienza fuera de la pantalla por la izquierda (-120px),
+     * cruza hasta desaparecer por la derecha (100vw + 120px).
+     * La animación dura 12 segundos y se repite infinitamente.
+     */
+    .plane-fly {
+      position: fixed;
+      top: 22%;
+      left: -120px;
+      font-size: 2.2rem;
+      color: rgba(212,168,67,0.18);
+      animation: flyAcross 12s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(0 0 12px rgba(212,168,67,0.15));
+    }
+    
+    /**
+     * @brief Keyframes para la animación de vuelo del avión
+     * 
+     * @keyframes flyAcross
+     * @param 0% Posición inicial, invisible
+     * @param 5% El avión se vuelve visible
+     * @param 95% Permanece visible durante el recorrido
+     * @param 100% Sale de pantalla y desaparece
+     */
+    @keyframes flyAcross {
+      0%   { left: -120px; opacity: 0; }
+      5%   { opacity: 1; }
+      95%  { opacity: 1; }
+      100% { left: calc(100vw + 120px); opacity: 0; }
+    }
+
+    /* Estela punteada */
+    /**
+     * @brief Estela decorativa que sigue al avión
+     * 
+     * Crea un efecto de línea degradada que acompaña al avión
+     * con la misma animación y sincronización.
+     */
+    .plane-trail {
+      position: fixed;
+      top: calc(22% + 28px);
+      left: -80px;
+      width: 200px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(212,168,67,0.2), transparent);
+      animation: flyAcross 12s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Contenido principal */
+    .error-wrap {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6rem 1.5rem 4rem;
+    }
+
+    /* Número 404 grande */
+    /**
+     * @brief Estilizado del número 404 decorativo
+     * 
+     * Utiliza -webkit-text-stroke para crear un efecto de contorno
+     * con pseudo-elemento ::after para superposición de gradiente.
+     * El tamaño es responsive con clamp(7rem, 20vw, 14rem).
+     */
+    .error-num {
+      font-family: var(--font-display);
+      font-size: clamp(7rem, 20vw, 14rem);
+      font-weight: 700;
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(212,168,67,0.25);
+      letter-spacing: -6px;
+      user-select: none;
+      position: relative;
+    }
+    .error-num::after {
+      content: '404';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(212,168,67,0.08) 0%, rgba(212,168,67,0.02) 100%);
+      -webkit-text-stroke: 0;
+      color: transparent;
+    }
+
+    /* Ícono central */
+    /**
+     * @brief Contenedor circular con animación de pulso
+     * 
+     * @keyframes pulse404 - Animación que crea un efecto de anillo
+     * expansivo alrededor del ícono de brújula.
+     */
+    .error-icon-wrap {
+      width: 90px;
+      height: 90px;
+      background: rgba(212,168,67,0.08);
+      border: 1px solid var(--border-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.2rem;
+      color: var(--gold);
+      animation: pulse404 3s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(212,168,67,0.3);
+    }
+    
+    /**
+     * @brief Animación de pulso para el ícono central
+     * 
+     * Expande la sombra exterior desde 0 hasta 16px y la vuelve a contraer,
+     * creando un efecto de "latido" visual.
+     */
+    @keyframes pulse404 {
+      0%, 100% { box-shadow: 0 0 0 0   rgba(212,168,67,0.25); }
+      50%       { box-shadow: 0 0 0 16px rgba(212,168,67,0);   }
+    }
+
+    .error-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 300;
+      color: var(--white);
+      margin-bottom: 0.6rem;
+    }
+    .error-heading em { font-style: italic; color: var(--gold-light); }
+
+    .error-sub {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 440px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.8;
+    }
+
+    /* Sugerencias rápidas */
+    /**
+     * @brief Contenedor de enlaces de navegación rápida
+     * 
+     * Botones estilo "píldora" con íconos que redirigen a secciones principales
+     * como inicio, búsqueda de vuelos, hoteles y cuenta de usuario.
+     */
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: 50px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 0.55rem 1.3rem;
+      text-decoration: none;
+      transition: var(--trans);
+    }
+    .quick-link i { color: var(--gold); font-size: 0.8rem; }
+    .quick-link:hover {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--cream);
+    }
+
+    /* Separador decorativo */
+    .deco-line {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      margin: 0 auto 2rem;
+    }
+
+    /* Código de "vuelo perdido" decorativo */
+    /**
+     * @brief Componente que muestra la ruta URL no encontrada
+     * 
+     * Presenta un estilo tipo terminal/avión con el código de vuelo
+     * dinámicamente actualizado mediante JavaScript para mostrar
+     * la ruta que el usuario intentó acceder.
+     */
+    .lost-flight {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      background: rgba(10,22,40,0.8);
+      border: 1px solid rgba(212,168,67,0.15);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 1.4rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: rgba(212,168,67,0.5);
+      letter-spacing: 0.08em;
+      margin-bottom: 2.5rem;
+    }
+    .lost-flight i { color: var(--coral); }
+  </style>
+</head>
+<body>
+
+  <!-- Sección de fondo y animaciones decorativas -->
+  <div class="bg-grid"></div>           /** @brief Capa de fondo con cuadrícula */
+  <div class="plane-fly"><i class="fa-solid fa-plane"></i></div>  /** @brief Animación de avión volador */
+  <div class="plane-trail"></div>       /** @brief Estela decorativa del avión */
+
+  <!-- Navbar -->
+  /**
+   * @brief Barra de navegación principal
+   * @class th-navbar
+   * 
+   * Muestra el logo de TravelHub y el área de usuario.
+   * El estado "scrolled" indica que la barra ya tiene estilo
+   * aplicado tras el desplazamiento (clase predefinida).
+   */
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo">
+          <i class="fa-solid fa-plane-departure"></i>
+          Travel<span class="logo-dot">Hub</span>
+        </a>
+        <div id="nav-user-area">
+          <a href="/login" class="btn-nav-login">
+            <i class="fa-regular fa-user me-1"></i> Iniciar sesión
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido principal de error 404 -->
+  /**
+   * @brief Sección principal que contiene el mensaje de error 404
+   * @class error-wrap
+   * 
+   * Organiza el contenido centrado vertical y horizontalmente,
+   * incluyendo el número decorativo, ícono, mensajes y enlaces.
+   */
+  <div class="error-wrap">
+    <div class="text-center anim-up">
+
+      <!-- Número grande decorativo -->
+      <div class="error-num" aria-hidden="true">404</div>  /** @brief Número 404 decorativo (accesible solo visualmente) */
+
+      <!-- Ícono central con animación de pulso -->
+      <div class="error-icon-wrap">
+        <i class="fa-solid fa-compass"></i>  /** @brief Ícono de brújula indicando "pérdida de rumbo" */
+      </div>
+
+      <!-- Título principal -->
+      <h1 class="error-heading anim-up anim-up-1">
+        Página <em>no encontrada</em>  /** @brief Énfasis en "no encontrada" con color dorado */
+      </h1>
+
+      <!-- Subtítulo descriptivo -->
+      <p class="error-sub anim-up anim-up-2">
+        Parece que esta ruta no existe en nuestro itinerario. El destino que buscas pudo haber cambiado de dirección o simplemente no existe.
+      </p>
+
+      <!-- Código de vuelo perdido decorativo -->
+      /**
+       * @brief Muestra dinámicamente la ruta URL que generó el error 404
+       * 
+       * El contenido de <span id="lost-path"> es actualizado mediante JavaScript
+       * para reflejar window.location.pathname del usuario.
+       */
+      <div class="lost-flight anim-up anim-up-2">
+        <i class="fa-solid fa-xmark-circle"></i>
+        VUELO <span id="lost-path">???</span> — RUTA NO ENCONTRADA
+      </div>
+
+      <div class="deco-line anim-up anim-up-3"></div>  /** @brief Línea decorativa dorada */
+
+      <!-- Links rápidos de navegación -->
+      /**
+       * @brief Conjunto de enlaces de acceso directo a secciones del sitio
+       * @class quick-links
+       * 
+       * Opciones: Inicio, Buscar vuelos, Buscar hoteles, Mi cuenta
+       */
+      <div class="quick-links anim-up anim-up-3">
+        <a href="/" class="quick-link">
+          <i class="fa-solid fa-house"></i> Inicio
+        </a>
+        <a href="/buscar" class="quick-link">
+          <i class="fa-solid fa-magnifying-glass"></i> Buscar vuelos
+        </a>
+        <a href="/buscar" class="quick-link">
+          <i class="fa-solid fa-building"></i> Buscar hoteles
+        </a>
+        <a href="/login" class="quick-link">
+          <i class="fa-regular fa-user"></i> Mi cuenta
+        </a>
+      </div>
+
+      <!-- Botón principal de acción -->
+      /**
+       * @brief Botón principal que redirige al usuario a la página de inicio
+       * 
+       * Utiliza la misma clase .btn-buscar de los estilos globales
+       * para mantener consistencia visual.
+       */
+      <a href="/" class="btn-buscar anim-up" style="display:inline-flex;max-width:280px;margin:0 auto;text-decoration:none;">
+        <i class="fa-solid fa-plane-departure"></i>
+        Volver al inicio
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Footer mínimo -->
+  /**
+   * @brief Pie de página minimalista
+   * 
+   * Contiene información de copyright y año actual.
+   * Se mantiene sutil con opacidad baja para no distraer del contenido principal.
+   */
+  <footer style="position:relative;z-index:2;border-top:1px solid var(--border-gold);padding:1.5rem 0;text-align:center;">
+    <p style="font-size:0.78rem;color:rgba(245,240,232,0.3);margin:0;">
+      © 2026 TravelHub · Todos los derechos reservados
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /**
+     * @file Scripts de comportamiento de la página 404
+     * @brief Funcionalidades interactivas y dinámicas
+     */
+
+    /**
+     * @brief Muestra la ruta URL que no se encontró
+     * 
+     * Obtiene window.location.pathname, lo convierte a mayúsculas
+     * y reemplaza las barras '/' por ' / ' para mejor legibilidad.
+     * Actualiza el contenido del span con id 'lost-path'.
+     * 
+     * @example Si la URL es /vuelos/mexico, se mostrará " / VUELOS / MEXICO"
+     */
+    const lost = window.location.pathname;
+    document.getElementById('lost-path').textContent = lost.toUpperCase().replace(/\//g, ' / ') || '/';
+
+    /**
+     * @brief Gestiona el área de usuario en la navbar
+     * 
+     * Realiza una petición fetch a '/api/auth/me' para verificar
+     * si el usuario tiene sesión activa.
+     * 
+     * @function fetchUserSession
+     * @returns {Promise<void>} Actualiza el DOM con el nombre del usuario
+     *                         o mantiene el botón de login por defecto.
+     * 
+     * @example Respuesta exitosa { ok: true, usuario: { nombre: "Juan Pérez" } }
+     *          Muestra: [Avatar] Juan Pérez
+     */
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('nav-user-area').innerHTML =
+            `<a href="#" class="btn-nav-user">
+               <div class="avatar"><i class="fa-solid fa-user"></i></div>
+               <span>${d.usuario.nombre}</span>
+             </a>`;
+        }
+      }).catch(() => {
+        /** @brief Silencia errores de red/autenticación para no romper la experiencia */
+      });
+  </script>
+</body>
+</html>

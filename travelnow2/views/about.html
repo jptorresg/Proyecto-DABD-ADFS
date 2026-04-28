@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre Nosotros – TravelHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../public/css/styles.css">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+        /* ── Page Hero ── */
+        .page-hero {
+            min-height: 60vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        .page-hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(160deg, rgba(10,22,40,0.92) 0%, rgba(17,34,64,0.75) 50%, rgba(10,22,40,0.90) 100%),
+                url('https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1800&q=80') center/cover no-repeat;
+        }
+        .page-hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(212,168,67,0.02) 120px, rgba(212,168,67,0.02) 121px);
+        }
+        .page-hero-content { position: relative; z-index: 2; }
+
+        /* ── Timeline ── */
+        .timeline { position: relative; }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, var(--gold), transparent);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 70px;
+            margin-bottom: 2.5rem;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 48px; height: 48px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: 1rem;
+        }
+        .timeline-year {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.3rem;
+        }
+        .timeline-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--white);
+            margin-bottom: 0.4rem;
+        }
+        .timeline-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+        }
+
+        /* ── Team Card ── */
+        .team-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: var(--trans);
+        }
+        .team-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-gold);
+            border-color: rgba(212,168,67,0.5);
+        }
+        .team-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            filter: grayscale(20%);
+            transition: filter 0.4s;
+        }
+        .team-card:hover .team-img { filter: grayscale(0%); }
+        .team-body { padding: 1.4rem; }
+        .team-name {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--white);
+            margin-bottom: 0.2rem;
+        }
+        .team-role {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+            margin-bottom: 0.8rem;
+        }
+        .team-bio {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ── Values ── */
+        .value-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            color: var(--gold);
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+        }
+
+        /* ── Numbers band ── */
+        .numbers-band {
+            background: linear-gradient(135deg, rgba(212,168,67,0.08), rgba(212,168,67,0.03));
+            border-top: 1px solid var(--border-gold);
+            border-bottom: 1px solid var(--border-gold);
+            padding: 3.5rem 0;
+        }
+        .number-block { text-align: center; }
+        .number-val {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+        }
+        .number-lbl {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* ── Mission/Vision ── */
+        .mv-card {
+            background: var(--navy-mid);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            height: 100%;
+        }
+        .mv-icon {
+            width: 56px; height: 56px;
+            background: var(--gold-dim);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+        }
+        .mv-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--gold);
+            margin-bottom: 0.6rem;
+        }
+        .mv-title {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            color: var(--white);
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        .mv-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.85;
+        }
+
+        /* ── CTA band ── */
+        .cta-band {
+            background: linear-gradient(135deg, rgba(212,168,67,0.1), rgba(17,34,64,0.5));
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-lg);
+            padding: 3.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="th-navbar" id="mainNav">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/" class="th-logo">
+                <i class="fa-solid fa-plane-departure"></i>
+                Travel<span class="logo-dot">Hub</span>
+            </a>
+            <div class="d-none d-lg-flex align-items-center gap-4">
+                <a href="/buscar" class="nav-link-custom">Buscar</a>
+                <a href="#" class="nav-link-custom">Destinos</a>
+                <a href="/about" class="nav-link-custom" style="color:var(--gold)!important;">Nosotros</a>
+                <a href="/services" class="nav-link-custom">Servicios</a>
+                <a href="/contact" class="nav-link-custom">Contacto</a>
+            </div>
+            <div id="nav-user-area">
+                <a href="/login" class="btn-nav-login">
+                    <i class="fa-regular fa-user me-1"></i> Iniciar sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="container page-hero-content" style="padding-top:7rem; padding-bottom:4rem;">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-eyebrow anim-up"><i class="fa-solid fa-compass"></i> Nuestra historia</div>
+                <h1 class="hero-title anim-up anim-up-1">
+                    Más de una década<br>
+                    <strong>conectando sueños</strong>
+                </h1>
+                <p class="hero-sub anim-up anim-up-2">
+                    Somos un equipo apasionado por los viajes con sede en Guatemala, dedicado a transformar cada reserva en el inicio de una experiencia extraordinaria. Desde 2012, ayudamos a miles de viajeros a explorar el mundo con confianza.
+                </p>
+                <div class="d-flex flex-wrap gap-2 mt-4 anim-up anim-up-3">
+                    <span class="value-pill"><i class="fa-solid fa-handshake"></i> Confianza</span>
+                    <span class="value-pill"><i class="fa-solid fa-star"></i> Excelencia</span>
+                    <span class="value-pill"><i class="fa-solid fa-earth-americas"></i> Pasión por viajar</span>
+                    <span class="value-pill"><i class="fa-solid fa-leaf"></i> Turismo responsable</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NÚMEROS CLAVE -->
+<div class="numbers-band">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="number-block">
+                    <div class="number-val">12+</div>
+                    <div class="number-lbl">Años de experiencia</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="number-block">
+                    <div class="number-val">85K+</div>
+                    <div class="number-lbl">Viajeros atendidos</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="number-block">
+                    <div class="number-val">500+</div>
+                    <div class="number-lbl">Destinos disponibles</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="number-block">
+                    <div class="number-val">98%</div>
+                    <div class="number-lbl">Satisfacción del cliente</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MISIÓN Y VISIÓN -->
+<section class="py-5 mt-2">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">Nuestro propósito</div>
+            <h2 class="section-title">Lo que nos <em>mueve</em></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="mv-card">
+                    <div class="mv-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="mv-label">Misión</div>
+                    <div class="mv-title">Viajes sin barreras</div>
+                    <p class="mv-text">Hacer que viajar sea simple, accesible y memorable para cada persona. Integramos tecnología avanzada con atención humana para que cada reserva sea perfecta, desde el primer clic hasta el regreso a casa.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mv-card">
+                    <div class="mv-icon"><i class="fa-solid fa-eye"></i></div>
+                    <div class="mv-label">Visión</div>
+                    <div class="mv-title">Líderes en Latinoamérica</div>
+                    <p class="mv-text">Convertirnos en la plataforma de viajes más confiable y preferida de América Latina para 2030, reconocida por innovación tecnológica, atención personalizada y compromiso con el turismo sostenible.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mv-card">
+                    <div class="mv-icon"><i class="fa-solid fa-gem"></i></div>
+                    <div class="mv-label">Valores</div>
+                    <div class="mv-title">Nuestra esencia</div>
+                    <ul style="list-style:none;padding:0;margin:0;">
+                        <li style="display:flex;gap:0.8rem;margin-bottom:0.9rem;font-size:0.88rem;color:var(--text-muted);">
+                            <i class="fa-solid fa-check" style="color:var(--gold);margin-top:3px;"></i>
+                            <span><strong style="color:var(--cream);">Transparencia</strong> — Sin costos ocultos ni sorpresas.</span>
+                        </li>
+                        <li style="display:flex;gap:0.8rem;margin-bottom:0.9rem;font-size:0.88rem;color:var(--text-muted);">
+                            <i class="fa-solid fa-check" style="color:var(--gold);margin-top:3px;"></i>
+                            <span><strong style="color:var(--cream);">Innovación</strong> — Tecnología al servicio del viajero.</span>
+                        </li>
+                        <li style="display:flex;gap:0.8rem;margin-bottom:0.9rem;font-size:0.88rem;color:var(--text-muted);">
+                            <i class="fa-solid fa-check" style="color:var(--gold);margin-top:3px;"></i>
+                            <span><strong style="color:var(--cream);">Responsabilidad</strong> — Turismo consciente y sostenible.</span>
+                        </li>
+                        <li style="display:flex;gap:0.8rem;font-size:0.88rem;color:var(--text-muted);">
+                            <i class="fa-solid fa-check" style="color:var(--gold);margin-top:3px;"></i>
+                            <span><strong style="color:var(--cream);">Pasión</strong> — Amamos viajar y eso se nota.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- NUESTRA HISTORIA - TIMELINE -->
+<section class="py-5" style="background: rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="row align-items-start g-5">
+            <div class="col-lg-4">
+                <div class="section-eyebrow">Trayectoria</div>
+                <h2 class="section-title mb-3">Una historia de <em>crecimiento</em></h2>
+                <p style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;">Comenzamos como una pequeña agencia en Guatemala y hoy somos una plataforma digital presente en toda Latinoamérica. Cada año, un nuevo hito.</p>
+            </div>
+            <div class="col-lg-8">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><i class="fa-solid fa-flag"></i></div>
+                        <div class="timeline-year">2012</div>
+                        <div class="timeline-title">El inicio</div>
+                        <p class="timeline-desc">Fundamos TravelHub en Guatemala City con un equipo de 5 personas y la misión de democratizar los viajes en Centroamérica.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><i class="fa-solid fa-globe"></i></div>
+                        <div class="timeline-year">2015</div>
+                        <div class="timeline-title">Expansión regional</div>
+                        <p class="timeline-desc">Abrimos operaciones en México, Colombia y Perú. Alcanzamos los 10,000 viajeros atendidos y lanzamos nuestra primera app móvil.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><i class="fa-solid fa-rocket"></i></div>
+                        <div class="timeline-year">2019</div>
+                        <div class="timeline-title">Transformación digital</div>
+                        <p class="timeline-desc">Rediseñamos completamente nuestra plataforma con tecnología de búsqueda en tiempo real e integración con más de 200 aerolíneas y 50,000 hoteles.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="timeline-year">2021</div>
+                        <div class="timeline-title">Resiliencia y confianza</div>
+                        <p class="timeline-desc">Durante la pandemia, desarrollamos el sistema de reembolso más rápido del mercado y obtuvimos la certificación de Turismo Seguro de la OMT.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"><i class="fa-solid fa-star"></i></div>
+                        <div class="timeline-year">2024 – hoy</div>
+                        <div class="timeline-title">Nueva era</div>
+                        <p class="timeline-desc">Superamos los 85,000 viajeros atendidos. Incorporamos inteligencia artificial para personalización de viajes y lanzamos el programa de fidelidad TravelHub Gold.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- EQUIPO -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow justify-content-center">El equipo</div>
+            <h2 class="section-title">Las personas detrás de <em>TravelHub</em></h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card">
+                    <img class="team-img" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80" alt="CEO">
+                    <div class="team-body">
+                        <div class="team-name">Carlos Mendoza</div>
+                        <div class="team-role">CEO & Co-fundador</div>
+                        <p class="team-bio">15 años en la industria turística. Viajó a más de 60 países y cree que cada destino tiene una historia que merece ser contada.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card">
+                    <img class="team-img" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" alt="CTO">
+                    <div class="team-body">
+                        <div class="team-name">Sofía Ramírez</div>
+                        <div class="team-role">CTO & Co-fundadora</div>
+                        <p class="team-bio">Ingeniera de sistemas apasionada por crear experiencias digitales fluidas. Lidera el equipo de tecnología que hace funcionar TravelHub.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card">
+                    <img class="team-img" src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" alt="COO">
+                    <div class="team-body">
+                        <div class="team-name">Diego Fuentes</div>
+                        <div class="team-role">Director de Operaciones</div>
+                        <p class="team-bio">Especialista en logística de viajes con experiencia en las principales aerolíneas de Latinoamérica. Garantiza que cada reserva sea perfecta.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="team-card">
+                    <img class="team-img" src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80" alt="Marketing">
+                    <div class="team-body">
+                        <div class="team-name">Valentina Cruz</div>
+                        <div class="team-role">Directora de Marketing</div>
+                        <p class="team-bio">Creativa y estratega. Ha impulsado el crecimiento de TravelHub convirtiéndolo en la marca de viajes más reconocida de la región.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5" style="background: rgba(6,15,28,0.5);">
+    <div class="container">
+        <div class="cta-band text-center">
+            <div class="section-eyebrow justify-content-center mb-3"><i class="fa-solid fa-plane-departure"></i> ¿Listo para volar?</div>
+            <h2 class="section-title mb-3">Tu próxima aventura<br><em>comienza aquí</em></h2>
+            <p style="color:var(--text-muted);max-width:480px;margin:0 auto 2rem;font-size:0.95rem;line-height:1.8;">Únete a más de 85,000 viajeros que confían en TravelHub para explorar el mundo con los mejores precios y la mejor atención.</p>
+            <a href="/" class="btn-reservar">
+                <i class="fa-solid fa-magnifying-glass me-2"></i> Buscar mi viaje
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="th-footer">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="footer-logo">Travel<span>Hub</span></div>
+                <p class="footer-desc">Tu agencia de confianza para descubrir el mundo. Conectamos viajeros con experiencias inolvidables desde 2012.</p>
+                <div class="footer-social mt-3">
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Servicios</div>
+                <a href="/buscar" class="footer-link">Vuelos</a>
+                <a href="/buscar" class="footer-link">Hoteles</a>
+                <a href="/buscar" class="footer-link">Paquetes</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Compañía</div>
+                <a href="/about" class="footer-link">Sobre nosotros</a>
+                <a href="/contact" class="footer-link">Contáctanos</a>
+                <a href="#" class="footer-link">Trabaja con nosotros</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Legal</div>
+                <a href="#" class="footer-link">Términos y condiciones</a>
+                <a href="#" class="footer-link">Política de privacidad</a>
+                <a href="#" class="footer-link">Política de cancelación</a>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="footer-heading">Contacto</div>
+                <p class="footer-link"><i class="fa-solid fa-phone me-2" style="color:var(--gold)"></i>+502 XXXX-XXXX</p>
+                <p class="footer-link"><i class="fa-regular fa-envelope me-2" style="color:var(--gold)"></i>info@travelhub.com</p>
+                <p class="footer-link"><i class="fa-solid fa-location-dot me-2" style="color:var(--gold)"></i>Guatemala City</p>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <p class="footer-copy">© 2026 TravelHub. Todos los derechos reservados.</p>
+            <p class="footer-copy">Hecho con <i class="fa-solid fa-heart" style="color:var(--gold)"></i> en Guatemala</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', () => {
+        document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 60);
+    });
+    fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+            if (d?.ok && d.usuario) {
+                document.getElementById('nav-user-area').innerHTML =
+                    `<div class="d-flex align-items-center gap-3">
+                        <a href="/historial" class="btn-nav-user">
+                            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                            <span>${d.usuario.nombre}</span>
+                        </a>
+                        <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>`;
+            }
+        }).catch(() => {});
+    function logout() {
+        fetch('/api/auth/logout', { method: 'POST' }).then(() => location.reload());
+    }
+</script>
+</body>
+</html>

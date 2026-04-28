@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin — TravelNow</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .chart-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      transition: var(--trans);
+    }
+    .chart-card:hover {
+      box-shadow: var(--shadow-gold);
+      border-color: rgba(212,168,67,0.5);
+    }
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(212,168,67,0.15);
+    }
+    .chart-card-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: var(--white);
+      font-weight: 500;
+      margin: 0;
+    }
+    .chart-card-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+    }
+    .chart-card-icon {
+      width: 36px; height: 36px;
+      background: var(--gold-dim);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      height: 280px;
+    }
+    .chart-card.wide { grid-column: 1 / -1; }
+    .chart-card.wide .chart-canvas-wrap { height: 320px; }
+    .chart-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .chart-empty i { font-size: 2rem; color: var(--gold); margin-bottom: 0.6rem; opacity: 0.5; }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <nav class="admin-sidebar">
+    <div class="sidebar-logo">Travel<span>Now</span></div>
+    <a href="/admin/dashboard"     class="sidebar-nav-item active"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="/admin/usuarios"      class="sidebar-nav-item"><i class="fas fa-users"></i> Usuarios</a>
+    <a href="/admin/reservaciones" class="sidebar-nav-item"><i class="fas fa-plane"></i> Reservaciones</a>
+    <a href="/admin/proveedores"   class="sidebar-nav-item"><i class="fas fa-building"></i> Proveedores</a>
+    <a href="/admin/auditoria"     class="sidebar-nav-item"><i class="fas fa-shield-halved"></i> Auditoría</a>
+  </nav>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+      <div style="display:flex;gap:1rem;align-items:center;">
+        <span id="topbar-user">Admin Sistema</span>
+        <button class="btn-sm-gold" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <h2 style="font-family:var(--font-display);font-weight:300;color:var(--white);margin-bottom:0.5rem;">
+        ¡Bienvenido, <span id="admin-nombre">Admin</span>!
+      </h2>
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:2rem;">
+        Panel de administración de TravelNow
+      </p>
+
+      <!-- Tarjetas de estadísticas -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:2rem;">
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-usuarios">—</div>
+              <div class="admin-stat-lbl">Usuarios registrados</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-plane"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-reservas">—</div>
+              <div class="admin-stat-lbl">Reservaciones totales</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-confirmadas">—</div>
+              <div class="admin-stat-lbl">Confirmadas</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-stat-card">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="admin-stat-icon"><i class="fas fa-building"></i></div>
+            <div>
+              <div class="admin-stat-num" id="stat-proveedores">—</div>
+              <div class="admin-stat-lbl">Proveedores activos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <h3 style="font-family:var(--font-display);font-weight:400;color:var(--white);margin:2.5rem 0 0.3rem;">
+        Métricas <em style="color:var(--gold-light);font-style:italic;">visuales</em>
+      </h3>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0;">
+        Indicadores clave actualizados en tiempo real
+      </p>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Ingresos por tipo de reserva</h3>
+              <div class="chart-card-sub">Solo reservas confirmadas (USD)</div>
+            </div>
+            <div class="chart-card-icon"><i class="fas fa-dollar-sign"></i></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-ingresos"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Tipo de búsqueda más común</h3>
+              <div class="chart-card-sub">Total histórico de búsquedas</div>
+            </div>
+            <div class="chart-card-icon"><i class="fas fa-magnifying-glass"></i></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-busquedas"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card wide">
+          <div class="chart-card-header">
+            <div>
+              <h3 class="chart-card-title">Usuarios registrados por día</h3>
+              <div class="chart-card-sub">Últimos 30 días</div>
+            </div>
+            <div class="chart-card-icon"><i class="fas fa-user-plus"></i></div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-registros"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accesos rápidos -->
+      <div class="admin-panel" style="margin-top:2rem;">
+        <div class="admin-panel-header">
+          <h2>Accesos rápidos</h2>
+        </div>
+        <div class="admin-panel-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+            <a href="/admin/usuarios" style="text-decoration:none;">
+              <div class="feature-card-dark" style="text-align:center;">
+                <div class="feature-icon-wrap" style="margin:0 auto 1rem;"><i class="fas fa-users"></i></div>
+                <h4>Usuarios</h4>
+                <p>Gestionar cuentas y roles</p>
+              </div>
+            </a>
+            <a href="/admin/reservaciones" style="text-decoration:none;">
+              <div class="feature-card-dark" style="text-align:center;">
+                <div class="feature-icon-wrap" style="margin:0 auto 1rem;"><i class="fas fa-plane"></i></div>
+                <h4>Reservaciones</h4>
+                <p>Ver y gestionar reservas</p>
+              </div>
+            </a>
+            <a href="/admin/proveedores" style="text-decoration:none;">
+              <div class="feature-card-dark" style="text-align:center;">
+                <div class="feature-icon-wrap" style="margin:0 auto 1rem;"><i class="fas fa-building"></i></div>
+                <h4>Proveedores</h4>
+                <p>Aerolíneas y hoteles</p>
+              </div>
+            </a>
+            <a href="/admin/auditoria" style="text-decoration:none;">
+              <div class="feature-card-dark" style="text-align:center;">
+                <div class="feature-icon-wrap" style="margin:0 auto 1rem;"><i class="fas fa-shield-halved"></i></div>
+                <h4>Auditoría</h4>
+                <p>Logs de búsquedas</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  function logout() {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      .then(() => window.location.href = '/login');
+  }
+
+  const PALETA = {
+    gold:'#D4A843', goldLight:'#E8C06A', blue:'#60A5FA', green:'#34D399',
+    coral:'#E8633A', cream:'#F5F0E8',
+    muted:'rgba(245,240,232,0.55)', border:'rgba(212,168,67,0.25)',
+  };
+
+  Chart.defaults.color = PALETA.cream;
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.borderColor = PALETA.border;
+
+  const colorPorTipo = (tipo) => ({
+    vuelo: PALETA.gold, hotel: PALETA.blue, paquete: PALETA.green,
+  }[tipo] || PALETA.coral);
+
+  const labelTipo = (tipo) => ({
+    vuelo: 'Vuelos', hotel: 'Hoteles', paquete: 'Paquetes',
+  }[tipo] || tipo);
+
+  // Doughnut: Ingresos por tipo
+  function renderIngresos(canvasId, data) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if (!data || !data.length || data.every(d => parseFloat(d.total_ingresos) === 0)) {
+      ctx.canvas.parentElement.innerHTML = `
+        <div class="chart-empty">
+          <i class="fas fa-circle-info"></i>
+          Aún no hay reservaciones confirmadas para mostrar.
+        </div>`;
+      return;
+    }
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => labelTipo(d.tipo)),
+        datasets: [{
+          data: data.map(d => parseFloat(d.total_ingresos)),
+          backgroundColor: data.map(d => colorPorTipo(d.tipo)),
+          borderColor: '#0A1628', borderWidth: 3, hoverOffset: 12,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } } },
+          tooltip: {
+            backgroundColor: 'rgba(10,22,40,0.95)', borderColor: PALETA.gold, borderWidth: 1,
+            padding: 12, titleColor: PALETA.goldLight, bodyColor: PALETA.cream,
+            callbacks: {
+              label: (ctx) => {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                return `  $${ctx.parsed.toFixed(2)} USD  ·  ${pct}%`;
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // Bar horizontal: Búsquedas por tipo
+  function renderBusquedas(canvasId, data) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if (!data || !data.length || data.every(d => d.total === 0)) {
+      ctx.canvas.parentElement.innerHTML = `
+        <div class="chart-empty">
+          <i class="fas fa-circle-info"></i>
+          No hay búsquedas registradas todavía.
+        </div>`;
+      return;
+    }
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => labelTipo(d.tipo)),
+        datasets: [{
+          label: 'Búsquedas',
+          data: data.map(d => d.total),
+          backgroundColor: data.map(d => colorPorTipo(d.tipo) + 'CC'),
+          borderColor:     data.map(d => colorPorTipo(d.tipo)),
+          borderWidth: 1.5, borderRadius: 8, borderSkipped: false,
+        }],
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,22,40,0.95)', borderColor: PALETA.gold, borderWidth: 1,
+            padding: 12, titleColor: PALETA.goldLight, bodyColor: PALETA.cream,
+            callbacks: { label: (ctx) => `  ${ctx.parsed.x} búsqueda(s)` },
+          },
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { color: PALETA.muted, precision: 0 }, grid: { color: 'rgba(212,168,67,0.08)' } },
+          y: { ticks: { color: PALETA.cream, font: { size: 13 } }, grid: { display: false } },
+        },
+      },
+    });
+  }
+
+  // Line con relleno: Registros por día
+  function renderRegistros(canvasId, data) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if (!data || !data.length) {
+      ctx.canvas.parentElement.innerHTML = `
+        <div class="chart-empty">
+          <i class="fas fa-circle-info"></i>
+          Sin datos de registro en los últimos 30 días.
+        </div>`;
+      return;
+    }
+    const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+    gradient.addColorStop(0,   'rgba(212,168,67,0.45)');
+    gradient.addColorStop(0.6, 'rgba(212,168,67,0.10)');
+    gradient.addColorStop(1,   'rgba(212,168,67,0.00)');
+
+    const labelsCorto = data.map(d => {
+      const date = new Date(d.dia + 'T00:00:00');
+      return date.toLocaleDateString('es-GT', { day: '2-digit', month: 'short' });
+    });
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labelsCorto,
+        datasets: [{
+          label: 'Nuevos usuarios',
+          data:  data.map(d => d.total),
+          borderColor: PALETA.gold, backgroundColor: gradient,
+          borderWidth: 2.5, tension: 0.35, fill: true,
+          pointBackgroundColor: PALETA.gold, pointBorderColor: '#0A1628', pointBorderWidth: 2,
+          pointRadius: (ctx) => ctx.parsed.y > 0 ? 4 : 0, pointHoverRadius: 6,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,22,40,0.95)', borderColor: PALETA.gold, borderWidth: 1,
+            padding: 12, titleColor: PALETA.goldLight, bodyColor: PALETA.cream,
+            callbacks: {
+              title: (items) => {
+                const idx = items[0].dataIndex;
+                const date = new Date(data[idx].dia + 'T00:00:00');
+                return date.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+              },
+              label: (ctx) => `  ${ctx.parsed.y} nuevo(s) usuario(s)`,
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { color: PALETA.muted, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: PALETA.muted, precision: 0, stepSize: 1 }, grid: { color: 'rgba(212,168,67,0.08)' } },
+        },
+      },
+    });
+  }
+
+  async function inicializar() {
+    try {
+      const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json());
+      if (me?.ok && me.usuario) {
+        document.getElementById('admin-nombre').textContent = me.usuario.nombre;
+        document.getElementById('topbar-user').textContent  = me.usuario.nombre + ' (' + me.usuario.rol + ')';
+      } else {
+        window.location.href = '/login';
+        return;
+      }
+    } catch { window.location.href = '/login'; return; }
+
+    try {
+      const u = await fetch('/api/admin/usuarios/data?limit=1', { credentials: 'include' }).then(r => r.json());
+      if (u.ok) document.getElementById('stat-usuarios').textContent = u.total || 0;
+    } catch {}
+
+    try {
+      const r = await fetch('/api/admin/reservaciones/data?limit=1', { credentials: 'include' }).then(r => r.json());
+      if (r.ok) {
+        document.getElementById('stat-reservas').textContent    = r.total            || 0;
+        document.getElementById('stat-confirmadas').textContent = r.stats?.confirmadas || 0;
+      }
+    } catch {}
+
+    try {
+      const p = await fetch('/api/admin/proveedores/data?estado=activo', { credentials: 'include' }).then(r => r.json());
+      if (p.ok) document.getElementById('stat-proveedores').textContent = p.total || 0;
+    } catch {}
+
+    try {
+      const res  = await fetch('/api/admin/dashboard/charts', { credentials: 'include' });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message || 'Error al cargar gráficas');
+      renderIngresos ('chart-ingresos',  data.ingresos_por_tipo);
+      renderBusquedas('chart-busquedas', data.busquedas_por_tipo);
+      renderRegistros('chart-registros', data.registros_por_dia);
+    } catch (e) {
+      console.error('[Dashboard] Error cargando gráficas:', e);
+      ['chart-ingresos','chart-busquedas','chart-registros'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.parentElement.innerHTML = `
+          <div class="chart-empty">
+            <i class="fas fa-triangle-exclamation" style="color:#F87171;"></i>
+            No se pudo cargar la gráfica.
+          </div>`;
+      });
+    }
+  }
+
+  inicializar();
+</script>
+</body>
+</html>

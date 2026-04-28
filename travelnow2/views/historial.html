@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Reservaciones — TravelNow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    body { background: var(--navy); }
+
+    .hist-hero {
+      padding: 6rem 0 2.5rem;
+      background: linear-gradient(160deg, #0A1628 0%, #112240 60%, #0A1628 100%);
+      border-bottom: 1px solid var(--border-gold);
+    }
+
+    /* Filtros */
+    .hist-filters {
+      display: flex; gap: 0.6rem; flex-wrap: wrap;
+      background: rgba(17,34,64,0.6);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .hist-tab {
+      background: transparent;
+      border: 1px solid var(--border-gold);
+      color: var(--text-muted);
+      padding: 0.45rem 1.1rem;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: var(--trans);
+    }
+    .hist-tab.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+    .hist-tab:hover { border-color: var(--gold); color: var(--cream); }
+
+    /* Tarjeta de reserva */
+    .res-card {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      margin-bottom: 1.3rem;
+      transition: var(--trans);
+    }
+    .res-card:hover { border-color: rgba(212,168,67,0.5); box-shadow: var(--shadow-gold); }
+
+    .res-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.6rem;
+      background: rgba(10,22,40,0.5);
+      border-bottom: 1px solid var(--border-gold);
+      flex-wrap: wrap; gap: 0.8rem;
+    }
+    .res-code {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .res-code small { font-family: var(--font-body); color: var(--text-muted); font-size: 0.72rem; margin-left: 0.5rem; font-weight: 400; letter-spacing: 0; }
+
+    .res-body {
+      padding: 1.5rem 1.6rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .res-body { grid-template-columns: 1fr; }
+    }
+
+    .res-info-block { display: flex; align-items: flex-start; gap: 1rem; }
+    .res-info-icon {
+      width: 52px; height: 52px;
+      background: var(--gold-dim);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .res-info-main {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--white);
+      font-weight: 500;
+      line-height: 1.3;
+    }
+    .res-info-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      display: flex; flex-wrap: wrap; gap: 0.8rem;
+    }
+    .res-info-sub i { color: var(--gold); font-size: 0.72rem; margin-right: 0.3rem; }
+
+    .res-total {
+      text-align: right;
+      min-width: 140px;
+    }
+    .res-total-lbl {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+    .res-total-val {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      margin-top: 0.2rem;
+    }
+    .res-total-val small {
+      font-family: var(--font-body);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .res-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 1rem 1.6rem;
+      border-top: 1px solid rgba(212,168,67,0.15);
+      background: rgba(10,22,40,0.3);
+    }
+    .res-action-btn {
+      background: transparent;
+      border: 1px solid var(--border-gold);
+      color: var(--cream);
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: var(--trans);
+    }
+    .res-action-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .res-action-btn.primary { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+    .res-action-btn.primary:hover { background: var(--gold); color: var(--navy); }
+    .res-action-btn.danger { border-color: rgba(248,113,113,0.3); color: #F87171; }
+    .res-action-btn.danger:hover { background: rgba(248,113,113,0.1); border-color: #F87171; color: #F87171; }
+    .res-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Badges de estado */
+    .state-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .state-confirmada { background: rgba(52,211,153,0.12); color: #34D399; border: 1px solid rgba(52,211,153,0.3); }
+    .state-pendiente  { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--border-gold); }
+    .state-cancelada  { background: rgba(248,113,113,0.12); color: #F87171; border: 1px solid rgba(248,113,113,0.3); }
+
+    /* Estados vacíos */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: rgba(17,34,64,0.5);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      color: var(--text-muted);
+    }
+    .empty-state i { font-size: 3rem; color: var(--gold); display: block; margin-bottom: 1rem; }
+    .empty-state h3 { font-family: var(--font-display); font-size: 1.6rem; color: var(--cream); margin-bottom: 0.5rem; }
+
+    /* Paginación */
+    .pag-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .pag-info { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* Toast */
+    .toast-msg {
+      position: fixed; bottom: 2rem; right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      background: var(--navy-mid);
+      border: 1px solid var(--gold);
+      color: var(--cream);
+      z-index: 9999;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: none;
+      min-width: 280px; max-width: 380px;
+    }
+    .toast-msg.show { display: block; animation: slideIn 0.3s both; }
+    .toast-msg.error   { border-color: var(--coral); color: var(--coral); }
+    .toast-msg.success { border-color: #22c55e; color: #22c55e; }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* Skeleton loading */
+    .skeleton-card {
+      background: rgba(17,34,64,0.5);
+      border: 1px solid rgba(212,168,67,0.12);
+      border-radius: var(--radius-lg);
+      height: 180px;
+      margin-bottom: 1.3rem;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+    .btn-back-res {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1.2rem;
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: var(--trans);
+    }
+    .btn-back-res:hover { border-color: var(--gold); color: var(--gold); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Now</span></a>
+        <div class="d-none d-lg-flex align-items-center gap-4">
+          <a href="/" class="nav-link-custom">Inicio</a>
+          <a href="/buscar" class="nav-link-custom">Buscar</a>
+          <a href="/historial" class="nav-link-custom" style="color:var(--gold)">Mis reservas</a>
+        </div>
+        <div id="nav-user-area">
+          <a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hist-hero">
+    <div class="container">
+      <div class="hero-eyebrow"><i class="fa-solid fa-suitcase"></i> Mi cuenta</div>
+      <h1 style="font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:300;color:var(--white);">
+        Mis <em style="font-style:italic;color:var(--gold-light)">reservaciones</em>
+      </h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;margin:0;">
+        Consulta, descarga o gestiona tus reservas de viaje.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contenido -->
+  <div style="padding:2rem 0 5rem;">
+    <div class="container" style="max-width:1050px;">
+
+      <!-- Filtros -->
+      <div class="hist-filters">
+        <button class="hist-tab active" data-filter="todos" onclick="filtrar('todos')">
+          <i class="fa-solid fa-list me-1"></i> Todas
+        </button>
+        <button class="hist-tab" data-filter="confirmada" onclick="filtrar('confirmada')">
+          <i class="fa-solid fa-check me-1"></i> Confirmadas
+        </button>
+        <button class="hist-tab" data-filter="pendiente" onclick="filtrar('pendiente')">
+          <i class="fa-regular fa-clock me-1"></i> Pendientes
+        </button>
+        <button class="hist-tab" data-filter="cancelada" onclick="filtrar('cancelada')">
+          <i class="fa-solid fa-xmark me-1"></i> Canceladas
+        </button>
+        <div class="ms-auto align-self-center">
+          <span id="total-counter" style="color:var(--text-muted);font-size:0.85rem;">—</span>
+        </div>
+      </div>
+
+      <!-- Lista -->
+      <div id="reservas-list">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pag-row" id="pag-row" style="display:none;">
+        <span class="pag-info" id="pag-info">—</span>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-back-res" id="btn-prev" onclick="cambiarPagina(-1)" disabled>
+            <i class="fa-solid fa-arrow-left"></i> Anterior
+          </button>
+          <button class="btn-back-res" id="btn-next" onclick="cambiarPagina(1)">
+            Siguiente <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast-msg">
+    <i id="toast-icon" class="fa-solid fa-circle-info me-2"></i>
+    <span id="toast-msg"></span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /**
+     * Vista de historial de reservaciones del usuario autenticado.
+     * - Paginación: 10 reservas por página.
+     * - Filtrado en cliente (la API ya devuelve todas).
+     * - Acciones: ver detalles, descargar PDF, cancelar.
+     */
+
+    const LIMIT = 10;
+    let paginaActual = 1;
+    let totalGlobal  = 0;
+    let filtroActivo = 'todos';
+    let reservasData = [];
+
+    /* ── Toast ─────────────────────────── */
+    function showToast(msg, tipo = 'info') {
+      const t    = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      document.getElementById('toast-msg').textContent = msg;
+      t.className = 'toast-msg show ' + tipo;
+      icon.className = 'me-2 fa-solid ' + (
+        tipo === 'error'   ? 'fa-circle-xmark' :
+        tipo === 'success' ? 'fa-circle-check' : 'fa-circle-info'
+      );
+      setTimeout(() => t.classList.remove('show'), 4000);
+    }
+
+    /* ── Auth guard + navbar ───────────── */
+    async function verificarSesion() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        const d = await r.json();
+        if (!d?.ok || !d.usuario) {
+          window.location.href = '/login';
+          return null;
+        }
+        document.getElementById('nav-user-area').innerHTML =
+          `<a href="#" class="btn-nav-user">
+             <div class="avatar"><i class="fa-solid fa-user"></i></div>
+             <span>${d.usuario.nombre}</span>
+           </a>`;
+        return d.usuario;
+      } catch {
+        window.location.href = '/login';
+        return null;
+      }
+    }
+
+    /* ── Cargar reservas desde API ─────── */
+    async function cargarReservas() {
+      const listEl = document.getElementById('reservas-list');
+      listEl.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
+
+      try {
+        const res  = await fetch(`/api/reservaciones/usuario/historial?page=${paginaActual}&limit=${LIMIT}`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'Error al cargar reservaciones');
+
+        reservasData = data.data || [];
+        totalGlobal  = data.total || 0;
+        renderLista();
+      } catch (e) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);"></i>
+            <h3>No se pudo cargar</h3>
+            <p>${e.message}</p>
+          </div>`;
+        document.getElementById('pag-row').style.display = 'none';
+      }
+    }
+
+    /* ── Render de tarjetas ────────────── */
+    function renderLista() {
+      const listEl = document.getElementById('reservas-list');
+
+      // Aplicar filtro en cliente
+      const items = filtroActivo === 'todos'
+        ? reservasData
+        : reservasData.filter(r => r.estado === filtroActivo);
+
+      document.getElementById('total-counter').textContent =
+        `${totalGlobal} reservación(es) en total`;
+
+      if (!reservasData.length) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-suitcase-rolling"></i>
+            <h3>No tienes reservaciones</h3>
+            <p>Aún no has hecho ninguna reserva. ¡Empieza a planear tu próximo viaje!</p>
+            <a href="/buscar" class="btn-reservar mt-3" style="display:inline-block;margin-top:1rem;">
+              <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar ahora
+            </a>
+          </div>`;
+        document.getElementById('pag-row').style.display = 'none';
+        return;
+      }
+
+      if (!items.length) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-filter"></i>
+            <h3>Sin resultados con este filtro</h3>
+            <p>No hay reservaciones en el estado seleccionado en esta página.</p>
+          </div>`;
+      } else {
+        listEl.innerHTML = items.map(r => renderCard(r)).join('');
+      }
+
+      // Paginación (la aplicamos sobre totalGlobal, aunque el filtro sea cliente)
+      const pagRow = document.getElementById('pag-row');
+      if (totalGlobal > LIMIT) {
+        pagRow.style.display = 'flex';
+        document.getElementById('pag-info').textContent =
+          `Página ${paginaActual} de ${Math.ceil(totalGlobal / LIMIT)}`;
+        document.getElementById('btn-prev').disabled = paginaActual <= 1;
+        document.getElementById('btn-next').disabled = paginaActual * LIMIT >= totalGlobal;
+      } else {
+        pagRow.style.display = 'none';
+      }
+    }
+
+    function renderCard(r) {
+      const total     = parseFloat(r.total || 0).toFixed(2);
+      const fecha     = r.fecha_reserva ? new Date(r.fecha_reserva).toLocaleDateString('es-GT', { day:'numeric', month:'long', year:'numeric' }) : '—';
+      const iconoTipo = r.tipo === 'hotel' ? 'fa-building' : (r.tipo === 'paquete' ? 'fa-bag-shopping' : 'fa-plane');
+      const nombreTipo = ({ vuelo:'Vuelo', hotel:'Hospedaje', paquete:'Paquete' }[r.tipo] || r.tipo || '—');
+      const stateCls  = `state-${r.estado || 'pendiente'}`;
+      const estadoTxt = (r.estado || 'pendiente').toUpperCase();
+
+      const puedeCancelar = r.estado === 'confirmada' || r.estado === 'pendiente';
+
+      return `
+        <div class="res-card">
+          <div class="res-card-head">
+            <div>
+              <span class="res-code">${r.codigo_reserva}</span>
+              <small>Reservado el ${fecha}</small>
+            </div>
+            <span class="state-badge ${stateCls}">${estadoTxt}</span>
+          </div>
+          <div class="res-body">
+            <div class="res-info-block">
+              <div class="res-info-icon"><i class="fa-solid ${iconoTipo}"></i></div>
+              <div>
+                <div class="res-info-main">${nombreTipo}</div>
+                <div class="res-info-sub">
+                  <span><i class="fa-solid fa-hashtag"></i>ID #${r.id_reservacion}</span>
+                  <span><i class="fa-solid fa-dollar-sign"></i>${r.moneda || 'USD'}</span>
+                </div>
+              </div>
+            </div>
+            <div class="res-total">
+              <div class="res-total-lbl">Total pagado</div>
+              <div class="res-total-val">$${total} <small>${r.moneda || 'USD'}</small></div>
+            </div>
+          </div>
+          <div class="res-actions">
+            <a href="/confirmacion?id=${r.id_reservacion}&codigo=${r.codigo_reserva}&email_ok=true" class="res-action-btn primary">
+              <i class="fa-regular fa-eye"></i> Ver detalles
+            </a>
+            <button class="res-action-btn" onclick="descargarPDF(${r.id_reservacion}, '${r.codigo_reserva}', this)">
+              <i class="fa-regular fa-file-pdf"></i> Descargar PDF
+            </button>
+            ${puedeCancelar ? `
+              <button class="res-action-btn danger" onclick="cancelarReserva(${r.id_reservacion}, '${r.codigo_reserva}')">
+                <i class="fa-solid fa-ban"></i> Cancelar
+              </button>
+            ` : ''}
+          </div>
+        </div>`;
+    }
+
+    /* ── Filtros ───────────────────────── */
+    function filtrar(estado) {
+      filtroActivo = estado;
+      document.querySelectorAll('.hist-tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.filter === estado)
+      );
+      renderLista();
+    }
+
+    /* ── Paginación ────────────────────── */
+    function cambiarPagina(dir) {
+      paginaActual += dir;
+      if (paginaActual < 1) paginaActual = 1;
+      cargarReservas();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── Descargar PDF ─────────────────── */
+    async function descargarPDF(id, codigo, btn) {
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Descargando...';
+      try {
+        const res = await fetch(`/api/reservaciones/${id}/pdf`, { credentials: 'include' });
+        if (!res.ok) {
+          let msg = 'Error al descargar';
+          try { const j = await res.json(); msg = j.message || msg; } catch {}
+          throw new Error(msg);
+        }
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `TravelNow-${codigo}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('PDF descargado correctamente', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    }
+
+    /* ── Cancelar reserva ──────────────── */
+    async function cancelarReserva(id, codigo) {
+      if (!confirm(`¿Seguro que deseas cancelar la reservación ${codigo}?\n\nEsta acción no se puede deshacer.`)) return;
+
+      try {
+        const res  = await fetch(`/api/reservaciones/${id}/cancelar`, {
+          method: 'PUT',
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'No se pudo cancelar');
+
+        showToast('Reservación cancelada correctamente', 'success');
+        // Recargar para ver el nuevo estado
+        cargarReservas();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    /* ── Init ──────────────────────────── */
+    (async () => {
+      const usr = await verificarSesion();
+      if (usr) await cargarReservas();
+    })();
+  </script>
+</body>
+</html>

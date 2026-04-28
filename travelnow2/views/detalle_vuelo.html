@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Vuelo — TravelNow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    body { background: var(--navy); }
+    .detail-section {
+      background: rgba(17,34,64,0.7);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+    .detail-header {
+      background: rgba(10,22,40,0.5);
+      border-bottom: 1px solid var(--border-gold);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .detail-header h2 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--white);
+      margin: 0;
+    }
+    .detail-header i { color: var(--gold); }
+    .detail-body { padding: 2rem; }
+    .route-big { display: grid; grid-template-columns: 1fr auto 1fr; gap: 3rem; align-items: center; margin-bottom: 2rem; }
+    .route-loc { text-align: center; }
+    .route-time-big { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: var(--white); line-height: 1; }
+    .route-code-big { font-size: 1.4rem; font-weight: 600; color: var(--cream); margin-top: 0.3rem; }
+    .route-name-big { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .route-date-big { font-size: 0.78rem; color: var(--gold); margin-top: 0.5rem; }
+    .route-center-big { text-align: center; }
+    .route-dur-big { font-size: 1.1rem; font-weight: 600; color: var(--gold); margin-bottom: 0.6rem; }
+    .route-line-big { height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); position: relative; margin: 0.5rem 0; }
+    .route-line-big::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 8px; height: 8px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 8px rgba(212,168,67,0.5); }
+    .direct-pill { display: inline-block; background: var(--gold-dim); border: 1px solid var(--border-gold); color: var(--gold); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-top: 0.4rem; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .info-item-dark { display: flex; align-items: flex-start; gap: 0.8rem; background: rgba(10,22,40,0.4); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); padding: 1rem; }
+    .info-icon-dark { width: 34px; height: 34px; background: var(--gold-dim); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 0.85rem; flex-shrink: 0; }
+    .info-lbl { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .info-val { font-size: 0.88rem; color: var(--cream); font-weight: 500; margin-top: 0.15rem; }
+    .price-sidebar-card {
+      background: rgba(6,15,28,0.9);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      position: sticky;
+      top: 90px;
+    }
+    .price-per-person { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .big-price-sidebar { font-family: var(--font-display); font-size: 3rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .price-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .price-breakdown-dark { background: rgba(10,22,40,0.5); border: 1px solid rgba(212,168,67,0.1); border-radius: var(--radius-sm); padding: 1.2rem; margin: 1.2rem 0; }
+    .pb-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+    .pb-total { display: flex; justify-content: space-between; padding-top: 0.8rem; margin-top: 0.4rem; border-top: 1px solid var(--border-gold); font-weight: 600; color: var(--white); }
+    .trust-mini { display: flex; justify-content: space-around; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-gold); }
+    .trust-mini-item { text-align: center; font-size: 0.7rem; color: var(--text-muted); }
+    .trust-mini-item i { display: block; font-size: 1.1rem; color: var(--gold); margin-bottom: 0.3rem; }
+    .btn-back-res { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.6rem 1.3rem; font-size: 0.82rem; text-decoration: none; transition: var(--trans); }
+    .btn-back-res:hover { border-color: var(--gold); color: var(--gold); }
+    .loading-full { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
+    .error-box { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+    .error-box i { font-size: 3rem; color: var(--coral); display: block; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+  <nav class="th-navbar scrolled">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="/" class="th-logo"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Now</span></a>
+        <div class="d-flex align-items-center gap-3">
+          <a href="javascript:history.back()" class="btn-back-res"><i class="fa-solid fa-arrow-left"></i> Volver a resultados</a>
+          <div id="nav-user-area"><a href="/login" class="btn-nav-login"><i class="fa-regular fa-user me-1"></i> Iniciar sesión</a></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Loading -->
+  <div id="loading-view" style="padding-top:90px;">
+    <div class="loading-full">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--gold);"></i>
+      <p style="margin-top:1rem;">Cargando detalles del vuelo...</p>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-view" style="padding-top:90px;display:none;">
+    <div class="error-box">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <h3 style="font-family:var(--font-display);color:var(--cream);">No se pudo cargar el vuelo</h3>
+      <p id="error-msg"></p>
+      <a href="/buscar" class="btn-reservar mt-3">Nueva búsqueda</a>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main-view" style="padding:90px 0 5rem;display:none;">
+    <div class="container">
+      <div class="row g-4">
+
+        <div class="col-lg-8">
+          <div class="detail-section anim-up">
+            <div class="detail-header">
+              <i class="fa-solid fa-plane-departure"></i>
+              <h2 id="head-proveedor">—</h2>
+              <div class="ms-auto">
+                <span id="head-codigo" style="color:var(--text-muted);font-size:0.85rem;"></span>
+              </div>
+            </div>
+            <div class="detail-body">
+              <div class="route-big">
+                <div class="route-loc">
+                  <div class="route-time-big" id="hora-salida">—</div>
+                  <div class="route-code-big" id="origen-code">—</div>
+                  <div class="route-name-big" id="origen-ciudad">—</div>
+                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i><span id="fecha-salida">—</span></div>
+                </div>
+                <div class="route-center-big">
+                  <div class="route-dur-big" id="duracion">Vuelo</div>
+                  <div class="route-line-big"></div>
+                  <div class="direct-pill" id="pill-tipo"><i class="fa-solid fa-check me-1"></i>Directo</div>
+                </div>
+                <div class="route-loc">
+                  <div class="route-time-big" id="hora-llegada">—</div>
+                  <div class="route-code-big" id="destino-code">—</div>
+                  <div class="route-name-big" id="destino-ciudad">—</div>
+                  <div class="route-date-big"><i class="fa-regular fa-calendar me-1"></i><span id="fecha-llegada">—</span></div>
+                </div>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-chair"></i></div>
+                  <div><div class="info-lbl">Clase</div><div class="info-val" id="info-asiento">—</div></div>
+                </div>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-users"></i></div>
+                  <div><div class="info-lbl">Asientos disponibles</div><div class="info-val" id="info-disponibles">—</div></div>
+                </div>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-hashtag"></i></div>
+                  <div><div class="info-lbl">Código de vuelo</div><div class="info-val" id="info-codigo">—</div></div>
+                </div>
+                <div class="info-item-dark">
+                  <div class="info-icon-dark"><i class="fa-solid fa-building"></i></div>
+                  <div><div class="info-lbl">Aerolínea</div><div class="info-val" id="info-aerolinea">—</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="price-sidebar-card anim-up anim-up-1">
+            <div class="text-center mb-3" style="padding-bottom:1.2rem;border-bottom:1px solid var(--border-gold);">
+              <div class="price-per-person">Precio por persona</div>
+              <div class="big-price-sidebar" id="precio-unitario">$0</div>
+              <div class="price-note">Precio de la agencia con comisión incluida</div>
+            </div>
+            <label class="th-label"><i class="fa-solid fa-users me-1"></i> Número de pasajeros</label>
+            <div class="input-group-custom mb-3">
+              <i class="input-icon fa-solid fa-users"></i>
+              <select class="th-input" id="num-pasajeros" onchange="actualizarPrecio()">
+                <option value="1">1 Pasajero</option>
+                <option value="2">2 Pasajeros</option>
+                <option value="3">3 Pasajeros</option>
+                <option value="4">4 Pasajeros</option>
+              </select>
+            </div>
+            <div class="price-breakdown-dark">
+              <div class="pb-row"><span id="label-base">Tarifa base (x1)</span><span id="val-base">$0.00</span></div>
+              <div class="pb-total"><span>Total</span><span id="val-total">$0.00</span></div>
+            </div>
+            <a href="#" id="btn-reservar" class="btn-buscar text-center" style="text-decoration:none;">
+              <i class="fa-solid fa-cart-plus me-2"></i> Reservar ahora
+            </a>
+            <div class="trust-mini">
+              <div class="trust-mini-item"><i class="fa-solid fa-shield-halved"></i>Pago<br>seguro</div>
+              <div class="trust-mini-item"><i class="fa-solid fa-tag"></i>Mejor<br>precio</div>
+              <div class="trust-mini-item"><i class="fa-solid fa-headset"></i>Soporte<br>24/7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const urlParams   = new URLSearchParams(window.location.search);
+    const idVuelo     = urlParams.get('id_vuelo');
+    const idProveedor = urlParams.get('id_proveedor');
+
+    let vueloData = null;
+
+    function showError(msg) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'none';
+      document.getElementById('error-view').style.display   = 'block';
+      document.getElementById('error-msg').textContent      = msg;
+    }
+
+    function formatHora(v) {
+      if (v.hora_salida && v.hora_llegada) return { hs: v.hora_salida, hl: v.hora_llegada };
+      const fmt = f => f ? new Date(f).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }) : '—';
+      return { hs: fmt(v.fecha_salida), hl: fmt(v.fecha_llegada) };
+    }
+
+    function formatFecha(f) {
+      return f ? new Date(f).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    }
+
+    async function cargarVuelo() {
+      if (!idVuelo || !idProveedor) {
+        showError('Faltan parámetros para identificar el vuelo.');
+        return;
+      }
+
+      // Reenviamos todos los params de la URL al backend (origen, destino, fecha_salida, etc.)
+      const params = new URLSearchParams(urlParams);
+
+      try {
+        const res  = await fetch(`/api/search/flight/detail?${params.toString()}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.message || 'No se pudo obtener el vuelo');
+
+        vueloData = data.data;
+        render(vueloData);
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function render(v) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('main-view').style.display    = 'block';
+
+      const { hs, hl } = formatHora(v);
+
+      document.getElementById('head-proveedor').textContent = v.nombre_proveedor || 'Aerolínea';
+      document.getElementById('head-codigo').textContent    = v.codigo_vuelo ? `· ${v.codigo_vuelo}` : '';
+
+      document.getElementById('hora-salida').textContent   = hs;
+      document.getElementById('hora-llegada').textContent  = hl;
+      document.getElementById('origen-code').textContent   = v.origen_iata  || v.origen  || '—';
+      document.getElementById('destino-code').textContent  = v.destino_iata || v.destino || '—';
+      document.getElementById('origen-ciudad').textContent = v.origen_ciudad  || '';
+      document.getElementById('destino-ciudad').textContent= v.destino_ciudad || '';
+      document.getElementById('fecha-salida').textContent  = formatFecha(v.fecha_salida);
+      document.getElementById('fecha-llegada').textContent = formatFecha(v.fecha_llegada || v.fecha_salida);
+
+      document.getElementById('info-asiento').textContent     = v.tipo_asiento || '—';
+      document.getElementById('info-disponibles').textContent = v.asientos_disponibles ?? '—';
+      document.getElementById('info-codigo').textContent      = v.codigo_vuelo || '—';
+      document.getElementById('info-aerolinea').textContent   = v.nombre_proveedor || '—';
+
+      const precio = parseFloat(v.precio_agencia || 0);
+      document.getElementById('precio-unitario').textContent = `$${precio.toFixed(2)}`;
+      actualizarPrecio();
+
+      // Link de reservar con todos los datos del vuelo para el checkout
+      const checkoutParams = new URLSearchParams({
+        tipo:          'vuelo',
+        id_vuelo:      v.id_vuelo     || '',
+        id_proveedor:  v.id_proveedor || '',
+        precio:        precio,
+        asiento:       v.tipo_asiento || 'turista',
+        origen:        v.origen_iata  || v.origen  || urlParams.get('origen')  || '',
+        destino:       v.destino_iata || v.destino || urlParams.get('destino') || '',
+        fecha_salida:  v.fecha_salida || urlParams.get('fecha_salida') || '',
+        num_pasajeros: document.getElementById('num-pasajeros').value,
+      });
+      document.getElementById('btn-reservar').href = `/checkout?${checkoutParams.toString()}`;
+    }
+
+    function actualizarPrecio() {
+      if (!vueloData) return;
+      const n = parseInt(document.getElementById('num-pasajeros').value) || 1;
+      const precio = parseFloat(vueloData.precio_agencia || 0);
+      const subtotal = precio * n;
+      document.getElementById('label-base').textContent = `Tarifa base (x${n})`;
+      document.getElementById('val-base').textContent   = `$${subtotal.toFixed(2)}`;
+      document.getElementById('val-total').textContent  = `$${subtotal.toFixed(2)}`;
+
+      // Actualizar link de reservar con el nuevo número de pasajeros
+      const btn = document.getElementById('btn-reservar');
+      if (btn.href) {
+        const u = new URL(btn.href);
+        u.searchParams.set('num_pasajeros', n);
+        btn.href = u.toString();
+      }
+    }
+
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('nav-user-area').innerHTML =
+            `<a href="#" class="btn-nav-user"><div class="avatar"><i class="fa-solid fa-user"></i></div><span>${d.usuario.nombre}</span></a>`;
+        }
+      }).catch(() => {});
+
+    cargarVuelo();
+  </script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — TravelHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    /*!
+     * \file checkout.html
+     * \brief Página de checkout/pago de TravelHub
+     * \version 1.0
+     * \date 2026
+     * \author TravelHub Team
+     * 
+     * Esta página maneja el proceso de pago para reservas de vuelos, hoteles y paquetes.
+     * Incluye formulario de datos del pasajero, método de pago y resumen de la reserva.
+     */
+     
+    /*!
+     * \brief Estilos específicos para la página de checkout
+     * Estos estilos sobrescriben o extienden los estilos base del sistema
+     */
+    body { background: var(--navy); }
+    .checkout-progress { background: rgba(10,22,40,0.8); border-bottom: 1px solid var(--border-gold); padding: 1rem 0; backdrop-filter: blur(20px); }
+    .progress-steps-row { display: flex; align-items: center; justify-content: center; gap: 0; }
+    .prog-step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; z-index: 1; }
+    .prog-circle { width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--border-gold); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-muted); background: var(--navy); transition: var(--trans); }
+    .prog-step.active .prog-circle { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); box-shadow: 0 0 10px rgba(212,168,67,0.2); }
+    .prog-step.done   .prog-circle { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+    .prog-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+    .prog-step.active .prog-label { color: var(--gold); }
+    .prog-line { flex: 1; height: 1px; background: var(--border-gold); max-width: 80px; }
+    .checkout-section { background: rgba(17,34,64,0.7); border: 1px solid var(--border-gold); border-radius: var(--radius-md); padding: 2rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); }
+    .checkout-section-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: var(--white); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.7rem; }
+    .checkout-section-title i { color: var(--gold); }
+    .pay-method { border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1rem 1.2rem; cursor: pointer; transition: var(--trans); display: flex; align-items: center; gap: 0.8rem; color: var(--text-muted); font-size: 0.88rem; }
+    .pay-method:hover { border-color: var(--gold); color: var(--cream); }
+    .pay-method.active { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); }
+    .pay-method i { font-size: 1.2rem; }
+    .order-card { background: rgba(6,15,28,0.8); border: 1px solid var(--border-gold); border-radius: var(--radius-lg); padding: 2rem; position: sticky; top: 90px; }
+    .order-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; color: var(--white); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-gold); }
+    .order-item { background: rgba(17,34,64,0.6); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 1.2rem; margin-bottom: 1rem; }
+    .order-item-head { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.8rem; }
+    .order-item-icon { width: 38px; height: 38px; background: var(--gold-dim); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 1rem; flex-shrink: 0; }
+    .order-item-name { font-size: 0.9rem; font-weight: 500; color: var(--cream); }
+    .order-item-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .order-info-line { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .order-info-line i { color: var(--gold); font-size: 0.75rem; width: 14px; }
+    .price-row-sum   { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.7rem; }
+    .price-row-total { display: flex; justify-content: space-between; padding-top: 1rem; margin-top: 0.5rem; border-top: 1px solid var(--border-gold); font-family: var(--font-display); font-size: 1.4rem; color: var(--gold); }
+    .security-notice { background: rgba(52,211,153,0.08); border-left: 3px solid #34D399; border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin: 1.5rem 0; display: flex; align-items: flex-start; gap: 0.8rem; }
+    .security-notice i { color: #34D399; margin-top: 2px; flex-shrink: 0; }
+    .security-notice p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+    .btn-back-link { color: var(--text-muted); background: transparent; border: 1px solid var(--border-gold); border-radius: var(--radius-sm); padding: 0.85rem 1.8rem; font-size: 0.88rem; cursor: pointer; transition: var(--trans); font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-back-link:hover { border-color: var(--gold); color: var(--cream); }
+    .email-warn { background: rgba(232,99,58,0.1); border: 1px solid rgba(232,99,58,0.35); border-radius: var(--radius-sm); padding: 1rem 1.2rem; margin-top: 1rem; display: none; font-size: 0.85rem; color: #F09070; }
+    .email-warn.show { display: flex; gap: 0.7rem; align-items: flex-start; }
+    .btn-auth.loading { opacity: 0.7; cursor: not-allowed; }
+    .skeleton { background: rgba(212,168,67,0.06); border-radius: 4px; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%,100%{opacity:0.5}50%{opacity:1} }
+  </style>
+</head>
+<body>
+
+  <!--!
+   * \brief Barra de navegación superior
+   * \details Muestra el logo de TravelHub y un indicador de pago seguro
+   * Es fija en la parte superior con efecto blur
+  -->
+  <nav style="position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);padding:1rem 0;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="/" class="th-logo" style="font-size:1.5rem;"><i class="fa-solid fa-plane-departure"></i> Travel<span class="logo-dot">Hub</span></a>
+      <div style="display:flex;align-items:center;gap:0.6rem;color:#34D399;font-size:0.85rem;font-weight:500;">
+        <i class="fa-solid fa-shield-halved"></i> Pago 100% seguro
+      </div>
+    </div>
+  </nav>
+
+  <!--!
+   * \brief Barra de progreso del checkout
+   * \details Muestra los 3 pasos del proceso: Carrito, Información y Confirmación
+   * El paso actual se marca como "active" y los completados como "done"
+  -->
+  <div class="checkout-progress" style="margin-top:62px;">
+    <div class="container">
+      <div class="progress-steps-row">
+        <div class="prog-step done">  <div class="prog-circle"><i class="fa-solid fa-check"></i></div><div class="prog-label">Carrito</div></div>
+        <div class="prog-line"></div>
+        <div class="prog-step active"><div class="prog-circle">2</div><div class="prog-label">Información</div></div>
+        <div class="prog-line"></div>
+        <div class="prog-step">       <div class="prog-circle">3</div><div class="prog-label">Confirmación</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:2.5rem 0 5rem;">
+    <div class="container">
+      <div class="row g-4">
+
+        <!--!
+         * \brief Columna izquierda: Formularios de checkout
+         * \details Contiene todos los formularios necesarios para completar la reserva:
+         * - Información del pasajero principal
+         * - Información de contacto
+         * - Método de pago
+         * - Botones de acción
+        -->
+        <div class="col-lg-8">
+
+          <!--!
+           * \brief Sección: Datos del pasajero principal
+           * \details Campos obligatorios: nombres, apellidos, fecha de nacimiento,
+           * nacionalidad y número de pasaporte
+          -->
+          <div class="checkout-section anim-up">
+            <div class="checkout-section-title"><i class="fa-solid fa-user"></i> Información del pasajero principal</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="th-label">Nombres <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="nombres" placeholder="Ingresa tus nombres" required></div>
+              </div>
+              <div class="col-md-6">
+                <label class="th-label">Apellidos <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="apellidos" placeholder="Ingresa tus apellidos" required></div>
+              </div>
+              <div class="col-md-6">
+                <label class="th-label">Fecha de nacimiento <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-regular fa-calendar"></i><input class="th-input-auth" type="date" id="fecha_nac" required></div>
+              </div>
+              <div class="col-md-6">
+                <label class="th-label">Nacionalidad <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-globe"></i>
+                  <select class="th-input-auth" id="nacionalidad" required>
+                    <option value="">Seleccione un país</option>
+                    <option value="83">Guatemala</option><option value="142">México</option>
+                    <option value="236">Estados Unidos</option><option value="51">Colombia</option>
+                    <option value="10">Argentina</option><option value="67">España</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="th-label">N° de pasaporte <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-passport"></i><input class="th-input-auth" type="text" id="pasaporte" placeholder="Ej: A12345678" required></div>
+              </div>
+            </div>
+          </div>
+
+          <!--!
+           * \brief Sección: Información de contacto
+           * \details Correo electrónico (obligatorio para enviar confirmación)
+           * y teléfono opcional
+          -->
+          <div class="checkout-section anim-up anim-up-1">
+            <div class="checkout-section-title"><i class="fa-regular fa-envelope"></i> Información de contacto</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="th-label">Correo electrónico <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-regular fa-envelope"></i><input class="th-input-auth" type="email" id="correo_pago" placeholder="ejemplo@correo.com" required></div>
+              </div>
+              <div class="col-md-6">
+                <label class="th-label">Teléfono</label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-phone"></i><input class="th-input-auth" type="tel" id="telefono" placeholder="+502 1234-5678"></div>
+              </div>
+            </div>
+          </div>
+
+          <!--!
+           * \brief Sección: Método de pago
+           * \details Permite seleccionar entre tarjeta de crédito, débito o PayPal
+           * Incluye campos para datos de tarjeta (número, nombre, expiración, CVV, ZIP)
+          -->
+          <div class="checkout-section anim-up anim-up-2">
+            <div class="checkout-section-title"><i class="fa-solid fa-credit-card"></i> Método de pago</div>
+            <div class="row g-2 mb-3">
+              <div class="col-4"><div class="pay-method active" data-method="tarjeta_credito" onclick="selectPay(this)"><i class="fa-solid fa-credit-card"></i> Tarjeta crédito</div></div>
+              <div class="col-4"><div class="pay-method" data-method="tarjeta_debito" onclick="selectPay(this)"><i class="fa-solid fa-money-bill-wave"></i> Débito</div></div>
+              <div class="col-4"><div class="pay-method" data-method="paypal" onclick="selectPay(this)"><i class="fa-brands fa-paypal"></i> PayPal</div></div>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="th-label">Número de tarjeta <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-credit-card"></i><input class="th-input-auth" type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" required></div>
+              </div>
+              <div class="col-12">
+                <label class="th-label">Nombre en la tarjeta <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-user"></i><input class="th-input-auth" type="text" id="card-name" placeholder="Como aparece en la tarjeta" required></div>
+              </div>
+              <div class="col-5">
+                <label class="th-label">Expiración <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-regular fa-calendar"></i><input class="th-input-auth" id="expiry" type="text" placeholder="MM/AA" required></div>
+              </div>
+              <div class="col-4">
+                <label class="th-label">CVV <span style="color:var(--coral)">*</span></label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-lock"></i><input class="th-input-auth" type="text" id="cvv" placeholder="123" maxlength="3" required></div>
+              </div>
+              <div class="col-3">
+                <label class="th-label">ZIP</label>
+                <div class="input-group-auth"><i class="input-icon-auth fa-solid fa-location-dot"></i><input class="th-input-auth" type="text" id="zip" placeholder="01001"></div>
+              </div>
+            </div>
+          </div>
+
+          <!--!
+           * \brief Aviso de seguridad SSL
+           * \details Informa al usuario que los datos están protegidos con cifrado
+          -->
+          <div class="security-notice">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>Tus datos están protegidos con cifrado SSL de 256 bits. No almacenamos información de tarjetas en nuestros servidores.</p>
+          </div>
+
+          <!--!
+           * \brief Alerta de correo no enviado (FIX #14)
+           * \details Se muestra cuando la reserva se confirma pero el envío de correo falla
+           * Permite al usuario guardar manualmente el código de reserva
+          -->
+          <div class="email-warn" id="email-warn">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);flex-shrink:0;margin-top:2px;"></i>
+            <div>
+              <strong>Reservación confirmada</strong>, pero el correo de confirmación no pudo enviarse.
+              Por favor guarda tu código de reserva que aparece abajo.
+            </div>
+          </div>
+
+          <!--!
+           * \brief Contenedor de errores generales
+           * \details Muestra mensajes de error de validación o de conexión
+          -->
+          <div class="th-alert-error" id="checkout-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="checkout-error-msg"></span>
+          </div>
+
+          <div class="d-flex gap-3 flex-wrap mt-3">
+            <a href="/resultados" class="btn-back-link"><i class="fa-solid fa-arrow-left"></i> Regresar</a>
+            <button class="btn-auth" style="flex:1;min-width:200px;" id="btn-pagar" onclick="confirmarPago()">
+              <i class="fa-solid fa-lock me-2"></i> Confirmar pago
+            </button>
+          </div>
+        </div>
+
+        <!--!
+         * \brief Columna derecha: Resumen del pedido
+         * \details Muestra un resumen de la reserva seleccionada con precios,
+         * impuestos y total. Es sticky para mantener visibilidad durante el scroll.
+        -->
+        <div class="col-lg-4">
+          <div class="order-card anim-up anim-up-1">
+            <div class="order-title"><i class="fa-solid fa-receipt me-2" style="color:var(--gold)"></i>Resumen de reservación</div>
+            <div id="order-summary">
+              <div style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">
+                <i class="fa-solid fa-spinner fa-spin me-2" style="color:var(--gold);"></i>Cargando resumen...
+              </div>
+            </div>
+            <div style="margin-top:1rem;border-top:1px solid var(--border-gold);padding-top:1rem;">
+              <div class="price-row-sum"><span>Subtotal</span><span id="sum-subtotal">—</span></div>
+              <div class="price-row-sum"><span>Impuestos estimados</span><span id="sum-tax">—</span></div>
+              <div class="price-row-total"><span>Total</span><span id="sum-total">—</span></div>
+            </div>
+            <div style="display:flex;justify-content:space-around;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border-gold);">
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Pago<br>seguro</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-tag"           style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Mejor<br>precio</div>
+              <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);"><i class="fa-solid fa-headset"       style="display:block;font-size:1.2rem;color:var(--gold);margin-bottom:0.3rem;"></i>Soporte<br>24/7</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /**
+     * \file checkout.html (JavaScript)
+     * \brief Lógica de cliente para la página de checkout
+     * 
+     * Este script maneja:
+     * - Extracción de parámetros de URL para la reserva
+     * - Renderizado dinámico del resumen
+     * - Validación de formularios
+     * - Envío de datos al backend
+     * - Manejo de errores y estados de carga
+     */
+
+    /*! \defgroup URLParams Parámetros de URL
+     *  \brief Parámetros recibidos desde la página anterior (resultados de búsqueda)
+     *  @{
+     */
+    const up          = new URLSearchParams(window.location.search);
+const fromPackage = up.get('from_package') === '1';
+
+// Variables que se llenan según sea checkout normal o desde paquetes
+let tipoReserva, idVuelo, idHabitacion, idProveedor, idProveedorHotel;
+let precioBase, precioHotel, asiento, numPax;
+let origen, destino, ciudad;
+let fechaSalida, fechaRegreso, fechaCheckin, fechaCheckout;
+let paqueteVuelo = null, paqueteHotel = null, paqueteSearch = null;
+
+if (fromPackage) {
+  // ───── Checkout viene del wizard /paquetes ─────
+  try {
+    paqueteVuelo  = JSON.parse(sessionStorage.getItem('paquete_vuelo')  || 'null');
+    paqueteHotel  = JSON.parse(sessionStorage.getItem('paquete_hotel')  || 'null');
+    paqueteSearch = JSON.parse(sessionStorage.getItem('paquete_search') || '{}');
+  } catch { paqueteVuelo = paqueteHotel = null; paqueteSearch = {}; }
+
+  if (!paqueteVuelo) {
+    alert('Sesión de paquete expirada. Vuelve al buscador de paquetes.');
+    window.location.href = '/';
+  }
+
+  tipoReserva      = up.get('tipo') || (paqueteHotel ? 'paquete' : 'vuelo');
+  idVuelo          = paqueteVuelo.id_vuelo;
+  idProveedor      = paqueteVuelo.id_proveedor;
+  idHabitacion     = paqueteHotel?.id_habitacion || null;
+  idProveedorHotel = paqueteHotel?.id_proveedor  || null;
+  precioBase       = parseFloat(paqueteVuelo.precio_agencia || 0);
+  precioHotel      = parseFloat(paqueteHotel?.precio_noche_agencia || 0);
+  asiento          = paqueteVuelo.tipo_asiento || 'turista';
+  numPax           = parseInt(paqueteSearch.num_pasajeros || 1);
+  origen           = paqueteVuelo.origen_ciudad  || paqueteVuelo.origen  || paqueteSearch.origen  || '';
+  destino          = paqueteVuelo.destino_ciudad || paqueteVuelo.destino || paqueteSearch.destino || '';
+  ciudad           = paqueteHotel?.ciudad || paqueteSearch.destino || '';
+  fechaSalida      = paqueteSearch.fecha_salida  || '';
+  fechaRegreso     = paqueteSearch.fecha_regreso || '';
+  fechaCheckin     = paqueteSearch.fecha_salida  || '';
+  fechaCheckout    = paqueteSearch.fecha_regreso || '';
+} else {
+  // ───── Checkout normal (vuelo solo o hotel solo) ─────
+  tipoReserva   = up.get('tipo')          || 'vuelo';
+  idVuelo       = up.get('id_vuelo')      || null;
+  idHabitacion  = up.get('id_habitacion') || null;
+  idProveedor   = up.get('id_proveedor')  || null;
+  precioBase    = parseFloat(up.get('precio') || 0);
+  asiento       = up.get('asiento')       || 'turista';
+  numPax        = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
+  origen        = up.get('origen')        || '';
+  destino       = up.get('destino')       || '';
+  ciudad        = up.get('ciudad')        || '';
+  fechaSalida   = up.get('fecha_salida')  || '';
+  fechaCheckin  = up.get('fecha_checkin') || '';
+  fechaCheckout = up.get('fecha_checkout')|| '';
+}
+    /*! @} */
+
+    /*! \defgroup PaymentMethods Métodos de pago
+     *  \brief Manejo de selección de método de pago
+     *  @{
+     */
+    let metodoPago = 'tarjeta_credito'; /**< Método de pago seleccionado actualmente */
+    
+    /**
+     * \brief Selecciona un método de pago y actualiza la UI
+     * \param el Elemento DOM del método de pago clickeado
+     */
+    function selectPay(el) {
+      document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
+      el.classList.add('active');
+      metodoPago = el.dataset.method;
+    }
+    /*! @} */
+
+    /*! \defgroup SummaryRender Renderizado del resumen
+     *  \brief Renderiza el resumen de la reserva en la columna derecha
+     *  @{
+     */
+    // const TAX_RATE = 0.10; /**< Tasa de impuestos (10% estimado) */
+    
+    /**
+     * \brief Renderiza el resumen de la reserva y los precios
+     * \details Calcula subtotal, impuestos y total, y genera HTML con los detalles
+     * de la reserva según el tipo (vuelo, hotel o paquete)
+     */
+     const TAX_RATE = 0.10;
+
+     (function renderSummary() {
+       let subtotalVuelo = 0, subtotalHotel = 0, descuento = 0, pctDesc = 0;
+     
+       if (fromPackage && paqueteVuelo) {
+         const noches  = fechaCheckin && fechaCheckout
+           ? Math.max(1, Math.ceil((new Date(fechaCheckout) - new Date(fechaCheckin)) / (1000*60*60*24)))
+           : 1;
+         subtotalVuelo = precioBase * numPax;
+         subtotalHotel = paqueteHotel ? precioHotel * noches : 0;
+     
+         // Descuento promedio de los % de ganancia
+         if (paqueteHotel) {
+           const pctV = parseFloat(paqueteVuelo.porcentaje_ganancia) || 0;
+           const pctH = parseFloat(paqueteHotel.porcentaje_ganancia) || 0;
+           pctDesc    = (pctV + pctH) / 2;
+           descuento  = +((subtotalVuelo + subtotalHotel) * (pctDesc / 100)).toFixed(2);
+         }
+       } else {
+         // Checkout normal
+         const noches = (tipoReserva === 'hotel' && fechaCheckin && fechaCheckout)
+           ? Math.max(1, Math.ceil((new Date(fechaCheckout) - new Date(fechaCheckin)) / (1000*60*60*24)))
+           : 1;
+         if (tipoReserva === 'vuelo')  subtotalVuelo = precioBase * numPax;
+         if (tipoReserva === 'hotel')  subtotalHotel = precioBase * noches;
+       }
+     
+       const subtotalTotal = +(subtotalVuelo + subtotalHotel - descuento).toFixed(2);
+       const tax           = +(subtotalTotal * TAX_RATE).toFixed(2);
+       const total         = +(subtotalTotal + tax).toFixed(2);
+     
+       document.getElementById('sum-subtotal').textContent = `$${(subtotalVuelo + subtotalHotel).toFixed(2)}`;
+       document.getElementById('sum-tax').textContent      = `$${tax.toFixed(2)}`;
+       document.getElementById('sum-total').textContent    = `$${total.toFixed(2)}`;
+     
+       let html = '';
+     
+       if (subtotalVuelo > 0) {
+         html += `
+           <div class="order-item">
+             <div class="order-item-head">
+               <div class="order-item-icon"><i class="fa-solid fa-plane"></i></div>
+               <div>
+                 <div class="order-item-name">Vuelo${tipoReserva === 'paquete' ? ' del paquete' : ''}</div>
+                 <div class="order-item-sub">${origen && destino ? `${origen} → ${destino}` : 'Vuelo seleccionado'}</div>
+               </div>
+             </div>
+             ${fechaSalida ? `<div class="order-info-line"><i class="fa-regular fa-calendar"></i> ${fechaSalida}${fechaRegreso ? ' → ' + fechaRegreso : ''}</div>` : ''}
+             <div class="order-info-line"><i class="fa-solid fa-users"></i> ${numPax} pasajero(s) · ${asiento}</div>
+             <div class="order-info-line"><i class="fa-solid fa-tag"></i> Subtotal: $${subtotalVuelo.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (subtotalHotel > 0) {
+         html += `
+           <div class="order-item">
+             <div class="order-item-head">
+               <div class="order-item-icon"><i class="fa-solid fa-building"></i></div>
+               <div>
+                 <div class="order-item-name">Hotel${tipoReserva === 'paquete' ? ' del paquete' : ''}</div>
+                 <div class="order-item-sub">${ciudad || (paqueteHotel?.nombre_hotel || 'Alojamiento')}</div>
+               </div>
+             </div>
+             ${fechaCheckin  ? `<div class="order-info-line"><i class="fa-regular fa-calendar-check"></i> Check-in: ${fechaCheckin}</div>` : ''}
+             ${fechaCheckout ? `<div class="order-info-line"><i class="fa-regular fa-calendar-xmark"></i> Check-out: ${fechaCheckout}</div>` : ''}
+             <div class="order-info-line"><i class="fa-solid fa-tag"></i> Subtotal: $${subtotalHotel.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (descuento > 0) {
+         html += `
+           <div class="order-item" style="background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.3);">
+             <div class="order-item-head">
+               <div class="order-item-icon" style="background:rgba(52,211,153,0.15);color:#34D399;"><i class="fa-solid fa-tag"></i></div>
+               <div>
+                 <div class="order-item-name" style="color:#34D399;">Descuento de paquete</div>
+                 <div class="order-item-sub">${pctDesc.toFixed(1)}% por reservar vuelo + hotel juntos</div>
+               </div>
+             </div>
+             <div class="order-info-line" style="color:#34D399;font-weight:600;">−$${descuento.toFixed(2)}</div>
+           </div>`;
+       }
+     
+       if (!html) {
+         html = `<p style="color:var(--text-muted);font-size:0.85rem;">Sin información de reserva.<br>
+           <a href="/buscar" style="color:var(--gold);">Volver a buscar</a></p>`;
+       }
+       document.getElementById('order-summary').innerHTML = html;
+     })();
+    /*! @} */
+
+    /*! \defgroup UserData Pre-carga de datos de usuario
+     *  \brief Intenta cargar datos del usuario autenticado desde la sesión
+     *  @{
+     */
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d?.ok && d.usuario) {
+          document.getElementById('correo_pago').value = d.usuario.correo || '';
+          const [nom, ...rest] = (d.usuario.nombre || '').split(' ');
+          document.getElementById('nombres').value   = d.usuario.nombre   || '';
+          document.getElementById('apellidos').value = d.usuario.apellido || '';
+        }
+      }).catch(() => {});
+    /*! @} */
+
+    /*! \defgroup PaymentConfirm Confirmación de pago
+     *  \brief Funciones para validar y enviar la reserva al backend
+     *  @{
+     */
+    
+    /**
+     * \brief Valida los campos del formulario y envía la reserva al servidor
+     * \details Realiza validación de campos obligatorios, construye el payload
+     * según el tipo de reserva, envía la petición POST a /api/reservaciones
+     * y maneja la respuesta (éxito o error)
+     * \async
+     */
+    async function confirmarPago() {
+      // Validación básica de campos requeridos
+      const reqs = ['nombres','apellidos','fecha_nac','nacionalidad','pasaporte','correo_pago','card-number','card-name','expiry','cvv'];
+      let valid = true;
+      reqs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el || !el.value.trim()) {
+          valid = false;
+          if (el) { el.style.borderColor = 'var(--coral)'; setTimeout(() => el.style.borderColor = '', 2500); }
+        }
+      });
+      if (!valid) {
+        mostrarError('Por favor completa todos los campos requeridos.');
+        return;
+      }
+
+      const subtotal  = precioBase * numPax;
+      const total     = (subtotal * (1 + TAX_RATE)).toFixed(2);
+
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = true;
+      btn.classList.add('loading');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...';
+
+      // Construir payload para la API de reservaciones
+      const pasajero = {
+          nombres:         document.getElementById('nombres').value.trim(),
+          apellidos:       document.getElementById('apellidos').value.trim(),
+          fecha_nacimiento:document.getElementById('fecha_nac').value,
+          id_nacionalidad: parseInt(document.getElementById('nacionalidad').value) || 83,
+          num_pasaporte:   document.getElementById('pasaporte').value.trim(),
+      };
+
+      const payload = {
+        tipo:        tipoReserva,
+        metodo_pago: metodoPago,
+        datos_cobro: {
+          metodo:    metodoPago,
+          titular:   document.getElementById('card-name').value,
+        },
+      };
+
+      if ((tipoReserva === 'vuelo' || tipoReserva === 'paquete') && idVuelo) {
+        payload.vuelo = {
+          id_vuelo:         idVuelo,
+          id_proveedor:     parseInt(idProveedor),
+          origen:           origen,
+          destino:          destino,
+          fecha_salida:     fechaSalida,
+          tipo_asiento:     asiento,
+          precio_proveedor: precioBase,
+          pasajeros:        [pasajero],
+        };
+      }
+
+      if ((tipoReserva === 'hotel' || tipoReserva === 'paquete') && idHabitacion) {
+        // Si venimos de paquete, los datos del hotel tienen su propio proveedor y precio
+        const idProvHotel  = fromPackage ? idProveedorHotel : parseInt(idProveedor);
+        const precioNoche  = fromPackage ? (paqueteHotel?.precio_noche_proveedor ?? precioHotel) : precioBase;
+        const nombreHotel  = fromPackage ? (paqueteHotel?.nombre_hotel || '') : '';
+        const tipoHab      = fromPackage ? (paqueteHotel?.tipo_habitacion || 'doble') : 'doble';
+      
+        payload.hotel = {
+          id_habitacion:          idHabitacion,
+          id_proveedor:           idProvHotel,
+          ciudad:                 ciudad,
+          fecha_checkin:          fechaCheckin,
+          fecha_checkout:         fechaCheckout,
+          num_huespedes:          numPax,
+          precio_noche_proveedor: precioNoche,
+          nombre_hotel:           nombreHotel,
+          tipo_habitacion:        tipoHab,
+        };
+      }
+
+      try {
+        const res  = await fetch('/api/reservaciones', {
+          method:      'POST',
+          credentials: 'include',
+          headers:     { 'Content-Type': 'application/json' },
+          body:        JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarError(data.message || 'Error al procesar la reservación.');
+          resetBtn();
+          return;
+        }
+
+        // Si venía de paquete, limpiar sessionStorage
+        if (fromPackage) {
+          sessionStorage.removeItem('paquete_vuelo');
+          sessionStorage.removeItem('paquete_hotel');
+          sessionStorage.removeItem('paquete_search');
+          sessionStorage.removeItem('paquete_solo_vuelo');
+        }
+
+        // FIX #14: si el correo no se envió, mostrar aviso antes de redirigir
+        if (!data.email_enviado) {
+          document.getElementById('email-warn').classList.add('show');
+          await new Promise(r => setTimeout(r, 3000));
+        }
+
+        const codigo = data.reservacion?.codigo_reserva || '';
+        const id     = data.reservacion?.id_reservacion || '';
+        window.location.href = `/confirmacion?codigo=${codigo}&id=${id}&total=${data.reservacion?.total || total}&email_ok=${data.email_enviado}`;
+
+      } catch (e) {
+        mostrarError('Error de conexión. Verifica tu internet e intenta de nuevo.');
+        resetBtn();
+      }
+    }
+
+    /**
+     * \brief Muestra un mensaje de error en la interfaz
+     * \param msg Mensaje de error a mostrar
+     */
+    function mostrarError(msg) {
+      const el = document.getElementById('checkout-error');
+      document.getElementById('checkout-error-msg').textContent = msg;
+      el.classList.add('show');
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /**
+     * \brief Restablece el botón de pago a su estado original
+     * \details Habilita el botón, remueve la clase de carga y restaura el texto
+     */
+    function resetBtn() {
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Confirmar pago';
+    }
+    /*! @} */
+
+    /*! \defgroup InputFormatters Formateadores de inputs
+     *  \brief Event listeners para dar formato automático a los campos de tarjeta
+     *  @{
+     */
+    document.getElementById('card-number').addEventListener('input', function() {
+      let v = this.value.replace(/\s/g, '');
+      this.value = (v.match(/.{1,4}/g) || [v]).join(' ');
+    });
+    
+    document.getElementById('expiry').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '');
+      if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4);
+      this.value = v;
+    });
+    /*! @} */
+  </script>
+</body>
+</html>

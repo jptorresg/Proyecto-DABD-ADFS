@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reserva confirmada — TravelNow</title>
+
+  <!-- Bootstrap + Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/main.css">
+
+  <style>
+    :root{
+      --navy:#0A1628; --navy-mid:#122138; --cream:#F5E6B3;
+      --gold:#D4AF37; --gold-light:#E8C76B; --coral:#F4978E;
+      --text-muted:#8b95a8; --white:#fff; --border-gold:rgba(212,175,55,0.2);
+      --radius-sm:8px; --radius-lg:18px;
+      --font-display:'Playfair Display', serif;
+    }
+    body{background:var(--navy);color:var(--white);font-family:system-ui,sans-serif;}
+    .anim-up{animation: animUp .6s ease-out both;}
+    @keyframes animUp { from {opacity:0;transform:translateY(20px);} to {opacity:1;transform:none;} }
+
+    .success-banner{text-align:center;padding:3rem 1rem 2rem;}
+    .success-circle{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#10b981);
+      display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2.5rem;color:#fff;
+      box-shadow:0 10px 40px rgba(34,197,94,0.3);}
+    .success-code{display:inline-block;padding:0.8rem 1.5rem;background:rgba(212,175,55,0.1);
+      border:1px solid var(--border-gold);border-radius:var(--radius-sm);color:var(--gold);
+      font-family:monospace;font-size:1.2rem;margin-top:1rem;}
+
+    .btn-dl, .btn-email-resend, .btn-home-conf{
+      padding:0.8rem 1.5rem;border-radius:var(--radius-sm);font-weight:600;font-size:0.9rem;
+      text-decoration:none;display:inline-flex;align-items:center;gap:0.6rem;cursor:pointer;border:none;transition:all .2s;}
+    .btn-dl{background:var(--gold);color:var(--navy);}
+    .btn-dl:hover{background:var(--gold-light);}
+    .btn-dl:disabled{opacity:0.6;cursor:not-allowed;}
+    .btn-email-resend{background:rgba(96,165,250,0.15);color:#60A5FA;border:1px solid rgba(96,165,250,0.3);}
+    .btn-email-resend:hover{background:rgba(96,165,250,0.25);}
+    .btn-email-resend:disabled{opacity:0.6;cursor:not-allowed;}
+    .btn-home-conf{background:var(--navy-mid);color:var(--cream);border:1px solid var(--border-gold);margin-top:1.5rem;}
+
+    .detail-card{background:var(--navy-mid);border:1px solid var(--border-gold);border-radius:var(--radius-lg);
+      margin-bottom:1.5rem;overflow:hidden;}
+    .detail-card-header{background:rgba(212,175,55,0.08);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.8rem;
+      border-bottom:1px solid var(--border-gold);}
+    .detail-card-header i{color:var(--gold);font-size:1.3rem;}
+    .detail-card-header h3{margin:0;font-size:1.1rem;color:var(--cream);}
+    .detail-card-body{padding:1.5rem;}
+
+    .data-row{display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px dashed rgba(212,175,55,0.12);}
+    .data-row:last-child{border-bottom:none;}
+    .data-row span:first-child{color:var(--text-muted);font-size:0.87rem;}
+    .data-row span:last-child{color:var(--cream);font-weight:500;}
+
+    .totals-box{background:rgba(212,175,55,0.06);border:1px solid var(--border-gold);
+      border-radius:var(--radius-sm);padding:1.2rem;margin-top:1rem;}
+    .total-final{font-size:1.4rem;color:var(--gold);font-weight:700;}
+
+    .toast-msg{position:fixed;bottom:2rem;right:2rem;padding:1rem 1.5rem;border-radius:var(--radius-sm);
+      background:var(--navy-mid);border:1px solid var(--gold);color:var(--cream);z-index:9999;
+      box-shadow:0 10px 40px rgba(0,0,0,0.5);display:none;min-width:280px;max-width:380px;}
+    .toast-msg.show{display:block;animation:animUp .3s both;}
+    .toast-msg.error{border-color:var(--coral);color:var(--coral);}
+    .toast-msg.success{border-color:#22c55e;color:#22c55e;}
+
+    .email-warn{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);
+      border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.5rem;color:var(--coral);
+      display:flex;gap:0.8rem;align-items:flex-start;}
+
+    .loading-full{text-align:center;padding:5rem 2rem;color:var(--text-muted);}
+  </style>
+</head>
+<body>
+
+<!-- Navbar básica -->
+<nav style="background:rgba(10,22,40,0.95);backdrop-filter:blur(10px);padding:1rem 2rem;border-bottom:1px solid var(--border-gold);position:fixed;top:0;left:0;right:0;z-index:100;">
+  <div style="display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;">
+    <a href="/" style="text-decoration:none;color:var(--gold);font-family:var(--font-display);font-size:1.6rem;font-weight:600;">TravelNow</a>
+    <div id="nav-user-area"></div>
+  </div>
+</nav>
+
+<div id="loading-view" style="padding-top:62px;">
+  <div class="loading-full">
+    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--gold);"></i>
+    <p style="margin-top:1rem;">Cargando detalles de tu reservación...</p>
+  </div>
+</div>
+
+<div id="main-view" style="display:none;padding-top:62px;">
+  <!-- Banner de éxito -->
+  <div class="success-banner anim-up">
+    <div class="success-circle"><i class="fa-solid fa-check"></i></div>
+    <h1 style="font-family:var(--font-display);font-size:clamp(2rem,5vw,3.5rem);font-weight:300;">
+      ¡Reservación <em style="font-style:italic;color:var(--gold-light)">confirmada!</em>
+    </h1>
+    <p id="success-subtitle" style="color:var(--text-muted);font-size:1rem;"></p>
+    <div class="success-code"><i class="fa-solid fa-qrcode me-2"></i><span id="codigo-reserva"></span></div>
+  </div>
+
+  <div style="padding:2rem 0 5rem;">
+    <div class="container" style="max-width:900px;">
+
+      <!-- Aviso si correo no se envió -->
+      <div class="email-warn" id="email-warn" style="display:none;">
+        <i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;margin-top:2px;"></i>
+        <div>
+          <strong>Reservación confirmada</strong>, pero el correo de confirmación no pudo enviarse.
+          Puedes intentar reenviarlo con el botón de abajo, o guardar el código y descargar tu comprobante.
+        </div>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="d-flex justify-content-center gap-3 flex-wrap mb-4 anim-up">
+        <button class="btn-dl" id="btn-descargar" onclick="descargarPDF()">
+          <i class="fa-regular fa-file-pdf"></i> Descargar PDF
+        </button>
+        <button class="btn-email-resend" id="btn-reenviar" onclick="reenviarCorreo()">
+          <i class="fa-regular fa-envelope"></i> Reenviar por email
+        </button>
+      </div>
+
+      <!-- Datos de la reserva -->
+      <div class="detail-card anim-up">
+        <div class="detail-card-header">
+          <i class="fa-solid fa-receipt"></i>
+          <h3>Datos de la reservación</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="data-row"><span>Código</span><span id="r-codigo">—</span></div>
+          <div class="data-row"><span>Tipo</span><span id="r-tipo">—</span></div>
+          <div class="data-row"><span>Estado</span><span id="r-estado">—</span></div>
+          <div class="data-row"><span>Fecha de reserva</span><span id="r-fecha">—</span></div>
+          <div class="data-row"><span>Cliente</span><span id="r-cliente">—</span></div>
+          <div class="data-row"><span>Correo</span><span id="r-correo">—</span></div>
+          <div class="data-row"><span>Método de pago</span><span id="r-metodo">—</span></div>
+        </div>
+      </div>
+
+      <!-- Detalle de vuelos -->
+      <div class="detail-card anim-up" id="card-vuelos" style="display:none;">
+        <div class="detail-card-header">
+          <i class="fa-solid fa-plane"></i>
+          <h3>Detalle de vuelos</h3>
+        </div>
+        <div class="detail-card-body" id="vuelos-list"></div>
+      </div>
+
+      <!-- Detalle de hoteles -->
+      <div class="detail-card anim-up" id="card-hoteles" style="display:none;">
+        <div class="detail-card-header">
+          <i class="fa-solid fa-hotel"></i>
+          <h3>Detalle de hospedaje</h3>
+        </div>
+        <div class="detail-card-body" id="hoteles-list"></div>
+      </div>
+
+      <!-- Totales -->
+      <div class="detail-card anim-up">
+        <div class="detail-card-header">
+          <i class="fa-solid fa-dollar-sign"></i>
+          <h3>Resumen de pago</h3>
+        </div>
+        <div class="detail-card-body">
+          <div class="totals-box">
+            <div class="data-row"><span>Subtotal</span><span id="r-subtotal">$0.00</span></div>
+            <div class="data-row"><span>IVA (12%)</span><span id="r-iva">$0.00</span></div>
+            <div class="data-row" style="border-top:1px solid var(--border-gold);padding-top:0.8rem;margin-top:0.5rem;">
+              <span style="color:var(--cream);font-weight:600;">Total</span>
+              <span class="total-final" id="r-total">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <a href="/" class="btn-home-conf"><i class="fa-solid fa-house me-2"></i>Volver al inicio</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast de mensajes -->
+<div id="toast" class="toast-msg">
+  <i id="toast-icon" class="fa-solid fa-circle-info me-2"></i>
+  <span id="toast-msg"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /**
+   * @file confirmacion.html
+   * @description Carga los datos reales de la reservación desde el backend
+   *              y permite descargar el PDF y reenviar el correo.
+   */
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const idReserva = urlParams.get('id');
+  const emailOk   = urlParams.get('email_ok') !== 'false';
+
+  /* ───── Navbar user ───── */
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(r => r.json())
+    .then(d => {
+      if (d?.ok && d.usuario) {
+        document.getElementById('nav-user-area').innerHTML =
+          `<span style="color:var(--cream);"><i class="fa-solid fa-user me-2"></i>${d.usuario.nombre}</span>`;
+      }
+    }).catch(() => {});
+
+  /* ───── Toast ───── */
+  function showToast(msg, tipo = 'info') {
+    const t    = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    document.getElementById('toast-msg').textContent = msg;
+    t.className = 'toast-msg show ' + tipo;
+    icon.className = 'me-2 fa-solid ' + (
+      tipo === 'error'   ? 'fa-circle-xmark' :
+      tipo === 'success' ? 'fa-circle-check' : 'fa-circle-info'
+    );
+    setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  /* ───── Cargar datos de la reserva ───── */
+  async function cargarReserva() {
+    if (!idReserva) {
+      document.getElementById('loading-view').innerHTML =
+        `<div class="loading-full"><i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);font-size:2rem;"></i>
+         <p style="margin-top:1rem;">No se indicó la reservación. <a href="/" style="color:var(--gold);">Volver al inicio</a></p></div>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/reservaciones/${idReserva}`, { credentials: 'include' });
+      const j   = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j.message || 'Error al obtener reservación');
+
+      const r = j.data;
+      render(r);
+
+      if (!emailOk) document.getElementById('email-warn').style.display = 'flex';
+    } catch (e) {
+      document.getElementById('loading-view').innerHTML =
+        `<div class="loading-full"><i class="fa-solid fa-triangle-exclamation" style="color:var(--coral);font-size:2rem;"></i>
+         <p style="margin-top:1rem;">${e.message}</p>
+         <a href="/" style="color:var(--gold);">Volver al inicio</a></div>`;
+    }
+  }
+
+  /* ───── Render ───── */
+  function render(r) {
+    document.getElementById('loading-view').style.display = 'none';
+    document.getElementById('main-view').style.display    = 'block';
+
+    const cliente = `${r.nombre || ''} ${r.apellido || ''}`.trim() || '—';
+    const fecha   = r.fecha_reserva ? new Date(r.fecha_reserva).toLocaleString('es-GT') : '—';
+    const total   = parseFloat(r.total || 0);
+    const subt    = parseFloat(r.subtotal || (total / 1.12));
+    const iva     = parseFloat(r.iva || (total - subt));
+
+    document.getElementById('codigo-reserva').textContent  = r.codigo_reserva || '—';
+    document.getElementById('success-subtitle').textContent = emailOk
+      ? 'Tu itinerario ha sido enviado a tu correo electrónico.'
+      : 'Tu reserva está confirmada. Descarga tu comprobante abajo.';
+
+    document.getElementById('r-codigo').textContent  = r.codigo_reserva || '—';
+    document.getElementById('r-tipo').textContent    = (r.tipo || '').toUpperCase();
+    document.getElementById('r-estado').textContent  = r.estado || '—';
+    document.getElementById('r-fecha').textContent   = fecha;
+    document.getElementById('r-cliente').textContent = cliente;
+    document.getElementById('r-correo').textContent  = r.correo || '—';
+    document.getElementById('r-metodo').textContent  = String(r.metodo_pago || '—').replace(/_/g, ' ');
+
+    document.getElementById('r-subtotal').textContent = `$${subt.toFixed(2)}`;
+    document.getElementById('r-iva').textContent      = `$${iva.toFixed(2)}`;
+    document.getElementById('r-total').textContent    = `$${total.toFixed(2)} ${r.moneda || 'USD'}`;
+
+    /* Vuelos */
+    if (r.vuelos?.length) {
+      document.getElementById('card-vuelos').style.display = 'block';
+      document.getElementById('vuelos-list').innerHTML = r.vuelos.map(v => {
+        const fechaV = v.fecha_salida ? new Date(v.fecha_salida).toLocaleDateString('es-GT') : '—';
+        const pasStr = (v.pasajeros || []).map(p =>
+          `${p.nombres || ''} ${p.apellidos || ''}`.trim()
+        ).filter(Boolean).join(', ') || '—';
+        return `
+          <div style="margin-bottom:1rem;${r.vuelos.length>1?'border-bottom:1px solid var(--border-gold);padding-bottom:1rem;':''}">
+            <div style="color:var(--gold);font-weight:600;margin-bottom:0.5rem;">
+              ${v.es_regreso ? '✈ Regreso' : '✈ Ida'}: ${v.origen || '?'} → ${v.destino || '?'}
+            </div>
+            <div class="data-row"><span>Fecha</span><span>${fechaV}</span></div>
+            <div class="data-row"><span>Código vuelo</span><span>${v.codigo_vuelo || '—'}</span></div>
+            <div class="data-row"><span>Asiento</span><span>${v.tipo_asiento || '—'}</span></div>
+            <div class="data-row"><span>Pasajeros (${v.num_pasajeros || 1})</span><span>${pasStr}</span></div>
+            <div class="data-row"><span>Código proveedor</span><span>${v.codigo_reserva_proveedor || '—'}</span></div>
+            <div class="data-row"><span>Precio</span><span>$${parseFloat(v.precio_total || 0).toFixed(2)} USD</span></div>
+          </div>`;
+      }).join('');
+    }
+
+    /* Hoteles */
+    if (r.hoteles?.length) {
+      document.getElementById('card-hoteles').style.display = 'block';
+      document.getElementById('hoteles-list').innerHTML = r.hoteles.map(h => {
+        const ci = h.fecha_checkin  ? new Date(h.fecha_checkin).toLocaleDateString('es-GT')  : '—';
+        const co = h.fecha_checkout ? new Date(h.fecha_checkout).toLocaleDateString('es-GT') : '—';
+        const noches = Math.max(1, Math.round(
+          (new Date(h.fecha_checkout) - new Date(h.fecha_checkin)) / (1000*60*60*24)
+        ));
+        return `
+          <div style="margin-bottom:1rem;">
+            <div style="color:var(--gold);font-weight:600;margin-bottom:0.5rem;">
+              🏨 ${h.nombre_hotel || 'Hotel'} — ${h.ciudad || ''}
+            </div>
+            <div class="data-row"><span>Habitación</span><span>${h.tipo_habitacion || '—'}</span></div>
+            <div class="data-row"><span>Check-in</span><span>${ci}</span></div>
+            <div class="data-row"><span>Check-out</span><span>${co}</span></div>
+            <div class="data-row"><span>Noches</span><span>${noches}</span></div>
+            <div class="data-row"><span>Huéspedes</span><span>${h.num_huespedes || 1}</span></div>
+            <div class="data-row"><span>Precio por noche</span><span>$${parseFloat(h.precio_por_noche_proveedor || 0).toFixed(2)}</span></div>
+            <div class="data-row"><span>Código proveedor</span><span>${h.codigo_reserva_proveedor || '—'}</span></div>
+            <div class="data-row"><span>Subtotal hotel</span><span>$${parseFloat(h.precio_total || 0).toFixed(2)} USD</span></div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  /* ───── Descargar PDF (en navegador) ───── */
+  async function descargarPDF() {
+    const btn = document.getElementById('btn-descargar');
+    btn.disabled    = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
+    try {
+      const res = await fetch(`/api/reservaciones/${idReserva}/pdf`, { credentials: 'include' });
+      if (!res.ok) {
+        let msg = 'Error al descargar PDF';
+        try { const j = await res.json(); msg = j.message || msg; } catch {}
+        throw new Error(msg);
+      }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `TravelNow-${document.getElementById('r-codigo').textContent}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('PDF descargado correctamente', 'success');
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fa-regular fa-file-pdf"></i> Descargar PDF';
+    }
+  }
+
+  /* ───── Reenviar correo ───── */
+  async function reenviarCorreo() {
+    const btn = document.getElementById('btn-reenviar');
+    btn.disabled    = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+    try {
+      const res = await fetch(`/api/reservaciones/${idReserva}/reenviar-correo`, {
+        method: 'POST', credentials: 'include',
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j.message || 'No se pudo reenviar');
+      showToast(j.message || 'Correo enviado correctamente', 'success');
+      document.getElementById('email-warn').style.display = 'none';
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fa-regular fa-envelope"></i> Reenviar por email';
+    }
+  }
+
+  /* ───── Init ───── */
+  cargarReserva();
+</script>
+</body>
+</html>
