@@ -356,6 +356,7 @@ public class VueloController extends HttpServlet {
         LocalDate fechaRegreso = (fechaRegresoStr != null) ? LocalDate.parse(fechaRegresoStr) : null;
         
         List<Object> vuelos = vueloService.buscarVuelos(
+            request,
             origen, destino, fechaSalida, fechaRegreso, tipoAsiento
         );
         out.print(JsonResponse.success(vuelos));

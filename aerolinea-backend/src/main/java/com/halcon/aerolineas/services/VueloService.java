@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Servicio de lógica de negocio para la gestión de vuelos.
@@ -54,7 +55,7 @@ public class VueloService {
      * @return Lista heterogénea de objetos (pueden ser {@link Vuelo} o {@link VueloConEscala}).
      * @throws SQLException Si ocurre un error en la consulta a la base de datos.
      */
-    public List<Object> buscarVuelos(String origen, String destino, LocalDate fechaSalida,
+    public List<Object> buscarVuelos(HttpServletRequest request, String origen, String destino, LocalDate fechaSalida,
                                     LocalDate fechaRegreso, String tipoAsiento) throws SQLException {
 
         List<Object> resultados = new ArrayList<>();
@@ -95,6 +96,17 @@ public class VueloService {
         System.out.println("Origen: " + origen);
         System.out.println("Destino: " + destino);
         System.out.println("Fecha: " + fechaSalida);
+
+        BusquedaLogService logService = new BusquedaLogService();
+        logService.registrarBusqueda(
+            request,   // ⚠️ esto hay que pasarlo desde el controller
+            "VUELOS",
+            origen,
+            destino,
+            fechaSalida,
+            fechaRegreso,
+            tipoAsiento
+        );
 
         return resultados;
     }
