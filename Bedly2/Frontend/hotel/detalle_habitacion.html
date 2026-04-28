@@ -1,0 +1,663 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Habitación - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .gallery-container { position: relative; }
+        .gallery-main { width: 100%; height: 380px; object-fit: cover; border-radius: 15px; cursor: pointer; transition: transform 0.2s; }
+        .gallery-main:hover { transform: scale(1.01); }
+        .thumbnails-row { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; }
+        .thumbnail-wrapper { flex-shrink: 0; width: 90px; height: 70px; border-radius: 10px; overflow: hidden; border: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .thumbnail-wrapper:hover { border-color: rgba(0,53,128,0.4); }
+        .thumbnail-wrapper.active { border-color: var(--primary-color); }
+        .thumbnail-img { width: 100%; height: 100%; object-fit: cover; }
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .lightbox-content { position: relative; max-width: 90%; max-height: 90%; }
+        .lightbox-img { max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: -40px; right: 0; background: white; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .lightbox-prev, .lightbox-next { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: all 0.2s; }
+        .lightbox-prev { left: -70px; }
+        .lightbox-next { right: -70px; }
+        .lightbox-prev:hover, .lightbox-next:hover { background: white; transform: translateY(-50%) scale(1.1); }
+        @media (max-width: 768px) { .lightbox-prev { left: 10px; } .lightbox-next { right: 10px; } }
+        .room-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--primary-color); }
+        .hotel-name { font-size: 0.95rem; color: #6b7280; }
+        .stars { color: #f5a623; }
+        .card { border: none; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
+        .booking-card { position: sticky; top: 80px; }
+        .amenity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .amenity-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; }
+        .amenity-item i { color: var(--primary-color); font-size: 1rem; }
+        .price-big { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--primary-color); }
+        .price-big span { font-size: 1rem; font-family: 'DM Sans', sans-serif; color: #9ca3af; font-weight: 400; }
+        .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; font-family: 'DM Sans', sans-serif; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .form-label { font-size: 0.78rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; padding: 0.75rem; font-weight: 600; font-size: 1rem; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
+        .score-big { background-color: var(--primary-color); color: #fff; border-radius: 12px 12px 12px 0; padding: 0.5rem 0.9rem; font-size: 1.3rem; font-weight: 700; display: inline-block; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary-color); border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; margin-bottom: 1.2rem; }
+        .politica-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .politica-icon { font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
+        .currency-toggle { display: inline-flex; background: #e5e7eb; border-radius: 20px; padding: 3px; }
+        .currency-btn { border: none; background: transparent; border-radius: 16px; padding: 0.25rem 0.8rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #6b7280; }
+        .currency-btn.active { background-color: var(--primary-color); color: #fff; }
+        .lock-banner { background: linear-gradient(135deg, #f5a623, #e8940f); border-radius: 12px; padding: 1rem 1.2rem; color: white; margin-bottom: 1rem; }
+
+        /* ── Calendario con fechas bloqueadas ── */
+        .calendar-wrapper { background: #fff; border-radius: 12px; border: 1.5px solid #e5e7eb; padding: 1rem; margin-bottom: 0.5rem; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .calendar-header button { background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 1.1rem; border-radius: 6px; padding: 2px 8px; }
+        .calendar-header button:hover { background: #f0f4f8; }
+        .calendar-month { font-weight: 700; color: var(--primary-color); font-size: 0.95rem; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .cal-day-name { text-align: center; font-size: 0.7rem; font-weight: 700; color: #9ca3af; padding: 4px 0; text-transform: uppercase; }
+        .cal-day { text-align: center; font-size: 0.82rem; padding: 6px 2px; border-radius: 6px; cursor: pointer; transition: all 0.15s; position: relative; }
+        .cal-day.empty { cursor: default; }
+        .cal-day.available:hover { background: #dbeafe; color: var(--primary-color); }
+        .cal-day.occupied { background: #fee2e2; color: #dc2626; text-decoration: line-through; cursor: not-allowed; font-weight: 600; }
+        .cal-day.occupied::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: #dc2626; }
+        .cal-day.past { color: #d1d5db; cursor: not-allowed; }
+        .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: 700; }
+        .cal-day.in-range { background: #dbeafe; color: var(--primary-color); }
+        .cal-day.today { border: 2px solid var(--primary-color); font-weight: 700; }
+        .calendar-legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: #6b7280; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .date-display { font-size: 0.85rem; color: var(--primary-color); font-weight: 600; text-align: center; margin-top: 0.5rem; min-height: 1.2rem; }
+    </style>
+</head>
+<body x-data="detalleApp()" x-init="init()">
+
+    <nav class="navbar-bedly mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="landing.html">Bed<span>ly</span></a>
+            <a :href="modoPublico ? 'landing.html' : 'index.html'" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Volver al catálogo
+            </a>
+        </div>
+    </nav>
+
+    <div x-show="loading" class="container text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Cargando habitación...</p>
+    </div>
+
+    <div x-show="error" class="container">
+        <div class="alert alert-danger" x-text="error"></div>
+    </div>
+
+    <main class="container pb-5" x-show="!loading && !error && habitacion">
+        <div class="row g-4">
+            <!-- Contenido principal -->
+            <div class="col-lg-8">
+                <!-- Galería de imágenes (Sesión 6) -->
+                <div class="gallery-container mb-4" x-show="habitacion">
+                    <img :src="imagenActiva || (habitacion && habitacion.imagenUrl) || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=400&fit=crop'"
+                         alt="Habitación" class="gallery-main mb-2"
+                         @click="abrirLightbox()">
+
+                    <!-- Thumbnails -->
+                    <div class="thumbnails-row" x-show="imagenes.length > 1">
+                        <template x-for="(img, index) in imagenes" :key="img.idImagen">
+                            <div class="thumbnail-wrapper"
+                                 :class="imagenActiva === img.url ? 'active' : ''"
+                                 @click="imagenActiva = img.url">
+                                <img :src="img.url" :alt="img.descripcion || 'Foto ' + (index+1)" class="thumbnail-img">
+                            </div>
+                        </template>
+                    </div>
+                    <p class="text-muted small mt-2" x-show="imagenes.length > 0">
+                        <i class="bi bi-images me-1"></i>
+                        <span x-text="imagenes.length"></span> foto(s) · Click en una imagen para verla en grande
+                    </p>
+                </div>
+
+                <!-- Lightbox modal -->
+                <div class="lightbox" x-show="lightboxAbierto" @click="lightboxAbierto = false" x-transition>
+                    <div class="lightbox-content" @click.stop>
+                        <button class="lightbox-close" @click="lightboxAbierto = false">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <button class="lightbox-prev" @click="prevImagen()" x-show="imagenes.length > 1">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <img :src="imagenActiva" alt="Foto en detalle" class="lightbox-img">
+                        <button class="lightbox-next" @click="nextImagen()" x-show="imagenes.length > 1">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="room-title mb-1" x-text="habitacion.tipoHabitacion + ' ' + habitacion.numHabitacion"></h1>
+                        <p class="hotel-name mb-1">
+                            <i class="bi bi-building me-1"></i>
+                            <span x-text="habitacion.nombreHotel"></span> ·
+                            <span x-text="habitacion.ubicacion"></span>
+                        </p>
+                        <div class="stars" x-html="'★'.repeat(habitacion.estrellas || 0)"></div>
+                    </div>
+                    <div class="text-end">
+                        <div class="score-big" x-text="promedioRating > 0 ? promedioRating : 'N/A'"></div>
+                        <div style="font-size:0.75rem; color:#9ca3af; margin-top:4px;" x-text="totalComentarios + ' reseñas'"></div>
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
+                           class="text-primary small" style="font-size:0.75rem;">Ver todas</a>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title">Descripción</h5>
+                        <p style="font-size:0.95rem; color:#374151; line-height:1.7;"
+                           x-text="habitacion.descripcion || 'Habitación disponible en ' + habitacion.nombreHotel"></p>
+                        <div class="row mt-3 g-2">
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
+                                    <i class="bi bi-people me-1" style="color:var(--primary-color)"></i>
+                                    Capacidad: <span x-text="habitacion.capacidadMax"></span> personas
+                                </span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark border" style="font-size:0.82rem;">
+                                    <i class="bi bi-door-open me-1" style="color:var(--primary-color)"></i>
+                                    Habitación <span x-text="habitacion.numHabitacion"></span>
+                                </span>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge" :class="habitacion.estado === 'Disponible' ? 'bg-success' : 'bg-danger'" style="font-size:0.82rem;">
+                                    <span x-text="habitacion.estado"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title">Servicios Incluidos</h5>
+                        <div class="amenity-grid">
+                            <template x-for="amenidad in amenidades" :key="amenidad">
+                                <div class="amenity-item">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <span x-text="amenidad"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4" x-show="comentarios.length > 0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="section-title mb-0" style="border:none;">Reseñas de Huéspedes</h5>
+                            <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
+                               class="btn btn-outline-primary btn-sm rounded-pill">
+                                <i class="bi bi-star me-1"></i>Ver todas
+                            </a>
+                        </div>
+                        <template x-for="c in comentarios.slice(0, 3)" :key="c.idComentario">
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong x-text="c.nombreUsuario"></strong>
+                                    <span class="text-warning" x-text="'★'.repeat(c.rating)"></span>
+                                </div>
+                                <p class="text-muted small mb-0" x-text="c.texto"></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="section-title">Políticas de Cancelación</h5>
+                        <div class="politica-item">
+                            <i class="bi bi-check-circle-fill text-success politica-icon"></i>
+                            <span>Cancelación gratuita hasta 48 horas antes del check-in.</span>
+                        </div>
+                        <div class="politica-item">
+                            <i class="bi bi-exclamation-circle-fill text-warning politica-icon"></i>
+                            <span>Entre 24-48 horas: reembolso del 50% del total pagado.</span>
+                        </div>
+                        <div class="politica-item">
+                            <i class="bi bi-x-circle-fill text-danger politica-icon"></i>
+                            <span>Menos de 24 horas antes: sin reembolso aplicable.</span>
+                        </div>
+                        <div class="politica-item">
+                            <i class="bi bi-clock-fill text-primary politica-icon"></i>
+                            <span>Check-in: 3:00 PM · Check-out: 12:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking card -->
+            <div class="col-lg-4">
+                <div class="card booking-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="price-big">
+                                <span x-text="moneda === 'GTQ' ? 'Q' : '$'"></span>
+                                <span x-text="moneda === 'GTQ' ? habitacion.precioNoche : (habitacion.precioNoche / 7.8).toFixed(0)"></span>
+                                <span>/ noche</span>
+                            </div>
+                            <div class="currency-toggle">
+                                <button class="currency-btn" :class="moneda === 'GTQ' ? 'active' : ''" @click="moneda = 'GTQ'">Q</button>
+                                <button class="currency-btn" :class="moneda === 'USD' ? 'active' : ''" @click="moneda = 'USD'">$</button>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3">Impuestos incluidos · Confirmación inmediata</p>
+
+                        <!-- Calendario Check-in -->
+                        <label class="form-label">Check-in</label>
+                        <div class="calendar-wrapper mb-3">
+                            <div class="calendar-header">
+                                <button @click="mesAnterior('checkIn')">&#8249;</button>
+                                <span class="calendar-month" x-text="nombreMes(calCheckIn.year, calCheckIn.month)"></span>
+                                <button @click="mesSiguiente('checkIn')">&#8250;</button>
+                            </div>
+                            <div class="calendar-grid">
+                                <template x-for="d in ['Do','Lu','Ma','Mi','Ju','Vi','Sá']" :key="d">
+                                    <div class="cal-day-name" x-text="d"></div>
+                                </template>
+                                <template x-for="celda in diasCalendario('checkIn')" :key="celda.key">
+                                    <div class="cal-day"
+                                         :class="clasesDia(celda, 'checkIn')"
+                                         @click="seleccionarDia(celda, 'checkIn')"
+                                         x-text="celda.dia || ''">
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="date-display" x-text="checkIn ? 'Check-in: ' + checkIn : 'Selecciona fecha de entrada'"></div>
+                        </div>
+
+                        <!-- Calendario Check-out -->
+                        <label class="form-label">Check-out</label>
+                        <div class="calendar-wrapper mb-3">
+                            <div class="calendar-header">
+                                <button @click="mesAnterior('checkOut')">&#8249;</button>
+                                <span class="calendar-month" x-text="nombreMes(calCheckOut.year, calCheckOut.month)"></span>
+                                <button @click="mesSiguiente('checkOut')">&#8250;</button>
+                            </div>
+                            <div class="calendar-grid">
+                                <template x-for="d in ['Do','Lu','Ma','Mi','Ju','Vi','Sá']" :key="d">
+                                    <div class="cal-day-name" x-text="d"></div>
+                                </template>
+                                <template x-for="celda in diasCalendario('checkOut')" :key="celda.key">
+                                    <div class="cal-day"
+                                         :class="clasesDia(celda, 'checkOut')"
+                                         @click="seleccionarDia(celda, 'checkOut')"
+                                         x-text="celda.dia || ''">
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="date-display" x-text="checkOut ? 'Check-out: ' + checkOut : 'Selecciona fecha de salida'"></div>
+                        </div>
+
+                        <!-- Leyenda -->
+                        <div class="calendar-legend mb-3">
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:#fee2e2; border: 1px solid #dc2626;"></div>
+                                <span>Ocupado</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:#003580;"></div>
+                                <span>Seleccionado</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:#dbeafe;"></div>
+                                <span>Rango</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Huéspedes</label>
+                            <select class="form-select" x-model="huespedes">
+                                <template x-for="n in (habitacion.capacidadMax || 2)" :key="n">
+                                    <option :value="n" x-text="n + ' huésped' + (n > 1 ? 'es' : '')"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <!-- Resumen precio -->
+                        <div class="bg-light rounded-3 p-3 mb-3" x-show="noches > 0">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span x-text="(moneda === 'GTQ' ? 'Q' : '$') + (moneda === 'GTQ' ? habitacion.precioNoche : (habitacion.precioNoche/7.8).toFixed(0)) + ' × ' + noches + ' noche(s)'"></span>
+                                <span x-text="(moneda === 'GTQ' ? 'Q ' : '$ ') + subtotal"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span>IVA (12%)</span>
+                                <span x-text="(moneda === 'GTQ' ? 'Q ' : '$ ') + iva"></span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total</span>
+                                <span class="text-success" x-text="(moneda === 'GTQ' ? 'Q ' : '$ ') + total"></span>
+                            </div>
+                        </div>
+
+                        <div x-show="modoPublico" class="lock-banner mb-3">
+                            <div class="fw-bold small mb-1">
+                                <i class="bi bi-lock me-1"></i>Inicia sesión para reservar
+                            </div>
+                            <p class="small mb-2" style="opacity:0.9;">Necesitas una cuenta para completar tu reserva.</p>
+                            <div class="d-flex gap-2">
+                                <a href="login.html" class="btn btn-light btn-sm rounded-pill fw-bold px-3" style="color:#003580;">Iniciar Sesión</a>
+                                <a href="registro.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Registrarse</a>
+                            </div>
+                        </div>
+
+                        <button x-show="!modoPublico"
+                                class="btn btn-primary w-100 mb-2"
+                                @click="reservar()"
+                                :disabled="habitacion.estado !== 'Disponible'">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            <span x-text="habitacion.estado === 'Disponible' ? 'Reservar Ahora' : 'No Disponible'"></span>
+                        </button>
+
+                        <a :href="'resenas.html?id=' + (habitacion ? habitacion.idHabitacion : '')"
+                           class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-star me-2"></i>Ver todas las reseñas
+                        </a>
+
+                        <p class="text-center text-muted small mt-2 mb-0" x-show="!modoPublico">
+                            <i class="bi bi-shield-check me-1 text-success"></i>Sin cargos hasta confirmar
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    const API = 'http://localhost:5044/api';
+
+    function detalleApp() {
+        return {
+            habitacion: null,
+            comentarios: [],
+            promedioRating: 0,
+            totalComentarios: 0,
+            loading: true,
+            error: '',
+            moneda: 'GTQ',
+            checkIn: '',
+            checkOut: '',
+            huespedes: 2,
+            hoy: new Date().toISOString().split('T')[0],
+            modoPublico: false,
+            fechasOcupadas: [],  // [{checkIn, checkOut}, ...]
+            diasOcupados: [],    // ['2026-05-01', '2026-05-02', ...]
+
+            // Estado de los calendarios
+            calCheckIn:  { year: new Date().getFullYear(), month: new Date().getMonth() },
+            calCheckOut: { year: new Date().getFullYear(), month: new Date().getMonth() },
+
+            imagenes: [],
+            imagenActiva: '',
+            lightboxAbierto: false,
+
+            async init() {
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+                const modo = params.get('modo');
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                this.modoPublico = !usuario || modo === 'publico';
+
+                if (!id) {
+                    this.error = 'No se especificó una habitación.';
+                    this.loading = false;
+                    return;
+                }
+                await this.cargarHabitacion(id);
+                await this.cargarImagenes(id);
+                await this.cargarComentarios(id);
+                await this.cargarFechasOcupadas(id);
+            },
+
+            async cargarImagenes(id) {
+                try {
+                    const res = await fetch(`http://localhost:5044/api/habitaciones/${id}/imagenes`);
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                        this.imagenes = data.data;
+                        this.imagenActiva = this.imagenes[0].url;
+                    }
+                } catch (e) { console.warn('Error cargando imágenes:', e); }
+            },
+
+            abrirLightbox() {
+                if (this.imagenes.length > 0) this.lightboxAbierto = true;
+            },
+
+            prevImagen() {
+                const idx = this.imagenes.findIndex(i => i.url === this.imagenActiva);
+                const nuevoIdx = idx <= 0 ? this.imagenes.length - 1 : idx - 1;
+                this.imagenActiva = this.imagenes[nuevoIdx].url;
+            },
+
+            nextImagen() {
+                const idx = this.imagenes.findIndex(i => i.url === this.imagenActiva);
+                const nuevoIdx = idx >= this.imagenes.length - 1 ? 0 : idx + 1;
+                this.imagenActiva = this.imagenes[nuevoIdx].url;
+            },
+            async cargarHabitacion(id) {
+                try {
+                    const res = await fetch(`${API}/habitaciones/${id}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.habitacion = data.data;
+                    } else {
+                        this.error = 'Habitación no encontrada.';
+                    }
+                } catch (e) {
+                    this.error = 'Error al conectar con el servidor.';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async cargarComentarios(id) {
+                try {
+                    const res = await fetch(`${API}/comentarios/habitacion/${id}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.comentarios = data.data.comentarios || [];
+                        this.promedioRating = data.data.promedioRating || 0;
+                        this.totalComentarios = data.data.total || 0;
+                    }
+                } catch (e) {}
+            },
+
+            async cargarFechasOcupadas(id) {
+                try {
+                    const res = await fetch(`${API}/reservaciones/habitacion/${id}/fechas-ocupadas`);
+                    const data = await res.json();
+                    if (data.success) {
+                        this.fechasOcupadas = data.data || [];
+                        // Expandir rangos a días individuales
+                        this.diasOcupados = [];
+                        for (const rango of this.fechasOcupadas) {
+                            let current = new Date(rango.checkIn + 'T00:00:00');
+                                const fin   = new Date(rango.checkOut + 'T00:00:00');
+                                    // Agregar día anterior al check-in como bloqueado
+                                    const anterior = new Date(current);
+                                    anterior.setDate(anterior.getDate() - 1);
+                                    if (anterior >= new Date(this.hoy + 'T00:00:00')) {
+                                        this.diasOcupados.push(anterior.toISOString().split('T')[0]);
+}
+while (current <= fin) {
+                                this.diasOcupados.push(current.toISOString().split('T')[0]);
+                                current.setDate(current.getDate() + 1);
+                            }
+                        }
+                    }
+                } catch (e) {}
+            },
+
+            // ── Helpers del calendario ──
+
+            nombreMes(year, month) {
+                const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                               'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                return meses[month] + ' ' + year;
+            },
+
+            diasCalendario(tipo) {
+                const cal   = tipo === 'checkIn' ? this.calCheckIn : this.calCheckOut;
+                const year  = cal.year;
+                const month = cal.month;
+                const primerDia = new Date(year, month, 1).getDay();
+                const totalDias = new Date(year, month + 1, 0).getDate();
+                const celdas = [];
+
+                // Celdas vacías al inicio
+                for (let i = 0; i < primerDia; i++) {
+                    celdas.push({ dia: null, fecha: null, key: 'empty-' + i });
+                }
+                // Días del mes
+                for (let d = 1; d <= totalDias; d++) {
+                    const mes = String(month + 1).padStart(2, '0');
+                    const dia = String(d).padStart(2, '0');
+                    const fecha = `${year}-${mes}-${dia}`;
+                    celdas.push({ dia: d, fecha, key: fecha });
+                }
+                return celdas;
+            },
+
+            clasesDia(celda, tipo) {
+                if (!celda.fecha) return 'empty';
+                const fecha  = celda.fecha;
+                const hoy    = this.hoy;
+                const clases = [];
+
+                if (fecha < hoy) {
+                    clases.push('past');
+                    return clases.join(' ');
+                }
+                if (this.diasOcupados.includes(fecha)) {
+                    clases.push('occupied');
+                    return clases.join(' ');
+                }
+                if (fecha === hoy) clases.push('today');
+                if (fecha === this.checkIn || fecha === this.checkOut) clases.push('selected');
+                else if (this.checkIn && this.checkOut && fecha > this.checkIn && fecha < this.checkOut) clases.push('in-range');
+                else clases.push('available');
+
+                return clases.join(' ');
+            },
+
+            seleccionarDia(celda, tipo) {
+                if (!celda.fecha) return;
+                const fecha = celda.fecha;
+                if (fecha < this.hoy) return;
+                if (this.diasOcupados.includes(fecha)) {
+                alert('Esta fecha no está disponible. Por favor selecciona otra fecha.');
+                return;
+}
+
+                if (tipo === 'checkIn') {
+                    this.checkIn = fecha;
+                    // Si checkOut es anterior o igual al nuevo checkIn, resetear
+                    if (this.checkOut && this.checkOut <= fecha) this.checkOut = '';
+                } else {
+                    if (!this.checkIn) {
+                        alert('Primero selecciona la fecha de check-in.');
+                        return;
+                    }
+                    if (fecha <= this.checkIn) {
+                        alert('La fecha de check-out debe ser posterior al check-in.');
+                        return;
+                    }
+                    // Verificar que no haya fechas ocupadas en el rango
+                    if (this.hayOcupadosEnRango(this.checkIn, fecha)) {
+                        alert('Hay fechas ocupadas en el rango seleccionado. Por favor elige otras fechas.');
+                        return;
+                    }
+                    this.checkOut = fecha;
+                }
+            },
+
+            hayOcupadosEnRango(desde, hasta) {
+                for (const dia of this.diasOcupados) {
+                    if (dia > desde && dia < hasta) return true;
+                }
+                return false;
+            },
+
+            mesAnterior(tipo) {
+                const cal = tipo === 'checkIn' ? this.calCheckIn : this.calCheckOut;
+                if (cal.month === 0) { cal.month = 11; cal.year--; }
+                else cal.month--;
+            },
+
+            mesSiguiente(tipo) {
+                const cal = tipo === 'checkIn' ? this.calCheckIn : this.calCheckOut;
+                if (cal.month === 11) { cal.month = 0; cal.year++; }
+                else cal.month++;
+            },
+
+            get amenidades() {
+                if (!this.habitacion || !this.habitacion.amenidades) return [];
+                return this.habitacion.amenidades.split(',').map(a => a.trim()).filter(a => a);
+            },
+
+            get noches() {
+                if (!this.checkIn || !this.checkOut) return 0;
+                const diff = new Date(this.checkOut) - new Date(this.checkIn);
+                return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+            },
+
+            get subtotal() {
+                const precio = this.moneda === 'GTQ' ? this.habitacion.precioNoche : (this.habitacion.precioNoche / 7.8);
+                return (precio * this.noches).toFixed(2);
+            },
+
+            get iva() {
+                return (this.subtotal * 0.12).toFixed(2);
+            },
+
+            get total() {
+                return (parseFloat(this.subtotal) + parseFloat(this.iva)).toFixed(2);
+            },
+
+            reservar() {
+                if (!this.checkIn || !this.checkOut) {
+                    alert('Por favor selecciona fechas de check-in y check-out.');
+                    return;
+                }
+                if (this.noches <= 0) {
+                    alert('La fecha de check-out debe ser posterior al check-in.');
+                    return;
+                }
+                const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!usuario) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const params = new URLSearchParams({
+                    idHabitacion: this.habitacion.idHabitacion,
+                    checkIn:      this.checkIn,
+                    checkOut:     this.checkOut,
+                    huespedes:    this.huespedes,
+                    total:        this.total
+                });
+                window.location.href = 'reserva.html?' + params.toString();
+            }
+        }
+    }
+    </script>
+</body>
+</html>

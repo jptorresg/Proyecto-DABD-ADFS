@@ -1,0 +1,187 @@
+/* =========================================
+   CONFIGURACIÓN DE MARCA Y VARIABLES
+   ========================================= */
+:root {
+    --primary: #1e3a8a;       /* Azul Profundo (Hoteles) */
+    --secondary: #f59e0b;     /* Dorado (Botones de Acción) */
+    --accent: #3b82f6;        /* Azul Brillante (Enlaces) */
+    --success: #10b981;       /* Verde (Disponibilidad) */
+    --danger: #ef4444;        /* Rojo (Cancelaciones/Error) */
+    --bg-main: #f1f5f9;       /* Gris muy claro (Fondo) */
+    --white: #ffffff;
+    --text-dark: #0f172a;     /* Color de texto principal */
+    --text-muted: #64748b;    /* Color de texto secundario */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   ESTILOS BASE
+   ========================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+/* =========================================
+   CONTENEDORES Y GRID
+   ========================================= */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.hotel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* =========================================
+   TARJETAS DE HABITACIÓN (CARDS)
+   ========================================= */
+.card-hotel {
+    background: var(--white);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.card-hotel:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background-color: #cbd5e1; /* Placeholder */
+}
+
+.card-content {
+    padding: 1.25rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+}
+
+.price-tag {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.price-unit {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* =========================================
+   COMPONENTES DE FORMULARIO (AUTH)
+   ========================================= */
+.auth-container {
+    max-width: 450px;
+    margin: 4rem auto;
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: border-color 0.2s, ring 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* =========================================
+   BOTONES
+   ========================================= */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #172554;
+}
+
+.btn-reserve {
+    background-color: var(--secondary);
+    color: var(--white);
+}
+
+.btn-reserve:hover {
+    background-color: #d97706;
+}
+
+/* =========================================
+   ESTADOS Y ANIMACIONES
+   ========================================= */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-available { background: #d1fae5; color: #065f46; }
+.badge-full { background: #fee2e2; color: #991b1b; }
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

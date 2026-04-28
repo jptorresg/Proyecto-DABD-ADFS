@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparar Habitaciones - Bedly</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .page-header { background: linear-gradient(135deg, var(--primary-color), #0055b3); color: white; padding: 3rem 0; margin-bottom: 2rem; }
+        .page-title { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 2.4rem; }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .compare-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 24px rgba(0,53,128,0.10);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .compare-card:hover { transform: translateY(-4px); }
+        .compare-card.winner { border: 3px solid #16a34a; }
+        .winner-badge {
+            position: absolute; top: 12px; left: 12px;
+            background: #16a34a; color: white;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 0.78rem; font-weight: 700;
+            z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .compare-img {
+            width: 100%; height: 220px; object-fit: cover;
+        }
+        .compare-body { padding: 1.5rem; }
+        .compare-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900; font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        .compare-hotel { color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem; }
+        .compare-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem; font-weight: 700;
+            color: var(--primary-color);
+        }
+        .compare-price small { font-size: 0.95rem; color: #9ca3af; font-family: 'DM Sans', sans-serif; }
+        .feature-row {
+            display: flex; justify-content: space-between;
+            padding: 0.65rem 0; border-bottom: 1px solid #f0f4f8;
+            font-size: 0.92rem;
+        }
+        .feature-row:last-child { border-bottom: none; }
+        .feature-label { color: #6b7280; font-weight: 500; }
+        .feature-value { font-weight: 700; color: #1f2937; text-align: right; }
+        .stars { color: #f5a623; }
+        .badge-amenidad {
+            background: #eff6ff; color: var(--primary-color);
+            padding: 4px 10px; border-radius: 8px;
+            font-size: 0.78rem; margin: 2px; display: inline-block;
+        }
+        .btn-reservar-card {
+            background: var(--primary-color); border: none; color: white;
+            padding: 0.7rem; border-radius: 10px;
+            font-weight: 600; font-size: 0.95rem;
+            width: 100%; transition: opacity 0.2s;
+        }
+        .btn-reservar-card:hover { opacity: 0.88; color: white; }
+        .empty-state {
+            background: white; border-radius: 15px;
+            padding: 4rem 2rem; text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar-bedly">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="index.html">Bed<span>ly</span></a>
+            <a href="index.html" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Volver al Catálogo
+            </a>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h1 class="page-title">Comparar Habitaciones</h1>
+            <p class="mb-0 opacity-75">
+                <i class="bi bi-clipboard-check me-1"></i>
+                Comparativa lado a lado para tomar la mejor decisión
+            </p>
+        </div>
+    </div>
+
+    <main class="container pb-5" x-data="compararApp()" x-init="init()">
+
+        <!-- Loading -->
+        <div x-show="loading" class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 text-muted">Cargando habitaciones...</p>
+        </div>
+
+        <!-- Empty -->
+        <div x-show="!loading && habitaciones.length === 0" class="empty-state">
+            <i class="bi bi-clipboard-x" style="font-size:4rem; color:#9ca3af;"></i>
+            <h3 class="fw-bold mt-3" style="color: var(--primary-color);">No hay habitaciones para comparar</h3>
+            <p class="text-muted">Selecciona al menos 2 habitaciones desde el catálogo.</p>
+            <a href="index.html" class="btn btn-primary rounded-pill px-4 mt-3"
+               style="background: var(--primary-color); border: none;">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Catálogo
+            </a>
+        </div>
+
+        <!-- Grid de cards comparativas -->
+        <div x-show="!loading && habitaciones.length > 0" class="compare-grid">
+            <template x-for="h in habitaciones" :key="h.idHabitacion">
+                <div class="compare-card" :class="h.idHabitacion === idMasBarata ? 'winner' : ''">
+                    <span class="winner-badge" x-show="h.idHabitacion === idMasBarata">
+                        <i class="bi bi-trophy me-1"></i>MÁS BARATA
+                    </span>
+                    <img :src="(h.imagenes && h.imagenes[0]) ? h.imagenes[0].url : 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600'"
+                         class="compare-img"
+                         :alt="h.tipoHabitacion">
+                    <div class="compare-body">
+                        <div class="compare-title" x-text="h.tipoHabitacion + ' ' + h.numHabitacion"></div>
+                        <div class="compare-hotel">
+                            <i class="bi bi-building me-1"></i>
+                            <span x-text="h.nombreHotel"></span>
+                        </div>
+
+                        <div class="text-center mb-3 py-3" style="background:#f0f4f8; border-radius:10px;">
+                            <div class="compare-price">
+                                <span x-text="'Q' + h.precioNoche.toFixed(2)"></span>
+                                <small> / noche</small>
+                            </div>
+                        </div>
+
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-people me-1"></i>Capacidad</span>
+                            <span class="feature-value" x-text="h.capacidadMax + ' persona(s)'"></span>
+                        </div>
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-star me-1"></i>Estrellas</span>
+                            <span class="feature-value stars">
+                                <template x-for="n in (h.estrellas || 3)" :key="n">
+                                    <i class="bi bi-star-fill"></i>
+                                </template>
+                            </span>
+                        </div>
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-geo-alt me-1"></i>Ubicación</span>
+                            <span class="feature-value" x-text="h.ubicacion || '—'"></span>
+                        </div>
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-list me-1"></i>Tipo</span>
+                            <span class="feature-value" x-text="h.tipoHabitacion"></span>
+                        </div>
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-camera me-1"></i>Fotos</span>
+                            <span class="feature-value" x-text="(h.imagenes ? h.imagenes.length : 0) + ' foto(s)'"></span>
+                        </div>
+                        <div class="feature-row">
+                            <span class="feature-label"><i class="bi bi-check-circle me-1"></i>Estado</span>
+                            <span class="feature-value">
+                                <span class="badge bg-success rounded-pill" x-text="h.estado"></span>
+                            </span>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="feature-label mb-2" style="font-size:0.85rem;">
+                                <i class="bi bi-stars me-1"></i>Amenidades
+                            </div>
+                            <template x-for="amenidad in (h.amenidades ? h.amenidades.split(',') : [])" :key="amenidad">
+                                <span class="badge-amenidad" x-text="amenidad.trim()"></span>
+                            </template>
+                        </div>
+
+                        <div class="mt-4 d-grid gap-2">
+                            <a :href="'detalle_habitacion.html?id=' + h.idHabitacion"
+                               class="btn btn-outline-primary rounded-pill">
+                                <i class="bi bi-eye me-1"></i>Ver detalle
+                            </a>
+                            <a :href="'detalle_habitacion.html?id=' + h.idHabitacion"
+                               class="btn-reservar-card rounded text-center text-decoration-none">
+                                <i class="bi bi-calendar-check me-1"></i>Reservar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="text-center mt-5" x-show="!loading && habitaciones.length > 0">
+            <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i>Comparar otras habitaciones
+            </a>
+        </div>
+    </main>
+
+    <footer style="background:#003580; color:white; padding:2rem 0; margin-top:3rem;">
+        <div class="container text-center">
+            <p class="mb-0 opacity-75 small">© 2026 Bedly · Sistema de Gestión Hotelera UNIS</p>
+        </div>
+    </footer>
+
+    <script>
+    const API = 'http://localhost:5043/api';
+
+    function compararApp() {
+        return {
+            habitaciones: [],
+            loading: true,
+            idMasBarata: null,
+            yaInicializado: false,
+
+            async init() {
+                // Prevenir doble ejecución de init()
+                if (this.yaInicializado) return;
+                this.yaInicializado = true;
+
+                const params = new URLSearchParams(window.location.search);
+                const idsParam = params.get('ids');
+
+                if (!idsParam) {
+                    this.loading = false;
+                    return;
+                }
+
+                const ids = [...new Set(idsParam.split(',').filter(x => x).map(x => parseInt(x)))];
+
+                if (ids.length === 0) {
+                    this.loading = false;
+                    return;
+                }
+
+                try {
+                    const resultados = await Promise.all(
+                        ids.map(async (id) => {
+                            const habRes = await fetch(`${API}/habitaciones/${id}`);
+                            const habData = await habRes.json();
+                            if (!habData.success || !habData.data) return null;
+
+                            const h = habData.data;
+
+                            try {
+                                const imgRes = await fetch(`${API}/habitaciones/${id}/imagenes`);
+                                const imgData = await imgRes.json();
+                                h.imagenes = (imgData.success && Array.isArray(imgData.data)) ? imgData.data : [];
+                            } catch (e) {
+                                h.imagenes = [];
+                            }
+
+                            return h;
+                        })
+                    );
+
+                    this.habitaciones = resultados.filter(h => h !== null);
+                    this.calcularMasBarata();
+                } catch (e) {
+                    console.error('Error cargando habitaciones:', e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            calcularMasBarata() {
+                if (this.habitaciones.length < 2) {
+                    this.idMasBarata = null;
+                    return;
+                }
+                const masBarata = this.habitaciones.reduce((prev, curr) =>
+                    parseFloat(curr.precioNoche) < parseFloat(prev.precioNoche) ? curr : prev
+                );
+                this.idMasBarata = masBarata.idHabitacion;
+            }
+        }
+    }
+    </script>
+</body>
+</html>

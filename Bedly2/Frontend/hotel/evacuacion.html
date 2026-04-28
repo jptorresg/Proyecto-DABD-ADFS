@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedly | Plan de Evacuación y Emergencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .nav-link-bedly { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.9rem; font-weight: 500; padding: 0.3rem 0.8rem; border-radius: 6px; transition: all 0.2s; }
+        .nav-link-bedly:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .hero { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 70px 0 60px; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 900; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.08); }
+        .step-num { width: 45px; height: 45px; border-radius: 50%; background: #dc2626; color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-family: 'Playfair Display', serif; font-size: 1.2rem; flex-shrink: 0; }
+        .emergency-card { background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border-radius: 15px; padding: 1.5rem; text-align: center; }
+        .emergency-number { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; }
+        .icon-box { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+        .alert-warning-custom { background: #fef3c7; border-left: 5px solid #f59e0b; border-radius: 10px; padding: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar-bedly">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+                <a class="brand" href="landing.html">Bed<span>ly</span></a>
+                
+                <form class="d-flex flex-grow-1 mx-3" style="max-width:500px;" onsubmit="event.preventDefault(); buscarBedly(this);">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar hotel, ciudad o tipo de habitación..." aria-label="Buscar" style="border:none; padding:0.5rem 1rem;">
+                        <button class="btn btn-warning fw-bold px-3" type="submit"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+                
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <a href="amenidades.html" class="nav-link-bedly d-none d-lg-inline">Amenidades</a>
+                    <a href="tipos-habitaciones.html" class="nav-link-bedly d-none d-lg-inline">Habitaciones</a>
+                    <a href="checkin-checkout.html" class="nav-link-bedly d-none d-xl-inline">Check-in</a>
+                    <a href="reglas-hotel.html" class="nav-link-bedly d-none d-xl-inline">Reglas</a>
+                    <a href="evacuacion.html" class="nav-link-bedly d-none d-xl-inline">Emergencia</a>
+                    
+                    <a href="#" class="position-relative text-white text-decoration-none mx-2" title="Carrito (próximamente)">
+                        <i class="bi bi-cart3" style="font-size:1.4rem;"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size:0.65rem;">0</span>
+                    </a>
+                    
+                    <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                        <i class="bi bi-person me-1"></i>Iniciar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+    function buscarBedly(form) {
+        const q = form.q.value.trim();
+        if (!q) return;
+        window.location.href = 'landing.html?q=' + encodeURIComponent(q);
+    }
+    </script>
+
+    <div class="hero text-center">
+        <div class="container">
+            <h1><i class="bi bi-exclamation-triangle me-2"></i>Plan de Evacuación</h1>
+            <p class="lead mb-0" style="opacity:0.9;">Tu seguridad es nuestra prioridad. Conoce los protocolos de emergencia.</p>
+        </div>
+    </div>
+
+    <main class="container my-5">
+
+        <h2 class="section-title mb-4"><i class="bi bi-telephone-fill me-2" style="color:#dc2626;"></i>Números de Emergencia</h2>
+        <div class="row g-3 mb-5">
+            <div class="col-md-3 col-6">
+                <div class="emergency-card">
+                    <i class="bi bi-shield-fill mb-2" style="font-size:2rem;"></i>
+                    <div class="emergency-number">110</div>
+                    <div class="small fw-bold">Policía Nacional</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="emergency-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="bi bi-fire mb-2" style="font-size:2rem;"></i>
+                    <div class="emergency-number">122</div>
+                    <div class="small fw-bold">Bomberos Voluntarios</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="emergency-card" style="background: linear-gradient(135deg, #16a34a, #15803d);">
+                    <i class="bi bi-heart-pulse mb-2" style="font-size:2rem;"></i>
+                    <div class="emergency-number">125</div>
+                    <div class="small fw-bold">Cruz Roja</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="emergency-card" style="background: linear-gradient(135deg, #003580, #0055b3);">
+                    <i class="bi bi-building-fill mb-2" style="font-size:2rem;"></i>
+                    <div class="emergency-number">0</div>
+                    <div class="small fw-bold">Recepción Bedly</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-warning-custom mb-5">
+            <h6 class="fw-bold mb-2" style="color:#92400e;"><i class="bi bi-info-circle-fill me-2"></i>Antes de tu llegada</h6>
+            <p class="text-muted mb-0 small">
+                Al hacer check-in, recibirás un mapa con las rutas de evacuación de tu piso. Te recomendamos identificar
+                las salidas de emergencia más cercanas a tu habitación apenas ingreses.
+            </p>
+        </div>
+
+        <h2 class="section-title mb-4"><i class="bi bi-fire me-2" style="color:#dc2626;"></i>En Caso de Incendio</h2>
+        <div class="card p-4 mb-5">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">1</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Mantén la calma</h6>
+                            <p class="text-muted small mb-0">No corras ni grites. Respira profundo y actúa con determinación.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">2</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Activa la alarma</h6>
+                            <p class="text-muted small mb-0">Si detectas fuego, presiona la alarma roja del pasillo y llama a recepción (ext. 0).</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">3</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Verifica la puerta</h6>
+                            <p class="text-muted small mb-0">Toca la puerta con el dorso de la mano. Si está caliente, NO la abras y busca otra ruta.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="step-num">4</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Sal agachado</h6>
+                            <p class="text-muted small mb-0">El humo se acumula arriba. Avanza agachado o gateando para evitar inhalarlo.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">5</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">NO uses el ascensor</h6>
+                            <p class="text-muted small mb-0">Usa siempre las escaleras de emergencia señalizadas. Los ascensores se desactivan automáticamente.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">6</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Sigue las señales</h6>
+                            <p class="text-muted small mb-0">Las luces verdes "SALIDA" indican el camino más corto a una zona segura.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num">7</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Punto de reunión</h6>
+                            <p class="text-muted small mb-0">Dirígete al punto de encuentro en el estacionamiento principal. NO te detengas en el camino.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="step-num">8</div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Reporta tu presencia</h6>
+                            <p class="text-muted small mb-0">Identifícate ante el personal del hotel para confirmar que estás a salvo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title mb-4"><i class="bi bi-globe-americas me-2" style="color:#f59e0b;"></i>En Caso de Sismo</h2>
+        <div class="card p-4 mb-5">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="d-flex gap-3">
+                        <div class="icon-box" style="background:#fef3c7; color:#d97706;"><i class="bi bi-shield-fill"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Durante el sismo</h6>
+                            <p class="text-muted small mb-0">Agáchate, cúbrete bajo un escritorio o mesa resistente y agárrate firmemente.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-3">
+                        <div class="icon-box" style="background:#fef3c7; color:#d97706;"><i class="bi bi-x-circle"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Aléjate de</h6>
+                            <p class="text-muted small mb-0">Ventanas, espejos, cuadros y muebles altos que puedan caer.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-3">
+                        <div class="icon-box" style="background:#fef3c7; color:#d97706;"><i class="bi bi-arrow-down-circle"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Después del sismo</h6>
+                            <p class="text-muted small mb-0">Evacúa con precaución por las escaleras. NO uses elevadores.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title mb-4"><i class="bi bi-heart-pulse me-2" style="color:#16a34a;"></i>Emergencia Médica</h2>
+        <div class="card p-4 mb-5">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="icon-box" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-telephone-fill"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Llama de inmediato</h6>
+                            <p class="text-muted small mb-0">Marca <strong>0</strong> desde el teléfono de la habitación o llama a recepción al <strong>+502 2200-0000</strong>.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="icon-box" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-info-circle"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Da información clara</h6>
+                            <p class="text-muted small mb-0">Indica número de habitación, tipo de emergencia y estado del paciente.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="icon-box" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-bandaid"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Botiquín de emergencia</h6>
+                            <p class="text-muted small mb-0">Disponible en recepción y en cada piso. Personal capacitado en primeros auxilios.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="icon-box" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-hospital"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Hospitales cercanos</h6>
+                            <p class="text-muted small mb-0">Hospital Centro Médico (5 min), Hospital Herrera Llerandi (8 min), Hospital Roosevelt (15 min).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 mb-5" style="border-left: 5px solid #2563eb; background: #eff6ff;">
+            <h5 class="fw-bold mb-3" style="color:#1e40af;"><i class="bi bi-lightbulb-fill me-2"></i>Recomendaciones Generales</h5>
+            <ul class="text-muted mb-0" style="line-height:2;">
+                <li><strong>Identifica las dos salidas más cercanas</strong> a tu habitación al llegar al hotel.</li>
+                <li><strong>Memoriza el número de tu habitación</strong> y comparte tu ubicación con tu acompañante.</li>
+                <li><strong>Mantén tu llave y celular cerca</strong> de la cama mientras duermes.</li>
+                <li><strong>No regreses por pertenencias</strong> durante una evacuación. Tu vida vale más.</li>
+                <li><strong>Sigue las instrucciones del personal</strong> entrenado y los servicios de emergencia.</li>
+                <li><strong>Reporta inmediatamente</strong> cualquier situación sospechosa o peligrosa a recepción.</li>
+            </ul>
+        </div>
+
+        <div class="card p-5 text-center" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color:white;">
+            <h3 class="fw-bold mb-2" style="font-family:'Playfair Display',serif;">Tu seguridad es nuestra prioridad</h3>
+            <p class="mb-4" style="opacity:0.9;">Ante cualquier duda o emergencia, contáctanos de inmediato.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="tel:+50222000000" class="btn btn-light btn-lg rounded-pill px-5 fw-bold" style="color:#dc2626;"><i class="bi bi-telephone me-2"></i>+502 2200-0000</a>
+                <a href="tel:122" class="btn btn-outline-light btn-lg rounded-pill px-5"><i class="bi bi-fire me-2"></i>Bomberos: 122</a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer style="background:#003580; color:white; padding:3rem 0 1rem; margin-top:5rem;">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h4 style="font-family:'Playfair Display',serif; font-weight:900; margin-bottom:1rem;">Bed<span style="color:#f5a623;">ly</span></h4>
+                    <p style="opacity:0.8; font-size:0.9rem; line-height:1.7;">
+                        Tu cadena de hoteles de confianza en Guatemala. Reservas seguras, mejores precios y experiencias inolvidables.
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-facebook"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-instagram"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Información</h6>
+                    <ul style="list-style:none; padding:0; font-size:0.88rem;">
+                        <li class="mb-2"><a href="amenidades.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Amenidades</a></li>
+                        <li class="mb-2"><a href="tipos-habitaciones.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Habitaciones</a></li>
+                        <li class="mb-2"><a href="checkin-checkout.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Check-in / Check-out</a></li>
+                        <li class="mb-2"><a href="reglas-hotel.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Reglas del Hotel</a></li>
+                        <li class="mb-2"><a href="evacuacion.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Plan de Evacuación</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Cuenta</h6>
+                    <ul style="list-style:none; padding:0; font-size:0.88rem;">
+                        <li class="mb-2"><a href="login.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Iniciar Sesión</a></li>
+                        <li class="mb-2"><a href="registro.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Registrarse</a></li>
+                        <li class="mb-2"><a href="landing.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Ver Habitaciones</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Términos y Condiciones</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Contáctanos</h6>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;">
+                        <i class="bi bi-telephone-fill me-2"></i>+502 2200-0000
+                    </p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;">
+                        <i class="bi bi-envelope-fill me-2"></i>info@bedly.com
+                    </p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;">
+                        <i class="bi bi-geo-alt-fill me-2"></i>16 Calle 0-55, Zona 10<br><span style="margin-left:1.5rem;">Guatemala City, Guatemala</span>
+                    </p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0;">
+                        <i class="bi bi-clock-fill me-2"></i>Recepción 24/7
+                    </p>
+                </div>
+            </div>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <p style="margin:0; opacity:0.7; font-size:0.82rem;">© 2026 Bedly — Sistema de Gestión Hotelera · UNIS</p>
+                <p style="margin:0; opacity:0.7; font-size:0.82rem;">Hecho con <i class="bi bi-heart-fill" style="color:#f5a623;"></i> en Guatemala</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

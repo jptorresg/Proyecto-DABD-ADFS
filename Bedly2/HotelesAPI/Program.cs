@@ -1,0 +1,49 @@
+using HotelesAPI.Config;
+using HotelesAPI.Middleware;
+using System.Text.Json;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+builder.Services.AddAuthentication();
+
+var app = builder.Build();
+
+DatabaseConfig.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new Exception("No se encontró cadena de conexión");
+
+app.UseCors("AllowFrontend");
+
+// Middleware de logging automático para todos los endpoints /api/*
+app.UseMiddleware<LoggingMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+try
+{
+    DatabaseConfig.TestConnection();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Advertencia: {ex.Message}");
+}
+
+app.Run();

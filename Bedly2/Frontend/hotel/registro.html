@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedly | Crear cuenta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root { --primary-color: #003580; }
+        body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
+        .brand span { color: #f5a623; }
+        .registro-card { background: white; border-radius: 15px; box-shadow: 0 8px 32px rgba(0,53,128,0.12); padding: 2.5rem; max-width: 800px; width: 100%; }
+        .registro-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--primary-color); margin-bottom: 0.3rem; }
+        .form-label-bedly { font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 0.6rem 0.9rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
+        .btn-bedly { background: var(--primary-color); color: white; border-radius: 10px; padding: 0.75rem; font-weight: 700; font-size: 1rem; border: none; transition: all 0.2s; }
+        .btn-bedly:hover { background: #002d6a; color: white; }
+        .captcha-box { background: #f0f4f8; border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1rem; text-align: center; }
+        .captcha-question { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--primary-color); }
+        .form-text-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
+    </style>
+</head>
+<body x-data="registroApp()" x-init="init()">
+
+    <nav class="navbar-bedly">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="brand" href="landing.html">Bed<span>ly</span></a>
+            <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-4">
+                <i class="bi bi-person me-1"></i>Iniciar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center p-4">
+        <div class="registro-card">
+            <div class="text-center mb-4">
+                <h1 class="registro-title">Crea tu cuenta</h1>
+                <p class="text-muted">Únete a Bedly y empieza a reservar.</p>
+            </div>
+
+            <div x-show="error" class="alert alert-danger small" x-text="error"></div>
+            <div x-show="exito" class="alert alert-success small" x-text="exito"></div>
+
+            <form @submit.prevent="registrar()">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-person me-1"></i>Nombre *</label>
+                        <input type="text" class="form-control" x-model="form.nombre" placeholder="Ej: José" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-person-badge me-1"></i>Apellidos *</label>
+                        <input type="text" class="form-control" x-model="form.apellidos" placeholder="Ej: Rueda Méndez" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label form-label-bedly"><i class="bi bi-envelope me-1"></i>Email *</label>
+                        <input type="email" class="form-control" x-model="form.email" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label form-label-bedly"><i class="bi bi-cake2 me-1"></i>Edad *</label>
+                        <input type="number" class="form-control" x-model.number="form.edad" min="18" max="120" placeholder="Ej: 25" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-telephone me-1"></i>Teléfono *</label>
+                        <input type="text" class="form-control" :value="form.telefono"
+                               @input="formatearTelefono($event)"
+                               maxlength="9" placeholder="0000-0000" required>
+                        <div class="form-text-hint">Formato: 8 dígitos (ej. 5555-1234)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-flag me-1"></i>País *</label>
+                        <select class="form-select" x-model="form.pais" required>
+                            <option value="">Selecciona tu país...</option>
+                            <template x-for="p in paises" :key="p.codigo">
+                                <option :value="p.nombre" x-text="p.nombre"></option>
+                            </template>
+                        </select>
+                        <div class="form-text-hint" x-show="paises.length === 0">Cargando lista de países...</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-card-text me-1"></i>Documento *</label>
+                        <select class="form-select mb-2" x-model="tipoDocumento" @change="form.pasaporte = ''">
+                            <option value="dpi">DPI (Guatemala)</option>
+                            <option value="pasaporte">Pasaporte</option>
+                        </select>
+                        <input type="text" class="form-control"
+                               :value="form.pasaporte"
+                               @input="formatearDocumento($event)"
+                               :maxlength="tipoDocumento === 'dpi' ? 13 : 9"
+                               :placeholder="tipoDocumento === 'dpi' ? '0000000000000 (13 dígitos)' : 'AB1234567 (9 caracteres)'"
+                               required>
+                        <div class="form-text-hint" x-show="tipoDocumento === 'dpi'">DPI guatemalteco: 13 dígitos exactos</div>
+                        <div class="form-text-hint" x-show="tipoDocumento === 'pasaporte'">Pasaporte: 6 a 9 caracteres alfanuméricos</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label form-label-bedly"><i class="bi bi-lock me-1"></i>Contraseña *</label>
+                        <input type="password" class="form-control" x-model="form.password" placeholder="Mínimo 8 caracteres" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label form-label-bedly"><i class="bi bi-shield-check me-1"></i>Verificación CAPTCHA *</label>
+                        <div class="captcha-box">
+                            <div class="captcha-question mb-2">
+                                <span x-text="captcha.a"></span> + <span x-text="captcha.b"></span> = ?
+                                <button type="button" class="btn btn-sm btn-link" @click="generarCaptcha()" title="Cambiar pregunta">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <input type="number" class="form-control text-center" style="max-width:200px; margin:auto;"
+                                   x-model.number="captchaRespuesta" placeholder="Tu respuesta" 
+                                   min="0" max="20" step="1"
+                                   onkeydown="return event.key !== '-' && event.key !== 'e' && event.key !== '+' && event.key !== '.';"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="terminos" x-model="aceptaTerminos" required>
+                            <label class="form-check-label small" for="terminos">
+                                Acepto los <a href="#" style="color:var(--primary-color);">Términos y Condiciones</a>
+                                y la <a href="#" style="color:var(--primary-color);">Política de Privacidad</a>.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-bedly w-100" :disabled="cargando">
+                            <span x-show="!cargando"><i class="bi bi-person-plus me-2"></i>Crear cuenta</span>
+                            <span x-show="cargando"><i class="bi bi-arrow-clockwise me-2"></i>Creando...</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="text-center text-muted small mt-4 mb-0">
+                ¿Ya tienes cuenta? <a href="login.html" style="color:var(--primary-color); font-weight:600;">Inicia sesión</a>
+            </p>
+        </div>
+    </main>
+
+    <footer style="background:#003580; color:white; padding:3rem 0 1rem;">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h4 style="font-family:'Playfair Display',serif; font-weight:900; margin-bottom:1rem;">Bed<span style="color:#f5a623;">ly</span></h4>
+                    <p style="opacity:0.8; font-size:0.9rem; line-height:1.7;">
+                        Tu cadena de hoteles de confianza en Guatemala. Reservas seguras, mejores precios y experiencias inolvidables.
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-facebook"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-instagram"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" style="color:white; opacity:0.7; font-size:1.3rem;"><i class="bi bi-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Información</h6>
+                    <ul style="list-style:none; padding:0; font-size:0.88rem;">
+                        <li class="mb-2"><a href="amenidades.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Amenidades</a></li>
+                        <li class="mb-2"><a href="tipos-habitaciones.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Habitaciones</a></li>
+                        <li class="mb-2"><a href="checkin-checkout.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Check-in / Check-out</a></li>
+                        <li class="mb-2"><a href="reglas-hotel.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Reglas del Hotel</a></li>
+                        <li class="mb-2"><a href="evacuacion.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Plan de Evacuación</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Cuenta</h6>
+                    <ul style="list-style:none; padding:0; font-size:0.88rem;">
+                        <li class="mb-2"><a href="login.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Iniciar Sesión</a></li>
+                        <li class="mb-2"><a href="registro.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Registrarse</a></li>
+                        <li class="mb-2"><a href="landing.html" style="color:rgba(255,255,255,0.8); text-decoration:none;">Ver Habitaciones</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Términos y Condiciones</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.8); text-decoration:none;">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 style="font-weight:700; margin-bottom:1rem; text-transform:uppercase; font-size:0.85rem; color:#f5a623;">Contáctanos</h6>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;"><i class="bi bi-telephone-fill me-2"></i>+502 2200-0000</p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;"><i class="bi bi-envelope-fill me-2"></i>info@bedly.com</p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0.6rem;"><i class="bi bi-geo-alt-fill me-2"></i>16 Calle 0-55, Zona 10<br><span style="margin-left:1.5rem;">Guatemala City, Guatemala</span></p>
+                    <p style="opacity:0.8; font-size:0.88rem; margin-bottom:0;"><i class="bi bi-clock-fill me-2"></i>Recepción 24/7</p>
+                </div>
+            </div>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <p style="margin:0; opacity:0.7; font-size:0.82rem;">© 2026 Bedly — Sistema de Gestión Hotelera · UNIS</p>
+                <p style="margin:0; opacity:0.7; font-size:0.82rem;">Hecho con <i class="bi bi-heart-fill" style="color:#f5a623;"></i> en Guatemala</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    const API = 'http://localhost:5044/api';
+
+    function registroApp() {
+        return {
+            form: {
+                nombre: '',
+                apellidos: '',
+                email: '',
+                password: '',
+                telefono: '',
+                edad: null,
+                pais: '',
+                pasaporte: ''
+            },
+            tipoDocumento: 'dpi',
+            paises: [
+                { codigo: 'GT', nombre: 'Guatemala' },
+                { codigo: 'MX', nombre: 'México' },
+                { codigo: 'US', nombre: 'Estados Unidos' },
+                { codigo: 'CA', nombre: 'Canadá' },
+                { codigo: 'HN', nombre: 'Honduras' },
+                { codigo: 'SV', nombre: 'El Salvador' },
+                { codigo: 'NI', nombre: 'Nicaragua' },
+                { codigo: 'CR', nombre: 'Costa Rica' },
+                { codigo: 'PA', nombre: 'Panamá' },
+                { codigo: 'BZ', nombre: 'Belice' },
+                { codigo: 'CO', nombre: 'Colombia' },
+                { codigo: 'VE', nombre: 'Venezuela' },
+                { codigo: 'EC', nombre: 'Ecuador' },
+                { codigo: 'PE', nombre: 'Perú' },
+                { codigo: 'BO', nombre: 'Bolivia' },
+                { codigo: 'CL', nombre: 'Chile' },
+                { codigo: 'AR', nombre: 'Argentina' },
+                { codigo: 'UY', nombre: 'Uruguay' },
+                { codigo: 'PY', nombre: 'Paraguay' },
+                { codigo: 'BR', nombre: 'Brasil' },
+                { codigo: 'ES', nombre: 'España' },
+                { codigo: 'FR', nombre: 'Francia' },
+                { codigo: 'DE', nombre: 'Alemania' },
+                { codigo: 'IT', nombre: 'Italia' },
+                { codigo: 'GB', nombre: 'Reino Unido' },
+                { codigo: 'PT', nombre: 'Portugal' },
+                { codigo: 'NL', nombre: 'Países Bajos' },
+                { codigo: 'JP', nombre: 'Japón' },
+                { codigo: 'CN', nombre: 'China' },
+                { codigo: 'KR', nombre: 'Corea del Sur' },
+                { codigo: 'IN', nombre: 'India' },
+                { codigo: 'AU', nombre: 'Australia' },
+                { codigo: 'OTHER', nombre: 'Otro' }
+            ],
+            aceptaTerminos: false,
+            captcha: { a: 0, b: 0, resultado: 0 },
+            captchaRespuesta: null,
+            error: '',
+            exito: '',
+            cargando: false,
+
+            init() {
+                this.generarCaptcha();
+                this.cargarPaises();
+            },
+
+            async cargarPaises() {
+                try {
+                    const res = await fetch(`${API}/catalogo/nacionalidades`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+                        this.paises = data.data;
+                    }
+                } catch (e) {
+                    console.warn('Usando lista de países por defecto:', e);
+                }
+            },
+
+            generarCaptcha() {
+                this.captcha.a = Math.floor(Math.random() * 10) + 1;
+                this.captcha.b = Math.floor(Math.random() * 10) + 1;
+                this.captcha.resultado = this.captcha.a + this.captcha.b;
+                this.captchaRespuesta = null;
+            },
+
+            formatearTelefono(event) {
+                let valor = event.target.value.replace(/\D/g, '');
+                if (valor.length > 8) valor = valor.substring(0, 8);
+                if (valor.length > 4) {
+                    valor = valor.substring(0, 4) + '-' + valor.substring(4);
+                }
+                this.form.telefono = valor;
+                event.target.value = valor;
+            },
+
+            formatearDocumento(event) {
+                let valor = event.target.value;
+                if (this.tipoDocumento === 'dpi') {
+                    valor = valor.replace(/\D/g, '').substring(0, 13);
+                } else {
+                    valor = valor.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 9);
+                }
+                this.form.pasaporte = valor;
+                event.target.value = valor;
+            },
+
+            validarFormulario() {
+                if (!this.form.nombre || !this.form.apellidos) {
+                    this.error = 'Nombre y apellidos son requeridos.';
+                    return false;
+                }
+                if (!this.form.email.includes('@')) {
+                    this.error = 'Email inválido.';
+                    return false;
+                }
+                if (!this.form.edad || this.form.edad < 18 || this.form.edad > 120) {
+                    this.error = 'La edad debe estar entre 18 y 120 años.';
+                    return false;
+                }
+                const telefonoLimpio = this.form.telefono.replace(/\D/g, '');
+                if (telefonoLimpio.length !== 8) {
+                    this.error = 'El teléfono debe tener 8 dígitos.';
+                    return false;
+                }
+                if (!this.form.pais) {
+                    this.error = 'Selecciona un país.';
+                    return false;
+                }
+                if (this.tipoDocumento === 'dpi') {
+                    if (!/^\d{13}$/.test(this.form.pasaporte)) {
+                        this.error = 'El DPI debe tener exactamente 13 dígitos.';
+                        return false;
+                    }
+                } else {
+                    if (!/^[A-Z0-9]{6,9}$/.test(this.form.pasaporte)) {
+                        this.error = 'El pasaporte debe tener entre 6 y 9 caracteres alfanuméricos.';
+                        return false;
+                    }
+                }
+                if (this.form.password.length < 8) {
+                    this.error = 'La contraseña debe tener al menos 8 caracteres.';
+                    return false;
+                }
+                if (this.captchaRespuesta !== this.captcha.resultado) {
+                    this.error = 'La respuesta del CAPTCHA es incorrecta.';
+                    this.generarCaptcha();
+                    return false;
+                }
+                if (!this.aceptaTerminos) {
+                    this.error = 'Debes aceptar los términos y condiciones.';
+                    return false;
+                }
+                return true;
+            },
+
+            async registrar() {
+                this.error = '';
+                this.exito = '';
+                if (!this.validarFormulario()) return;
+
+                this.cargando = true;
+                try {
+                    const res = await fetch(`${API}/auth/registro`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(this.form)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.exito = 'Cuenta creada exitosamente. Redirigiendo al login...';
+                        setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+                    } else {
+                        this.error = data.message || 'Error al crear la cuenta.';
+                        this.generarCaptcha();
+                    }
+                } catch (e) {
+                    this.error = 'No se pudo conectar al servidor.';
+                    this.generarCaptcha();
+                } finally {
+                    this.cargando = false;
+                }
+            }
+        }
+    }
+    </script>
+
+</body>
+</html>
