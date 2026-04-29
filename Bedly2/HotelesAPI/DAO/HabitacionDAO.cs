@@ -154,13 +154,24 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
 
-            // Actualizar ciudad en la tabla Hoteles
+            // Mantener consistente la tabla Hoteles: ubicacion + ciudad + pais
             if (!string.IsNullOrWhiteSpace(habitacion.Ubicacion))
             {
-                string sqlHotel = "UPDATE Hoteles SET ubicacion = @ubicacion WHERE id_hotel = @idHotel";
+                string ciudad = string.IsNullOrWhiteSpace(habitacion.Ciudad)
+                    ? habitacion.Ubicacion.Trim()
+                    : habitacion.Ciudad.Trim();
+                string pais = string.IsNullOrWhiteSpace(habitacion.Pais) ? "Guatemala" : habitacion.Pais;
+
+                string sqlHotel = @"UPDATE Hoteles
+                                    SET ubicacion = @ubicacion,
+                                        ciudad    = @ciudad,
+                                        pais      = @pais
+                                    WHERE id_hotel = @idHotel";
                 using var cmdHotel = new SqlCommand(sqlHotel, conn);
                 cmdHotel.Parameters.AddWithValue("@ubicacion", habitacion.Ubicacion.Trim());
-                cmdHotel.Parameters.AddWithValue("@idHotel", habitacion.IdHotel);
+                cmdHotel.Parameters.AddWithValue("@ciudad",    ciudad);
+                cmdHotel.Parameters.AddWithValue("@pais",      pais);
+                cmdHotel.Parameters.AddWithValue("@idHotel",   habitacion.IdHotel);
                 cmdHotel.ExecuteNonQuery();
             }
 
@@ -192,12 +203,23 @@ namespace HotelesAPI.DAO
             using var conn = DatabaseConfig.GetConnection();
             conn.Open();
 
-            // Actualizar ciudad en la tabla Hoteles
+            // Mantener consistente la tabla Hoteles: ubicacion + ciudad + pais
             if (!string.IsNullOrWhiteSpace(habitacion.Ubicacion))
             {
-                string sqlHotel = "UPDATE Hoteles SET ubicacion = @ubicacion WHERE id_hotel = @idHotel";
+                string ciudad = string.IsNullOrWhiteSpace(habitacion.Ciudad)
+                    ? habitacion.Ubicacion.Trim()
+                    : habitacion.Ciudad.Trim();
+                string pais = string.IsNullOrWhiteSpace(habitacion.Pais) ? "Guatemala" : habitacion.Pais;
+
+                string sqlHotel = @"UPDATE Hoteles
+                                    SET ubicacion = @ubicacion,
+                                        ciudad    = @ciudad,
+                                        pais      = @pais
+                                    WHERE id_hotel = @idHotel";
                 using var cmdHotel = new SqlCommand(sqlHotel, conn);
                 cmdHotel.Parameters.AddWithValue("@ubicacion", habitacion.Ubicacion.Trim());
+                cmdHotel.Parameters.AddWithValue("@ciudad",    ciudad);
+                cmdHotel.Parameters.AddWithValue("@pais",      pais);
                 cmdHotel.Parameters.AddWithValue("@idHotel",   habitacion.IdHotel);
                 cmdHotel.ExecuteNonQuery();
             }

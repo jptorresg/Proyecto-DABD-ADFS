@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Inventario - Bedly</title>
+    <title>Inventario de Habitaciones - Bedly Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,227 +11,237 @@
     <style>
         :root { --primary-color: #003580; }
         body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; }
-        .navbar-bedly { background-color: var(--primary-color); padding: 0.75rem 0; }
-        .brand { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: #fff; text-decoration: none; }
-        .brand span { color: #f5a623; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.10); }
-        .page-header { background-color: var(--primary-color); color: white; padding: 2rem 0; }
-        .page-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; }
-        .form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; font-family: 'DM Sans', sans-serif; }
-        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,53,128,0.1); }
-        .form-label { font-size: 0.82rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
-        .btn-primary { background-color: var(--primary-color); border: none; border-radius: 10px; font-weight: 600; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.88; background-color: var(--primary-color); }
-        .table th { font-size: 0.78rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid #e5e7eb; }
+        .sidebar { width: 250px; min-height: 100vh; background: var(--primary-color); position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-brand { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: #fff; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand span { color: #f5a623; }
+        .sidebar-nav { padding: 1rem 0; }
+        .nav-item-link { display: flex; align-items: center; gap: 12px; padding: 0.75rem 1.5rem; color: rgba(255,255,255,0.75); text-decoration: none; transition: all 0.2s; font-size: 0.9rem; font-weight: 500; border-left: 3px solid transparent; }
+        .nav-item-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-item-link.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #f5a623; }
+        .nav-item-link i { font-size: 1.1rem; width: 20px; }
+        .nav-section { padding: 0.5rem 1.5rem; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 1rem; }
+        .main-content { margin-left: 250px; min-height: 100vh; }
+        .topbar { background: #fff; padding: 1rem 1.5rem; box-shadow: 0 2px 12px rgba(0,53,128,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--primary-color); margin: 0; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 24px rgba(0,53,128,0.08); }
+        .table th { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .badge-disponible  { background: #dcfce7; color: #16a34a; }
+        .badge-ocupada     { background: #dbeafe; color: #1d4ed8; }
+        .badge-mantenimiento { background: #fef9c3; color: #b45309; }
+        .badge-inactiva    { background: #fee2e2; color: #dc2626; }
+        .badge-estado { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .modal-content { border: none; border-radius: 15px; }
-        .modal-header { background-color: var(--primary-color); color: white; border-radius: 15px 15px 0 0; }
-        .btn-close-white { filter: invert(1); }
-        .field-required { color: #dc2626; margin-left: 2px; }
+        .modal-header-custom { background: var(--primary-color); color: white; border-radius: 15px 15px 0 0; }
+        .form-label-mini { font-size: 0.82rem; font-weight: 600; color: #6b7280; text-transform: uppercase; }
+        .acceso-denegado { background: #fee2e2; border: 1px solid #fecaca; border-radius: 15px; padding: 2rem; text-align: center; color: #dc2626; }
+        .rol-badge { display:inline-block; padding:0.15rem 0.5rem; border-radius:10px; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+        .rol-superadmin   { background:#f5a623; color:#003580; }
+        .rol-admin        { background:#dc2626; color:white; }
+        .rol-recepcionista{ background:#16a34a; color:white; }
+        .rol-auditor      { background:#6366f1; color:white; }
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; min-height: auto; position: relative; }
+            .main-content { margin-left: 0; }
+        }
     </style>
 </head>
 <body x-data="inventarioApp()" x-init="init()">
 
-    <nav class="navbar-bedly">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a class="brand" href="index.html">Bed<span>ly</span></a>
-            <a href="admin.html" class="btn btn-outline-light btn-sm rounded-pill">
-                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+    <div class="sidebar">
+        <div class="sidebar-brand">Bed<span>ly</span> <small style="font-size:0.7rem; opacity:0.6;">Admin</small></div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">Principal</div>
+            <a href="admin.html" class="nav-item-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <div class="nav-section">Gestión</div>
+            <a href="inventario.html" class="nav-item-link active"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin' || rolActual === 'recepcionista'">
+                <i class="bi bi-door-open"></i> Inventario
             </a>
-        </div>
-    </nav>
+            <a href="admin.html" class="nav-item-link">
+                <i class="bi bi-calendar-check"></i> Reservaciones
+            </a>
+            <a href="admin.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-people"></i> Usuarios
+            </a>
+            <a href="admin.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin'">
+                <i class="bi bi-buildings"></i> Hoteles
+            </a>
+            <a href="admin.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-building-gear"></i> Agencias B2B
+            </a>
+            <a href="admin.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-tag"></i> Cupones
+            </a>
+            <a href="admin.html" class="nav-item-link"
+               x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                <i class="bi bi-calendar-x"></i> Cierre de Ventas
+            </a>
+            <div class="nav-section">Sistema</div>
+            <a href="index.html" class="nav-item-link">
+                <i class="bi bi-shop"></i> Ver Sitio
+            </a>
+            <a href="#" class="nav-item-link" @click.prevent="cerrarSesion()">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </nav>
+    </div>
 
-    <div class="page-header">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="page-title mb-1">Gestión de Inventario</h1>
-                <p style="opacity:0.8; font-size:0.9rem;" x-text="habitaciones.length + ' habitaciones registradas'"></p>
+    <div class="main-content">
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <h1 class="page-title">Inventario de Habitaciones</h1>
+                <button class="btn btn-outline-primary btn-sm rounded-pill" @click="cargarHabitaciones()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
             </div>
-            <button class="btn btn-warning fw-bold rounded-pill px-4" @click="abrirModal(null)">
-                <i class="bi bi-plus-circle me-2"></i>Nueva Habitación
-            </button>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small" x-text="fechaHoy"></span>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:36px; height:36px; background:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:0.9rem; font-weight:700;"
+                         x-text="nombreAdmin ? nombreAdmin[0].toUpperCase() : 'A'"></div>
+                    <div>
+                        <div class="small fw-bold" x-text="nombreAdmin"></div>
+                        <div><span class="rol-badge" :class="'rol-' + rolActual" x-text="rolActual"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <div x-show="exito" class="alert alert-success alert-dismissible mb-3" x-text="exito">
+                <button type="button" class="btn-close" @click="exito = ''"></button>
+            </div>
+            <div x-show="error" class="alert alert-danger alert-dismissible mb-3" x-text="error">
+                <button type="button" class="btn-close" @click="error = ''"></button>
+            </div>
+
+            <div x-show="rolActual !== 'superadmin' && rolActual !== 'admin' && rolActual !== 'recepcionista'" class="acceso-denegado">
+                <i class="bi bi-lock" style="font-size:2rem;"></i>
+                <p class="fw-bold mt-2">Acceso denegado.</p>
+            </div>
+
+            <div x-show="rolActual === 'superadmin' || rolActual === 'admin' || rolActual === 'recepcionista'">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color:var(--primary-color)">Habitaciones del Hotel</h5>
+                                <small class="text-muted" x-text="habitaciones.length + ' habitaciones registradas'"></small>
+                            </div>
+                            <button class="btn btn-primary btn-sm rounded-pill px-4" @click="abrirModal(null)">
+                                <i class="bi bi-plus-circle me-1"></i>Nueva Habitación
+                            </button>
+                        </div>
+
+                        <div x-show="loading" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Cargando habitaciones...</p>
+                        </div>
+
+                        <div x-show="!loading" class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Núm</th>
+                                        <th>Tipo</th>
+                                        <th>Hotel</th>
+                                        <th>Precio/Noche</th>
+                                        <th>Capacidad</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="h in habitaciones" :key="h.idHabitacion">
+                                        <tr>
+                                            <td class="text-muted small" x-text="h.idHabitacion"></td>
+                                            <td class="fw-bold" x-text="h.numHabitacion"></td>
+                                            <td x-text="h.tipoHabitacion"></td>
+                                            <td class="text-muted small" x-text="h.nombreHotel"></td>
+                                            <td class="fw-bold text-success" x-text="'Q ' + parseFloat(h.precioNoche).toFixed(2)"></td>
+                                            <td x-text="h.capacidadMax + ' personas'"></td>
+                                            <td>
+                                                <span class="badge-estado" :class="'badge-' + h.estado.toLowerCase()" x-text="h.estado"></span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex gap-1 justify-content-center">
+                                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" @click="abrirModal(h)">
+                                                        <i class="bi bi-pencil me-1"></i>Editar
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="cambiarEstadoRapido(h)">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>Estado
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @click="eliminarHabitacion(h)"
+                                                            x-show="rolActual === 'superadmin' || rolActual === 'admin'">
+                                                        <i class="bi bi-trash me-1"></i>Eliminar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="!loading && habitaciones.length === 0">
+                                        <td colspan="8" class="text-center text-muted py-4">No hay habitaciones registradas.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <main class="container my-4">
-
-        <div x-show="exito" class="alert alert-success alert-dismissible mb-3" x-text="exito">
-            <button type="button" class="btn-close" @click="exito = ''"></button>
-        </div>
-        <div x-show="error" class="alert alert-danger alert-dismissible mb-3" x-text="error">
-            <button type="button" class="btn-close" @click="error = ''"></button>
-        </div>
-
-        <div class="card mb-4 p-3">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" x-model="filtro"
-                           placeholder="Buscar por tipo, número...">
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select" x-model="filtroEstado">
-                        <option value="">Todos los estados</option>
-                        <option value="Disponible">Disponible</option>
-                        <option value="Ocupada">Ocupada</option>
-                        <option value="Mantenimiento">Mantenimiento</option>
-                        <option value="Inactiva">Inactiva</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select" x-model="filtroHotel">
-                        <option value="">Todos los hoteles</option>
-                        <template x-for="h in hoteles" :key="h.idHotel">
-                            <option :value="h.idHotel" x-text="h.nombreHotel"></option>
-                        </template>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100"
-                            @click="filtro = ''; filtroEstado = ''; filtroHotel = ''">
-                        <i class="bi bi-x-lg me-1"></i>Limpiar
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div x-show="loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">Cargando inventario...</p>
-        </div>
-
-        <div class="card" x-show="!loading">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4">ID</th>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Hotel</th>
-                                <th>Ciudad</th>
-                                <th>Precio/Noche</th>
-                                <th>Capacidad</th>
-                                <th>Estado</th>
-                                <th class="text-center pe-4">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-for="h in habitacionesFiltradas" :key="h.idHabitacion">
-                                <tr>
-                                    <td class="ps-4 text-muted small" x-text="h.idHabitacion"></td>
-                                    <td class="fw-bold" x-text="h.numHabitacion"></td>
-                                    <td x-text="h.tipoHabitacion"></td>
-                                    <td class="text-muted small" x-text="h.nombreHotel"></td>
-                                    <td class="text-muted small">
-                                        <i class="bi bi-geo-alt me-1"></i>
-                                        <span x-text="h.ubicacion || '-'"></span>
-                                    </td>
-                                    <td class="fw-bold text-success" x-text="'Q ' + parseFloat(h.precioNoche).toFixed(2)"></td>
-                                    <td x-text="h.capacidadMax + ' pers.'"></td>
-                                    <td>
-                                        <span class="badge rounded-pill"
-                                              :class="{
-                                                'bg-success': h.estado === 'Disponible',
-                                                'bg-danger':  h.estado === 'Ocupada',
-                                                'bg-warning text-dark': h.estado === 'Mantenimiento',
-                                                'bg-secondary': h.estado === 'Inactiva'
-                                              }"
-                                              x-text="h.estado"></span>
-                                    </td>
-                                    <td class="text-center pe-4">
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                                    @click="abrirModal(h)">
-                                                <i class="bi bi-pencil me-1"></i>Editar
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                    @click="eliminar(h.idHabitacion)">
-                                                <i class="bi bi-trash me-1"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr x-show="habitacionesFiltradas.length === 0">
-                                <td colspan="9" class="text-center text-muted py-4">No se encontraron habitaciones.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal -->
+    <!-- Modal Habitación -->
     <div class="modal fade" id="modalHabitacion" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header modal-header-custom">
                     <h5 class="modal-title fw-bold" x-text="modoEdicion ? 'Editar Habitación' : 'Nueva Habitación'"></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" style="filter:invert(1);" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Número de Habitación <span class="field-required">*</span></label>
-                            <input type="text" class="form-control" x-model="form.numHabitacion"
-                                   placeholder="Ej: 101">
+                            <label class="form-label form-label-mini">Hotel *</label>
+                            <select class="form-select" x-model="form.idHotel">
+                                <option value="">-- Seleccionar hotel --</option>
+                                <template x-for="h in hoteles" :key="h.idHotel">
+                                    <option :value="h.idHotel" x-text="h.nombreHotel + ' (' + (h.ciudad || h.ubicacion || '-') + ')'"></option>
+                                </template>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Tipo de Habitación <span class="field-required">*</span></label>
+                            <label class="form-label form-label-mini">Número de Habitación *</label>
+                            <input type="text" class="form-control" x-model="form.numHabitacion" placeholder="Ej: 101">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label form-label-mini">Tipo *</label>
                             <select class="form-select" x-model="form.tipoHabitacion">
-                                <option value="">Seleccionar...</option>
-                                <option value="Sencilla">Sencilla</option>
+                                <option value="">-- Seleccionar --</option>
+                                <option value="Individual">Individual</option>
                                 <option value="Doble">Doble</option>
                                 <option value="Suite">Suite</option>
                                 <option value="Familiar">Familiar</option>
-                                <option value="Ejecutiva">Ejecutiva</option>
-                                <option value="Penthouse">Penthouse</option>
+                                <option value="Presidencial">Presidencial</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Precio por Noche (Q) <span class="field-required">*</span></label>
-                            <input type="number" class="form-control" x-model="form.precioNoche"
-                                   placeholder="Ej: 850.00" min="0" step="0.01">
+                            <label class="form-label form-label-mini">Capacidad Máxima *</label>
+                            <input type="number" class="form-control" x-model="form.capacidadMax" min="1" max="10">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label form-label-mini">Precio por Noche (Q) *</label>
+                            <input type="number" class="form-control" x-model="form.precioNoche" min="0" step="0.01">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Capacidad Máxima <span class="field-required">*</span></label>
-                            <select class="form-select" x-model="form.capacidadMax">
-                                <option value="1">1 persona</option>
-                                <option value="2">2 personas</option>
-                                <option value="3">3 personas</option>
-                                <option value="4">4 personas</option>
-                                <option value="6">6 personas</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Cadena Hotelera <span class="field-required">*</span></label>
-                            <select class="form-select" x-model="form.idHotel">
-                                <option value="">Seleccionar hotel...</option>
-                                <template x-for="h in hoteles" :key="h.idHotel">
-                                    <option :value="h.idHotel"
-                                            x-text="h.nombreHotel + ' (' + h.estrellas + '★)'">
-                                    </option>
-                                </template>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Ciudad <span class="field-required">*</span></label>
-                            <input type="text" class="form-control" x-model="form.ciudad"
-                                   placeholder="Ej: Guatemala City, Antigua..."
-                                   list="lista-ciudades">
-                            <datalist id="lista-ciudades">
-                                <template x-for="c in ciudadesExistentes" :key="c">
-                                    <option :value="c"></option>
-                                </template>
-                            </datalist>
-                            <div class="form-text text-muted" style="font-size:0.75rem;">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Esta ciudad aparecerá en los filtros del catálogo.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Estado</label>
+                            <label class="form-label form-label-mini">Estado *</label>
                             <select class="form-select" x-model="form.estado">
                                 <option value="Disponible">Disponible</option>
                                 <option value="Ocupada">Ocupada</option>
@@ -239,43 +249,49 @@
                                 <option value="Inactiva">Inactiva</option>
                             </select>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label">Estrellas del Hotel</label>
-                            <select class="form-select" x-model="form.estrellas">
-                                <option value="1">⭐ 1 estrella</option>
-                                <option value="2">⭐⭐ 2 estrellas</option>
-                                <option value="3">⭐⭐⭐ 3 estrellas</option>
-                                <option value="4">⭐⭐⭐⭐ 4 estrellas</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 estrellas</option>
+                            <label class="form-label form-label-mini">País *</label>
+                            <select class="form-select" x-model="form.pais">
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="Costa Rica">Costa Rica</option>
+                                <option value="Panamá">Panamá</option>
+                                <option value="Belice">Belice</option>
+                                <option value="Estados Unidos">Estados Unidos</option>
+                                <option value="Otro">Otro</option>
                             </select>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Amenidades (separadas por coma)</label>
-                            <input type="text" class="form-control" x-model="form.amenidades"
-                                   placeholder="Ej: WiFi, A/C, TV, Desayuno">
+                        <div class="col-md-6">
+                            <label class="form-label form-label-mini">Ciudad *</label>
+                            <input type="text" class="form-control" x-model="form.ciudad" placeholder="Ej: Guatemala City">
                         </div>
+
                         <div class="col-12">
-                            <label class="form-label">Descripción</label>
-                            <textarea class="form-control" x-model="form.descripcion" rows="3"
-                                      placeholder="Descripción de la habitación..."></textarea>
+                            <label class="form-label form-label-mini">Amenidades</label>
+                            <input type="text" class="form-control" x-model="form.amenidades" placeholder="WiFi, TV, Aire acondicionado...">
                         </div>
+
                         <div class="col-12">
-                            <label class="form-label">URL de Imagen</label>
-                            <input type="text" class="form-control" x-model="form.imagenUrl"
-                                   placeholder="https://...">
+                            <label class="form-label form-label-mini">Descripción</label>
+                            <textarea class="form-control" rows="2" x-model="form.descripcion" placeholder="Detalles de la habitación..."></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label form-label-mini">URL de Imagen</label>
+                            <input type="text" class="form-control" x-model="form.imagenUrl" placeholder="https://...">
                         </div>
                     </div>
-                    <div x-show="errorModal" class="alert alert-danger mt-3 small" x-text="errorModal"></div>
+                    <div x-show="errorModal" class="alert alert-danger small mt-3" x-text="errorModal"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
-                            data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4"
-                            @click="guardar()" :disabled="cargando">
-                        <span x-show="!cargando"><i class="bi bi-check-circle me-2"></i>Guardar</span>
-                        <span x-show="cargando">
-                            <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
-                        </span>
+                    <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary rounded-pill px-4" @click="guardar()">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <span x-text="modoEdicion ? 'Actualizar' : 'Crear Habitación'"></span>
                     </button>
                 </div>
             </div>
@@ -284,51 +300,58 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    const API = 'http://localhost:5044/api';
-
+    const API = 'http://localhost:5043/api';
     function inventarioApp() {
         return {
+            loading: true,
+            exito: '',
+            error: '',
+            errorModal: '',
+            rolActual: '',
+            nombreAdmin: '',
             habitaciones: [],
             hoteles: [],
-            ciudadesExistentes: [],
-            loading: true,
-            cargando: false,
-            error: '',
-            exito: '',
-            errorModal: '',
-            filtro: '',
-            filtroEstado: '',
-            filtroHotel: '',
             modoEdicion: false,
             form: {
                 idHabitacion: null,
+                idHotel: '',
                 numHabitacion: '',
                 tipoHabitacion: '',
-                precioNoche: '',
+                precioNoche: 0,
                 capacidadMax: 2,
                 estado: 'Disponible',
-                idHotel: '',
-                ciudad: '',
-                estrellas: 5,
                 amenidades: '',
                 descripcion: '',
-                imagenUrl: ''
+                imagenUrl: '',
+                ciudad: '',
+                pais: 'Guatemala'
             },
+            fechaHoy: new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
 
             async init() {
-                await Promise.all([
-                    this.cargarHabitaciones(),
-                    this.cargarHoteles(),
-                    this.cargarCiudades()
-                ]);
+                const u = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!u) { window.location.href = 'login.html'; return; }
+                const rolesAdmin = ['superadmin','admin','recepcionista'];
+                if (!rolesAdmin.includes(u.rol)) { window.location.href = 'index.html'; return; }
+                this.rolActual = u.rol;
+                this.nombreAdmin = u.nombre;
+                await Promise.all([this.cargarHabitaciones(), this.cargarHoteles()]);
+            },
+
+            async cargarHoteles() {
+                try {
+                    const res = await fetch(`${API}/admin/hoteles`);
+                    const data = await res.json();
+                    if (data.success) this.hoteles = data.data || [];
+                } catch (e) { console.error('Error hoteles:', e); }
             },
 
             async cargarHabitaciones() {
                 this.loading = true;
                 try {
-                    const res  = await fetch(`${API}/inventario`);
+                    const res = await fetch(`${API}/admin/habitaciones`);
                     const data = await res.json();
-                    if (data.success) this.habitaciones = data.data;
+                    if (data.success) this.habitaciones = data.data || [];
                 } catch (e) {
                     this.error = 'Error al cargar habitaciones.';
                 } finally {
@@ -336,94 +359,87 @@
                 }
             },
 
-            async cargarHoteles() {
-                try {
-                    const res  = await fetch(`${API}/admin/hoteles`);
-                    const data = await res.json();
-                    if (data.success) this.hoteles = data.data;
-                } catch (e) {}
-            },
-
-            async cargarCiudades() {
-                try {
-                    const res  = await fetch(`${API}/habitaciones/opciones-filtro`);
-                    const data = await res.json();
-                    if (data.success) this.ciudadesExistentes = data.data.ciudades || [];
-                } catch (e) {}
-            },
-
-            abrirModal(hab) {
+            abrirModal(h) {
                 this.errorModal = '';
-                if (hab) {
+                if (h) {
                     this.modoEdicion = true;
+                    const hotel = this.hoteles.find(x => x.idHotel === h.idHotel);
                     this.form = {
-                        idHabitacion:  hab.idHabitacion,
-                        numHabitacion: hab.numHabitacion,
-                        tipoHabitacion: hab.tipoHabitacion,
-                        precioNoche:   hab.precioNoche,
-                        capacidadMax:  hab.capacidadMax,
-                        estado:        hab.estado,
-                        idHotel:       hab.idHotel || '',
-                        ciudad:        hab.ubicacion || '',
-                        estrellas:     hab.estrellas || 5,
-                        amenidades:    hab.amenidades || '',
-                        descripcion:   hab.descripcion || '',
-                        imagenUrl:     hab.imagenUrl || ''
+                        idHabitacion: h.idHabitacion,
+                        idHotel: h.idHotel,
+                        numHabitacion: h.numHabitacion,
+                        tipoHabitacion: h.tipoHabitacion,
+                        precioNoche: h.precioNoche,
+                        capacidadMax: h.capacidadMax,
+                        estado: h.estado,
+                        amenidades: h.amenidades || '',
+                        descripcion: h.descripcion || '',
+                        imagenUrl: h.imagenUrl || '',
+                        ciudad: (hotel && (hotel.ciudad || hotel.ubicacion)) || h.ubicacion || '',
+                        pais: (hotel && hotel.pais) || 'Guatemala'
                     };
                 } else {
                     this.modoEdicion = false;
                     this.form = {
-                        idHabitacion:  null,
+                        idHabitacion: null,
+                        idHotel: '',
                         numHabitacion: '',
                         tipoHabitacion: '',
-                        precioNoche:   '',
-                        capacidadMax:  2,
-                        estado:        'Disponible',
-                        idHotel:       this.hoteles.length > 0 ? this.hoteles[0].idHotel : '',
-                        ciudad:        '',
-                        estrellas:     5,
-                        amenidades:    '',
-                        descripcion:   '',
-                        imagenUrl:     ''
+                        precioNoche: 0,
+                        capacidadMax: 2,
+                        estado: 'Disponible',
+                        amenidades: '',
+                        descripcion: '',
+                        imagenUrl: '',
+                        ciudad: '',
+                        pais: 'Guatemala'
                     };
                 }
-                const modal = new bootstrap.Modal(document.getElementById('modalHabitacion'));
-                modal.show();
+                new bootstrap.Modal(document.getElementById('modalHabitacion')).show();
             },
 
             async guardar() {
                 this.errorModal = '';
-                if (!this.form.numHabitacion)  { this.errorModal = 'El número de habitación es requerido.'; return; }
-                if (!this.form.tipoHabitacion) { this.errorModal = 'El tipo de habitación es requerido.'; return; }
-                if (!this.form.precioNoche)    { this.errorModal = 'El precio es requerido.'; return; }
-                if (!this.form.idHotel)        { this.errorModal = 'Selecciona una cadena hotelera.'; return; }
-                if (!this.form.ciudad.trim())  { this.errorModal = 'La ciudad es obligatoria.'; return; }
+
+                // Validaciones
+                if (!this.form.idHotel) { this.errorModal = 'El hotel es obligatorio.'; return; }
+                if (!this.form.numHabitacion || !this.form.numHabitacion.toString().trim()) {
+                    this.errorModal = 'El número de habitación es obligatorio.'; return;
+                }
+                if (!this.form.tipoHabitacion) { this.errorModal = 'El tipo de habitación es obligatorio.'; return; }
+                if (!this.form.precioNoche || parseFloat(this.form.precioNoche) <= 0) {
+                    this.errorModal = 'El precio por noche debe ser mayor a 0.'; return;
+                }
+                if (!this.form.pais) { this.errorModal = 'El país es obligatorio.'; return; }
+                if (!this.form.ciudad || !this.form.ciudad.trim()) {
+                    this.errorModal = 'La ciudad es obligatoria.'; return;
+                }
 
                 const payload = {
-                    idHotel:        parseInt(this.form.idHotel),
-                    numHabitacion:  this.form.numHabitacion,
+                    idHotel: parseInt(this.form.idHotel),
+                    numHabitacion: this.form.numHabitacion.toString().trim(),
                     tipoHabitacion: this.form.tipoHabitacion,
-                    precioNoche:    parseFloat(this.form.precioNoche),
-                    capacidadMax:   parseInt(this.form.capacidadMax),
-                    estado:         this.form.estado,
-                    ciudad:         this.form.ciudad.trim(),
-                    estrellas:      parseInt(this.form.estrellas),
-                    amenidades:     this.form.amenidades || null,
-                    descripcion:    this.form.descripcion || null,
-                    imagenUrl:      this.form.imagenUrl || null
+                    precioNoche: parseFloat(this.form.precioNoche),
+                    capacidadMax: parseInt(this.form.capacidadMax),
+                    estado: this.form.estado,
+                    amenidades: this.form.amenidades || '',
+                    descripcion: this.form.descripcion || '',
+                    imagenUrl: this.form.imagenUrl || '',
+                    ubicacion: this.form.ciudad.trim(),
+                    ciudad: this.form.ciudad.trim(),
+                    pais: this.form.pais
                 };
 
-                this.cargando = true;
                 try {
                     let res, data;
                     if (this.modoEdicion) {
-                        res = await fetch(`${API}/inventario/${this.form.idHabitacion}`, {
+                        res = await fetch(`${API}/admin/habitaciones/${this.form.idHabitacion}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
                     } else {
-                        res = await fetch(`${API}/inventario`, {
+                        res = await fetch(`${API}/admin/habitaciones`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -431,57 +447,65 @@
                     }
                     data = await res.json();
                     if (data.success) {
-                        this.exito = this.modoEdicion
-                            ? 'Habitación actualizada exitosamente.'
-                            : 'Habitación creada exitosamente.';
-                        bootstrap.Modal.getInstance(
-                            document.getElementById('modalHabitacion')
-                        ).hide();
-                        await Promise.all([
-                            this.cargarHabitaciones(),
-                            this.cargarCiudades()
-                        ]);
-                        setTimeout(() => this.exito = '', 3000);
+                        bootstrap.Modal.getInstance(document.getElementById('modalHabitacion')).hide();
+                        await Promise.all([this.cargarHabitaciones(), this.cargarHoteles()]);
+                        this.exito = this.modoEdicion ? '✅ Habitación actualizada exitosamente.' : '✅ Habitación creada exitosamente.';
+                        setTimeout(() => this.exito = '', 4000);
                     } else {
-                        this.errorModal = data.message;
+                        this.errorModal = data.message || 'Error al guardar la habitación.';
                     }
                 } catch (e) {
                     this.errorModal = 'Error al conectar con el servidor.';
-                } finally {
-                    this.cargando = false;
                 }
             },
 
-            async eliminar(id) {
-                if (!confirm('¿Estás seguro de eliminar esta habitación?')) return;
+            async cambiarEstadoRapido(h) {
+                const estados = ['Disponible', 'Ocupada', 'Mantenimiento', 'Inactiva'];
+                const idxActual = estados.indexOf(h.estado);
+                const nuevoEstado = estados[(idxActual + 1) % estados.length];
+                if (!confirm(`¿Cambiar habitación ${h.numHabitacion} a "${nuevoEstado}"?`)) return;
                 try {
-                    const res  = await fetch(`${API}/inventario/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API}/admin/habitaciones/${h.idHabitacion}/estado`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nuevoEstado })
+                    });
                     const data = await res.json();
                     if (data.success) {
-                        this.exito = 'Habitación eliminada correctamente.';
                         await this.cargarHabitaciones();
+                        this.exito = `Habitación ${h.numHabitacion} actualizada a "${nuevoEstado}".`;
                         setTimeout(() => this.exito = '', 3000);
                     } else {
-                        this.error = data.message;
+                        this.error = data.message || 'No se pudo cambiar el estado.';
                     }
                 } catch (e) {
-                    this.error = 'Error al eliminar.';
+                    this.error = 'Error al conectar.';
                 }
             },
 
-            get habitacionesFiltradas() {
-                return this.habitaciones.filter(h => {
-                    const matchFiltro  = !this.filtro ||
-                        h.tipoHabitacion.toLowerCase().includes(this.filtro.toLowerCase()) ||
-                        h.numHabitacion.toLowerCase().includes(this.filtro.toLowerCase());
-                    const matchEstado  = !this.filtroEstado || h.estado === this.filtroEstado;
-                    const matchHotel   = !this.filtroHotel  || h.idHotel === parseInt(this.filtroHotel);
-                    return matchFiltro && matchEstado && matchHotel;
-                });
+            async eliminarHabitacion(h) {
+                if (!confirm(`¿Eliminar la habitación ${h.numHabitacion}? Esta acción la marcará como inactiva.`)) return;
+                try {
+                    const res = await fetch(`${API}/admin/habitaciones/${h.idHabitacion}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        await this.cargarHabitaciones();
+                        this.exito = `Habitación ${h.numHabitacion} eliminada.`;
+                        setTimeout(() => this.exito = '', 3000);
+                    } else {
+                        this.error = data.message || 'No se pudo eliminar.';
+                    }
+                } catch (e) {
+                    this.error = 'Error al conectar.';
+                }
+            },
+
+            cerrarSesion() {
+                localStorage.removeItem('usuario');
+                window.location.href = 'login.html';
             }
         }
     }
     </script>
 </body>
 </html>
-
