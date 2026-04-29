@@ -20,7 +20,7 @@ namespace HotelesAPI.DAO
             using var rs = cmd.ExecuteReader();
             while (rs.Read())
                 lista.Add(MapHabitacion(rs));
-
+    
             return lista;
         }
 
