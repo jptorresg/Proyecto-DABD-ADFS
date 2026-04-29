@@ -404,7 +404,9 @@ const buscarHoteles = async (idProveedor, params) => {
     const habitaciones = data.data?.habitaciones || data.habitaciones || [];
 
     return habitaciones.map(h => {
-        const precioBase = parseFloat(h.precioNoche ?? h.PrecioNoche ?? 0);
+        const precioBase = parseFloat(
+            h.precioNocheConDescuento ?? h.precioNoche ?? h.PrecioNoche ?? 0
+        );
 
         return {
             id_habitacion:          h.idHabitacion   ?? h.IdHabitacion,

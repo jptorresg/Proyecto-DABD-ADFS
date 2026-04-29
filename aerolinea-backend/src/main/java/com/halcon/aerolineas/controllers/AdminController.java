@@ -106,6 +106,11 @@ public class AdminController extends HttpServlet {
                 List<Map<String, Object>> reservaciones = adminService.obtenerTodasReservaciones();
                 out.print(JsonResponse.success(reservaciones));
 
+            } else if (path.equals("/reservaciones/estado")) {
+
+                Map<String, Integer> data = adminService.obtenerReservacionesPorEstado();
+                out.print(JsonResponse.success(data));
+
             }
 
         } catch (Exception e) {
