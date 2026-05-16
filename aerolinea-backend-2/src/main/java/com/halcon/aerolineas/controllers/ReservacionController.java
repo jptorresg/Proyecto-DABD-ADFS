@@ -235,9 +235,22 @@ public class ReservacionController extends HttpServlet {
                         
             List<Reservacion> reservaciones = new ArrayList<>();
 
+            // Si el itinerario tiene varios tramos (roundtrip y/o escalas), creamos
+            // cada reservación sin notificar y al final enviamos un único correo
+            // con un PDF combinado que muestra el total real cobrado.
+            boolean esMultiTramo = idsVuelo.size() > 1;
+
             for (Long id : idsVuelo) {
-                Reservacion r = reservacionService.crearReservacion(id, usuarioId, pasajeros, metodoPago);
+                Reservacion r = reservacionService.crearReservacion(
+                    id, usuarioId, pasajeros, metodoPago, !esMultiTramo
+                );
                 reservaciones.add(r);
+            }
+
+            if (esMultiTramo) {
+                reservacionService.enviarConfirmacionMultiTramo(
+                    reservaciones, pasajeros, usuarioId
+                );
             }
 
             response.setStatus(201);

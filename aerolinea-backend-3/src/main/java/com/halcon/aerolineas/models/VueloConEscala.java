@@ -65,7 +65,15 @@ public class VueloConEscala {
 
     /** Indica si el vuelo es de ida y vuelta. */
     private boolean esIdaYVuelta = false;
-    
+
+    /**
+     * Cantidad de tramos que forman parte de la ida. Los restantes
+     * ({@code tramos.size() - numTramosIda}) son del regreso. Para un viaje
+     * de solo ida o un trayecto con escalas sin regreso, este valor es igual
+     * al total de tramos.
+     */
+    private int numTramosIda;
+
     /** Lista de información de cada escala intermedia. */
     private List<EscalaInfo> escalas;
 
@@ -123,12 +131,87 @@ public class VueloConEscala {
             .min()
             .orElse(0);
 
+        // Por defecto, sin ida y vuelta: todos los tramos son del viaje principal.
+        this.numTramosIda = tramos.size();
+
         // Escalas = puntos intermedios (entre cada par de tramos consecutivos)
         this.escalas = new ArrayList<>();
         for (int i = 0; i < tramos.size() - 1; i++) {
             Vuelo actual    = tramos.get(i);
             Vuelo siguiente = tramos.get(i + 1);
             this.escalas.add(new EscalaInfo(
+                actual.getDestinoCiudad(),
+                actual.getDestinoCodigoIata().trim(),
+                actual.getHoraLlegada(),
+                siguiente.getHoraSalida()
+            ));
+        }
+    }
+
+    /**
+     * Constructor para itinerarios de ida y vuelta con posibles escalas en
+     * cualquiera de los dos sentidos. Los tramos se concatenan en el orden
+     * en que viajará el cliente, pero las escalas se computan solo dentro de
+     * cada sentido — el paso de ida a regreso no se considera escala porque
+     * normalmente media una estancia de varios días.
+     *
+     * @param idaTramos     tramos de ida (1 si es directo, varios si tiene escalas).
+     * @param regresoTramos tramos de regreso (1 si es directo, varios si tiene escalas).
+     */
+    public VueloConEscala(List<Vuelo> idaTramos, List<Vuelo> regresoTramos) {
+        List<Vuelo> todos = new ArrayList<>();
+        todos.addAll(idaTramos);
+        todos.addAll(regresoTramos);
+        this.tramos = todos;
+
+        Vuelo primero      = idaTramos.get(0);
+        Vuelo ultimoIda    = idaTramos.get(idaTramos.size() - 1);
+
+        this.idVuelo = todos.stream()
+            .map(v -> String.valueOf(v.getIdVuelo()))
+            .collect(Collectors.joining("-"));
+
+        this.codigoVuelo = todos.stream()
+            .map(Vuelo::getCodigoVuelo)
+            .collect(Collectors.joining("+"));
+
+        // Para el resumen, mostramos el viaje completo desde el origen de la ida
+        // hasta el destino final de la ida (que será el "punto lejano" del viaje).
+        this.origenCiudad       = primero.getOrigenCiudad();
+        this.origenCodigoIata   = primero.getOrigenCodigoIata();
+        this.destinoCiudad      = ultimoIda.getDestinoCiudad();
+        this.destinoCodigoIata  = ultimoIda.getDestinoCodigoIata();
+        this.fechaSalida        = primero.getFechaSalida().toString();
+        this.horaSalida         = primero.getHoraSalida();
+        this.fechaLlegada       = ultimoIda.getFechaLlegada().toString();
+        this.horaLlegada        = ultimoIda.getHoraLlegada();
+        this.tipoAsiento        = primero.getTipoAsiento();
+        this.estado             = "ACTIVO";
+
+        this.precioBase = todos.stream()
+            .map(Vuelo::getPrecioBase)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.asientosDisponibles = todos.stream()
+            .mapToInt(Vuelo::getAsientosDisponibles)
+            .min()
+            .orElse(0);
+
+        this.esIdaYVuelta = true;
+        this.numTramosIda = idaTramos.size();
+
+        // Escalas: solo dentro de cada sentido. El "salto" entre el último
+        // tramo de la ida y el primero del regreso no es una escala.
+        this.escalas = new ArrayList<>();
+        agregarEscalas(idaTramos, this.escalas);
+        agregarEscalas(regresoTramos, this.escalas);
+    }
+
+    private static void agregarEscalas(List<Vuelo> segmento, List<EscalaInfo> destino) {
+        for (int i = 0; i < segmento.size() - 1; i++) {
+            Vuelo actual    = segmento.get(i);
+            Vuelo siguiente = segmento.get(i + 1);
+            destino.add(new EscalaInfo(
                 actual.getDestinoCiudad(),
                 actual.getDestinoCodigoIata().trim(),
                 actual.getHoraLlegada(),
@@ -223,7 +306,18 @@ public class VueloConEscala {
      * Establece si el vuelo es de ida y vuelta.
      */
     public void setEsIdaYVuelta(boolean esIdaYVuelta) { this.esIdaYVuelta = esIdaYVuelta; }
-    
+
+    /**
+     * @return cantidad de tramos que conforman la ida. Sirve al frontend para
+     *         saber dónde termina la ida y empieza el regreso.
+     */
+    public int getNumTramosIda() { return numTramosIda; }
+
+    /**
+     * @param numTramosIda cantidad de tramos de ida (el resto cuenta como regreso).
+     */
+    public void setNumTramosIda(int numTramosIda) { this.numTramosIda = numTramosIda; }
+
     /**
      * @return la lista de información de escalas intermedias.
      */

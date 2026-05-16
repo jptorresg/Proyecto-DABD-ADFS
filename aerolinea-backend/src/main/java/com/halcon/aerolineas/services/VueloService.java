@@ -63,17 +63,31 @@ public class VueloService {
         if (fechaRegreso != null && origen != null && !origen.isEmpty()
                                 && destino != null && !destino.isEmpty()) {
 
-            List<List<Vuelo>> pares = vueloDAO.buscarVuelosIdaYVuelta(
-                origen, destino, fechaSalida, fechaRegreso, tipoAsiento
-            );
-
-            for (List<Vuelo> par : pares) {
-                VueloConEscala vce = new VueloConEscala(par);
-                vce.setEsIdaYVuelta(true);   // ← marca semántica para el frontend
-                resultados.add(vce);
+            // 1) Opciones de IDA: directos + con escalas.
+            List<List<Vuelo>> opcionesIda = new ArrayList<>();
+            for (Vuelo v : vueloDAO.buscarVuelos(origen, destino, fechaSalida, tipoAsiento)) {
+                opcionesIda.add(java.util.Collections.singletonList(v));
+            }
+            for (List<Vuelo> cadena : vueloDAO.buscarVuelosConEscala(origen, destino, fechaSalida, tipoAsiento)) {
+                if (cadena.size() >= 2) opcionesIda.add(cadena);
             }
 
-            // Con fecha de regreso no buscamos vuelos directos ni con escalas normales
+            // 2) Opciones de REGRESO: invertimos origen/destino y usamos fechaRegreso.
+            List<List<Vuelo>> opcionesRegreso = new ArrayList<>();
+            for (Vuelo v : vueloDAO.buscarVuelos(destino, origen, fechaRegreso, tipoAsiento)) {
+                opcionesRegreso.add(java.util.Collections.singletonList(v));
+            }
+            for (List<Vuelo> cadena : vueloDAO.buscarVuelosConEscala(destino, origen, fechaRegreso, tipoAsiento)) {
+                if (cadena.size() >= 2) opcionesRegreso.add(cadena);
+            }
+
+            // 3) Producto cruzado: cada combinación de ida × regreso es un resultado.
+            for (List<Vuelo> ida : opcionesIda) {
+                for (List<Vuelo> regreso : opcionesRegreso) {
+                    resultados.add(new VueloConEscala(ida, regreso));
+                }
+            }
+
             return resultados;
         }
 
