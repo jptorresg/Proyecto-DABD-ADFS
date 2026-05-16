@@ -3,6 +3,7 @@ package com.halcon.aerolineas.models;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Representa un vuelo disponible en el sistema.
@@ -69,6 +70,15 @@ public class Vuelo {
     
     /** Fecha y hora en que se creó el registro del vuelo. */
     private LocalDateTime fechaCreacion;
+
+    /**
+     * Categorías de asiento disponibles para este vuelo (1..N).
+     * Solo se popula cuando el caller la pide explícitamente vía
+     * {@code VueloDAO.cargarCategorias(...)}. Para la API v1 sigue siendo
+     * null y los consumidores antiguos leen {@code tipoAsiento}/{@code precioBase}
+     * planos. La API v2 lo serializa como array {@code categorias} en JSON.
+     */
+    private List<CategoriaVuelo> categorias;
     
     /**
      * Constructor por defecto.
@@ -285,4 +295,10 @@ public class Vuelo {
      * @param fechaCreacion la fecha y hora de creación del registro.
      */
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+
+    /** @return las categorías de asiento del vuelo, o null si no fueron cargadas. */
+    public List<CategoriaVuelo> getCategorias() { return categorias; }
+
+    /** @param categorias las categorías de asiento del vuelo. */
+    public void setCategorias(List<CategoriaVuelo> categorias) { this.categorias = categorias; }
 }
