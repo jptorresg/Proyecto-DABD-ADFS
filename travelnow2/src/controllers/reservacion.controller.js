@@ -164,6 +164,7 @@ const crear = async (req, res) => {
                 num_huespedes:      hotel.num_huespedes,
                 metodo_pago:        'transferencia',
                 notas:              `Reserva TravelNow - ${codigoReserva}`,
+                huespedes:          Array.isArray(hotel.huespedes) ? hotel.huespedes : [],
             });
             const codigoHotelProv = String(respHotel?.idReservacion ?? '');
 
@@ -185,7 +186,7 @@ const crear = async (req, res) => {
                 [
                     idReservacion, hotel.id_proveedor, codigoHotelProv,
                     hotel.nombre_hotel || '', hotel.ciudad || '',
-                    hotel.tipo_habitacion || 'doble',
+                    hotel.tipo_habitacion || 'No especificado',
                     hotel.fecha_checkin, hotel.fecha_checkout, hotel.num_huespedes,
                     hotel.precio_noche_proveedor, prov.porcentaje_ganancia, montoHotel,
                 ]

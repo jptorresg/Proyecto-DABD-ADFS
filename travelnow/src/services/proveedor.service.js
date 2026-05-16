@@ -411,7 +411,7 @@ const buscarHoteles = async (idProveedor, params) => {
         return {
             id_habitacion:          h.idHabitacion   ?? h.IdHabitacion,
             num_habitacion:         h.numHabitacion  ?? h.NumHabitacion,
-            tipo_habitacion:        (h.tipoHabitacion ?? h.TipoHabitacion ?? 'doble').toLowerCase(),
+            tipo_habitacion:        h.tipoHabitacion ?? h.TipoHabitacion ?? '',
             nombre_hotel:           h.nombreHotel    ?? h.NombreHotel,
             ciudad:                 h.ubicacion      ?? h.Ubicacion ?? params.ciudad,
             capacidad_max:          h.capacidadMax   ?? h.CapacidadMax,
@@ -452,6 +452,7 @@ const reservarHotel = async (idProveedor, payload) => {
         numHuespedes:    parseInt(payload.num_huespedes) || 1,
         metodoPago:      payload.metodo_pago || 'transferencia',
         notasEspeciales: payload.notas || '',
+        huespedes:       Array.isArray(payload.huespedes) ? payload.huespedes : [],
     };
 
     const { data } = await client.post('/api/b2b/reservar', body);

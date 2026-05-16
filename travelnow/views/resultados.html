@@ -579,6 +579,9 @@
       });
       const checkoutParams = new URLSearchParams(detalleParams);
       checkoutParams.set('precio', precio);
+      checkoutParams.set('precio_proveedor', h.precio_noche_proveedor ?? precio);
+      checkoutParams.set('tipo_habitacion',  h.tipo_habitacion  || '');
+      checkoutParams.set('nombre_hotel',     h.nombre_hotel     || '');
 
       return `
         <div class="result-card-full anim-up ${animCls}">

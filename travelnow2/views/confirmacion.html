@@ -250,6 +250,16 @@
     }
   }
 
+  // Formatea una fecha "YYYY-MM-DD" (o ISO con tiempo) como dd/mm/yyyy
+  // sin convertir a UTC — evita el shift de -1 día en zonas con offset negativo.
+  function fmtFechaLocal(d) {
+    if (!d) return '—';
+    const s = String(d).split('T')[0];
+    const [y, m, day] = s.split('-');
+    if (!y || !m || !day) return '—';
+    return `${parseInt(day, 10)}/${parseInt(m, 10)}/${y}`;
+  }
+
   /* ───── Render ───── */
   function render(r) {
     document.getElementById('loading-view').style.display = 'none';
@@ -305,8 +315,8 @@
     if (r.hoteles?.length) {
       document.getElementById('card-hoteles').style.display = 'block';
       document.getElementById('hoteles-list').innerHTML = r.hoteles.map(h => {
-        const ci = h.fecha_checkin  ? new Date(h.fecha_checkin).toLocaleDateString('es-GT')  : '—';
-        const co = h.fecha_checkout ? new Date(h.fecha_checkout).toLocaleDateString('es-GT') : '—';
+        const ci = fmtFechaLocal(h.fecha_checkin);
+        const co = fmtFechaLocal(h.fecha_checkout);
         const noches = Math.max(1, Math.round(
           (new Date(h.fecha_checkout) - new Date(h.fecha_checkin)) / (1000*60*60*24)
         ));
@@ -320,7 +330,7 @@
             <div class="data-row"><span>Check-out</span><span>${co}</span></div>
             <div class="data-row"><span>Noches</span><span>${noches}</span></div>
             <div class="data-row"><span>Huéspedes</span><span>${h.num_huespedes || 1}</span></div>
-            <div class="data-row"><span>Precio por noche</span><span>$${parseFloat(h.precio_por_noche_proveedor || 0).toFixed(2)}</span></div>
+            <div class="data-row"><span>Precio por noche</span><span>$${(noches > 0 ? parseFloat(h.precio_total || 0) / noches : 0).toFixed(2)}</span></div>
             <div class="data-row"><span>Código proveedor</span><span>${h.codigo_reserva_proveedor || '—'}</span></div>
             <div class="data-row"><span>Subtotal hotel</span><span>$${parseFloat(h.precio_total || 0).toFixed(2)} USD</span></div>
           </div>`;
