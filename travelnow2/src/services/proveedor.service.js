@@ -160,6 +160,30 @@ const clienteHotel = (prov) => axios.create({
     },
 });
 
+/**
+ * Cliente B2B para la aerolínea. Usa el token Bearer guardado en
+ * proveedor.api_password (mismo patrón que Bedly) y NO requiere una sesión
+ * previa con login.
+ *
+ * Si el proveedor todavía no tiene un token B2B configurado (api_password
+ * vacío) caemos al flujo legacy con login + cookie en `_crearClienteAerolinea`.
+ */
+const clienteAerolineaB2B = (prov) => axios.create({
+    baseURL: prov.endpoint_api,
+    timeout: 15_000,
+    headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${prov.api_password}`,
+    },
+});
+
+const _provTieneTokenB2B = (prov) => {
+    // Heurística simple: si el api_password parece un GUID/UUID (caracteres
+    // hex con guiones) lo tratamos como token; si no, asumimos password legacy.
+    if (!prov?.api_password) return false;
+    return /^[0-9a-fA-F-]{20,}$/.test(prov.api_password.trim());
+};
+
 // ── Aerolínea ────────────────────────────────────────────────
 
 /**
@@ -191,17 +215,27 @@ const clienteHotel = (prov) => axios.create({
 const buscarVuelos = async (idProveedor, params) => {
     const prov = await getConfig(idProveedor);
     const queryParams = {};
-    if (params.origen)       queryParams.origen       = params.origen.toUpperCase().trim();
-    if (params.destino)      queryParams.destino      = params.destino.toUpperCase().trim();
-    if (params.fecha_salida) queryParams.fechaSalida  = String(params.fecha_salida).trim();
-    if (params.tipo_asiento) queryParams.tipoAsiento  = String(params.tipo_asiento).toUpperCase().trim();
+    if (params.origen)        queryParams.origen        = params.origen.toUpperCase().trim();
+    if (params.destino)       queryParams.destino       = params.destino.toUpperCase().trim();
+    if (params.fecha_salida)  queryParams.fechaSalida   = String(params.fecha_salida).trim();
+    if (params.fecha_regreso) queryParams.fechaRegreso  = String(params.fecha_regreso).trim();
+    if (params.tipo_asiento)  queryParams.tipoAsiento   = String(params.tipo_asiento).toUpperCase().trim();
 
     console.log(
         `[Aerolinea] buscarVuelos → proveedor="${prov.nombre}"`,
         `params=${JSON.stringify(queryParams)}`
     );
 
+    // Si hay token B2B usamos el endpoint protegido /api/b2b/vuelos; si no,
+    // caemos al endpoint legacy con sesión cookie.
+    const usarB2B = _provTieneTokenB2B(prov);
+
     const hacerRequest = async (qp) => {
+        if (usarB2B) {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.get('/api/b2b/vuelos', { params: qp });
+            return data;
+        }
         const raw = await _withRetry(prov, async (client) => {
             const { data } = await client.get('/api/vuelos', { params: qp });
             return data;
@@ -361,12 +395,22 @@ const reservarVuelo = async (idProveedor, payload) => {
         })),
     };
 
-    const raw = await _withRetry(prov, async (client) => {
-        const { data } = await client.post('/api/reservaciones', body, {
-            headers: { 'x-usuario-id': String(payload.id_usuario_externo ?? 1) },
+    const usuarioHeader = String(payload.id_usuario_externo ?? 1);
+
+    const raw = _provTieneTokenB2B(prov)
+        ? await (async () => {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.post('/api/b2b/reservaciones', body, {
+                headers: { 'x-usuario-id': usuarioHeader },
+            });
+            return data;
+        })()
+        : await _withRetry(prov, async (client) => {
+            const { data } = await client.post('/api/reservaciones', body, {
+                headers: { 'x-usuario-id': usuarioHeader },
+            });
+            return data;
         });
-        return data;
-    });
 
     // El backend responde: { success, message, data: [reservacion, ...] }
     // Normalizamos a un array en todos los casos.
@@ -405,12 +449,20 @@ const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
     // Cancelamos cada tramo por separado.
     const ids = String(idReservacionProveedor).split('-').filter(Boolean);
     const resultados = [];
+    const usarB2B = _provTieneTokenB2B(prov);
     for (const id of ids) {
         try {
-            const raw = await _withRetry(prov, async (client) => {
-                const { data } = await client.put(`/api/reservaciones/${id}/cancelar`);
-                return data;
-            });
+            let raw;
+            if (usarB2B) {
+                const client = clienteAerolineaB2B(prov);
+                const { data } = await client.put(`/api/b2b/reservaciones/${id}/cancelar`);
+                raw = data;
+            } else {
+                raw = await _withRetry(prov, async (client) => {
+                    const { data } = await client.put(`/api/reservaciones/${id}/cancelar`);
+                    return data;
+                });
+            }
             resultados.push(raw?.data ?? raw);
         } catch (e) {
             console.error(`[Aerolinea] Fallo cancelando tramo ${id}: ${e.message}`);
@@ -423,10 +475,17 @@ const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
 const obtenerOrigenesDestinos = async (idProveedor) => {
     const prov = await getConfig(idProveedor);
     try {
-        const raw = await _withRetry(prov, async (client) => {
-            const { data } = await client.get('/api/paises');
-            return data;
-        });
+        let raw;
+        if (_provTieneTokenB2B(prov)) {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.get('/api/b2b/paises');
+            raw = data;
+        } else {
+            raw = await _withRetry(prov, async (client) => {
+                const { data } = await client.get('/api/paises');
+                return data;
+            });
+        }
         const paises = raw?.data ?? (Array.isArray(raw) ? raw : []);
         if (!Array.isArray(paises) || !paises.length) return { origenes: [], destinos: [] };
         const lista = paises.map(p => ({
