@@ -444,6 +444,20 @@ const reservarHotel = async (idProveedor, payload) => {
 
     const idUsuarioResuelto = agenciaUserId;
 
+    // Bedly espera el contrato en camelCase. TravelNow internamente usa
+    // snake_case (consistente con sus columnas MySQL), por lo que traducimos
+    // aquí los campos compuestos antes de enviar.
+    const huespedesNormalizados = (Array.isArray(payload.huespedes) ? payload.huespedes : [])
+        .map(h => ({
+            nombre:        h.nombre        ?? '',
+            apellidos:     h.apellidos     ?? '',
+            edad:          parseInt(h.edad) || 0,
+            tipoDocumento: h.tipoDocumento ?? h.tipo_documento ?? 'Pasaporte',
+            documento:     h.documento     ?? '',
+            nacionalidad:  h.nacionalidad  ?? '',
+            esTitular:     h.esTitular     ?? h.es_titular ?? false,
+        }));
+
     const body = {
         idHabitacion:    payload.id_habitacion,
         idUsuario:       idUsuarioResuelto,
@@ -452,7 +466,7 @@ const reservarHotel = async (idProveedor, payload) => {
         numHuespedes:    parseInt(payload.num_huespedes) || 1,
         metodoPago:      payload.metodo_pago || 'transferencia',
         notasEspeciales: payload.notas || '',
-        huespedes:       Array.isArray(payload.huespedes) ? payload.huespedes : [],
+        huespedes:       huespedesNormalizados,
     };
 
     const { data } = await client.post('/api/b2b/reservar', body);
