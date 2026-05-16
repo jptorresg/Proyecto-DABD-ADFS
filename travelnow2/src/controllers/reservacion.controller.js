@@ -102,8 +102,8 @@ const crear = async (req, res) => {
             );
         }
 
-        /// Procesar vuelo de regreso (solo para tipo vuelo con ida y vuelta)
-        if (tipo === 'vuelo' && vuelo_regreso) {
+        /// Procesar vuelo de regreso (para tipo vuelo o paquete con ida y vuelta)
+        if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo_regreso) {
             if (!vuelo_regreso.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo de regreso');
             if (!vuelo_regreso.pasajeros?.length) throw new Error('Se requiere al menos un pasajero para el vuelo de regreso');
 

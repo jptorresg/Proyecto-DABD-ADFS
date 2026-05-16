@@ -238,26 +238,86 @@ const buscarVuelos = async (idProveedor, params) => {
 
     console.log(`[Aerolinea] "${prov.nombre}" devolvio ${vuelos.length} vuelo(s)`);
 
-    return vuelos.map(v => ({
-        id_vuelo:             v.idVuelo,
-        codigo_vuelo:         v.codigoVuelo,
-        origen_ciudad:        v.origenCiudad,
-        origen_iata:          v.origenCodigoIata,
-        destino_ciudad:       v.destinoCiudad,
-        destino_iata:         v.destinoCodigoIata,
-        fecha_salida:         v.fechaSalida,
-        fecha_llegada:        v.fechaLlegada,
-        hora_salida:          v.horaSalida,
-        hora_llegada:         v.horaLlegada,
-        tipo_asiento:         v.tipoAsiento,
-        asientos_disponibles: v.asientosDisponibles ?? 0,
-        precio_proveedor:     parseFloat(v.precioBase) || 0,
-        precio_agencia:       calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
-        porcentaje_ganancia:  prov.porcentaje_ganancia,
-        nombre_proveedor:     prov.nombre,
-        id_proveedor:         prov.id_proveedor,
-        tipo:                 'vuelo',
-    }));
+    // Helper: construye el objeto plano que TravelNow consume a partir de un
+    // subconjunto de tramos. Sirve tanto para vuelos directos (un tramo) como
+    // para tramos compuestos (escalas o un sentido completo de un roundtrip).
+    const tramoToPlain = (tramos) => {
+        if (!Array.isArray(tramos) || tramos.length === 0) return null;
+        const primero = tramos[0];
+        const ultimo  = tramos[tramos.length - 1];
+        const precioBase = tramos.reduce((s, t) => s + (parseFloat(t.precioBase) || 0), 0);
+        const capacidad  = Math.min(...tramos.map(t => t.asientosDisponibles ?? 0));
+        return {
+            id_vuelo:             tramos.map(t => t.idVuelo).join('-'),
+            codigo_vuelo:         tramos.map(t => t.codigoVuelo).join('+'),
+            origen_ciudad:        primero.origenCiudad,
+            origen_iata:          primero.origenCodigoIata,
+            destino_ciudad:       ultimo.destinoCiudad,
+            destino_iata:         ultimo.destinoCodigoIata,
+            fecha_salida:         primero.fechaSalida,
+            fecha_llegada:        ultimo.fechaLlegada,
+            hora_salida:          primero.horaSalida,
+            hora_llegada:         ultimo.horaLlegada,
+            tipo_asiento:         primero.tipoAsiento,
+            asientos_disponibles: capacidad,
+            precio_proveedor:     precioBase,
+            precio_agencia:       calcularPrecioConGanancia(precioBase, prov.porcentaje_ganancia),
+        };
+    };
+
+    return vuelos.map(v => {
+        // Caso roundtrip: el backend devuelve un VueloConEscala con
+        // esIdaYVuelta=true y numTramosIda indicando dónde termina la ida.
+        // Lo partimos en {ida, regreso} para que el controlador de reservas
+        // pueda procesarlos como dos detalle_vuelo separados (uno con
+        // es_regreso=0 y otro con es_regreso=1).
+        if (v.esIdaYVuelta && Array.isArray(v.tramos) && v.numTramosIda > 0) {
+            const idaTramos     = v.tramos.slice(0, v.numTramosIda);
+            const regresoTramos = v.tramos.slice(v.numTramosIda);
+            const ida     = tramoToPlain(idaTramos);
+            const regreso = tramoToPlain(regresoTramos);
+            const precioTotal = (ida?.precio_proveedor || 0) + (regreso?.precio_proveedor || 0);
+
+            return {
+                ...ida,
+                porcentaje_ganancia: prov.porcentaje_ganancia,
+                nombre_proveedor:    prov.nombre,
+                id_proveedor:        prov.id_proveedor,
+                tipo:                'vuelo',
+                es_ida_vuelta:       true,
+                num_tramos_ida:      v.numTramosIda,
+                regreso:             regreso ? {
+                    ...regreso,
+                    porcentaje_ganancia: prov.porcentaje_ganancia,
+                } : null,
+                precio_total_proveedor: precioTotal,
+                precio_total_agencia:   calcularPrecioConGanancia(precioTotal, prov.porcentaje_ganancia),
+            };
+        }
+
+        // Caso ida solo (directo o con escalas): plano como siempre.
+        return {
+            id_vuelo:             v.idVuelo,
+            codigo_vuelo:         v.codigoVuelo,
+            origen_ciudad:        v.origenCiudad,
+            origen_iata:          v.origenCodigoIata,
+            destino_ciudad:       v.destinoCiudad,
+            destino_iata:         v.destinoCodigoIata,
+            fecha_salida:         v.fechaSalida,
+            fecha_llegada:        v.fechaLlegada,
+            hora_salida:          v.horaSalida,
+            hora_llegada:         v.horaLlegada,
+            tipo_asiento:         v.tipoAsiento,
+            asientos_disponibles: v.asientosDisponibles ?? 0,
+            precio_proveedor:     parseFloat(v.precioBase) || 0,
+            precio_agencia:       calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
+            porcentaje_ganancia:  prov.porcentaje_ganancia,
+            nombre_proveedor:     prov.nombre,
+            id_proveedor:         prov.id_proveedor,
+            tipo:                 'vuelo',
+            es_ida_vuelta:        false,
+        };
+    });
 };
 
 /**

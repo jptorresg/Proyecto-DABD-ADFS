@@ -362,11 +362,23 @@
       cont.innerHTML = vuelosCache.map((v, idx) => {
         const horaS = v.hora_salida  || (v.fecha_salida  ? new Date(v.fecha_salida).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})  : '—');
         const horaL = v.hora_llegada || (v.fecha_llegada ? new Date(v.fecha_llegada).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}) : '—');
+        const esRT  = !!(v.es_ida_vuelta && v.regreso);
+        const precioMostrado = esRT ? (v.precio_total_agencia || 0) : (v.precio_agencia || 0);
+        const regresoBlock = esRT ? `
+                <div class="route-display" style="margin-top:0.4rem;border-top:1px dashed rgba(255,255,255,0.1);padding-top:0.4rem;">
+                  <div><div class="route-time">${v.regreso.hora_salida || '—'}</div><div class="route-code">${v.regreso.origen_iata || '—'}</div><div class="route-city">${v.regreso.origen_ciudad || ''}</div></div>
+                  <div class="route-mid">
+                    <div style="font-size:0.72rem;color:var(--text-muted);">${v.regreso.codigo_vuelo || 'Regreso'}</div>
+                    <div class="route-line"></div>
+                  </div>
+                  <div><div class="route-time">${v.regreso.hora_llegada || '—'}</div><div class="route-code">${v.regreso.destino_iata || '—'}</div><div class="route-city">${v.regreso.destino_ciudad || ''}</div></div>
+                </div>` : '';
         return `
           <div class="sel-card" data-idx="${idx}" onclick="seleccionarVuelo(${idx})">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
               <div style="flex:1;min-width:260px;">
-                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}</span>
+                <span class="airline-badge"><i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}${esRT ? ' <span style="color:var(--gold);font-size:0.7rem;">· Ida y vuelta</span>' : ''}</span>
+                ${esRT ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem;">IDA</div>' : ''}
                 <div class="route-display">
                   <div><div class="route-time">${horaS}</div><div class="route-code">${v.origen_iata || v.origen || '—'}</div><div class="route-city">${v.origen_ciudad || ''}</div></div>
                   <div class="route-mid">
@@ -375,12 +387,14 @@
                   </div>
                   <div><div class="route-time">${horaL}</div><div class="route-code">${v.destino_iata || v.destino || '—'}</div><div class="route-city">${v.destino_ciudad || ''}</div></div>
                 </div>
+                ${esRT ? '<div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.4rem;">REGRESO</div>' : ''}
+                ${regresoBlock}
                 <div style="font-size:0.78rem;color:var(--text-muted);">
                   <i class="fa-solid fa-chair me-1" style="color:var(--gold)"></i>${v.tipo_asiento || '—'}
                 </div>
               </div>
               <div class="text-end">
-                <div class="big-price">$${(v.precio_agencia || 0).toFixed(2)}<small>/persona</small></div>
+                <div class="big-price">$${precioMostrado.toFixed(2)}<small>/persona${esRT ? ' · total' : ''}</small></div>
               </div>
             </div>
           </div>`;
@@ -483,7 +497,9 @@
       const numPax   = parseInt(search.num_pasajeros) || 1;
       const noches   = Math.max(1, Math.ceil((new Date(search.fecha_regreso) - new Date(search.fecha_salida)) / (1000*60*60*24)));
 
-      const precioVuelo = (vueloElegido?.precio_agencia || 0) * numPax;
+      // Para ida y vuelta usamos precio_total_agencia (ida + regreso); si no, precio_agencia (solo ida)
+      const precioVueloUnit = vueloElegido?.precio_total_agencia ?? vueloElegido?.precio_agencia ?? 0;
+      const precioVuelo = precioVueloUnit * numPax;
       const precioHotel = hotelElegido ? (hotelElegido.precio_noche_agencia || 0) * noches : 0;
       const subtotal    = precioVuelo + precioHotel;
 
@@ -506,13 +522,23 @@
 
       let html = `<div class="summary-box">`;
 
-      // Vuelo
+      // Vuelo (ida)
+      const esRT = !!(vueloElegido.es_ida_vuelta && vueloElegido.regreso);
       html += `
         <div class="summary-section">
-          <div class="sum-title"><i class="fa-solid fa-plane"></i> Vuelo seleccionado</div>
+          <div class="sum-title"><i class="fa-solid fa-plane"></i> Vuelo seleccionado ${esRT ? '<span style="color:var(--gold);font-size:0.8rem;">(ida y vuelta)</span>' : ''}</div>
           <div class="sum-row"><span>Aerolínea</span><strong>${vueloElegido.nombre_proveedor}</strong></div>
-          <div class="sum-row"><span>Ruta</span><strong>${vueloElegido.origen_ciudad || vueloElegido.origen || search.origen} → ${vueloElegido.destino_ciudad || vueloElegido.destino || nombreDestinoLegible()}</strong></div>
-          <div class="sum-row"><span>Fecha / hora</span><strong>${search.fecha_salida} · ${horaS} → ${horaL}</strong></div>
+          <div class="sum-row"><span>Ida</span><strong>${vueloElegido.origen_ciudad || vueloElegido.origen || search.origen} → ${vueloElegido.destino_ciudad || vueloElegido.destino || nombreDestinoLegible()}</strong></div>
+          <div class="sum-row"><span>Fecha / hora ida</span><strong>${search.fecha_salida} · ${horaS} → ${horaL}</strong></div>`;
+
+      if (esRT) {
+        const r = vueloElegido.regreso;
+        html += `
+          <div class="sum-row" style="border-top:1px dashed rgba(255,255,255,0.1);padding-top:0.3rem;"><span>Regreso</span><strong>${r.origen_ciudad || r.origen_iata} → ${r.destino_ciudad || r.destino_iata}</strong></div>
+          <div class="sum-row"><span>Fecha / hora regreso</span><strong>${r.fecha_salida} · ${r.hora_salida || '—'} → ${r.hora_llegada || '—'}</strong></div>`;
+      }
+
+      html += `
           <div class="sum-row"><span>Clase</span><strong>${vueloElegido.tipo_asiento}</strong></div>
           <div class="sum-row"><span>Pasajeros (x${numPax})</span><strong>$${precioVuelo.toFixed(2)}</strong></div>
         </div>`;

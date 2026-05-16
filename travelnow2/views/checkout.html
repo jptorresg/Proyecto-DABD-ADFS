@@ -303,6 +303,11 @@ let origen, destino, ciudad;
 let fechaSalida, fechaRegreso, fechaCheckin, fechaCheckout;
 let paqueteVuelo = null, paqueteHotel = null, paqueteSearch = null;
 
+// Datos de vuelo de regreso (solo si es ida y vuelta)
+let esIdaVuelta = false;
+let idVueloRegreso, codigoVueloRegreso, origenRegreso, destinoRegreso;
+let fechaSalidaRegreso, precioRegresoProveedor, precioIdaProveedor;
+
 if (fromPackage) {
   // ───── Checkout viene del wizard /paquetes ─────
   try {
@@ -321,7 +326,7 @@ if (fromPackage) {
   idProveedor      = paqueteVuelo.id_proveedor;
   idHabitacion     = paqueteHotel?.id_habitacion || null;
   idProveedorHotel = paqueteHotel?.id_proveedor  || null;
-  precioBase       = parseFloat(paqueteVuelo.precio_agencia || 0);
+  precioBase       = parseFloat(paqueteVuelo.precio_total_agencia || paqueteVuelo.precio_agencia || 0);
   precioHotel      = parseFloat(paqueteHotel?.precio_noche_agencia || 0);
   asiento          = paqueteVuelo.tipo_asiento || 'turista';
   numPax           = parseInt(paqueteSearch.num_pasajeros || 1);
@@ -332,6 +337,18 @@ if (fromPackage) {
   fechaRegreso     = paqueteSearch.fecha_regreso || '';
   fechaCheckin     = paqueteSearch.fecha_salida  || '';
   fechaCheckout    = paqueteSearch.fecha_regreso || '';
+
+  // Si el vuelo del paquete es ida y vuelta, leemos el regreso del objeto guardado
+  if (paqueteVuelo.es_ida_vuelta && paqueteVuelo.regreso) {
+    esIdaVuelta            = true;
+    idVueloRegreso         = paqueteVuelo.regreso.id_vuelo;
+    codigoVueloRegreso     = paqueteVuelo.regreso.codigo_vuelo;
+    origenRegreso          = paqueteVuelo.regreso.origen_iata  || paqueteVuelo.regreso.origen_ciudad  || '';
+    destinoRegreso         = paqueteVuelo.regreso.destino_iata || paqueteVuelo.regreso.destino_ciudad || '';
+    fechaSalidaRegreso     = paqueteVuelo.regreso.fecha_salida;
+    precioRegresoProveedor = parseFloat(paqueteVuelo.regreso.precio_proveedor || 0);
+    precioIdaProveedor     = parseFloat(paqueteVuelo.precio_proveedor || 0);
+  }
 } else {
   // ───── Checkout normal (vuelo solo o hotel solo) ─────
   tipoReserva     = up.get('tipo')          || 'vuelo';
@@ -350,6 +367,18 @@ if (fromPackage) {
   fechaSalida     = up.get('fecha_salida')  || '';
   fechaCheckin    = up.get('fecha_checkin') || '';
   fechaCheckout   = up.get('fecha_checkout')|| '';
+
+  // Regreso: cuando viene un vuelo roundtrip los params extra están en la URL
+  if (up.get('id_vuelo_regreso')) {
+    esIdaVuelta            = true;
+    idVueloRegreso         = up.get('id_vuelo_regreso');
+    codigoVueloRegreso     = up.get('codigo_vuelo_regreso') || '';
+    origenRegreso          = up.get('origen_regreso')       || '';
+    destinoRegreso         = up.get('destino_regreso')      || '';
+    fechaSalidaRegreso     = up.get('fecha_regreso')        || '';
+    precioRegresoProveedor = parseFloat(up.get('precio_regreso') || 0);
+    precioIdaProveedor     = parseFloat(up.get('precio_ida')     || 0);
+  }
 }
     /*! @} */
 
@@ -555,6 +584,10 @@ if (fromPackage) {
       };
 
       if ((tipoReserva === 'vuelo' || tipoReserva === 'paquete') && idVuelo) {
+        // Para roundtrip, el precio de la ida sola; si no es roundtrip,
+        // usamos el precio base que ya viene en el payload (compatible con flujo anterior).
+        const precioVueloIda = esIdaVuelta ? precioIdaProveedor : precioBase;
+
         payload.vuelo = {
           id_vuelo:         idVuelo,
           id_proveedor:     parseInt(idProveedor),
@@ -562,9 +595,25 @@ if (fromPackage) {
           destino:          destino,
           fecha_salida:     fechaSalida,
           tipo_asiento:     asiento,
-          precio_proveedor: precioBase,
+          precio_proveedor: precioVueloIda,
           pasajeros:        [pasajero],
+          codigo_vuelo:     fromPackage ? (paqueteVuelo?.codigo_vuelo || '') : (up.get('codigo_vuelo') || ''),
         };
+
+        // Solo agregamos vuelo_regreso si la búsqueda fue ida y vuelta.
+        if (esIdaVuelta && idVueloRegreso) {
+          payload.vuelo_regreso = {
+            id_vuelo:         idVueloRegreso,
+            id_proveedor:     parseInt(idProveedor),
+            origen:           origenRegreso,
+            destino:          destinoRegreso,
+            fecha_salida:     fechaSalidaRegreso,
+            tipo_asiento:     asiento,
+            precio_proveedor: precioRegresoProveedor,
+            pasajeros:        [pasajero],
+            codigo_vuelo:     codigoVueloRegreso || '',
+          };
+        }
       }
 
       if ((tipoReserva === 'hotel' || tipoReserva === 'paquete') && idHabitacion) {
