@@ -109,8 +109,16 @@
     <script>
     function buscarBedly(form) {
         const q = form.q.value.trim();
-        if (!q) return;
-        window.location.href = 'index.html?q=' + encodeURIComponent(q);
+        const app = document.body._x_dataStack && document.body._x_dataStack[0];
+        if (app) {
+            app.filtros.busqueda = q;
+            app.actualizarURL();
+            app.filtrar();
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            if (q) params.set('q', q); else params.delete('q');
+            window.location.href = 'index.html' + (params.toString() ? '?' + params.toString() : '');
+        }
     }
     </script>
 
@@ -175,13 +183,15 @@
 
     <script>
     function buscarHomeBedly(form) {
-        const params = new URLSearchParams();
-        if (form.ciudad.value) params.set('ciudad', form.ciudad.value);
-        if (form.checkin.value) params.set('checkin', form.checkin.value);
-        if (form.checkout.value) params.set('checkout', form.checkout.value);
-        if (form.huespedes.value) params.set('huespedes', form.huespedes.value);
-        const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-        window.location.href = url;
+        const app = document.body._x_dataStack && document.body._x_dataStack[0];
+        if (app) {
+            app.filtros.ciudad = form.ciudad.value || '';
+            app.fechas.checkin = form.checkin.value || '';
+            app.fechas.checkout = form.checkout.value || '';
+            app.fechas.huespedes = form.huespedes.value || '';
+            app.actualizarURL();
+            app.filtrar();
+        }
     }
     </script>
 
@@ -431,20 +441,52 @@
             opcionesFiltro: { tipos: [], ciudades: [], paises: [] },
             loading: false,
             usuario: null,
-            filtros: { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '' },
+            filtros: { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '', busqueda: '' },
+            fechas:  { checkin: '', checkout: '', huespedes: '' },
 
             async init() {
-    this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
-    if (!this.usuario) { window.location.href = 'landing.html'; return; }
-    await Promise.all([this.cargarHabitaciones(), this.cargarOpciones()]);
-},
-            async cargarHabitaciones() {
-                this.loading = true;
-                try {
-                    const res  = await fetch(`${API}/habitaciones`);
-                    const data = await res.json();
-                    if (data.success) this.habitaciones = data.data;
-                } catch (e) {} finally { this.loading = false; }
+                this.usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+                if (!this.usuario) {
+                    window.location.href = 'landing.html' + window.location.search;
+                    return;
+                }
+                this.leerURL();
+                await this.cargarOpciones();
+                await this.filtrar();
+            },
+
+            // Lee query-string y siembra filtros + fechas + búsqueda libre.
+            leerURL() {
+                const p = new URLSearchParams(window.location.search);
+                this.filtros.busqueda  = p.get('q')         || '';
+                this.filtros.tipo      = p.get('tipo')      || '';
+                this.filtros.ciudad    = p.get('ciudad')    || '';
+                this.filtros.pais      = p.get('pais')      || '';
+                this.filtros.precioMax = p.get('precioMax') || '';
+                this.filtros.capacidad = p.get('capacidad') || '';
+                this.fechas.checkin    = p.get('checkin')   || '';
+                this.fechas.checkout   = p.get('checkout')  || '';
+                this.fechas.huespedes  = p.get('huespedes') || '';
+                // huéspedes implica capacidad mínima si capacidad no se fijó aparte.
+                if (this.fechas.huespedes && !this.filtros.capacidad) {
+                    this.filtros.capacidad = this.fechas.huespedes;
+                }
+            },
+
+            // Refleja el estado actual en el query-string sin recargar.
+            actualizarURL() {
+                const p = new URLSearchParams();
+                if (this.filtros.busqueda)  p.set('q', this.filtros.busqueda);
+                if (this.filtros.tipo)      p.set('tipo', this.filtros.tipo);
+                if (this.filtros.ciudad)    p.set('ciudad', this.filtros.ciudad);
+                if (this.filtros.pais)      p.set('pais', this.filtros.pais);
+                if (this.filtros.precioMax) p.set('precioMax', this.filtros.precioMax);
+                if (this.filtros.capacidad) p.set('capacidad', this.filtros.capacidad);
+                if (this.fechas.checkin)    p.set('checkin', this.fechas.checkin);
+                if (this.fechas.checkout)   p.set('checkout', this.fechas.checkout);
+                if (this.fechas.huespedes)  p.set('huespedes', this.fechas.huespedes);
+                const qs = p.toString();
+                history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
             },
 
             async cargarOpciones() {
@@ -452,12 +494,11 @@
                     const res  = await fetch(`${API}/habitaciones/opciones-filtro`);
                     const data = await res.json();
                     if (data.success) {
-                        this.opcionesFiltro.tipos = data.data.tipos || [];
+                        this.opcionesFiltro.tipos    = data.data.tipos    || [];
                         this.opcionesFiltro.ciudades = data.data.ciudades || [];
                     }
-                    // Cargar países desde endpoint /api/catalogo/paises
                     try {
-                        const resPaises = await fetch(`${API}/catalogo/paises`);
+                        const resPaises  = await fetch(`${API}/catalogo/paises`);
                         const dataPaises = await resPaises.json();
                         if (dataPaises.success && dataPaises.data && Array.isArray(dataPaises.data.paises)) {
                             this.opcionesFiltro.paises = dataPaises.data.paises;
@@ -466,42 +507,68 @@
                 } catch (e) {}
             },
 
+            // Busca habitaciones aplicando todos los filtros.
+            // Si hay checkin+checkout usa /disponibles (filtra por disponibilidad real);
+            // si solo hay otros filtros usa /filtrar; si no hay nada usa /habitaciones.
+            // Búsqueda libre (q), país y ciudad siempre se aplican client-side al final.
             async filtrar() {
                 this.loading = true;
                 try {
-                    let url = `${API}/habitaciones/filtrar?`;
-                    if (this.filtros.tipo)      url += `tipo=${encodeURIComponent(this.filtros.tipo)}&`;
-                    if (this.filtros.capacidad) url += `capacidad=${this.filtros.capacidad}&`;
-                    if (this.filtros.precioMax) url += `precioMax=${this.filtros.precioMax}&`;
-                    const res  = await fetch(url);
-                    const data = await res.json();
-                    if (data.success) {
-                        let resultado = data.data;
-                        if (this.filtros.pais) {
-                            resultado = resultado.filter(h =>
-                                (h.pais || '').toLowerCase() === this.filtros.pais.toLowerCase()
-                            );
-                        }
-                        if (this.filtros.ciudad) {
-                            resultado = resultado.filter(h =>
-                                h.ubicacion && h.ubicacion.toLowerCase()
-                                    === this.filtros.ciudad.toLowerCase()
-                            );
-                        }
-                        this.habitaciones = resultado;
+                    let resultado = [];
+                    if (this.fechas.checkin && this.fechas.checkout) {
+                        const cap = this.filtros.capacidad || this.fechas.huespedes || 1;
+                        const url = `${API}/habitaciones/disponibles?checkIn=${this.fechas.checkin}`
+                                  + `&checkOut=${this.fechas.checkout}&capacidad=${cap}`;
+                        const res  = await fetch(url);
+                        const data = await res.json();
+                        if (data.success) resultado = data.data || [];
+                    } else if (this.filtros.tipo || this.filtros.capacidad || this.filtros.precioMax) {
+                        let url = `${API}/habitaciones/filtrar?`;
+                        if (this.filtros.tipo)      url += `tipo=${encodeURIComponent(this.filtros.tipo)}&`;
+                        if (this.filtros.capacidad) url += `capacidad=${this.filtros.capacidad}&`;
+                        if (this.filtros.precioMax) url += `precioMax=${this.filtros.precioMax}&`;
+                        const res  = await fetch(url);
+                        const data = await res.json();
+                        if (data.success) resultado = data.data || [];
+                    } else {
+                        const res  = await fetch(`${API}/habitaciones`);
+                        const data = await res.json();
+                        if (data.success) resultado = data.data || [];
                     }
+                    // Filtros client-side: país, ciudad y búsqueda libre.
+                    if (this.filtros.pais) {
+                        const f = this.filtros.pais.toLowerCase();
+                        resultado = resultado.filter(h => (h.pais || '').toLowerCase() === f);
+                    }
+                    if (this.filtros.ciudad) {
+                        const f = this.filtros.ciudad.toLowerCase();
+                        resultado = resultado.filter(h => (h.ubicacion || '').toLowerCase() === f);
+                    }
+                    if (this.filtros.busqueda) {
+                        const q = this.filtros.busqueda.toLowerCase();
+                        resultado = resultado.filter(h =>
+                            (h.nombre         || '').toLowerCase().includes(q) ||
+                            (h.tipoHabitacion || '').toLowerCase().includes(q) ||
+                            (h.ubicacion      || '').toLowerCase().includes(q) ||
+                            (h.pais           || '').toLowerCase().includes(q) ||
+                            (h.descripcion    || '').toLowerCase().includes(q)
+                        );
+                    }
+                    this.habitaciones = resultado;
+                    this.actualizarURL();
                 } catch (e) {} finally { this.loading = false; }
             },
 
             onPaisChange() {
-                // Si cambia el país, resetea la ciudad para evitar inconsistencias
                 this.filtros.ciudad = '';
                 this.filtrar();
             },
 
             limpiarFiltros() {
-                this.filtros = { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '' };
-                this.cargarHabitaciones();
+                this.filtros = { tipo: '', capacidad: '', precioMax: '', ciudad: '', pais: '', busqueda: '' };
+                this.fechas  = { checkin: '', checkout: '', huespedes: '' };
+                history.replaceState(null, '', window.location.pathname);
+                this.filtrar();
             },
 
             imagenPorTipo(tipo) {
