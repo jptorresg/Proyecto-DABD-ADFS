@@ -433,13 +433,13 @@
                 try {
                     let res, data;
                     if (this.modoEdicion) {
-                        res = await fetch(`${API}/admin/habitaciones/${this.form.idHabitacion}`, {
+                        res = await fetch(`${API}/inventario/${this.form.idHabitacion}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
                     } else {
-                        res = await fetch(`${API}/admin/habitaciones`, {
+                        res = await fetch(`${API}/inventario`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -486,7 +486,7 @@
             async eliminarHabitacion(h) {
                 if (!confirm(`¿Eliminar la habitación ${h.numHabitacion}? Esta acción la marcará como inactiva.`)) return;
                 try {
-                    const res = await fetch(`${API}/admin/habitaciones/${h.idHabitacion}`, { method: 'DELETE' });
+                    const res = await fetch(`${API}/inventario/${h.idHabitacion}`, { method: 'DELETE' });
                     const data = await res.json();
                     if (data.success) {
                         await this.cargarHabitaciones();

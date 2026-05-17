@@ -883,9 +883,13 @@
                         ? `${API}/admin/hoteles/${this.formHotel.idHotel}`
                         : `${API}/admin/hoteles`;
                     const method = this.modoEdicionHotel ? 'PUT' : 'POST';
+                    // En create, omitir idHotel: el modelo del backend lo declara
+                    // int (no nullable) y null dispara 400 en el binder de JSON.
+                    const payload = { ...this.formHotel };
+                    if (!this.modoEdicionHotel) delete payload.idHotel;
                     const res = await fetch(url, {
                         method, headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(this.formHotel)
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) {
