@@ -173,14 +173,23 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Número de Habitación <span class="field-required">*</span></label>
-                            <input type="text" class="form-control" x-model="form.numHabitacion"
-                                   placeholder="Ej: 101">
+                            <label class="form-label">Hotel <span class="field-required">*</span></label>
+                            <select class="form-select" x-model.number="form.idHotel">
+                                <option value="">-- Seleccionar hotel --</option>
+                                <template x-for="h in hoteles" :key="h.idHotel">
+                                    <option :value="h.idHotel" x-text="h.nombreHotel + ' (' + (h.ciudad || h.ubicacion || '-') + ')'"></option>
+                                </template>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Tipo de Habitación <span class="field-required">*</span></label>
+                            <label class="form-label">Número de Habitación <span class="field-required">*</span></label>
+                            <input type="text" class="form-control" x-model="form.numHabitacion" placeholder="Ej: 101" maxlength="20">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo <span class="field-required">*</span></label>
                             <select class="form-select" x-model="form.tipoHabitacion">
-                                <option value="">Seleccionar...</option>
+                                <option value="">-- Seleccionar --</option>
                                 <option value="Sencilla">Sencilla</option>
                                 <option value="Doble">Doble</option>
                                 <option value="Suite">Suite</option>
@@ -190,48 +199,16 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Precio por Noche (Q) <span class="field-required">*</span></label>
-                            <input type="number" class="form-control" x-model.number="form.precioNoche"
-                                   placeholder="Ej: 850.00" min="0" step="0.01">
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">Capacidad Máxima <span class="field-required">*</span></label>
-                            <select class="form-select" x-model.number="form.capacidadMax">
-                                <option value="1">1 persona</option>
-                                <option value="2">2 personas</option>
-                                <option value="3">3 personas</option>
-                                <option value="4">4 personas</option>
-                                <option value="6">6 personas</option>
-                            </select>
+                            <input type="number" class="form-control" x-model.number="form.capacidadMax" min="1" max="10">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Precio por Noche (Q) <span class="field-required">*</span></label>
+                            <input type="number" class="form-control" x-model.number="form.precioNoche" min="0" step="0.01">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Cadena Hotelera <span class="field-required">*</span></label>
-                            <select class="form-select" x-model.number="form.idHotel">
-                                <option value="">Seleccionar hotel...</option>
-                                <template x-for="h in hoteles" :key="h.idHotel">
-                                    <option :value="h.idHotel"
-                                            x-text="h.nombreHotel + ' (' + h.estrellas + '★)'">
-                                    </option>
-                                </template>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Ciudad <span class="field-required">*</span></label>
-                            <input type="text" class="form-control" x-model="form.ciudad"
-                                   placeholder="Ej: Guatemala City, Antigua..."
-                                   list="lista-ciudades">
-                            <datalist id="lista-ciudades">
-                                <template x-for="c in ciudadesExistentes" :key="c">
-                                    <option :value="c"></option>
-                                </template>
-                            </datalist>
-                            <div class="form-text text-muted" style="font-size:0.75rem;">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Esta ciudad aparecerá en los filtros del catálogo.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Estado</label>
+                            <label class="form-label">Estado <span class="field-required">*</span></label>
                             <select class="form-select" x-model="form.estado">
                                 <option value="Disponible">Disponible</option>
                                 <option value="Ocupada">Ocupada</option>
@@ -239,26 +216,38 @@
                                 <option value="Inactiva">Inactiva</option>
                             </select>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label">Estrellas del Hotel</label>
-                            <select class="form-select" x-model.number="form.estrellas">
-                                <option value="1">⭐ 1 estrella</option>
-                                <option value="2">⭐⭐ 2 estrellas</option>
-                                <option value="3">⭐⭐⭐ 3 estrellas</option>
-                                <option value="4">⭐⭐⭐⭐ 4 estrellas</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 estrellas</option>
+                            <label class="form-label">País <span class="field-required">*</span></label>
+                            <select class="form-select" x-model="form.pais">
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="Costa Rica">Costa Rica</option>
+                                <option value="Panamá">Panamá</option>
+                                <option value="Belice">Belice</option>
+                                <option value="Estados Unidos">Estados Unidos</option>
+                                <option value="Otro">Otro</option>
                             </select>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Amenidades (separadas por coma)</label>
-                            <input type="text" class="form-control" x-model="form.amenidades"
-                                   placeholder="Ej: WiFi, A/C, TV, Desayuno">
+                        <div class="col-md-6">
+                            <label class="form-label">Ciudad <span class="field-required">*</span></label>
+                            <input type="text" class="form-control" x-model="form.ciudad" placeholder="Ej: Guatemala City">
                         </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Amenidades</label>
+                            <input type="text" class="form-control" x-model="form.amenidades" placeholder="WiFi, TV, Aire acondicionado...">
+                        </div>
+
                         <div class="col-12">
                             <label class="form-label">Descripción</label>
-                            <textarea class="form-control" x-model="form.descripcion" rows="3"
-                                      placeholder="Descripción de la habitación..."></textarea>
+                            <textarea class="form-control" x-model="form.descripcion" rows="2"
+                                      placeholder="Detalles de la habitación..."></textarea>
                         </div>
+
                         <div class="col-12">
                             <label class="form-label">URL de Imagen</label>
                             <input type="text" class="form-control" x-model="form.imagenUrl"
@@ -302,17 +291,17 @@
             modoEdicion: false,
             form: {
                 idHabitacion: null,
+                idHotel: '',
                 numHabitacion: '',
                 tipoHabitacion: '',
-                precioNoche: '',
+                precioNoche: 0,
                 capacidadMax: 2,
                 estado: 'Disponible',
-                idHotel: '',
-                ciudad: '',
-                estrellas: 5,
                 amenidades: '',
                 descripcion: '',
-                imagenUrl: ''
+                imagenUrl: '',
+                ciudad: '',
+                pais: 'Guatemala'
             },
 
             async init() {
@@ -358,33 +347,33 @@
                     this.modoEdicion = true;
                     this.form = {
                         idHabitacion:  hab.idHabitacion,
+                        idHotel:       hab.idHotel || '',
                         numHabitacion: hab.numHabitacion,
                         tipoHabitacion: hab.tipoHabitacion,
                         precioNoche:   hab.precioNoche,
                         capacidadMax:  hab.capacidadMax,
                         estado:        hab.estado,
-                        idHotel:       hab.idHotel || '',
-                        ciudad:        hab.ubicacion || '',
-                        estrellas:     hab.estrellas || 5,
                         amenidades:    hab.amenidades || '',
                         descripcion:   hab.descripcion || '',
-                        imagenUrl:     hab.imagenUrl || ''
+                        imagenUrl:     hab.imagenUrl || '',
+                        ciudad:        hab.ciudad || hab.ubicacion || '',
+                        pais:          hab.pais || 'Guatemala'
                     };
                 } else {
                     this.modoEdicion = false;
                     this.form = {
                         idHabitacion:  null,
+                        idHotel:       this.hoteles.length > 0 ? this.hoteles[0].idHotel : '',
                         numHabitacion: '',
                         tipoHabitacion: '',
-                        precioNoche:   '',
+                        precioNoche:   0,
                         capacidadMax:  2,
                         estado:        'Disponible',
-                        idHotel:       this.hoteles.length > 0 ? this.hoteles[0].idHotel : '',
-                        ciudad:        '',
-                        estrellas:     5,
                         amenidades:    '',
                         descripcion:   '',
-                        imagenUrl:     ''
+                        imagenUrl:     '',
+                        ciudad:        '',
+                        pais:          'Guatemala'
                     };
                 }
                 const modal = new bootstrap.Modal(document.getElementById('modalHabitacion'));
@@ -401,16 +390,17 @@
 
                 const payload = {
                     idHotel:        parseInt(this.form.idHotel),
-                    numHabitacion:  this.form.numHabitacion,
+                    numHabitacion:  this.form.numHabitacion.toString().trim(),
                     tipoHabitacion: this.form.tipoHabitacion,
                     precioNoche:    parseFloat(this.form.precioNoche),
                     capacidadMax:   parseInt(this.form.capacidadMax),
                     estado:         this.form.estado,
+                    amenidades:     this.form.amenidades || '',
+                    descripcion:    this.form.descripcion || '',
+                    imagenUrl:      this.form.imagenUrl || '',
+                    ubicacion:      this.form.ciudad.trim(),
                     ciudad:         this.form.ciudad.trim(),
-                    estrellas:      parseInt(this.form.estrellas),
-                    amenidades:     this.form.amenidades || null,
-                    descripcion:    this.form.descripcion || null,
-                    imagenUrl:      this.form.imagenUrl || null
+                    pais:           this.form.pais
                 };
 
                 this.cargando = true;
