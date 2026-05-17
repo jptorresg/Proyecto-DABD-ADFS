@@ -74,20 +74,26 @@ namespace HotelesAPI.Services
         }
 
         /// <summary>
-        /// Notifica al admin sobre la cancelación de una reservación.
+        /// Notifica al admin sobre la cancelación de una reservación, incluyendo
+        /// el detalle del reembolso aplicado segun la politica de horas restantes.
         /// </summary>
-        public void NotificarCancelacionAdmin(Reservacion reservacion, Usuario usuario)
+        public void NotificarCancelacionAdmin(
+            Reservacion reservacion, Usuario usuario,
+            decimal montoReembolso, decimal montoPenalizacion, string politica)
         {
             string emailAdmin = _config["Email:EmailAdmin"] ?? "admin@bedly.com";
             string asunto = $"[Bedly] Cancelación de reservación #{reservacion.IdReservacion}";
-            string cuerpoPlano = ConstruirCuerpoTexto(reservacion, usuario);
-            string cuerpoHtml = ConstruirCuerpoHtml(reservacion, usuario);
+            string cuerpoPlano = ConstruirCuerpoTexto(reservacion, usuario, montoReembolso, montoPenalizacion, politica);
+            string cuerpoHtml = ConstruirCuerpoHtml(reservacion, usuario, montoReembolso, montoPenalizacion, politica);
 
             var metadata = new
             {
                 idReservacion = reservacion.IdReservacion,
                 idUsuario = usuario.IdUsuario,
-                montoPerdido = reservacion.PrecioTotal,
+                montoOriginal = reservacion.PrecioTotal,
+                montoReembolso,
+                montoPenalizacion,
+                politica,
                 fechaCancelacion = DateTime.Now
             };
 
@@ -186,7 +192,9 @@ namespace HotelesAPI.Services
             }
         }
 
-        private string ConstruirCuerpoTexto(Reservacion reservacion, Usuario usuario)
+        private string ConstruirCuerpoTexto(
+            Reservacion reservacion, Usuario usuario,
+            decimal montoReembolso, decimal montoPenalizacion, string politica)
         {
             return $@"
 =========================================
@@ -203,7 +211,12 @@ DETALLES DE LA RESERVACIÓN:
 - Habitación: {reservacion.NombreHabitacion ?? "N/A"}
 - Check-in: {reservacion.FechaCheckIn:dd/MM/yyyy}
 - Check-out: {reservacion.FechaCheckOut:dd/MM/yyyy}
-- Pérdida estimada: Q{reservacion.PrecioTotal:F2}
+- Monto original: Q{reservacion.PrecioTotal:F2}
+
+REEMBOLSO APLICADO:
+- Política: {politica}
+- Reembolso al cliente: Q{montoReembolso:F2}
+- Penalización (ingreso hotel): Q{montoPenalizacion:F2}
 
 DATOS DEL USUARIO:
 - Nombre: {usuario.Nombre} {usuario.Apellidos ?? ""}
@@ -219,7 +232,9 @@ Sistema Bedly · Notificación automática
 ";
         }
 
-        private string ConstruirCuerpoHtml(Reservacion reservacion, Usuario usuario)
+        private string ConstruirCuerpoHtml(
+            Reservacion reservacion, Usuario usuario,
+            decimal montoReembolso, decimal montoPenalizacion, string politica)
         {
             return $@"
 <!DOCTYPE html>
@@ -262,8 +277,12 @@ Sistema Bedly · Notificación automática
             <div class='row'><span class='label'>Check-out</span><span class='value'>{reservacion.FechaCheckOut:dd/MM/yyyy}</span></div>
         </div>
 
-        <div class='perdida'>
-            💸 Pérdida estimada: Q{reservacion.PrecioTotal:F2}
+        <div class='section'>
+            <div class='section-title'>💰 Detalle de Reembolso</div>
+            <div class='row'><span class='label'>Monto original</span><span class='value'>Q{reservacion.PrecioTotal:F2}</span></div>
+            <div class='row'><span class='label'>Política aplicada</span><span class='value'>{politica}</span></div>
+            <div class='row'><span class='label'>Reembolso al cliente</span><span class='value' style='color:#16a34a'>Q{montoReembolso:F2}</span></div>
+            <div class='row'><span class='label'>Penalización (ingreso)</span><span class='value' style='color:#dc2626'>Q{montoPenalizacion:F2}</span></div>
         </div>
 
         <div class='section'>

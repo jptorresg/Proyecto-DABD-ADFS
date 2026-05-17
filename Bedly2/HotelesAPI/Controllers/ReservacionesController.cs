@@ -116,10 +116,9 @@ namespace HotelesAPI.Controllers
         {
             try
             {
-                bool cancelado = _reservacionService.Cancelar(id, idUsuario);
-                if (!cancelado)
-                    return StatusCode(500, JsonResponse.Error("No se pudo cancelar la reservación"));
-                return Ok(JsonResponse.Ok("Reservación cancelada exitosamente", null));
+                var resultado = _reservacionService.Cancelar(id, idUsuario);
+                string mensaje = $"Reservación cancelada. Se reembolsará Q{resultado.MontoReembolso:F2} ({resultado.PorcentajeReembolso:F0}% del total). {resultado.Politica}.";
+                return Ok(JsonResponse.Ok(mensaje, resultado));
             }
             catch (ArgumentException ex) { return BadRequest(JsonResponse.Error(ex.Message)); }
             catch (Exception ex) { return StatusCode(500, JsonResponse.Error(ex.Message)); }
