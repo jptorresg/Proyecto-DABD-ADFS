@@ -1098,22 +1098,34 @@
             },
 
             get estadoHabitaciones() {
-                const total = this.stats.totalHabitaciones || 1;
-                return [
-                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#10b981' },
-                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#3b82f6' },
-                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b' },
-                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#ef4444' }
-                ].map(s => ({ ...s, porcentaje: total > 0 ? Math.round((s.count / total) * 100) : 0 }));
+                const items = [
+                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles || 0, color: '#10b981' },
+                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas || 0, color: '#3b82f6' },
+                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento || 0, color: '#f59e0b' },
+                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas || 0, color: '#ef4444' }
+                ];
+                // Si totalHabitaciones no llega del backend, lo calculamos como suma
+                // de los conteos por estado. Cap a 100% para que la barra nunca se
+                // desborde visualmente (caso degradado: counts inconsistentes).
+                const totalFromBackend = this.stats.totalHabitaciones;
+                const totalFromSum = items.reduce((acc, s) => acc + Number(s.count || 0), 0);
+                const total = (totalFromBackend && totalFromBackend > 0) ? totalFromBackend : totalFromSum;
+                return items.map(s => ({
+                    ...s,
+                    porcentaje: total > 0 ? Math.min(100, Math.round((s.count / total) * 100)) : 0
+                }));
             },
 
             get estadoReservas() {
-                const total = this.todasReservas.length || 1;
                 const grupos = {};
                 this.todasReservas.forEach(r => {
                     const e = r.estado || 'Pendiente';
                     grupos[e] = (grupos[e] || 0) + 1;
                 });
+                // El total real para el porcentaje es la suma de los conteos
+                // observados (no this.todasReservas.length crudo, que podria
+                // diferir si hay reservas sin estado).
+                const total = Object.values(grupos).reduce((acc, n) => acc + n, 0) || this.todasReservas.length || 0;
                 const colores = {
                     'Confirmada': '#10b981',
                     'Pendiente': '#f59e0b',
@@ -1125,7 +1137,7 @@
                 return Object.entries(grupos).map(([estado, count]) => ({
                     estado, count,
                     color: colores[estado] || '#94a3b8',
-                    porcentaje: Math.round((count / total) * 100)
+                    porcentaje: total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0
                 }));
             },
 
