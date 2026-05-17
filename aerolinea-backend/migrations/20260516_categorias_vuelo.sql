@@ -17,6 +17,20 @@
 -- reservaciones que aún decrementa VUELOS.asientos_disponibles), un par
 -- de triggers mantienen ambos lados sincronizados mientras se completa
 -- la migración del write-side en una próxima fase.
+--
+-- Diseño de los triggers (importante):
+--   Un trigger ingenuo dispararía mutating-table (ORA-04091) porque al
+--   hacer UPDATE CATEGORIAS_VUELO la propia tabla está bloqueada en
+--   row-level, y un SELECT/UPDATE recursivo sobre ella revienta. Para
+--   evitarlo:
+--     1) TR_SYNC_VUELOS_FROM_CATEG calcula el delta de la fila con
+--        :NEW − :OLD y suma ese delta a VUELOS (no necesita leer
+--        CATEGORIAS_VUELO).
+--     2) Un paquete PKG_SYNC_GUARD lleva una bandera "in_cascade" para
+--        evitar que el UPDATE VUELOS que hace el primer trigger reentre
+--        al segundo (que también lee CATEGORIAS_VUELO) y forme un ciclo.
+--   La bandera se resetea siempre en un EXCEPTION handler para que un
+--   error transitorio no deje la conexión con el guard pegado en TRUE.
 -- =============================================================================
 
 -- 1) Tabla nueva CATEGORIAS_VUELO
@@ -39,7 +53,8 @@ CREATE TABLE USUARIO_AEROLINEA.CATEGORIAS_VUELO (
     REFERENCES USUARIO_AEROLINEA.VUELOS(ID_VUELO) ON DELETE CASCADE
 );
 
-CREATE INDEX IDX_CATEGORIAS_VUELO ON USUARIO_AEROLINEA.CATEGORIAS_VUELO(ID_VUELO);
+CREATE INDEX USUARIO_AEROLINEA.IDX_CATEGORIAS_VUELO
+  ON USUARIO_AEROLINEA.CATEGORIAS_VUELO(ID_VUELO);
 
 -- 2) Poblar desde los VUELOS existentes: 1 categoria por vuelo replicando sus datos.
 INSERT INTO USUARIO_AEROLINEA.CATEGORIAS_VUELO
@@ -53,51 +68,72 @@ FROM USUARIO_AEROLINEA.VUELOS;
 
 COMMIT;
 
--- 3) Trigger: si una reserva (o admin) decrementa VUELOS.asientos_disponibles
--- y ese vuelo tiene exactamente una categoría, aplicamos el mismo delta a la
--- fila correspondiente en CATEGORIAS_VUELO. Si tiene varias categorías ya
--- no podemos saber cuál se reservó solo con VUELOS, así que dejamos que el
--- código nuevo (que sí pasa idCategoria) escriba directamente.
+-- 3) Package con bandera que rompe la cascada entre los dos triggers.
+CREATE OR REPLACE PACKAGE USUARIO_AEROLINEA.PKG_SYNC_GUARD AS
+  in_cascade BOOLEAN := FALSE;
+END PKG_SYNC_GUARD;
+/
+
+-- 4) Trigger CATEGORIAS_VUELO -> VUELOS.
+-- Usa :NEW − :OLD para evitar leer la tabla mutante. Marca in_cascade=TRUE
+-- antes del UPDATE VUELOS para que el otro trigger no reentre.
+CREATE OR REPLACE TRIGGER USUARIO_AEROLINEA.TR_SYNC_VUELOS_FROM_CATEG
+AFTER UPDATE OF ASIENTOS_DISPONIBLES, ASIENTOS_TOTALES ON USUARIO_AEROLINEA.CATEGORIAS_VUELO
+FOR EACH ROW
+DECLARE
+  delta_disp NUMBER;
+  delta_tot  NUMBER;
+BEGIN
+  IF USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade THEN RETURN; END IF;
+  delta_disp := :NEW.ASIENTOS_DISPONIBLES - :OLD.ASIENTOS_DISPONIBLES;
+  delta_tot  := :NEW.ASIENTOS_TOTALES     - :OLD.ASIENTOS_TOTALES;
+  IF delta_disp = 0 AND delta_tot = 0 THEN RETURN; END IF;
+
+  USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := TRUE;
+  BEGIN
+    UPDATE USUARIO_AEROLINEA.VUELOS
+       SET ASIENTOS_DISPONIBLES = ASIENTOS_DISPONIBLES + delta_disp,
+           ASIENTOS_TOTALES     = ASIENTOS_TOTALES     + delta_tot
+     WHERE ID_VUELO = :NEW.ID_VUELO;
+    USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := FALSE;
+  EXCEPTION
+    WHEN OTHERS THEN
+      USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := FALSE;
+      RAISE;
+  END;
+END;
+/
+
+-- 5) Trigger VUELOS -> CATEGORIAS_VUELO.
+-- Solo aplica si el vuelo tiene exactamente 1 categoría (caso v1: cuando
+-- el código viejo decrementa VUELOS sin saber de CATEGORIAS_VUELO, hay
+-- una sola categoría a la que sincronizar). Si hay varias categorías, no
+-- podemos adivinar cuál se reservó y dejamos que el código nuevo (v2) la
+-- toque directamente.
 CREATE OR REPLACE TRIGGER USUARIO_AEROLINEA.TR_SYNC_CATEG_FROM_VUELOS
 AFTER UPDATE OF ASIENTOS_DISPONIBLES, ASIENTOS_TOTALES, PRECIO_BASE ON USUARIO_AEROLINEA.VUELOS
 FOR EACH ROW
 DECLARE
   v_count NUMBER;
 BEGIN
+  IF USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade THEN RETURN; END IF;
   SELECT COUNT(*) INTO v_count
-    FROM USUARIO_AEROLINEA.CATEGORIAS_VUELO
-   WHERE ID_VUELO = :NEW.ID_VUELO;
+    FROM USUARIO_AEROLINEA.CATEGORIAS_VUELO WHERE ID_VUELO = :NEW.ID_VUELO;
+  IF v_count <> 1 THEN RETURN; END IF;
 
-  IF v_count = 1 THEN
+  USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := TRUE;
+  BEGIN
     UPDATE USUARIO_AEROLINEA.CATEGORIAS_VUELO
        SET ASIENTOS_DISPONIBLES = :NEW.ASIENTOS_DISPONIBLES,
            ASIENTOS_TOTALES     = :NEW.ASIENTOS_TOTALES,
            PRECIO               = :NEW.PRECIO_BASE
      WHERE ID_VUELO             = :NEW.ID_VUELO;
-  END IF;
-END;
-/
-
--- 4) Trigger inverso: cuando el código nuevo (post-refactor) decrementa
--- una categoría específica, sumamos sobre todas las categorías del vuelo y
--- actualizamos VUELOS.asientos_disponibles. Así el API v1 sigue mostrando
--- un conteo coherente.
-CREATE OR REPLACE TRIGGER USUARIO_AEROLINEA.TR_SYNC_VUELOS_FROM_CATEG
-AFTER UPDATE OF ASIENTOS_DISPONIBLES, ASIENTOS_TOTALES ON USUARIO_AEROLINEA.CATEGORIAS_VUELO
-FOR EACH ROW
-DECLARE
-  v_total       NUMBER;
-  v_disponibles NUMBER;
-BEGIN
-  SELECT SUM(ASIENTOS_TOTALES), SUM(ASIENTOS_DISPONIBLES)
-    INTO v_total, v_disponibles
-    FROM USUARIO_AEROLINEA.CATEGORIAS_VUELO
-   WHERE ID_VUELO = :NEW.ID_VUELO;
-
-  UPDATE USUARIO_AEROLINEA.VUELOS
-     SET ASIENTOS_TOTALES     = v_total,
-         ASIENTOS_DISPONIBLES = v_disponibles
-   WHERE ID_VUELO             = :NEW.ID_VUELO;
+    USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := FALSE;
+  EXCEPTION
+    WHEN OTHERS THEN
+      USUARIO_AEROLINEA.PKG_SYNC_GUARD.in_cascade := FALSE;
+      RAISE;
+  END;
 END;
 /
 
