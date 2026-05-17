@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Servicio de lógica de negocio para la gestión de reservaciones.
@@ -22,9 +23,10 @@ public class ReservacionService {
     private VueloDAO vueloDAO;
     private PasajeroDAO pasajeroDAO;
     private UsuarioDAO usuarioDAO;
+    private CategoriaVueloDAO categoriaVueloDAO;
     private PdfService pdfService;
     private EmailService emailService;
-    
+
     /**
      * Constructor que inicializa el servicio con los DAO necesarios.
      */
@@ -33,6 +35,7 @@ public class ReservacionService {
         this.vueloDAO = new VueloDAO();
         this.pasajeroDAO = new PasajeroDAO();
         this.usuarioDAO = new UsuarioDAO();
+        this.categoriaVueloDAO = new CategoriaVueloDAO();
         this.pdfService = new PdfService();
         this.emailService = new EmailService();
     }
@@ -42,6 +45,7 @@ public class ReservacionService {
         VueloDAO vueloDAO,
         PasajeroDAO pasajeroDAO,
         UsuarioDAO usuarioDAO,
+        CategoriaVueloDAO categoriaVueloDAO,
         PdfService pdfService,
         EmailService emailService
     ) {
@@ -49,6 +53,7 @@ public class ReservacionService {
         this.vueloDAO = vueloDAO;
         this.pasajeroDAO = pasajeroDAO;
         this.usuarioDAO = usuarioDAO;
+        this.categoriaVueloDAO = categoriaVueloDAO;
         this.pdfService = pdfService;
         this.emailService = emailService;
     }
@@ -148,6 +153,99 @@ public class ReservacionService {
         }
 
         // Retornar reservación completa
+        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
+    }
+
+    /**
+     * Variante v2 de {@code crearReservacion} que reserva una <em>categoría</em>
+     * específica del vuelo (CATEGORIAS_VUELO), no el vuelo entero.
+     * <p>
+     * Diferencias con v1:
+     * <ul>
+     *   <li>El precio sale de {@code categoria.getPrecio()} (la categoría elegida),
+     *       no de {@code vuelo.getPrecioBase()}.</li>
+     *   <li>Los pasajeros heredan {@code tipoAsiento} de la categoría reservada.</li>
+     *   <li>El stock se decrementa en {@code CATEGORIAS_VUELO.asientos_disponibles}
+     *       en vez de {@code VUELOS.asientos_disponibles}. Los triggers de la
+     *       migración 20260516_categorias_vuelo mantienen VUELOS sincronizado
+     *       para que la API v1 siga viendo conteos coherentes.</li>
+     *   <li>Se persiste {@code id_categoria} en RESERVACIONES, lo que permite a
+     *       {@code cancelarReservacion()} devolver asientos a la categoría
+     *       correcta.</li>
+     * </ul>
+     *
+     * @throws IllegalArgumentException si la categoría no existe, no pertenece al
+     *         vuelo, no hay stock, o el vuelo no está activo.
+     */
+    public Reservacion crearReservacion(Long idVuelo, Long idCategoria, Long idUsuario,
+                                       List<Pasajero> pasajeros, String metodoPago,
+                                       boolean enviarCorreo) throws SQLException {
+
+        if (idCategoria == null) {
+            throw new IllegalArgumentException("idCategoria es requerido");
+        }
+
+        Vuelo vuelo = vueloDAO.findById(idVuelo);
+        if (vuelo == null) {
+            throw new IllegalArgumentException("Vuelo no encontrado");
+        }
+        if (!"ACTIVO".equals(vuelo.getEstado())) {
+            throw new IllegalArgumentException("El vuelo no está activo");
+        }
+
+        CategoriaVuelo categoria = categoriaVueloDAO.findById(idCategoria);
+        if (categoria == null) {
+            throw new IllegalArgumentException("Categoría no encontrada");
+        }
+        if (!Objects.equals(categoria.getIdVuelo(), idVuelo)) {
+            throw new IllegalArgumentException(
+                "La categoría " + idCategoria + " no pertenece al vuelo " + idVuelo);
+        }
+
+        int numPasajeros = pasajeros.size();
+        if (categoria.getAsientosDisponibles() < numPasajeros) {
+            throw new IllegalArgumentException("No hay suficientes asientos disponibles en la categoría");
+        }
+
+        BigDecimal precioTotal = categoria.getPrecio().multiply(new BigDecimal(numPasajeros));
+
+        Reservacion reservacion = new Reservacion();
+        reservacion.setCodigoReservacion(PasswordUtil.generarCodigoReservacion());
+        reservacion.setIdVuelo(idVuelo);
+        reservacion.setIdCategoria(idCategoria);
+        reservacion.setIdUsuario(idUsuario);
+        reservacion.setNumPasajeros(numPasajeros);
+        reservacion.setPrecioTotal(precioTotal);
+        reservacion.setMetodoPago(metodoPago);
+
+        Long idReservacion = reservacionDAO.createConCategoria(reservacion);
+        if (idReservacion == null) {
+            throw new SQLException("Error al crear reservación");
+        }
+
+        for (Pasajero pasajero : pasajeros) {
+            pasajero.setIdReservacion(idReservacion);
+            pasajero.setTipoAsiento(categoria.getTipoAsiento());
+            pasajeroDAO.create(pasajero);
+        }
+
+        if (enviarCorreo) {
+            List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+            byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
+
+            Usuario usuario = usuarioDAO.findById(idUsuario);
+            if (usuario == null) {
+                throw new IllegalArgumentException("Usuario no encontrado");
+            }
+
+            try {
+                emailService.enviarCorreo(usuario.getEmail(), pdf, reservacion.getCodigoReservacion());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error enviando correo: " + e.getMessage());
+            }
+        }
+
         return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
     }
 

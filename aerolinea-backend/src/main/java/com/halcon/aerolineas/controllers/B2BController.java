@@ -51,7 +51,8 @@ import java.util.Set;
  *   <li>GET    /api/b2b/v2/vuelos                 Búsqueda de vuelos con array categorias[]</li>
  *   <li>GET    /api/b2b/v2/vuelos/{id}            Detalle de un vuelo con array categorias[]</li>
  *   <li>GET    /api/b2b/paises                    Catálogo de países</li>
- *   <li>POST   /api/b2b/reservaciones             Crear reservación</li>
+ *   <li>POST   /api/b2b/reservaciones             Crear reservación (v1)</li>
+ *   <li>POST   /api/b2b/v2/reservaciones          Crear reservación contra una categoría</li>
  *   <li>PUT    /api/b2b/reservaciones/{id}/cancelar Cancelar reservación</li>
  * </ul>
  *
@@ -179,7 +180,10 @@ public class B2BController extends HttpServlet {
         if (pathInfo == null) pathInfo = "/";
 
         try {
-            if ("/reservaciones".equals(pathInfo) || "/reservaciones/".equals(pathInfo)) {
+            boolean esV2 = "/v2/reservaciones".equals(pathInfo) || "/v2/reservaciones/".equals(pathInfo);
+            boolean esV1 = "/reservaciones".equals(pathInfo) || "/reservaciones/".equals(pathInfo);
+
+            if (esV1 || esV2) {
                 JsonObject json = parseBody(request);
 
                 // idUsuario lo trae la agencia en x-usuario-id (representa al cliente
@@ -196,6 +200,37 @@ public class B2BController extends HttpServlet {
                     for (String part : idVueloStr.split("-")) idsVuelo.add(Long.parseLong(part));
                 } else {
                     idsVuelo.add(Long.parseLong(idVueloStr));
+                }
+
+                // v2: idCategoria es obligatorio y debe matchear 1:1 con idVuelo (misma
+                // forma "5" mono o "5-7-12" multi-tramo).
+                List<Long> idsCategoria = new ArrayList<>();
+                if (esV2) {
+                    JsonElement idCategoriaEl = json.get("idCategoria");
+                    if (idCategoriaEl == null || idCategoriaEl.isJsonNull()) {
+                        response.setStatus(400);
+                        out.print(JsonResponse.error("idCategoria es requerido en v2"));
+                        return;
+                    }
+                    String idCategoriaStr = idCategoriaEl.getAsString();
+                    try {
+                        if (idCategoriaStr.contains("-")) {
+                            for (String part : idCategoriaStr.split("-")) idsCategoria.add(Long.parseLong(part));
+                        } else {
+                            idsCategoria.add(Long.parseLong(idCategoriaStr));
+                        }
+                    } catch (NumberFormatException nfe) {
+                        response.setStatus(400);
+                        out.print(JsonResponse.error("idCategoria inválido: " + idCategoriaStr));
+                        return;
+                    }
+                    if (idsCategoria.size() != idsVuelo.size()) {
+                        response.setStatus(400);
+                        out.print(JsonResponse.error(
+                            "idCategoria debe tener la misma cantidad de tramos que idVuelo (" +
+                            idsVuelo.size() + ")"));
+                        return;
+                    }
                 }
 
                 String metodoPago = json.get("metodoPago").getAsString();
@@ -215,10 +250,18 @@ public class B2BController extends HttpServlet {
 
                 List<Reservacion> reservaciones = new ArrayList<>();
                 boolean esMultiTramo = idsVuelo.size() > 1;
-                for (Long id : idsVuelo) {
-                    Reservacion r = reservacionService.crearReservacion(
-                        id, usuarioId, pasajeros, metodoPago, !esMultiTramo
-                    );
+                for (int i = 0; i < idsVuelo.size(); i++) {
+                    Long idVuelo = idsVuelo.get(i);
+                    Reservacion r;
+                    if (esV2) {
+                        r = reservacionService.crearReservacion(
+                            idVuelo, idsCategoria.get(i), usuarioId, pasajeros, metodoPago, !esMultiTramo
+                        );
+                    } else {
+                        r = reservacionService.crearReservacion(
+                            idVuelo, usuarioId, pasajeros, metodoPago, !esMultiTramo
+                        );
+                    }
                     reservaciones.add(r);
                 }
                 if (esMultiTramo) {
