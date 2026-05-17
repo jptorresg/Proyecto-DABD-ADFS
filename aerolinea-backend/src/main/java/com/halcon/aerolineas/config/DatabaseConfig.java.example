@@ -1,0 +1,80 @@
+package com.halcon.aerolineas.config;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+/**
+ * Plantilla versionada de DatabaseConfig.
+ *
+ * El archivo real {@code DatabaseConfig.java} está listado en
+ * {@code .gitignore} (regla {@code **\/DatabaseConfig.java}) porque
+ * históricamente se editaba con credenciales en duro. Esta plantilla
+ * deja al backend compilable a partir de un clon limpio.
+ *
+ * Setup:
+ *   1. cp DatabaseConfig.java.example DatabaseConfig.java
+ *   2. cp ../../../../resources/db.properties.example
+ *         ../../../../resources/db.properties
+ *   3. Editar db.properties con las credenciales reales.
+ *
+ * Las credenciales NO van en este .java — viven en
+ * {@code src/main/resources/db.properties}, también gitignored.
+ */
+public class DatabaseConfig {
+
+    private static final String PROPERTIES_FILE = "db.properties";
+
+    private static final Properties PROPS = loadProperties();
+
+    private static Properties loadProperties() {
+        Properties p = new Properties();
+        try (InputStream in = DatabaseConfig.class
+                .getClassLoader()
+                .getResourceAsStream(PROPERTIES_FILE)) {
+            if (in == null) {
+                throw new IllegalStateException(
+                    "No se encontró " + PROPERTIES_FILE +
+                    " en el classpath. Copiá db.properties.example a db.properties.");
+            }
+            p.load(in);
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                "Error leyendo " + PROPERTIES_FILE, e);
+        }
+        String driver = p.getProperty("db.driver");
+        if (driver == null || driver.isBlank()) {
+            throw new IllegalStateException(
+                "db.driver no está definido en " + PROPERTIES_FILE);
+        }
+        try {
+            Class.forName(driver);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(
+                "Driver JDBC no encontrado en classpath: " + driver, e);
+        }
+        return p;
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(
+            PROPS.getProperty("db.url"),
+            PROPS.getProperty("db.username"),
+            PROPS.getProperty("db.password"));
+    }
+
+    public static void testConnection() {
+        try (Connection conn = getConnection()) {
+            System.out.println("Conexión OK a " + PROPS.getProperty("db.url"));
+        } catch (SQLException e) {
+            System.err.println("Error de conexión: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        testConnection();
+    }
+}
