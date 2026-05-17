@@ -342,6 +342,14 @@ const _resolverIata = async (valor) => {
         );
         if (rows.length && rows[0].codigo) return rows[0].codigo.toUpperCase();
     } catch {}
+    // Fallback inverso usando IATA_CIUDAD_FALLBACK: si la cache no tiene
+    // mapeo nombre→IATA (caso comun: la cache solo guarda direcciones de
+    // Google Places con codigo=NULL), usamos el mismo mapa estatico que
+    // ya conoce las ciudades principales.
+    const lower = trimmed.toLowerCase();
+    for (const [iata, ciudad] of Object.entries(IATA_CIUDAD_FALLBACK)) {
+        if (ciudad.toLowerCase() === lower) return iata;
+    }
     return trimmed.toUpperCase();
 };
 
