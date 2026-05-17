@@ -584,9 +584,30 @@
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Nombre del Hotel *</label>
                         <input type="text" class="form-control" x-model="formHotel.nombreHotel" placeholder="Ej: Hotel Grand UNIS">
                     </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">País *</label>
+                            <select class="form-select" x-model="formHotel.pais">
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="Costa Rica">Costa Rica</option>
+                                <option value="Panamá">Panamá</option>
+                                <option value="Belice">Belice</option>
+                                <option value="Estados Unidos">Estados Unidos</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Ciudad *</label>
+                            <input type="text" class="form-control" x-model="formHotel.ciudad" placeholder="Ej: Guatemala City">
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Ubicación</label>
-                        <input type="text" class="form-control" x-model="formHotel.ubicacion" placeholder="Ej: Zona 10, Guatemala City">
+                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Dirección / Zona</label>
+                        <input type="text" class="form-control" x-model="formHotel.ubicacion" placeholder="Ej: Zona 10, 16 Calle 0-55">
                     </div>
                     <div class="mb-3">
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Estrellas</label>
@@ -729,7 +750,7 @@
             errorAgencia: '',
             formCupon: { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 },
             errorCupon: '',
-            formHotel: { idHotel: null, nombreHotel: '', ubicacion: '', estrellas: 5 },
+            formHotel: { idHotel: null, nombreHotel: '', ubicacion: '', ciudad: '', pais: 'Guatemala', estrellas: 5 },
             errorHotel: '',
             modoEdicionHotel: false,
             fechaHoy: new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
@@ -820,10 +841,24 @@
             abrirModalHotel(h) {
                 if (h) {
                     this.modoEdicionHotel = true;
-                    this.formHotel = { idHotel: h.idHotel, nombreHotel: h.nombreHotel, ubicacion: h.ubicacion, estrellas: h.estrellas };
+                    this.formHotel = {
+                        idHotel: h.idHotel,
+                        nombreHotel: h.nombreHotel,
+                        ubicacion: h.ubicacion || '',
+                        ciudad: h.ciudad || h.ubicacion || '',
+                        pais: h.pais || 'Guatemala',
+                        estrellas: h.estrellas
+                    };
                 } else {
                     this.modoEdicionHotel = false;
-                    this.formHotel = { idHotel: null, nombreHotel: '', ubicacion: '', estrellas: 5 };
+                    this.formHotel = {
+                        idHotel: null,
+                        nombreHotel: '',
+                        ubicacion: '',
+                        ciudad: '',
+                        pais: 'Guatemala',
+                        estrellas: 5
+                    };
                 }
                 this.errorHotel = '';
                 new bootstrap.Modal(document.getElementById('modalHotel')).show();
@@ -831,8 +866,16 @@
 
             async guardarHotel() {
                 this.errorHotel = '';
-                if (!this.formHotel.nombreHotel || !this.formHotel.ubicacion) {
-                    this.errorHotel = 'Nombre y ubicación son requeridos.';
+                if (!this.formHotel.nombreHotel || !this.formHotel.nombreHotel.trim()) {
+                    this.errorHotel = 'El nombre del hotel es requerido.';
+                    return;
+                }
+                if (!this.formHotel.pais) {
+                    this.errorHotel = 'El país es requerido.';
+                    return;
+                }
+                if (!this.formHotel.ciudad || !this.formHotel.ciudad.trim()) {
+                    this.errorHotel = 'La ciudad es requerida.';
                     return;
                 }
                 try {
