@@ -14,6 +14,7 @@ namespace HotelesAPI.Services
         private readonly UsuarioDAO _usuarioDAO;
         private readonly EmailService _emailService;
         private readonly HuespedReservaDAO _huespedDAO;
+        private readonly PdfService _pdfService;
 
         public ReservacionService()
         {
@@ -22,6 +23,7 @@ namespace HotelesAPI.Services
             _usuarioDAO = new UsuarioDAO();
             _emailService = new EmailService();
             _huespedDAO = new HuespedReservaDAO();
+            _pdfService = new PdfService();
         }
 
         public Reservacion Crear(ReservacionDto dto)
@@ -107,8 +109,31 @@ namespace HotelesAPI.Services
                 }
             }
 
-            return _reservacionDAO.GetById(idCreado)
+            var reservaCompleta = _reservacionDAO.GetById(idCreado)
                 ?? throw new Exception("Error al crear la reservación");
+
+            // Notificar al usuario con el voucher en PDF adjunto. Si SMTP o
+            // PDF fallan, no abortamos la creación de la reserva: el registro
+            // ya está en BD y el usuario puede descargar el voucher manualmente.
+            try
+            {
+                var usuario = _usuarioDAO.FindById(dto.IdUsuario);
+                if (usuario != null && !string.IsNullOrWhiteSpace(usuario.Email))
+                {
+                    var huespedes = _huespedDAO.GetByReservacion(idCreado);
+                    byte[]? pdf = null;
+                    try { pdf = _pdfService.GenerarVoucher(reservaCompleta, huespedes); }
+                    catch (Exception exPdf) { Console.WriteLine($"[ReservacionService] Error generando PDF voucher: {exPdf.Message}"); }
+
+                    _emailService.EnviarVoucherUsuario(reservaCompleta, usuario, pdf);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReservacionService] Error enviando voucher al usuario: {ex.Message}");
+            }
+
+            return reservaCompleta;
         }
 
         public bool Cancelar(int idReservacion, int idUsuario)
