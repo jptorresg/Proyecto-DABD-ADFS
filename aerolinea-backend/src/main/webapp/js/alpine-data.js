@@ -797,24 +797,81 @@ function vuelosAdminData() {
                 horaSalida: '',
                 fechaLlegada: '',
                 horaLlegada: '',
-                tipoAsiento: 'TURISTA',
-                precioBase: 0,
-                asientosTotales: 0
+                categorias: [
+                    { tipoAsiento: 'TURISTA', precio: 0, asientosTotales: 0, asientosDisponibles: null }
+                ]
             };
             this.showModal = true;
         },
-        
+
         /**
          * Abre el modal para editar un vuelo existente.
          *
+         * Si el vuelo no tiene categorias[] (vuelo viejo), se sintetiza una a
+         * partir de los campos planos para que el form siga editable.
+         *
          * @param {Object} vuelo - El vuelo a editar.
          */
-        openEditModal(vuelo) {
+        async openEditModal(vuelo) {
             this.modalMode = 'edit';
-            this.currentVuelo = { ...vuelo };
+            const copia = { ...vuelo };
+
+            // Si la fila del listado vino sin categorías, las pedimos al detalle
+            if (!copia.categorias || copia.categorias.length === 0) {
+                try {
+                    const res = await fetch(`${API_BASE}/vuelos/${vuelo.id}`, { credentials: 'include' });
+                    const data = await res.json();
+                    if (data.success && data.data && Array.isArray(data.data.categorias)) {
+                        copia.categorias = data.data.categorias.map(c => ({
+                            idCategoria: c.idCategoria,
+                            tipoAsiento: c.tipoAsiento,
+                            precio: Number(c.precio),
+                            asientosTotales: c.asientosTotales,
+                            asientosDisponibles: c.asientosDisponibles
+                        }));
+                    }
+                } catch (e) {
+                    console.error('No pude cargar categorías del vuelo:', e);
+                }
+            }
+
+            // Último fallback: si todavía no hay, sintetizamos una desde los campos planos.
+            if (!copia.categorias || copia.categorias.length === 0) {
+                copia.categorias = [{
+                    tipoAsiento: vuelo.tipoAsiento || 'TURISTA',
+                    precio: Number(vuelo.precioBase) || 0,
+                    asientosTotales: Number(vuelo.asientosTotales) || 0,
+                    asientosDisponibles: Number(vuelo.asientosDisponibles) || 0
+                }];
+            }
+
+            this.currentVuelo = copia;
             this.showModal = true;
         },
-        
+
+        /**
+         * Agrega una categoría vacía al vuelo en edición.
+         */
+        addCategoria() {
+            if (!this.currentVuelo.categorias) this.currentVuelo.categorias = [];
+            if (this.currentVuelo.categorias.length >= 4) return;
+            const usados = new Set(this.currentVuelo.categorias.map(c => c.tipoAsiento));
+            const candidatos = ['TURISTA','PREMIUM_ECONOMY','BUSINESS','PRIMERA'];
+            const libre = candidatos.find(t => !usados.has(t)) || 'TURISTA';
+            this.currentVuelo.categorias.push({
+                tipoAsiento: libre, precio: 0, asientosTotales: 0, asientosDisponibles: null
+            });
+        },
+
+        /**
+         * Quita una categoría del vuelo en edición. No permite dejar la lista vacía.
+         */
+        removeCategoria(idx) {
+            if (!this.currentVuelo.categorias) return;
+            if (this.currentVuelo.categorias.length <= 1) return;
+            this.currentVuelo.categorias.splice(idx, 1);
+        },
+
         /**
          * Cierra el modal y limpia el objeto {@code currentVuelo}.
          */
@@ -864,13 +921,27 @@ function vuelosAdminData() {
                     showNotification('La fecha de llegada no puede ser anterior a la salida', 'error');
                     return;
                 }
-                if (this.currentVuelo.precioBase <= 0) {
-                    showNotification('El precio debe ser mayor a 0', 'error');
+
+                const cats = this.currentVuelo.categorias || [];
+                if (cats.length === 0) {
+                    showNotification('Agregá al menos una categoría', 'error');
                     return;
                 }
-                if (this.currentVuelo.asientosTotales <= 0) {
-                    showNotification('Debe haber al menos 1 asiento', 'error');
-                    return;
+                const tiposVistos = new Set();
+                for (const c of cats) {
+                    if (!c.tipoAsiento) {
+                        showNotification('Cada categoría necesita un tipo', 'error'); return;
+                    }
+                    if (tiposVistos.has(c.tipoAsiento)) {
+                        showNotification(`Tipo "${c.tipoAsiento}" duplicado`, 'error'); return;
+                    }
+                    tiposVistos.add(c.tipoAsiento);
+                    if (!c.precio || Number(c.precio) <= 0) {
+                        showNotification(`Precio inválido en ${c.tipoAsiento}`, 'error'); return;
+                    }
+                    if (!c.asientosTotales || Number(c.asientosTotales) <= 0) {
+                        showNotification(`Asientos inválidos en ${c.tipoAsiento}`, 'error'); return;
+                    }
                 }
 
                 // ======================
@@ -882,7 +953,23 @@ function vuelosAdminData() {
                     console.error('Session data:', session);
                     return;
                 }
-                console.log('Usuario logueado:', session);
+
+                // Campos planos: precio = mínimo, asientos = suma. El backend igual
+                // los recalcula a partir de categorias[] pero los enviamos por
+                // compatibilidad con DAOs viejos.
+                const sumaAsientos = cats.reduce((s, c) => s + Number(c.asientosTotales || 0), 0);
+                const precioMin    = Math.min(...cats.map(c => Number(c.precio)));
+                const tipoPrimero  = cats[0].tipoAsiento;
+
+                const categoriasPayload = cats.map(c => {
+                    const obj = {
+                        tipoAsiento: c.tipoAsiento,
+                        precio: Number(c.precio),
+                        asientosTotales: Number(c.asientosTotales)
+                    };
+                    if (c.idCategoria) obj.idCategoria = c.idCategoria;
+                    return obj;
+                });
 
                 const vueloPayload = {
                     codigoVuelo: this.currentVuelo.codigo,
@@ -894,12 +981,12 @@ function vuelosAdminData() {
                     horaSalida: this.currentVuelo.horaSalida,
                     fechaLlegada: this.currentVuelo.fechaLlegada,
                     horaLlegada: this.currentVuelo.horaLlegada,
-                    tipoAsiento: this.currentVuelo.tipoAsiento,
-                    precioBase: this.currentVuelo.precioBase,
-                    asientosTotales: this.currentVuelo.asientosTotales,
-                    asientosDisponibles: this.currentVuelo.asientosDisponibles,
+                    tipoAsiento: tipoPrimero,
+                    precioBase: precioMin,
+                    asientosTotales: sumaAsientos,
                     estado: this.currentVuelo.estado,
-                    idUsuarioCreador: session.idUsuario
+                    idUsuarioCreador: session.idUsuario,
+                    categorias: categoriasPayload
                 };
 
                 console.log('Payload con idUsuarioCreador:', vueloPayload);

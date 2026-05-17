@@ -1,10 +1,13 @@
 package com.halcon.aerolineas.services;
 
+import com.halcon.aerolineas.dao.CategoriaVueloDAO;
 import com.halcon.aerolineas.dao.VueloDAO;
+import com.halcon.aerolineas.models.CategoriaVuelo;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.models.VueloConEscala;
 import com.halcon.aerolineas.dao.UsuarioDAO;
 import com.halcon.aerolineas.models.Usuario;
+import com.halcon.aerolineas.config.DatabaseConfig;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -24,20 +27,28 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class VueloService {
     private VueloDAO vueloDAO;
+    private CategoriaVueloDAO categoriaVueloDAO;
 
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
     private EmailService emailService = new EmailService();
-    
+
     /**
      * Constructor que inicializa el servicio con el DAO de vuelos.
      */
 
     public VueloService() {
         this.vueloDAO = new VueloDAO();
+        this.categoriaVueloDAO = new CategoriaVueloDAO();
     }
-    
+
     public VueloService(VueloDAO vueloDAO) {
         this.vueloDAO = vueloDAO;
+        this.categoriaVueloDAO = new CategoriaVueloDAO();
+    }
+
+    public VueloService(VueloDAO vueloDAO, CategoriaVueloDAO categoriaVueloDAO) {
+        this.vueloDAO = vueloDAO;
+        this.categoriaVueloDAO = categoriaVueloDAO;
     }
     
     /**
@@ -231,12 +242,116 @@ public class VueloService {
         );
         
         Long idVuelo = vueloDAO.create(nuevoVuelo, idUsuarioCreador);
-        
+
         if (idVuelo == null) {
             throw new SQLException("Error al crear vuelo");
         }
-        
+
         return vueloDAO.findById(idVuelo);
+    }
+
+    /**
+     * Crea un vuelo y configura sus categorías de asiento en una sola
+     * transacción.
+     * <p>
+     * El flujo es el siguiente: 1) se inserta el VUELO con los campos planos
+     * legacy (necesarios porque siguen sirviendo a la API v1 y al trigger de
+     * sincronización); 2) ese INSERT dispara TR (si lo hay) que crea una
+     * categoría "dummy" replicando los planos; 3) borramos esa dummy; 4)
+     * insertamos las N categorías solicitadas. Como el vuelo es nuevo no hay
+     * reservas asociadas, así que el DELETE no choca con FK.
+     * <p>
+     * Para mantener coherencia con los conteos agregados de VUELOS, sumamos
+     * los asientos de todas las categorías y, si difieren de
+     * {@code asientosTotales}, los pisamos. El precio plano queda apuntando
+     * al mínimo de la lista (lo usa la API v1 para mostrar "desde Q...").
+     *
+     * @param categorias lista no vacía de categorías a crear. Si es null o
+     *                   vacía se delega en el flujo legacy con una sola clase.
+     */
+    public Vuelo crearVueloConCategorias(String codigoVuelo, String origenCiudad, String origenIata,
+                                         String destinoCiudad, String destinoIata, LocalDate fechaSalida,
+                                         String horaSalida, LocalDate fechaLlegada, String horaLlegada,
+                                         String tipoAsiento, BigDecimal precioBase, Integer asientosTotales,
+                                         Long idUsuarioCreador, List<CategoriaVuelo> categorias) throws SQLException {
+
+        if (categorias == null || categorias.isEmpty()) {
+            return crearVuelo(codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
+                              fechaSalida, horaSalida, fechaLlegada, horaLlegada,
+                              tipoAsiento, precioBase, asientosTotales, idUsuarioCreador);
+        }
+
+        validarCategorias(categorias);
+
+        // Para mantener el campo plano útil para v1: precio = mínimo, asientos = suma.
+        BigDecimal precioMin = categorias.stream()
+            .map(CategoriaVuelo::getPrecio)
+            .min(BigDecimal::compareTo)
+            .orElse(precioBase);
+        int sumaTotales = categorias.stream()
+            .mapToInt(CategoriaVuelo::getAsientosTotales)
+            .sum();
+
+        Vuelo nuevoVuelo = new Vuelo(
+            codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
+            fechaSalida, horaSalida, fechaLlegada, horaLlegada,
+            categorias.get(0).getTipoAsiento(), precioMin, sumaTotales, sumaTotales
+        );
+
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getConnection();
+            conn.setAutoCommit(false);
+
+            Long idVuelo = vueloDAO.create(nuevoVuelo, idUsuarioCreador);
+            if (idVuelo == null) throw new SQLException("Error al crear vuelo");
+
+            // Si la creación del VUELO (o cualquier flow previo) dejó categorías
+            // auto-generadas, las borramos antes de insertar las nuevas.
+            categoriaVueloDAO.deleteByVueloId(conn, idVuelo);
+
+            for (CategoriaVuelo c : categorias) {
+                c.setIdVuelo(idVuelo);
+                c.setAsientosDisponibles(c.getAsientosTotales());
+                categoriaVueloDAO.insert(conn, c);
+            }
+
+            conn.commit();
+            return vueloDAO.findById(idVuelo);
+        } catch (SQLException e) {
+            if (conn != null) { try { conn.rollback(); } catch (SQLException ignored) {} }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignored) {}
+            }
+        }
+    }
+
+    /**
+     * Valida un listado de categorías: no vacío, sin tipos duplicados, precios y
+     * asientos positivos. Lanza {@link IllegalArgumentException} con un mensaje
+     * descriptivo si algo no cumple.
+     */
+    private void validarCategorias(List<CategoriaVuelo> categorias) {
+        if (categorias.size() > 4) {
+            throw new IllegalArgumentException("Máximo 4 categorías por vuelo");
+        }
+        java.util.Set<String> tipos = new java.util.HashSet<>();
+        for (CategoriaVuelo c : categorias) {
+            if (c.getTipoAsiento() == null || c.getTipoAsiento().isEmpty()) {
+                throw new IllegalArgumentException("Cada categoría debe tener tipoAsiento");
+            }
+            if (!tipos.add(c.getTipoAsiento())) {
+                throw new IllegalArgumentException("Tipo de asiento duplicado: " + c.getTipoAsiento());
+            }
+            if (c.getPrecio() == null || c.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Precio inválido para categoría " + c.getTipoAsiento());
+            }
+            if (c.getAsientosTotales() == null || c.getAsientosTotales() <= 0) {
+                throw new IllegalArgumentException("Asientos inválidos para categoría " + c.getTipoAsiento());
+            }
+        }
     }
     
     /**
@@ -322,7 +437,80 @@ public class VueloService {
 
         return actualizado;
     }
-    
+
+    /**
+     * Actualiza un vuelo y reconfigura sus categorías de asiento.
+     * <p>
+     * Reglas de mezcla con las categorías existentes:
+     * <ul>
+     *   <li>Categorías del payload con {@code idCategoria} → UPDATE precio/asientos.</li>
+     *   <li>Categorías del payload sin {@code idCategoria} → INSERT.</li>
+     *   <li>Categorías existentes que no aparecen en el payload → se intenta
+     *       DELETE. Si la BD las rechaza por FK (tienen reservas v2), se
+     *       propaga la SQLException original.</li>
+     * </ul>
+     */
+    public boolean actualizarVueloConCategorias(Vuelo vuelo, List<CategoriaVuelo> categorias) throws SQLException {
+        if (categorias == null || categorias.isEmpty()) {
+            return actualizarVuelo(vuelo);
+        }
+        validarCategorias(categorias);
+
+        // Sumar asientos para mantener Vuelo coherente
+        int sumaTotales = categorias.stream().mapToInt(CategoriaVuelo::getAsientosTotales).sum();
+        BigDecimal precioMin = categorias.stream().map(CategoriaVuelo::getPrecio)
+            .min(BigDecimal::compareTo).orElse(vuelo.getPrecioBase());
+        vuelo.setAsientosTotales(sumaTotales);
+        vuelo.setPrecioBase(precioMin);
+        vuelo.setTipoAsiento(categorias.get(0).getTipoAsiento());
+
+        Connection conn = null;
+        try {
+            conn = DatabaseConfig.getConnection();
+            conn.setAutoCommit(false);
+
+            boolean ok = vueloDAO.update(vuelo);
+            if (!ok) throw new SQLException("Error al actualizar vuelo");
+
+            // Existentes en BD para diff vs payload
+            List<CategoriaVuelo> actuales = categoriaVueloDAO.findByVueloId(vuelo.getIdVuelo());
+            java.util.Set<Long> idsPayload = new java.util.HashSet<>();
+            for (CategoriaVuelo c : categorias) {
+                if (c.getIdCategoria() != null) idsPayload.add(c.getIdCategoria());
+            }
+
+            // Borrar las que ya no están
+            for (CategoriaVuelo c : actuales) {
+                if (!idsPayload.contains(c.getIdCategoria())) {
+                    categoriaVueloDAO.deleteById(conn, c.getIdCategoria());
+                }
+            }
+
+            // Upsert
+            for (CategoriaVuelo c : categorias) {
+                c.setIdVuelo(vuelo.getIdVuelo());
+                if (c.getAsientosDisponibles() == null) {
+                    c.setAsientosDisponibles(c.getAsientosTotales());
+                }
+                if (c.getIdCategoria() != null) {
+                    categoriaVueloDAO.update(conn, c);
+                } else {
+                    categoriaVueloDAO.insert(conn, c);
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) { try { conn.rollback(); } catch (SQLException ignored) {} }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignored) {}
+            }
+        }
+    }
+
     /**
      * Elimina lógicamente un vuelo (cambia su estado a {@code CANCELADO}).
      * <p>

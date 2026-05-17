@@ -16,11 +16,14 @@ import com.halcon.aerolineas.models.CategoriaVuelo;
 /**
  * DAO de CATEGORIAS_VUELO.
  * <p>
- * Solo lectura por ahora: la migración 20260516_categorias_vuelo crea las
- * filas iniciales (una por cada vuelo existente) y los triggers de Oracle
- * sincronizan los conteos con VUELOS mientras el write-side termine de
- * migrarse. Esto permite exponer el nuevo shape multi-categoría sin tocar
- * el flujo de reservaciones existente.
+ * Lectura y escritura. La lectura habilita el shape multi-categoría de los
+ * endpoints v2; la escritura habilita el admin para configurar vuelos con
+ * varias clases de asiento desde el panel.
+ * <p>
+ * Las modificaciones a CATEGORIAS_VUELO disparan TR_SYNC_VUELOS_FROM_CATEG
+ * que mantiene VUELOS.asientos_disponibles y .asientos_totales coherentes.
+ * El package PKG_SYNC_GUARD evita ciclos cuando esos updates a VUELOS hacen
+ * reentrar al trigger inverso.
  */
 public class CategoriaVueloDAO {
 
@@ -101,6 +104,104 @@ public class CategoriaVueloDAO {
             }
         }
         return null;
+    }
+
+    /**
+     * Inserta una categoría nueva para el vuelo dado. El id_vuelo y los demás
+     * campos del objeto se leen tal cual; id_categoria se ignora (lo genera la
+     * identity de la columna) y se vuelve a setear en el objeto a partir del
+     * generated key.
+     *
+     * @param conn      conexión a usar. Si es {@code null} se abre una propia
+     *                  con autocommit; en otro caso se usa la transacción del
+     *                  caller.
+     * @param categoria categoría a insertar.
+     */
+    public void insert(Connection conn, CategoriaVuelo categoria) throws SQLException {
+        boolean ownConn = (conn == null);
+        if (ownConn) conn = DatabaseConfig.getConnection();
+        String sql = "INSERT INTO CATEGORIAS_VUELO " +
+                     "(id_vuelo, tipo_asiento, precio, asientos_totales, asientos_disponibles) " +
+                     "VALUES (?, ?, ?, ?, ?)";
+        try {
+            try (PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"id_categoria"})) {
+                stmt.setLong(1, categoria.getIdVuelo());
+                stmt.setString(2, categoria.getTipoAsiento());
+                stmt.setBigDecimal(3, categoria.getPrecio());
+                stmt.setInt(4, categoria.getAsientosTotales());
+                Integer disp = categoria.getAsientosDisponibles();
+                stmt.setInt(5, disp != null ? disp : categoria.getAsientosTotales());
+                stmt.executeUpdate();
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) categoria.setIdCategoria(rs.getLong(1));
+                }
+            }
+        } finally {
+            if (ownConn) conn.close();
+        }
+    }
+
+    /**
+     * Actualiza precio y asientos de una categoría existente. NO modifica
+     * id_vuelo ni tipo_asiento (esos cambios requieren borrar e insertar otra
+     * categoría, porque rompen la unicidad y la semántica de la reserva).
+     *
+     * @param conn      conexión a usar (puede ser {@code null}).
+     * @param categoria categoría con id_categoria seteado.
+     */
+    public void update(Connection conn, CategoriaVuelo categoria) throws SQLException {
+        if (categoria.getIdCategoria() == null) {
+            throw new SQLException("update requiere id_categoria");
+        }
+        boolean ownConn = (conn == null);
+        if (ownConn) conn = DatabaseConfig.getConnection();
+        String sql = "UPDATE CATEGORIAS_VUELO " +
+                     "   SET precio = ?, asientos_totales = ?, asientos_disponibles = ? " +
+                     " WHERE id_categoria = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, categoria.getPrecio());
+            stmt.setInt(2, categoria.getAsientosTotales());
+            Integer disp = categoria.getAsientosDisponibles();
+            stmt.setInt(3, disp != null ? disp : categoria.getAsientosTotales());
+            stmt.setLong(4, categoria.getIdCategoria());
+            stmt.executeUpdate();
+        } finally {
+            if (ownConn) conn.close();
+        }
+    }
+
+    /**
+     * Borra todas las categorías de un vuelo. Útil al recrear el set completo
+     * desde admin sobre un vuelo recién creado (sin reservas). Si alguna
+     * categoría tiene reservas asociadas, la FK
+     * {@code FK_RESERVACIONES_CATEGORIA} hará que el DELETE falle.
+     */
+    public void deleteByVueloId(Connection conn, Long idVuelo) throws SQLException {
+        boolean ownConn = (conn == null);
+        if (ownConn) conn = DatabaseConfig.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "DELETE FROM CATEGORIAS_VUELO WHERE id_vuelo = ?")) {
+            stmt.setLong(1, idVuelo);
+            stmt.executeUpdate();
+        } finally {
+            if (ownConn) conn.close();
+        }
+    }
+
+    /**
+     * Borra una categoría puntual. Si tiene reservas v2 asociadas, la FK la
+     * rechaza con ORA-02292.
+     */
+    public void deleteById(Connection conn, Long idCategoria) throws SQLException {
+        boolean ownConn = (conn == null);
+        if (ownConn) conn = DatabaseConfig.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "DELETE FROM CATEGORIAS_VUELO WHERE id_categoria = ?")) {
+            stmt.setLong(1, idCategoria);
+            stmt.executeUpdate();
+        } finally {
+            if (ownConn) conn.close();
+        }
     }
 
     private CategoriaVuelo map(ResultSet rs) throws SQLException {
