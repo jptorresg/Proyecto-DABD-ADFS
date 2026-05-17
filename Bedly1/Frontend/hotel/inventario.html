@@ -191,12 +191,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Precio por Noche (Q) <span class="field-required">*</span></label>
-                            <input type="number" class="form-control" x-model="form.precioNoche"
+                            <input type="number" class="form-control" x-model.number="form.precioNoche"
                                    placeholder="Ej: 850.00" min="0" step="0.01">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Capacidad Máxima <span class="field-required">*</span></label>
-                            <select class="form-select" x-model="form.capacidadMax">
+                            <select class="form-select" x-model.number="form.capacidadMax">
                                 <option value="1">1 persona</option>
                                 <option value="2">2 personas</option>
                                 <option value="3">3 personas</option>
@@ -206,7 +206,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Cadena Hotelera <span class="field-required">*</span></label>
-                            <select class="form-select" x-model="form.idHotel">
+                            <select class="form-select" x-model.number="form.idHotel">
                                 <option value="">Seleccionar hotel...</option>
                                 <template x-for="h in hoteles" :key="h.idHotel">
                                     <option :value="h.idHotel"
@@ -241,7 +241,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Estrellas del Hotel</label>
-                            <select class="form-select" x-model="form.estrellas">
+                            <select class="form-select" x-model.number="form.estrellas">
                                 <option value="1">⭐ 1 estrella</option>
                                 <option value="2">⭐⭐ 2 estrellas</option>
                                 <option value="3">⭐⭐⭐ 3 estrellas</option>
