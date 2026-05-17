@@ -334,9 +334,15 @@ const _resolverIata = async (valor) => {
     const trimmed = valor.trim();
     if (/^[A-Za-z]{2,4}$/.test(trimmed)) return trimmed.toUpperCase();
     try {
+        // Requerir codigo de 3 letras: los IATA estandar son siempre 3
+        // (GUA, MIA, MEX...). Sin este filtro la cache puede devolver
+        // codigos ISO de pais de 2 letras (GT, US, MX) que la aerolinea
+        // no reconoce, devolviendo 0 vuelos aunque exista la ruta.
         const [rows] = await db.query(
             `SELECT codigo FROM cache_destinos
-             WHERE LOWER(valor) = LOWER(?) AND codigo IS NOT NULL
+             WHERE LOWER(valor) = LOWER(?)
+               AND codigo IS NOT NULL
+               AND LENGTH(codigo) = 3
              LIMIT 1`,
             [trimmed]
         );
