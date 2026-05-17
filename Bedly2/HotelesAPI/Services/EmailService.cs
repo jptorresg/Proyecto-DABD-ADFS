@@ -21,10 +21,16 @@ namespace HotelesAPI.Services
         {
             _emailDAO = new EmailNotificacionDAO();
 
-            // Cargar configuración desde appsettings.json
+            // Cargar configuración respetando el environment actual: primero
+            // appsettings.json (si existe) y luego appsettings.{ENV}.json que
+            // sobreescribe. Sin esto, EmailAdmin y demas configs especificas
+            // del env (Development/Production) se ignoran y solo se lee el
+            // archivo base, dejando ejemplos placeholder en vez de los reales.
+            string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             _config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: false)
                 .Build();
         }
 
