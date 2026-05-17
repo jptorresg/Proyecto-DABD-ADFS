@@ -199,12 +199,12 @@
                                 <template x-for="item in estadoHabitaciones" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -220,12 +220,12 @@
                                 <template x-for="item in estadoReservas" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
