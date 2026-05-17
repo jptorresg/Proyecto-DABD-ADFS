@@ -2499,3 +2499,190 @@ function reservacionesAdminData() {
         }
     }
 }
+
+/**
+ * Estado y lógica del panel /admin/analiticas.html.
+ *
+ * Cada bloque de la página tiene su propia carga: el período (días) solo
+ * afecta a "ingresos diarios", los otros tres son agregados globales. Si el
+ * backend devuelve listas vacías, mostramos un placeholder en vez de un
+ * canvas vacío.
+ */
+function analyticsData() {
+    return {
+        isLoading: true,
+        diasPeriodo: 30,
+
+        ventasDiariasData: [],
+        topDestinosData:   [],
+        ingresosTipoData:  [],
+        ocupacionData:     [],
+
+        chartVentas:   null,
+        chartDestinos: null,
+        chartTipos:    null,
+
+        async init() {
+            const session = getUserSession();
+            if (!session || session.tipoUsuario !== 'ADMIN') {
+                alert('Acceso denegado. Solo administradores.');
+                window.location.href = `${BASE_PATH}/views/index.html`;
+                return;
+            }
+            await Promise.all([
+                this.cargarVentasDiarias(),
+                this.cargarTopDestinos(),
+                this.cargarIngresosPorTipo(),
+                this.cargarOcupacionVuelos()
+            ]);
+            this.isLoading = false;
+        },
+
+        async _fetchJson(url) {
+            const r = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${getUserSession()?.token}` }
+            });
+            if (!r.ok) throw new Error(`${url} → ${r.status}`);
+            const body = await r.json();
+            return body?.data ?? [];
+        },
+
+        async cargarVentasDiarias() {
+            try {
+                this.ventasDiariasData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ventas-diarias?dias=${this.diasPeriodo}`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderVentas(), 50));
+            } catch (e) {
+                console.error('Ventas diarias:', e);
+                this.ventasDiariasData = [];
+            }
+        },
+
+        async cargarTopDestinos() {
+            try {
+                this.topDestinosData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/top-destinos?limit=10`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderDestinos(), 50));
+            } catch (e) {
+                console.error('Top destinos:', e);
+                this.topDestinosData = [];
+            }
+        },
+
+        async cargarIngresosPorTipo() {
+            try {
+                this.ingresosTipoData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ingresos-por-tipo`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderTipos(), 50));
+            } catch (e) {
+                console.error('Ingresos por tipo:', e);
+                this.ingresosTipoData = [];
+            }
+        },
+
+        async cargarOcupacionVuelos() {
+            try {
+                this.ocupacionData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ocupacion-vuelos?limit=10`
+                );
+            } catch (e) {
+                console.error('Ocupación:', e);
+                this.ocupacionData = [];
+            }
+        },
+
+        _renderVentas() {
+            const canvas = this.$refs.chartVentas;
+            if (!canvas || this.ventasDiariasData.length === 0) return;
+            if (this.chartVentas) this.chartVentas.destroy();
+
+            // Rellenar días sin reservas con cero para que la línea no tenga huecos.
+            const map = new Map(this.ventasDiariasData.map(r => [r.fecha, Number(r.ingresos)]));
+            const hoy = new Date();
+            const labels = [], values = [];
+            for (let i = this.diasPeriodo - 1; i >= 0; i--) {
+                const d = new Date(hoy);
+                d.setDate(hoy.getDate() - i);
+                const iso = d.toISOString().slice(0, 10);
+                labels.push(d.toLocaleDateString('es-GT', { day: '2-digit', month: 'short' }));
+                values.push(map.get(iso) || 0);
+            }
+            this.chartVentas = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ingresos (Q)',
+                        data: values,
+                        borderColor: '#5B8CC6',
+                        backgroundColor: 'rgba(91,140,198,.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: v => 'Q' + Number(v).toLocaleString('es-GT') }
+                        }
+                    }
+                }
+            });
+        },
+
+        _renderDestinos() {
+            const canvas = this.$refs.chartDestinos;
+            if (!canvas || this.topDestinosData.length === 0) return;
+            if (this.chartDestinos) this.chartDestinos.destroy();
+            this.chartDestinos = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: this.topDestinosData.map(d => d.ciudad || d.iata),
+                    datasets: [{
+                        label: 'Ingresos (Q)',
+                        data: this.topDestinosData.map(d => Number(d.ingresos)),
+                        backgroundColor: '#5B8CC6'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { callback: v => 'Q' + Number(v).toLocaleString('es-GT') }
+                        }
+                    }
+                }
+            });
+        },
+
+        _renderTipos() {
+            const canvas = this.$refs.chartTipos;
+            if (!canvas || this.ingresosTipoData.length === 0) return;
+            if (this.chartTipos) this.chartTipos.destroy();
+            const colores = ['#5B8CC6', '#4A5F7F', '#7FB069', '#E4572E', '#9E7BB5'];
+            this.chartTipos = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: this.ingresosTipoData.map(t => t.tipo),
+                    datasets: [{
+                        data: this.ingresosTipoData.map(t => Number(t.ingresos)),
+                        backgroundColor: colores.slice(0, this.ingresosTipoData.length)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    };
+}

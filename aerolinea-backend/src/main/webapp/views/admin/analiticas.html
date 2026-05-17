@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnSync | Analíticas</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
+    <link href="../../css/admin.css" rel="stylesheet">
+    <link href="../../css/dashboard.css" rel="stylesheet">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="../../js/alpine-data.js"></script>
+    <script src="../../js/utils.js"></script>
+    <script src="../../js/auth-guard.js"></script>
+
+    <style>
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .analytics-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        }
+        .analytics-card h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.05rem;
+            color: #2C3E50;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .analytics-card h3 i {
+            color: #5B8CC6;
+        }
+        .analytics-period {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .analytics-period select {
+            border: 1px solid #DDD;
+            padding: .35rem .6rem;
+            border-radius: 6px;
+            font-size: .85rem;
+        }
+        .empty-chart {
+            text-align: center;
+            color: #6C757D;
+            padding: 2.5rem 1rem;
+        }
+        .empty-chart i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: .5rem;
+            color: #E9ECEF;
+        }
+    </style>
+</head>
+<body x-data="analyticsData()" x-init="init()">
+
+    <div class="admin-layout">
+        <div id="admin-sidebar"></div>
+
+        <main class="admin-main">
+
+            <div class="page-header">
+                <div class="page-title-group">
+                    <h1>
+                        <i class="fas fa-chart-pie"></i> Analíticas
+                    </h1>
+                    <p>Métricas de ventas, destinos y ocupación de vuelos</p>
+                </div>
+
+                <div class="analytics-period">
+                    <label>Período:</label>
+                    <select x-model.number="diasPeriodo" @change="cargarVentasDiarias()">
+                        <option :value="7">Últimos 7 días</option>
+                        <option :value="30">Últimos 30 días</option>
+                        <option :value="90">Últimos 90 días</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div x-show="isLoading" x-cloak class="loading-container">
+                <div class="spinner"></div>
+                <p>Cargando analíticas...</p>
+            </div>
+
+            <div x-show="!isLoading" x-cloak class="analytics-grid">
+
+                <!-- Ingresos diarios (line) -->
+                <div class="analytics-card" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-chart-line"></i> Ingresos diarios (Q)</h3>
+                    <div x-show="ventasDiariasData.length === 0" class="empty-chart">
+                        <i class="fas fa-inbox"></i>
+                        Aún no hay reservas confirmadas en este período.
+                    </div>
+                    <canvas x-show="ventasDiariasData.length > 0" x-ref="chartVentas" height="80"></canvas>
+                </div>
+
+                <!-- Top destinos (bar) -->
+                <div class="analytics-card">
+                    <h3><i class="fas fa-map-marker-alt"></i> Top destinos por ingresos</h3>
+                    <div x-show="topDestinosData.length === 0" class="empty-chart">
+                        <i class="fas fa-globe-americas"></i>
+                        Sin datos suficientes todavía.
+                    </div>
+                    <canvas x-show="topDestinosData.length > 0" x-ref="chartDestinos" height="150"></canvas>
+                </div>
+
+                <!-- Ingresos por tipo de asiento (pie) -->
+                <div class="analytics-card">
+                    <h3><i class="fas fa-chair"></i> Ingresos por clase de asiento</h3>
+                    <div x-show="ingresosTipoData.length === 0" class="empty-chart">
+                        <i class="fas fa-chair"></i>
+                        Sin datos suficientes todavía.
+                    </div>
+                    <canvas x-show="ingresosTipoData.length > 0" x-ref="chartTipos" height="150"></canvas>
+                </div>
+
+                <!-- Ocupación de vuelos (tabla) -->
+                <div class="analytics-card" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-plane"></i> Vuelos con mayor ocupación</h3>
+                    <div x-show="ocupacionData.length === 0" class="empty-chart">
+                        <i class="fas fa-plane-slash"></i>
+                        No hay vuelos activos.
+                    </div>
+                    <table x-show="ocupacionData.length > 0" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Ruta</th>
+                                <th>Salida</th>
+                                <th>Ocupación</th>
+                                <th>Asientos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="v in ocupacionData" :key="v.idVuelo">
+                                <tr>
+                                    <td><strong x-text="v.codigoVuelo"></strong></td>
+                                    <td x-text="v.origen + ' → ' + v.destino"></td>
+                                    <td x-text="formatDate(v.fechaSalida)"></td>
+                                    <td>
+                                        <div style="display:flex; align-items:center; gap:.6rem; min-width:160px;">
+                                            <div style="flex:1; background:#E9ECEF; border-radius:6px; height:10px; overflow:hidden;">
+                                                <div :style="`width:${v.porcentajeOcupacion}%; height:100%; background: linear-gradient(90deg,#5B8CC6,#4A5F7F);`"></div>
+                                            </div>
+                                            <span style="font-size:.85rem; color:#2C3E50; font-weight:600;"
+                                                  x-text="Number(v.porcentajeOcupacion).toFixed(0) + '%'"></span>
+                                        </div>
+                                    </td>
+                                    <td x-text="(v.asientosTotales - v.asientosDisponibles) + ' / ' + v.asientosTotales"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        fetch('../../partials/admin-sidebar.html')
+            .then(res => res.text())
+            .then(html => { document.getElementById('admin-sidebar').innerHTML = html; });
+
+        document.addEventListener('DOMContentLoaded', () => { requireAdmin(); });
+    </script>
+
+</body>
+</html>

@@ -111,6 +111,25 @@ public class AdminController extends HttpServlet {
                 Map<String, Integer> data = adminService.obtenerReservacionesPorEstado();
                 out.print(JsonResponse.success(data));
 
+            } else if (path.equals("/analiticas/ventas-diarias")) {
+
+                int dias = parseIntParam(request, "dias", 30);
+                out.print(JsonResponse.success(adminService.ventasDiarias(dias)));
+
+            } else if (path.equals("/analiticas/top-destinos")) {
+
+                int limit = parseIntParam(request, "limit", 10);
+                out.print(JsonResponse.success(adminService.topDestinos(limit)));
+
+            } else if (path.equals("/analiticas/ingresos-por-tipo")) {
+
+                out.print(JsonResponse.success(adminService.ingresosPorTipo()));
+
+            } else if (path.equals("/analiticas/ocupacion-vuelos")) {
+
+                int limit = parseIntParam(request, "limit", 10);
+                out.print(JsonResponse.success(adminService.ocupacionVuelos(limit)));
+
             }
 
         } catch (Exception e) {
@@ -188,5 +207,11 @@ public class AdminController extends HttpServlet {
             out.print(JsonResponse.error(e.getMessage()));
 
         }
+    }
+
+    private int parseIntParam(HttpServletRequest request, String name, int defaultValue) {
+        String raw = request.getParameter(name);
+        if (raw == null || raw.isEmpty()) return defaultValue;
+        try { return Integer.parseInt(raw); } catch (NumberFormatException ex) { return defaultValue; }
     }
 }

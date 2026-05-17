@@ -430,4 +430,156 @@ public class AdminDAO {
 
         return result;
     }
+
+    // ============================================================
+    // ANALÍTICAS — series para el panel /admin/analiticas
+    // ============================================================
+    // Todas estas queries filtran por reservaciones CONFIRMADAS para no
+    // contaminar los ingresos con cancelaciones. Si quisieras ver el bruto
+    // (cancelaciones incluidas), basta con quitar el WHERE estado=... .
+
+    /**
+     * Ingresos y cantidad de reservas por día en los últimos N días.
+     * Devuelve filas {fecha, total_reservas, ingresos} ordenadas por fecha
+     * ascendente. Días sin reservas no aparecen en el resultado; el frontend
+     * los rellena con cero.
+     */
+    public List<Map<String, Object>> ventasDiarias(int dias) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        String sql =
+            "SELECT TRUNC(fecha_compra) AS fecha, " +
+            "       COUNT(*)             AS total_reservas, " +
+            "       NVL(SUM(precio_total), 0) AS ingresos " +
+            "  FROM RESERVACIONES " +
+            " WHERE estado = 'CONFIRMADA' " +
+            "   AND fecha_compra >= TRUNC(SYSDATE) - ? " +
+            " GROUP BY TRUNC(fecha_compra) " +
+            " ORDER BY TRUNC(fecha_compra)";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, dias);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("fecha", rs.getDate("fecha").toString());
+                    row.put("totalReservas", rs.getInt("total_reservas"));
+                    row.put("ingresos", rs.getBigDecimal("ingresos"));
+                    out.add(row);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    /**
+     * Top N destinos por ingresos confirmados acumulados. La query agrupa por
+     * el código IATA del destino y trae la ciudad asociada para mostrar en UI.
+     */
+    public List<Map<String, Object>> topDestinos(int limit) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        String sql =
+            "SELECT v.destino_codigo_iata AS iata, " +
+            "       MAX(v.destino_ciudad) AS ciudad, " +
+            "       COUNT(*)              AS reservas, " +
+            "       NVL(SUM(r.precio_total), 0) AS ingresos " +
+            "  FROM RESERVACIONES r " +
+            "  JOIN VUELOS v ON v.id_vuelo = r.id_vuelo " +
+            " WHERE r.estado = 'CONFIRMADA' " +
+            " GROUP BY v.destino_codigo_iata " +
+            " ORDER BY ingresos DESC " +
+            " FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("iata", rs.getString("iata"));
+                    row.put("ciudad", rs.getString("ciudad"));
+                    row.put("reservas", rs.getInt("reservas"));
+                    row.put("ingresos", rs.getBigDecimal("ingresos"));
+                    out.add(row);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    /**
+     * Ingresos confirmados agrupados por tipo de asiento de los pasajeros.
+     * Usa PASAJEROS.tipo_asiento (que reflejaba la clase reservada al momento
+     * de la compra) para que cambios futuros en categorías del vuelo no
+     * distorsionen los datos históricos.
+     */
+    public List<Map<String, Object>> ingresosPorTipo() {
+        List<Map<String, Object>> out = new ArrayList<>();
+        String sql =
+            "SELECT p.tipo_asiento AS tipo, " +
+            "       COUNT(DISTINCT r.id_reservacion) AS reservas, " +
+            "       NVL(SUM(r.precio_total), 0)      AS ingresos " +
+            "  FROM RESERVACIONES r " +
+            "  JOIN PASAJEROS p ON p.id_reservacion = r.id_reservacion " +
+            " WHERE r.estado = 'CONFIRMADA' " +
+            " GROUP BY p.tipo_asiento " +
+            " ORDER BY ingresos DESC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("tipo", rs.getString("tipo"));
+                row.put("reservas", rs.getInt("reservas"));
+                row.put("ingresos", rs.getBigDecimal("ingresos"));
+                out.add(row);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    /**
+     * Top N vuelos por porcentaje de ocupación
+     * ({@code (asientos_totales - asientos_disponibles) / asientos_totales}).
+     * Útil para ver dónde la oferta está saturada vs subutilizada.
+     */
+    public List<Map<String, Object>> ocupacionVuelos(int limit) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        String sql =
+            "SELECT v.id_vuelo, v.codigo_vuelo, v.origen_codigo_iata, v.destino_codigo_iata, " +
+            "       v.fecha_salida, v.asientos_totales, v.asientos_disponibles, " +
+            "       CASE WHEN v.asientos_totales > 0 " +
+            "            THEN ROUND( " +
+            "                 (v.asientos_totales - v.asientos_disponibles) / v.asientos_totales * 100, 2) " +
+            "            ELSE 0 END AS porcentaje_ocupacion " +
+            "  FROM VUELOS v " +
+            " WHERE v.estado = 'ACTIVO' " +
+            " ORDER BY porcentaje_ocupacion DESC " +
+            " FETCH FIRST ? ROWS ONLY";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("idVuelo", rs.getLong("id_vuelo"));
+                    row.put("codigoVuelo", rs.getString("codigo_vuelo"));
+                    row.put("origen", rs.getString("origen_codigo_iata"));
+                    row.put("destino", rs.getString("destino_codigo_iata"));
+                    row.put("fechaSalida", rs.getDate("fecha_salida").toString());
+                    row.put("asientosTotales", rs.getInt("asientos_totales"));
+                    row.put("asientosDisponibles", rs.getInt("asientos_disponibles"));
+                    row.put("porcentajeOcupacion", rs.getBigDecimal("porcentaje_ocupacion"));
+                    out.add(row);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
 }
