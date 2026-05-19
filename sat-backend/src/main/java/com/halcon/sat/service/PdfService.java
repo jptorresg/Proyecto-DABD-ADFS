@@ -154,4 +154,121 @@ public class PdfService {
     private String money(BigDecimal v) {
         return v == null ? "0.00" : "Q " + v.toPlainString();
     }
+
+    // ---------- Reportes formales (tabular generico) ----------
+
+    /**
+     * PDF tabular generico para reportes. Renderiza header + filtros + tabla con
+     * columnas dinamicas + fila TOTAL al final si hay columnas numericas.
+     *
+     * @param titulo            Titulo grande del reporte
+     * @param subtitulo         Subtitulo / filtros aplicados
+     * @param columnLabels      Headers de la tabla
+     * @param columnKeys        Keys en cada Map de filas
+     * @param columnsRightAlign Indices de columnas que se alinean a la derecha (numericas)
+     * @param sumColumnIndices  Indices de columnas a sumar en la fila TOTAL
+     * @param rows              Filas
+     * @return bytes del PDF
+     */
+    public byte[] reporteTabular(String titulo,
+                                 String subtitulo,
+                                 java.util.List<String> columnLabels,
+                                 java.util.List<String> columnKeys,
+                                 java.util.Set<Integer> columnsRightAlign,
+                                 java.util.Set<Integer> sumColumnIndices,
+                                 java.util.List<java.util.Map<String, Object>> rows) {
+
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        Document doc = new Document(PageSize.LETTER.rotate(), 30, 30, 30, 30);
+        PdfWriter.getInstance(doc, baos);
+        doc.open();
+
+        Font h1 = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, new java.awt.Color(20, 60, 120));
+        Font sub = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 10, java.awt.Color.DARK_GRAY);
+        Font normal = FontFactory.getFont(FontFactory.HELVETICA, 9, java.awt.Color.BLACK);
+        Font totalF = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, new java.awt.Color(20, 60, 120));
+        Font small = FontFactory.getFont(FontFactory.HELVETICA, 8, java.awt.Color.GRAY);
+
+        Paragraph p1 = new Paragraph(titulo, h1);
+        p1.setAlignment(Element.ALIGN_CENTER);
+        doc.add(p1);
+
+        if (subtitulo != null && !subtitulo.isBlank()) {
+            Paragraph p2 = new Paragraph(subtitulo, sub);
+            p2.setAlignment(Element.ALIGN_CENTER);
+            p2.setSpacingAfter(8);
+            doc.add(p2);
+        }
+
+        Paragraph fecha = new Paragraph(
+            "Generado: " + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+            small);
+        fecha.setAlignment(Element.ALIGN_RIGHT);
+        fecha.setSpacingAfter(8);
+        doc.add(fecha);
+
+        PdfPTable table = new PdfPTable(columnLabels.size());
+        table.setWidthPercentage(100);
+
+        for (int i = 0; i < columnLabels.size(); i++) {
+            table.addCell(headerCell(columnLabels.get(i)));
+        }
+
+        java.math.BigDecimal[] totales = new java.math.BigDecimal[columnLabels.size()];
+        for (java.util.Map<String, Object> row : rows) {
+            for (int i = 0; i < columnKeys.size(); i++) {
+                Object v = row.get(columnKeys.get(i));
+                String text = v == null ? "" : v.toString();
+                PdfPCell c = new PdfPCell(new Phrase(text, normal));
+                c.setPadding(5);
+                if (columnsRightAlign.contains(i)) {
+                    c.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                }
+                table.addCell(c);
+
+                if (sumColumnIndices.contains(i) && v instanceof java.math.BigDecimal) {
+                    if (totales[i] == null) totales[i] = java.math.BigDecimal.ZERO;
+                    totales[i] = totales[i].add((java.math.BigDecimal) v);
+                }
+            }
+        }
+
+        // Fila TOTAL
+        if (!sumColumnIndices.isEmpty()) {
+            for (int i = 0; i < columnLabels.size(); i++) {
+                String text;
+                if (i == 0) {
+                    text = "TOTAL";
+                } else if (totales[i] != null) {
+                    text = "Q " + totales[i].toPlainString();
+                } else {
+                    text = "";
+                }
+                PdfPCell c = new PdfPCell(new Phrase(text, totalF));
+                c.setPadding(6);
+                c.setBackgroundColor(new java.awt.Color(235, 240, 250));
+                if (columnsRightAlign.contains(i)) {
+                    c.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                }
+                table.addCell(c);
+            }
+        }
+        doc.add(table);
+
+        if (rows.isEmpty()) {
+            Paragraph empty = new Paragraph("(Sin datos para los filtros aplicados.)", sub);
+            empty.setAlignment(Element.ALIGN_CENTER);
+            empty.setSpacingBefore(15);
+            doc.add(empty);
+        }
+
+        Paragraph foot = new Paragraph("Documento generado por SAT Backend - Sistema de Administracion Tributaria", small);
+        foot.setSpacingBefore(15);
+        foot.setAlignment(Element.ALIGN_CENTER);
+        doc.add(foot);
+
+        doc.close();
+        return baos.toByteArray();
+    }
 }

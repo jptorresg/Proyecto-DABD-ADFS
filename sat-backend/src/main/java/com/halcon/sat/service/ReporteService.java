@@ -3,7 +3,7 @@ package com.halcon.sat.service;
 import com.halcon.sat.repository.FacturaRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,5 +40,27 @@ public class ReporteService {
 
     public List<Map<String, Object>> allFacturasFlat() {
         return facturas.findAllFlat();
+    }
+
+    // 5 reportes formales
+
+    public List<Map<String, Object>> porReceptor(String nit, String email) {
+        return facturas.reportePorReceptor(nit, email);
+    }
+
+    public List<Map<String, Object>> porEmisor(Long idEmisor, String tipo) {
+        return facturas.reportePorEmisor(idEmisor, tipo);
+    }
+
+    public List<Map<String, Object>> porTipoItem(String tipo) {
+        return facturas.reportePorTipoItem(tipo);
+    }
+
+    public List<Map<String, Object>> porPeriodo(LocalDate from, LocalDate to) {
+        return facturas.reportePorPeriodo(from, to);
+    }
+
+    public List<Map<String, Object>> porEstado() {
+        return facturas.reportePorEstado();
     }
 }

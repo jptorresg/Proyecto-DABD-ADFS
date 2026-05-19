@@ -77,6 +77,7 @@ public class FacturaBedlyService {
         linea.setDescripcion(descripcion);
         linea.setCantidad(BigDecimal.valueOf(noches));
         linea.setPrecioUnitario(precioUnitario);
+        linea.setTipoItem("HABITACION");
         req.setDetalles(List.of(linea));
 
         return facturas.create(req);

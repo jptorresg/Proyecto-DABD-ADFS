@@ -80,6 +80,7 @@ public class FacturaService {
             d.setPrecioUnitario(linea.getPrecioUnitario());
             d.setSubtotal(linea.getCantidad().multiply(linea.getPrecioUnitario())
                 .setScale(2, RoundingMode.HALF_UP));
+            d.setTipoItem(linea.getTipoItem() == null ? "OTRO" : linea.getTipoItem());
             facturas.insertDetalle(d);
             f.getDetalles().add(d);
         }

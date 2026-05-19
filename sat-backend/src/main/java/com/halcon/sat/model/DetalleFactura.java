@@ -10,6 +10,7 @@ public class DetalleFactura {
     private BigDecimal cantidad;
     private BigDecimal precioUnitario;
     private BigDecimal subtotal;
+    private String tipoItem;
 
     public Long getIdDetalle() { return idDetalle; }
     public void setIdDetalle(Long idDetalle) { this.idDetalle = idDetalle; }
@@ -28,4 +29,7 @@ public class DetalleFactura {
 
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+    public String getTipoItem() { return tipoItem; }
+    public void setTipoItem(String tipoItem) { this.tipoItem = tipoItem; }
 }

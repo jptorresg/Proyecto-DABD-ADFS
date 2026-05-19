@@ -51,6 +51,9 @@ public class FacturaRequest {
         @NotNull
         private BigDecimal precioUnitario;
 
+        /** HABITACION, ASIENTO, PAQUETE, OTRO. Default OTRO si no se envia. */
+        private String tipoItem;
+
         public String getDescripcion() { return descripcion; }
         public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
@@ -59,5 +62,8 @@ public class FacturaRequest {
 
         public BigDecimal getPrecioUnitario() { return precioUnitario; }
         public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
+
+        public String getTipoItem() { return tipoItem; }
+        public void setTipoItem(String tipoItem) { this.tipoItem = tipoItem; }
     }
 }
