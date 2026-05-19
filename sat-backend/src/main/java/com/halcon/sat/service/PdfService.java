@@ -90,10 +90,10 @@ public class PdfService {
         det.addCell(headerCell("Subtotal"));
 
         for (DetalleFactura d : f.getDetalles()) {
-            det.addCell(cell(d.getDescripcion(), normal, true));
-            det.addCell(cellRight(d.getCantidad().toPlainString(), normal));
-            det.addCell(cellRight(d.getPrecioUnitario().toPlainString(), normal));
-            det.addCell(cellRight(d.getSubtotal().toPlainString(), normal));
+            det.addCell(bodyCell(d.getDescripcion(), normal, Element.ALIGN_LEFT));
+            det.addCell(bodyCell(d.getCantidad().toPlainString(), normal, Element.ALIGN_RIGHT));
+            det.addCell(bodyCell(d.getPrecioUnitario().toPlainString(), normal, Element.ALIGN_RIGHT));
+            det.addCell(bodyCell(d.getSubtotal().toPlainString(), normal, Element.ALIGN_RIGHT));
         }
         doc.add(det);
 
@@ -148,6 +148,16 @@ public class PdfService {
         c.setBackgroundColor(new Color(20, 60, 120));
         c.setPadding(6);
         c.setHorizontalAlignment(Element.ALIGN_CENTER);
+        return c;
+    }
+
+    /** Celda del cuerpo de tabla con bordes finos en todos los lados. */
+    private PdfPCell bodyCell(String text, Font font, int alignment) {
+        PdfPCell c = new PdfPCell(new Phrase(text, font));
+        c.setPadding(6);
+        c.setHorizontalAlignment(alignment);
+        c.setBorderColor(new Color(200, 200, 200));
+        c.setBorderWidth(0.5f);
         return c;
     }
 

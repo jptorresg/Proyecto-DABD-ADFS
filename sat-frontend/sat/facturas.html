@@ -8,46 +8,26 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sat-style.css">
     <script src="js/sat-common.js"></script>
-    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    <script>requireAuth();</script>
+<body>
+    <script>requireAuth(); renderSatLayout('facturas');</script>
 
-    <nav class="bg-blue-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <i class="bi bi-shield-shaded text-2xl"></i>
-                <span class="font-bold text-lg">SAT</span>
-            </div>
-            <div class="hidden md:flex items-center gap-5 text-sm font-medium">
-                <a href="dashboard.html" class="text-blue-100 hover:text-white">Dashboard</a>
-                <a href="facturas.html" class="text-white border-b-2 border-white pb-1">Facturas</a>
-                <a href="crear-factura.html" class="text-blue-100 hover:text-white">Crear</a>
-                <a href="desde-bedly.html" class="text-blue-100 hover:text-white">Desde Bedly</a>
-                <a href="reportes.html" class="text-blue-100 hover:text-white">Reportes</a>
-            </div>
-            <button @click="logout()" class="text-blue-100 hover:text-white">
-                <i class="bi bi-box-arrow-right text-xl"></i>
-            </button>
-        </div>
-    </nav>
-
-    <main x-data="facturasApp()" x-init="load()" class="max-w-7xl mx-auto px-4 py-8">
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Facturas</h1>
+    <main class="sat-main" x-data="facturasApp()" x-init="load()">
+        <div class="flex items-center justify-between mb-1">
+            <h1>Facturas</h1>
             <a href="crear-factura.html"
-               class="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800">
+               class="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 text-sm">
                 <i class="bi bi-plus-circle"></i> Nueva factura
             </a>
         </div>
+        <p class="subtitulo">Listado de facturas emitidas con filtros por estado y emisor.</p>
 
-        <!-- Filtros -->
-        <div class="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
-                <select x-model="filtroEstado"
-                        class="w-full border rounded-lg px-3 py-2 text-sm">
+                <select x-model="filtroEstado" class="w-full border rounded-lg px-3 py-2 text-sm">
                     <option value="">Todos</option>
                     <option value="EMITIDA">EMITIDA</option>
                     <option value="PAGADA">PAGADA</option>
@@ -60,62 +40,63 @@
                        class="w-full border rounded-lg px-3 py-2 text-sm">
             </div>
             <div class="flex items-end">
-                <button @click="load()" class="bg-blue-700 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-800">
-                    <i class="bi bi-funnel"></i> Aplicar
+                <button @click="load()" class="bg-blue-700 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-800 text-sm">
+                    <i class="bi bi-funnel"></i> Aplicar filtros
                 </button>
             </div>
         </div>
 
-        <!-- Tabla -->
-        <div class="bg-white rounded-xl shadow overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <div x-show="loading" class="text-center py-8 text-gray-500">
                 <i class="bi bi-arrow-repeat animate-spin text-2xl"></i>
             </div>
-            <table x-show="!loading" class="w-full text-sm">
-                <thead class="bg-slate-100 text-gray-600 text-left text-xs uppercase">
-                    <tr>
-                        <th class="px-4 py-3">#</th>
-                        <th class="px-4 py-3">Serie/Num</th>
-                        <th class="px-4 py-3">Fecha</th>
-                        <th class="px-4 py-3 text-right">Subtotal</th>
-                        <th class="px-4 py-3 text-right">IVA</th>
-                        <th class="px-4 py-3 text-right">Total</th>
-                        <th class="px-4 py-3">Estado</th>
-                        <th class="px-4 py-3">Ref. externa</th>
-                        <th class="px-4 py-3 text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template x-for="f in facturas" :key="f.idFactura">
-                        <tr class="border-t hover:bg-slate-50">
-                            <td class="px-4 py-2 font-semibold" x-text="f.idFactura"></td>
-                            <td class="px-4 py-2" x-text="f.serie + '-' + f.numero"></td>
-                            <td class="px-4 py-2 text-xs text-gray-600" x-text="fmtDate(f.fechaEmision)"></td>
-                            <td class="px-4 py-2 text-right" x-text="fmtMoney(f.subtotal)"></td>
-                            <td class="px-4 py-2 text-right text-amber-700" x-text="fmtMoney(f.impuesto)"></td>
-                            <td class="px-4 py-2 text-right font-bold" x-text="fmtMoney(f.total)"></td>
-                            <td class="px-4 py-2">
-                                <span class="text-xs px-2 py-1 rounded-full"
-                                      :class="{
-                                        'bg-emerald-100 text-emerald-700': f.estado === 'PAGADA',
-                                        'bg-amber-100 text-amber-700': f.estado === 'EMITIDA',
-                                        'bg-rose-100 text-rose-700': f.estado === 'ANULADA'
-                                      }" x-text="f.estado"></span>
-                            </td>
-                            <td class="px-4 py-2 text-xs text-gray-600" x-text="f.referenciaExterna || '-'"></td>
-                            <td class="px-4 py-2 text-center">
-                                <button @click="downloadPdf(f.idFactura, f.serie, f.numero)"
-                                        class="text-blue-700 hover:text-blue-900" title="Descargar PDF">
-                                    <i class="bi bi-file-earmark-pdf text-lg"></i>
-                                </button>
-                            </td>
+            <div x-show="!loading" class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-100 text-gray-600 text-left text-xs uppercase">
+                        <tr>
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Serie/Num</th>
+                            <th class="px-4 py-3">Fecha</th>
+                            <th class="px-4 py-3 text-right">Subtotal</th>
+                            <th class="px-4 py-3 text-right">IVA</th>
+                            <th class="px-4 py-3 text-right">Total</th>
+                            <th class="px-4 py-3">Estado</th>
+                            <th class="px-4 py-3">Ref. externa</th>
+                            <th class="px-4 py-3 text-center">PDF</th>
                         </tr>
-                    </template>
-                    <tr x-show="!loading && facturas.length === 0">
-                        <td colspan="9" class="text-center py-6 text-gray-400">Sin facturas para los filtros aplicados.</td>
-                    </tr>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <template x-for="f in facturas" :key="f.idFactura">
+                            <tr class="border-t hover:bg-slate-50">
+                                <td class="px-4 py-2 font-semibold" x-text="f.idFactura"></td>
+                                <td class="px-4 py-2 font-mono text-xs" x-text="f.serie + '-' + f.numero"></td>
+                                <td class="px-4 py-2 text-xs text-gray-600" x-text="fmtDate(f.fechaEmision)"></td>
+                                <td class="px-4 py-2 text-right font-mono" x-text="fmtMoney(f.subtotal)"></td>
+                                <td class="px-4 py-2 text-right text-amber-700 font-mono" x-text="fmtMoney(f.impuesto)"></td>
+                                <td class="px-4 py-2 text-right font-bold font-mono" x-text="fmtMoney(f.total)"></td>
+                                <td class="px-4 py-2">
+                                    <span class="text-xs px-2 py-1 rounded-full font-semibold"
+                                          :class="{
+                                            'bg-emerald-100 text-emerald-700': f.estado === 'PAGADA',
+                                            'bg-amber-100 text-amber-700': f.estado === 'EMITIDA',
+                                            'bg-rose-100 text-rose-700': f.estado === 'ANULADA'
+                                          }" x-text="f.estado"></span>
+                                </td>
+                                <td class="px-4 py-2 text-xs text-gray-500 font-mono" x-text="f.referenciaExterna || '-'"></td>
+                                <td class="px-4 py-2 text-center">
+                                    <button @click="downloadPdf(f.idFactura, f.serie, f.numero)"
+                                            class="text-blue-700 hover:text-blue-900" title="Descargar PDF">
+                                        <i class="bi bi-file-earmark-pdf-fill text-xl"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="!loading && facturas.length === 0">
+                            <td colspan="9" class="text-center py-6 text-gray-400">Sin facturas para los filtros aplicados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -139,7 +120,8 @@
                     this.loading = false;
                 },
                 downloadPdf(id, serie, numero) {
-                    downloadFile('/api/sat/facturas/' + id + '/pdf', 'factura-' + serie + '-' + numero + '.pdf');
+                    downloadFile('/api/sat/facturas/' + id + '/pdf',
+                        'factura-' + serie + '-' + numero + '.pdf');
                 }
             };
         }

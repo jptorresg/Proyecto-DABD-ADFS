@@ -110,3 +110,65 @@ function fmtDate(v) {
     if (isNaN(d.getTime())) return v;
     return d.toLocaleString('es-GT', { dateStyle: 'medium', timeStyle: 'short' });
 }
+
+/**
+ * Inyecta el sidebar lateral en el body. Llamar al inicio de cada pagina
+ * autenticada con el activePage correspondiente.
+ */
+function renderSatLayout(activePage) {
+    const u = getUser();
+    const userEmail = u ? u.email : 'Usuario';
+    const userTipo = u ? u.tipoUsuario : '';
+    const mark = (p) => activePage === p ? 'active' : '';
+    const html = `
+    <button class="sat-burger" onclick="document.querySelector('.sat-sidebar').classList.toggle('open')">
+        <i class="bi bi-list"></i>
+    </button>
+    <aside class="sat-sidebar">
+        <div class="sat-brand">
+            <i class="bi bi-shield-shaded"></i>
+            <div>
+                <div class="sat-brand-title">SAT</div>
+                <div class="sat-brand-sub">Admin. Tributaria</div>
+            </div>
+        </div>
+        <div class="sat-user">
+            <i class="bi bi-person-circle"></i>
+            <div>
+                <div>${userEmail}</div>
+                <div style="font-size:0.7rem; color:rgba(255,255,255,0.5);">${userTipo}</div>
+            </div>
+        </div>
+        <nav class="sat-nav">
+            <div class="sat-nav-section">Principal</div>
+            <a href="dashboard.html" class="sat-nav-item ${mark('dashboard')}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+
+            <div class="sat-nav-section">Facturas</div>
+            <a href="facturas.html" class="sat-nav-item ${mark('facturas')}">
+                <i class="bi bi-file-earmark-text"></i> Listado
+            </a>
+            <a href="crear-factura.html" class="sat-nav-item ${mark('crear')}">
+                <i class="bi bi-plus-circle"></i> Crear factura
+            </a>
+            <a href="desde-bedly.html" class="sat-nav-item ${mark('bedly')}">
+                <i class="bi bi-link-45deg"></i> Desde Bedly
+            </a>
+
+            <div class="sat-nav-section">Reportería</div>
+            <a href="reportes.html" class="sat-nav-item ${mark('reportes')}">
+                <i class="bi bi-graph-up"></i> Reportes y PDFs
+            </a>
+        </nav>
+        <div class="sat-bottom">
+            <a href="landing.html" class="sat-nav-item">
+                <i class="bi bi-globe"></i> Ver Sitio
+            </a>
+            <a href="#" onclick="logout(); return false;" class="sat-nav-item sat-logout">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>`;
+    document.body.insertAdjacentHTML('afterbegin', html);
+}

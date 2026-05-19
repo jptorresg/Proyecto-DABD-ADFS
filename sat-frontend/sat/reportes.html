@@ -8,42 +8,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sat-style.css">
     <script src="js/sat-common.js"></script>
-    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    <script>requireAuth();</script>
+<body>
+    <script>requireAuth(); renderSatLayout('reportes');</script>
 
-    <nav class="bg-blue-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <i class="bi bi-shield-shaded text-2xl"></i>
-                <span class="font-bold text-lg">SAT</span>
-            </div>
-            <div class="hidden md:flex items-center gap-5 text-sm font-medium">
-                <a href="dashboard.html" class="text-blue-100 hover:text-white">Dashboard</a>
-                <a href="facturas.html" class="text-blue-100 hover:text-white">Facturas</a>
-                <a href="crear-factura.html" class="text-blue-100 hover:text-white">Crear</a>
-                <a href="desde-bedly.html" class="text-blue-100 hover:text-white">Desde Bedly</a>
-                <a href="reportes.html" class="text-white border-b-2 border-white pb-1">Reportes</a>
-            </div>
-            <button @click="logout()" class="text-blue-100 hover:text-white">
-                <i class="bi bi-box-arrow-right text-xl"></i>
-            </button>
-        </div>
-    </nav>
-
-    <main x-data="reportesApp()" class="max-w-7xl mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Reportería SAT</h1>
-        <p class="text-sm text-gray-500 mb-6">
+    <main class="sat-main" x-data="reportesApp()">
+        <h1>Reportería SAT</h1>
+        <p class="subtitulo">
             Cada reporte se descarga como PDF imprimible con tabla, totales agregados y filtros aplicados.
             También podés exportar todas las facturas a Excel.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <!-- Reporte A: por receptor -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-person-badge text-blue-700 text-2xl"></i>
                     <h2 class="font-semibold text-gray-800">a) Por Receptor</h2>
@@ -56,13 +35,12 @@
                 </button>
             </div>
 
-            <!-- Reporte B: por emisor -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-building text-blue-700 text-2xl"></i>
                     <h2 class="font-semibold text-gray-800">b) Por Proveedor</h2>
                 </div>
-                <p class="text-xs text-gray-500 mb-3 flex-grow">Impuestos cobrados por aerolínea, hotel o agencia (individual o por tipo).</p>
+                <p class="text-xs text-gray-500 mb-3 flex-grow">Impuestos cobrados por aerolínea, hotel o agencia.</p>
                 <input type="number" x-model="recB.idEmisor" placeholder="ID emisor (opcional)" class="border rounded px-2 py-1 text-sm mb-1">
                 <select x-model="recB.tipo" class="border rounded px-2 py-1 text-sm mb-3">
                     <option value="">Todos los tipos</option>
@@ -75,8 +53,7 @@
                 </button>
             </div>
 
-            <!-- Reporte C: por tipo de item -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-tags text-blue-700 text-2xl"></i>
                     <h2 class="font-semibold text-gray-800">c) Por Tipo de Item</h2>
@@ -94,12 +71,10 @@
                 </button>
             </div>
 
-            <!-- Reporte D1: por periodo -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-calendar-range text-emerald-700 text-2xl"></i>
-                    <h2 class="font-semibold text-gray-800">d.1) Por Periodo</h2>
-                    <span class="text-xs text-emerald-700">(libre)</span>
+                    <h2 class="font-semibold text-gray-800">d.1) Por Periodo <span class="text-xs text-emerald-700">libre</span></h2>
                 </div>
                 <p class="text-xs text-gray-500 mb-3 flex-grow">Recaudación de IVA por rango de fechas (declaración fiscal mensual).</p>
                 <input type="date" x-model="recD1.from" class="border rounded px-2 py-1 text-sm mb-1">
@@ -109,26 +84,23 @@
                 </button>
             </div>
 
-            <!-- Reporte D2: por estado -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-flag text-emerald-700 text-2xl"></i>
-                    <h2 class="font-semibold text-gray-800">d.2) Por Estado</h2>
-                    <span class="text-xs text-emerald-700">(libre)</span>
+                    <h2 class="font-semibold text-gray-800">d.2) Por Estado <span class="text-xs text-emerald-700">libre</span></h2>
                 </div>
-                <p class="text-xs text-gray-500 mb-3 flex-grow">Auditoría de cartera: facturas emitidas, pagadas y anuladas con totales.</p>
+                <p class="text-xs text-gray-500 mb-3 flex-grow">Cartera: emitidas, pagadas y anuladas con totales.</p>
                 <button @click="descargarEstado()" class="bg-emerald-700 text-white py-2 rounded hover:bg-emerald-800 text-sm mt-auto">
                     <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
                 </button>
             </div>
 
-            <!-- Excel -->
-            <div class="bg-white p-5 rounded-xl shadow flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="bi bi-file-earmark-excel text-green-700 text-2xl"></i>
                     <h2 class="font-semibold text-gray-800">Excel completo</h2>
                 </div>
-                <p class="text-xs text-gray-500 mb-3 flex-grow">Exporta todas las facturas con detalles a .xlsx para contabilidad.</p>
+                <p class="text-xs text-gray-500 mb-3 flex-grow">Exporta todas las facturas a .xlsx para contabilidad.</p>
                 <button @click="descargarExcel()" class="bg-green-700 text-white py-2 rounded hover:bg-green-800 text-sm mt-auto">
                     <i class="bi bi-download"></i> Descargar Excel
                 </button>
@@ -147,24 +119,12 @@
                     const ps = Object.entries(obj).filter(([k, v]) => v !== '' && v != null);
                     return ps.length ? '?' + ps.map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&') : '';
                 },
-                descargarReceptor() {
-                    downloadFile('/api/sat/reportes/por-receptor/pdf' + this.qs(this.recA), 'reporte-por-receptor.pdf');
-                },
-                descargarEmisor() {
-                    downloadFile('/api/sat/reportes/por-emisor/pdf' + this.qs(this.recB), 'reporte-por-emisor.pdf');
-                },
-                descargarTipoItem() {
-                    downloadFile('/api/sat/reportes/por-tipo-item/pdf' + this.qs(this.recC), 'reporte-por-tipo-item.pdf');
-                },
-                descargarPeriodo() {
-                    downloadFile('/api/sat/reportes/por-periodo/pdf' + this.qs(this.recD1), 'reporte-por-periodo.pdf');
-                },
-                descargarEstado() {
-                    downloadFile('/api/sat/reportes/por-estado/pdf', 'reporte-por-estado.pdf');
-                },
-                descargarExcel() {
-                    downloadFile('/api/sat/reportes/excel', 'facturas-sat.xlsx');
-                }
+                descargarReceptor() { downloadFile('/api/sat/reportes/por-receptor/pdf' + this.qs(this.recA), 'reporte-por-receptor.pdf'); },
+                descargarEmisor() { downloadFile('/api/sat/reportes/por-emisor/pdf' + this.qs(this.recB), 'reporte-por-emisor.pdf'); },
+                descargarTipoItem() { downloadFile('/api/sat/reportes/por-tipo-item/pdf' + this.qs(this.recC), 'reporte-por-tipo-item.pdf'); },
+                descargarPeriodo() { downloadFile('/api/sat/reportes/por-periodo/pdf' + this.qs(this.recD1), 'reporte-por-periodo.pdf'); },
+                descargarEstado() { downloadFile('/api/sat/reportes/por-estado/pdf', 'reporte-por-estado.pdf'); },
+                descargarExcel() { downloadFile('/api/sat/reportes/excel', 'facturas-sat.xlsx'); }
             };
         }
     </script>
