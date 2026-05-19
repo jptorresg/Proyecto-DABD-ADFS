@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT | Facturas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="js/sat-common.js"></script>
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <script>requireAuth();</script>
+
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="bi bi-shield-shaded text-2xl"></i>
+                <span class="font-bold text-lg">SAT</span>
+            </div>
+            <div class="hidden md:flex items-center gap-5 text-sm font-medium">
+                <a href="dashboard.html" class="text-blue-100 hover:text-white">Dashboard</a>
+                <a href="facturas.html" class="text-white border-b-2 border-white pb-1">Facturas</a>
+                <a href="crear-factura.html" class="text-blue-100 hover:text-white">Crear</a>
+                <a href="desde-bedly.html" class="text-blue-100 hover:text-white">Desde Bedly</a>
+                <a href="reportes.html" class="text-blue-100 hover:text-white">Reportes</a>
+            </div>
+            <button @click="logout()" class="text-blue-100 hover:text-white">
+                <i class="bi bi-box-arrow-right text-xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main x-data="facturasApp()" x-init="load()" class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Facturas</h1>
+            <a href="crear-factura.html"
+               class="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800">
+                <i class="bi bi-plus-circle"></i> Nueva factura
+            </a>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
+                <select x-model="filtroEstado"
+                        class="w-full border rounded-lg px-3 py-2 text-sm">
+                    <option value="">Todos</option>
+                    <option value="EMITIDA">EMITIDA</option>
+                    <option value="PAGADA">PAGADA</option>
+                    <option value="ANULADA">ANULADA</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">ID Emisor</label>
+                <input type="number" x-model="filtroEmisor" placeholder="(opcional)"
+                       class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div class="flex items-end">
+                <button @click="load()" class="bg-blue-700 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-800">
+                    <i class="bi bi-funnel"></i> Aplicar
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div x-show="loading" class="text-center py-8 text-gray-500">
+                <i class="bi bi-arrow-repeat animate-spin text-2xl"></i>
+            </div>
+            <table x-show="!loading" class="w-full text-sm">
+                <thead class="bg-slate-100 text-gray-600 text-left text-xs uppercase">
+                    <tr>
+                        <th class="px-4 py-3">#</th>
+                        <th class="px-4 py-3">Serie/Num</th>
+                        <th class="px-4 py-3">Fecha</th>
+                        <th class="px-4 py-3 text-right">Subtotal</th>
+                        <th class="px-4 py-3 text-right">IVA</th>
+                        <th class="px-4 py-3 text-right">Total</th>
+                        <th class="px-4 py-3">Estado</th>
+                        <th class="px-4 py-3">Ref. externa</th>
+                        <th class="px-4 py-3 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="f in facturas" :key="f.idFactura">
+                        <tr class="border-t hover:bg-slate-50">
+                            <td class="px-4 py-2 font-semibold" x-text="f.idFactura"></td>
+                            <td class="px-4 py-2" x-text="f.serie + '-' + f.numero"></td>
+                            <td class="px-4 py-2 text-xs text-gray-600" x-text="fmtDate(f.fechaEmision)"></td>
+                            <td class="px-4 py-2 text-right" x-text="fmtMoney(f.subtotal)"></td>
+                            <td class="px-4 py-2 text-right text-amber-700" x-text="fmtMoney(f.impuesto)"></td>
+                            <td class="px-4 py-2 text-right font-bold" x-text="fmtMoney(f.total)"></td>
+                            <td class="px-4 py-2">
+                                <span class="text-xs px-2 py-1 rounded-full"
+                                      :class="{
+                                        'bg-emerald-100 text-emerald-700': f.estado === 'PAGADA',
+                                        'bg-amber-100 text-amber-700': f.estado === 'EMITIDA',
+                                        'bg-rose-100 text-rose-700': f.estado === 'ANULADA'
+                                      }" x-text="f.estado"></span>
+                            </td>
+                            <td class="px-4 py-2 text-xs text-gray-600" x-text="f.referenciaExterna || '-'"></td>
+                            <td class="px-4 py-2 text-center">
+                                <button @click="downloadPdf(f.idFactura, f.serie, f.numero)"
+                                        class="text-blue-700 hover:text-blue-900" title="Descargar PDF">
+                                    <i class="bi bi-file-earmark-pdf text-lg"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                    <tr x-show="!loading && facturas.length === 0">
+                        <td colspan="9" class="text-center py-6 text-gray-400">Sin facturas para los filtros aplicados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        function facturasApp() {
+            return {
+                loading: true,
+                facturas: [],
+                filtroEstado: '',
+                filtroEmisor: '',
+                async load() {
+                    this.loading = true;
+                    let path = '/api/sat/facturas';
+                    const qs = [];
+                    if (this.filtroEstado) qs.push('estado=' + encodeURIComponent(this.filtroEstado));
+                    if (this.filtroEmisor) qs.push('idEmisor=' + encodeURIComponent(this.filtroEmisor));
+                    if (qs.length) path += '?' + qs.join('&');
+                    try {
+                        this.facturas = await api(path);
+                    } catch (e) { alert(e.message); }
+                    this.loading = false;
+                },
+                downloadPdf(id, serie, numero) {
+                    downloadFile('/api/sat/facturas/' + id + '/pdf', 'factura-' + serie + '-' + numero + '.pdf');
+                }
+            };
+        }
+    </script>
+</body>
+</html>
