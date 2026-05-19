@@ -6,6 +6,9 @@ import com.halcon.sat.service.BedlyClient.BedlyNotFoundException;
 import com.halcon.sat.service.FacturaBedlyService;
 import com.halcon.sat.service.FacturaService;
 import com.halcon.sat.service.FacturaService.NotFoundException;
+import com.halcon.sat.service.PdfService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.ResourceAccessException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,10 +32,12 @@ public class FacturaController {
 
     private final FacturaService facturas;
     private final FacturaBedlyService desdeBedly;
+    private final PdfService pdf;
 
-    public FacturaController(FacturaService facturas, FacturaBedlyService desdeBedly) {
+    public FacturaController(FacturaService facturas, FacturaBedlyService desdeBedly, PdfService pdf) {
         this.facturas = facturas;
         this.desdeBedly = desdeBedly;
+        this.pdf = pdf;
     }
 
     @GetMapping
@@ -45,6 +50,20 @@ public class FacturaController {
     public ResponseEntity<Factura> findById(@PathVariable Long id) {
         return facturas.findById(id)
             .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> pdf(@PathVariable Long id) {
+        return facturas.findById(id)
+            .map(f -> {
+                byte[] bytes = pdf.facturaPdf(f);
+                HttpHeaders h = new HttpHeaders();
+                h.setContentType(MediaType.APPLICATION_PDF);
+                h.setContentDispositionFormData("inline",
+                    "factura-" + f.getSerie() + "-" + f.getNumero() + ".pdf");
+                return ResponseEntity.ok().headers(h).body(bytes);
+            })
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
