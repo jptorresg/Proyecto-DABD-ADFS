@@ -10,6 +10,7 @@ import org.springframework.web.client.ResourceAccessException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,12 +49,14 @@ public class FacturaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Factura> create(@Valid @RequestBody FacturaRequest req) {
         Factura f = facturas.create(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(f);
     }
 
     @PostMapping("/desde-bedly/{idReserva}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Factura> facturarDesdeBedly(@PathVariable int idReserva) {
         Factura f = desdeBedly.facturarReserva(idReserva);
         return ResponseEntity.status(HttpStatus.CREATED).body(f);

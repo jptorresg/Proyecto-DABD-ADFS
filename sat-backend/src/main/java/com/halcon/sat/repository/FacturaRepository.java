@@ -77,6 +77,13 @@ public class FacturaRepository {
         return f;
     }
 
+    public Optional<Factura> findByReferenciaExterna(String referencia) {
+        Optional<Factura> f = jdbc.query(SELECT_FACTURA + " WHERE referencia_externa = ?",
+            FACTURA_MAPPER, referencia).stream().findFirst();
+        f.ifPresent(factura -> factura.setDetalles(findDetallesByFactura(factura.getIdFactura())));
+        return f;
+    }
+
     public List<DetalleFactura> findDetallesByFactura(Long idFactura) {
         return jdbc.query(
             "SELECT id_detalle, id_factura, descripcion, cantidad, precio_unitario, subtotal "
