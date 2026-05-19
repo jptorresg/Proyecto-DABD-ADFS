@@ -7,14 +7,16 @@ public class LoginResponse {
     private String nombres;
     private String apellidos;
     private String tipoUsuario;
+    private String token;
 
     public LoginResponse(Long idUsuario, String email, String nombres,
-                         String apellidos, String tipoUsuario) {
+                         String apellidos, String tipoUsuario, String token) {
         this.idUsuario = idUsuario;
         this.email = email;
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.tipoUsuario = tipoUsuario;
+        this.token = token;
     }
 
     public Long getIdUsuario() { return idUsuario; }
@@ -22,4 +24,5 @@ public class LoginResponse {
     public String getNombres() { return nombres; }
     public String getApellidos() { return apellidos; }
     public String getTipoUsuario() { return tipoUsuario; }
+    public String getToken() { return token; }
 }
