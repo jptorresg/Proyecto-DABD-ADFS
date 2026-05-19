@@ -62,7 +62,10 @@ public class ReporteController {
     public ResponseEntity<byte[]> porReceptorPdf(@RequestParam(required = false) String nit,
                                                  @RequestParam(required = false) String email) {
         List<Map<String, Object>> rows = reportes.porReceptor(nit, email);
-        String sub = filtrosTexto(Map.of("NIT", nit, "Email", email));
+        Map<String, String> filtros = new LinkedHashMap<>();
+        filtros.put("NIT", nit);
+        filtros.put("Email", email);
+        String sub = filtrosTexto(filtros);
         byte[] bytes = pdf.reporteTabular(
             "Reporte de Impuestos por Receptor",
             sub,
@@ -82,9 +85,10 @@ public class ReporteController {
     public ResponseEntity<byte[]> porEmisorPdf(@RequestParam(required = false) Long idEmisor,
                                                @RequestParam(required = false) String tipo) {
         List<Map<String, Object>> rows = reportes.porEmisor(idEmisor, tipo);
-        String sub = filtrosTexto(Map.of(
-            "Emisor ID", idEmisor == null ? null : idEmisor.toString(),
-            "Tipo", tipo));
+        Map<String, String> filtros = new LinkedHashMap<>();
+        filtros.put("Emisor ID", idEmisor == null ? null : idEmisor.toString());
+        filtros.put("Tipo", tipo);
+        String sub = filtrosTexto(filtros);
         byte[] bytes = pdf.reporteTabular(
             "Reporte de Impuestos por Proveedor (Emisor)",
             sub,
@@ -102,7 +106,9 @@ public class ReporteController {
     @GetMapping("/por-tipo-item/pdf")
     public ResponseEntity<byte[]> porTipoItemPdf(@RequestParam(required = false) String tipo) {
         List<Map<String, Object>> rows = reportes.porTipoItem(tipo);
-        String sub = filtrosTexto(Map.of("Tipo de item", tipo));
+        Map<String, String> filtros = new LinkedHashMap<>();
+        filtros.put("Tipo de item", tipo);
+        String sub = filtrosTexto(filtros);
         byte[] bytes = pdf.reporteTabular(
             "Reporte de Impuestos por Tipo de Item",
             "Habitacion, Asiento, Paquete u Otro." + (sub.isBlank() ? "" : " " + sub),
@@ -124,9 +130,10 @@ public class ReporteController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         List<Map<String, Object>> rows = reportes.porPeriodo(from, to);
-        String sub = filtrosTexto(Map.of(
-            "Desde", from == null ? null : from.toString(),
-            "Hasta", to == null ? null : to.toString()));
+        Map<String, String> filtros = new LinkedHashMap<>();
+        filtros.put("Desde", from == null ? null : from.toString());
+        filtros.put("Hasta", to == null ? null : to.toString());
+        String sub = filtrosTexto(filtros);
         byte[] bytes = pdf.reporteTabular(
             "Reporte de Impuestos por Periodo",
             sub,
