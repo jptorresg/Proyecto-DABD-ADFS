@@ -2,8 +2,11 @@ package com.halcon.sat.controller;
 
 import com.halcon.sat.dto.FacturaRequest;
 import com.halcon.sat.model.Factura;
+import com.halcon.sat.service.BedlyClient.BedlyNotFoundException;
+import com.halcon.sat.service.FacturaBedlyService;
 import com.halcon.sat.service.FacturaService;
 import com.halcon.sat.service.FacturaService.NotFoundException;
+import org.springframework.web.client.ResourceAccessException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +27,11 @@ import java.util.Map;
 public class FacturaController {
 
     private final FacturaService facturas;
+    private final FacturaBedlyService desdeBedly;
 
-    public FacturaController(FacturaService facturas) {
+    public FacturaController(FacturaService facturas, FacturaBedlyService desdeBedly) {
         this.facturas = facturas;
+        this.desdeBedly = desdeBedly;
     }
 
     @GetMapping
@@ -48,8 +53,25 @@ public class FacturaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(f);
     }
 
+    @PostMapping("/desde-bedly/{idReserva}")
+    public ResponseEntity<Factura> facturarDesdeBedly(@PathVariable int idReserva) {
+        Factura f = desdeBedly.facturarReserva(idReserva);
+        return ResponseEntity.status(HttpStatus.CREATED).body(f);
+    }
+
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(BedlyNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleBedlyNotFound(BedlyNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    public ResponseEntity<Map<String, String>> handleBedlyDown(ResourceAccessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            .body(Map.of("error", "No se pudo contactar a Bedly: " + ex.getMessage()));
     }
 }

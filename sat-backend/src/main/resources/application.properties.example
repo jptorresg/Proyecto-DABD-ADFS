@@ -15,6 +15,8 @@ spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
 # Pool
 spring.datasource.hikari.maximum-pool-size=5
 
-# --- Bedly bridge (placeholder, se usa en fase 2) ---
+# --- Bedly bridge ---
+# Cambiar a 5044 para apuntar a Bedly2 en vez de Bedly1.
 sat.bedly.base-url=http://localhost:5043
-sat.bedly.api-key=cambiame
+sat.bedly.default-emisor-id=1
+sat.bedly.default-receptor-id=1
