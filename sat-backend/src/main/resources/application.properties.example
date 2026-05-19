@@ -1,0 +1,20 @@
+# =====================================================================
+# Plantilla. Copiala a application.properties (gitignored) y editala.
+#   cp application.properties.example application.properties
+# =====================================================================
+
+server.port=8090
+spring.application.name=sat-backend
+
+# --- Oracle ---
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521/XEPDB1
+spring.datasource.username=sat_db
+spring.datasource.password=tu_password_aqui
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+# Pool
+spring.datasource.hikari.maximum-pool-size=5
+
+# --- Bedly bridge (placeholder, se usa en fase 2) ---
+sat.bedly.base-url=http://localhost:5043
+sat.bedly.api-key=cambiame
