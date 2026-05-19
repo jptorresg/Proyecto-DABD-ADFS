@@ -485,7 +485,8 @@
      * @returns {string} HTML de la tarjeta
      */
     function renderVuelo(v, idx) {
-      const precio  = v.precio_agencia || 0;
+      const esRoundtrip = !!v.es_ida_vuelta && v.regreso;
+      const precio  = esRoundtrip ? (v.precio_total_agencia || 0) : (v.precio_agencia || 0);
       const asiento = v.tipo_asiento   || '—';
       const disp    = v.asientos_disponibles != null ? `${v.asientos_disponibles} disp.` : '';
       const horaS   = v.hora_salida  || (v.fecha_salida  ? new Date(v.fecha_salida).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'})  : '—');
@@ -509,6 +510,39 @@
         fecha_salida: v.fecha_salida || '',
         num_pasajeros: urlParams.get('num_pasajeros') || 1,
       });
+      if (esRoundtrip) {
+        // Datos del regreso para que checkout construya payload.vuelo_regreso
+        const r = v.regreso;
+        checkoutParams.set('id_vuelo_regreso',     r.id_vuelo     || '');
+        checkoutParams.set('codigo_vuelo_regreso', r.codigo_vuelo || '');
+        checkoutParams.set('origen_regreso',       r.origen_iata  || r.origen_ciudad  || '');
+        checkoutParams.set('destino_regreso',      r.destino_iata || r.destino_ciudad || '');
+        checkoutParams.set('fecha_regreso',        r.fecha_salida || '');
+        checkoutParams.set('precio_regreso',       r.precio_proveedor || 0);
+        // El precio "principal" en URL también lo dejamos como total para el resumen
+        checkoutParams.set('precio_ida', v.precio_proveedor || 0);
+      }
+
+      const regresoBlock = esRoundtrip ? `
+              <div class="route-display" style="margin-top:0.5rem;border-top:1px dashed rgba(255,255,255,0.15);padding-top:0.5rem;">
+                <div class="route-location">
+                  <div class="route-time">${v.regreso.hora_salida || '—'}</div>
+                  <div class="route-code">${v.regreso.origen_iata || '—'}</div>
+                  <div class="route-city">${v.regreso.origen_ciudad || '—'}</div>
+                </div>
+                <div class="route-mid">
+                  <div class="route-dur">${v.regreso.codigo_vuelo || 'Regreso'}</div>
+                  <div class="route-line-gold"></div>
+                  <div style="font-size:0.72rem;color:var(--gold);">
+                    ${v.regreso.fecha_salida ? new Date(v.regreso.fecha_salida).toLocaleDateString('es-GT') : ''}
+                  </div>
+                </div>
+                <div class="route-location">
+                  <div class="route-time">${v.regreso.hora_llegada || '—'}</div>
+                  <div class="route-code">${v.regreso.destino_iata || '—'}</div>
+                  <div class="route-city">${v.regreso.destino_ciudad || '—'}</div>
+                </div>
+              </div>` : '';
 
       return `
         <div class="result-card-full anim-up ${animCls}">
@@ -516,7 +550,9 @@
             <div style="flex:1;">
               <span class="airline-badge">
                 <i class="fa-solid fa-plane me-1"></i>${v.nombre_proveedor || 'Aerolínea'}
+                ${esRoundtrip ? '<span style="margin-left:0.5rem;color:var(--gold);font-size:0.75rem;"><i class="fa-solid fa-arrows-left-right"></i> Ida y vuelta</span>' : ''}
               </span>
+              ${esRoundtrip ? '<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">IDA</div>' : ''}
               <div class="route-display">
                 <div class="route-location">
                   <div class="route-time">${horaS}</div>
@@ -536,13 +572,15 @@
                   <div class="route-city">${v.destino_ciudad || '—'}</div>
                 </div>
               </div>
+              ${esRoundtrip ? '<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;">REGRESO</div>' : ''}
+              ${regresoBlock}
               <div class="flight-meta">
                 <span class="flight-meta-item"><i class="fa-solid fa-chair"></i> ${asiento}</span>
                 ${disp ? `<span class="flight-meta-item"><i class="fa-solid fa-users"></i> ${disp}</span>` : ''}
               </div>
             </div>
             <div class="price-col">
-              <div class="big-price">$${precio.toFixed(2)}<small>/persona</small></div>
+              <div class="big-price">$${precio.toFixed(2)}<small>/persona${esRoundtrip ? ' · total' : ''}</small></div>
               <div class="mt-2">
                 <a href="/detalle-vuelo?${detalleParams.toString()}"  class="btn-ver">Ver detalles</a>
                 <a href="/checkout?${checkoutParams.toString()}" class="btn-reservar">Seleccionar</a>
@@ -579,6 +617,9 @@
       });
       const checkoutParams = new URLSearchParams(detalleParams);
       checkoutParams.set('precio', precio);
+      checkoutParams.set('precio_proveedor', h.precio_noche_proveedor ?? precio);
+      checkoutParams.set('tipo_habitacion',  h.tipo_habitacion  || '');
+      checkoutParams.set('nombre_hotel',     h.nombre_hotel     || '');
 
       return `
         <div class="result-card-full anim-up ${animCls}">

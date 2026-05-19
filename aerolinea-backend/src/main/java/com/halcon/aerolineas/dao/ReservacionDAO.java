@@ -104,12 +104,117 @@ public class ReservacionDAO {
             
             conn.commit(); // Confirmar transacción
             return idReservacion;
-            
+
         } catch (SQLException e) {
             if (conn != null) {
                 try {
                     conn.rollback(); // Revertir en caso de error
                 } catch (SQLException ex) {
+                    throw new RuntimeException("Error en la operación de base de datos", e);
+                }
+            }
+            throw e;
+        } finally {
+            if (stmt != null) stmt.close();
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                conn.close();
+            }
+        }
+    }
+
+    /**
+     * Crea una reservación apuntando a una categoría específica (CATEGORIAS_VUELO).
+     * <p>
+     * Diferencias con {@link #create(Reservacion)}:
+     * <ul>
+     *   <li>Bloquea y decrementa {@code CATEGORIAS_VUELO} en vez de {@code VUELOS}.
+     *       El trigger {@code TR_SYNC_VUELOS_FROM_CATEG} mantiene el conteo
+     *       agregado en VUELOS para que la API v1 siga viendo totales coherentes.</li>
+     *   <li>Persiste {@code id_categoria} en RESERVACIONES, lo que permite a
+     *       {@link #cancelar(Long)} devolver asientos a la categoría correcta.</li>
+     *   <li>Valida que la categoría pertenezca al {@code id_vuelo} indicado en la
+     *       reservación, para impedir mezclar referencias.</li>
+     * </ul>
+     *
+     * @param reservacion debe tener {@code idVuelo}, {@code idCategoria}, {@code idUsuario}
+     *                    y {@code numPasajeros} seteados.
+     * @return el id de la reservación creada.
+     * @throws SQLException si la categoría no existe, no pertenece al vuelo, no hay
+     *                      asientos suficientes, o falla la base.
+     */
+    public Long createConCategoria(Reservacion reservacion) throws SQLException {
+        if (reservacion.getIdCategoria() == null) {
+            throw new SQLException("idCategoria es requerido para createConCategoria");
+        }
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Bloquear la categoría y validar pertenencia al vuelo + stock
+            String checkSql = "SELECT id_vuelo, asientos_disponibles " +
+                              "FROM CATEGORIAS_VUELO WHERE id_categoria = ? FOR UPDATE";
+            stmt = conn.prepareStatement(checkSql);
+            stmt.setLong(1, reservacion.getIdCategoria());
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+                throw new SQLException("Categoría no encontrada: " + reservacion.getIdCategoria());
+            }
+            long idVueloCategoria = rs.getLong("id_vuelo");
+            int disponibles = rs.getInt("asientos_disponibles");
+            stmt.close();
+
+            if (idVueloCategoria != reservacion.getIdVuelo()) {
+                throw new SQLException("La categoría " + reservacion.getIdCategoria() +
+                    " no pertenece al vuelo " + reservacion.getIdVuelo());
+            }
+            if (disponibles < reservacion.getNumPasajeros()) {
+                throw new SQLException("No hay suficientes asientos disponibles en la categoría");
+            }
+
+            // 2. Decrementar asientos en la categoría (el trigger refleja en VUELOS)
+            String updateSql = "UPDATE CATEGORIAS_VUELO SET asientos_disponibles = asientos_disponibles - ? " +
+                               "WHERE id_categoria = ?";
+            stmt = conn.prepareStatement(updateSql);
+            stmt.setInt(1, reservacion.getNumPasajeros());
+            stmt.setLong(2, reservacion.getIdCategoria());
+            stmt.executeUpdate();
+            stmt.close();
+
+            // 3. Insertar reservación con id_categoria
+            String insertSql = "INSERT INTO RESERVACIONES (codigo_reservacion, id_vuelo, id_categoria, " +
+                               "id_usuario, num_pasajeros, precio_total, estado, metodo_pago) " +
+                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+            stmt = conn.prepareStatement(insertSql, new String[]{"id_reservacion"});
+            stmt.setString(1, reservacion.getCodigoReservacion());
+            stmt.setLong(2, reservacion.getIdVuelo());
+            stmt.setLong(3, reservacion.getIdCategoria());
+            stmt.setLong(4, reservacion.getIdUsuario());
+            stmt.setInt(5, reservacion.getNumPasajeros());
+            stmt.setBigDecimal(6, reservacion.getPrecioTotal());
+            stmt.setString(7, "CONFIRMADA");
+            stmt.setString(8, reservacion.getMetodoPago());
+
+            stmt.executeUpdate();
+
+            rs = stmt.getGeneratedKeys();
+            Long idReservacion = null;
+            if (rs.next()) {
+                idReservacion = rs.getLong(1);
+            }
+
+            conn.commit();
+            return idReservacion;
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) {
                     throw new RuntimeException("Error en la operación de base de datos", e);
                 }
             }
@@ -144,20 +249,22 @@ public class ReservacionDAO {
                 r.setIdReservacion(rs.getLong("ID_RESERVACION"));
                 r.setCodigoReservacion(rs.getString("CODIGO_RESERVACION"));
                 r.setIdVuelo(rs.getLong("ID_VUELO"));
+                long idCat = rs.getLong("ID_CATEGORIA");
+                if (!rs.wasNull()) r.setIdCategoria(idCat);
                 r.setIdUsuario(rs.getLong("ID_USUARIO"));
                 r.setNumPasajeros(rs.getInt("NUM_PASAJEROS"));
                 r.setPrecioTotal(rs.getBigDecimal("PRECIO_TOTAL"));
                 r.setEstado(rs.getString("ESTADO"));
                 r.setFechaCompra(rs.getTimestamp("FECHA_COMPRA").toLocalDateTime());
                 r.setMetodoPago(rs.getString("METODO_PAGO"));
-                
+
                 return r;
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Obtiene todas las reservaciones asociadas a un usuario.
      * <p>
@@ -187,6 +294,8 @@ public class ReservacionDAO {
                 r.setIdReservacion(rs.getLong("id_reservacion"));
                 r.setCodigoReservacion(rs.getString("codigo_reservacion"));
                 r.setIdVuelo(rs.getLong("id_vuelo"));
+                long idCat = rs.getLong("id_categoria");
+                if (!rs.wasNull()) r.setIdCategoria(idCat);
                 r.setIdUsuario(rs.getLong("id_usuario"));
                 r.setNumPasajeros(rs.getInt("num_pasajeros"));
                 r.setPrecioTotal(rs.getBigDecimal("precio_total"));
@@ -244,6 +353,8 @@ public class ReservacionDAO {
                 r.setIdReservacion(rs.getLong("id_reservacion"));
                 r.setCodigoReservacion(rs.getString("codigo_reservacion"));
                 r.setIdVuelo(rs.getLong("id_vuelo"));
+                long idCat = rs.getLong("id_categoria");
+                if (!rs.wasNull()) r.setIdCategoria(idCat);
                 r.setIdUsuario(rs.getLong("id_usuario"));
                 r.setNumPasajeros(rs.getInt("num_pasajeros"));
                 r.setPrecioTotal(rs.getBigDecimal("precio_total"));
@@ -253,7 +364,7 @@ public class ReservacionDAO {
                 return r;
             }
         }
-        
+
         return null;
     }
 
@@ -281,7 +392,8 @@ public class ReservacionDAO {
             conn.setAutoCommit(false);
 
             // 1. Obtener reservación
-            String selectSql = "SELECT id_vuelo, num_pasajeros FROM RESERVACIONES WHERE id_reservacion = ?";
+            String selectSql = "SELECT id_vuelo, id_categoria, num_pasajeros " +
+                               "FROM RESERVACIONES WHERE id_reservacion = ?";
             stmt = conn.prepareStatement(selectSql);
             stmt.setLong(1, idReservacion);
             ResultSet rs = stmt.executeQuery();
@@ -291,16 +403,30 @@ public class ReservacionDAO {
             }
 
             Long idVuelo = rs.getLong("id_vuelo");
+            long idCategoriaRaw = rs.getLong("id_categoria");
+            Long idCategoria = rs.wasNull() ? null : idCategoriaRaw;
             int numPasajeros = rs.getInt("num_pasajeros");
             stmt.close();
 
-            // 2. Devolver asientos
-            String updateVuelo = "UPDATE VUELOS SET asientos_disponibles = asientos_disponibles + ? WHERE id_vuelo = ?";
-            stmt = conn.prepareStatement(updateVuelo);
-            stmt.setInt(1, numPasajeros);
-            stmt.setLong(2, idVuelo);
-            stmt.executeUpdate();
-            stmt.close();
+            // 2. Devolver asientos: si la reserva tiene categoría (v2),
+            //    incrementamos esa categoría (el trigger refleja en VUELOS).
+            //    Si no (v1), tocamos VUELOS directo como antes.
+            if (idCategoria != null) {
+                String updateCat = "UPDATE CATEGORIAS_VUELO SET asientos_disponibles = asientos_disponibles + ? " +
+                                   "WHERE id_categoria = ?";
+                stmt = conn.prepareStatement(updateCat);
+                stmt.setInt(1, numPasajeros);
+                stmt.setLong(2, idCategoria);
+                stmt.executeUpdate();
+                stmt.close();
+            } else {
+                String updateVuelo = "UPDATE VUELOS SET asientos_disponibles = asientos_disponibles + ? WHERE id_vuelo = ?";
+                stmt = conn.prepareStatement(updateVuelo);
+                stmt.setInt(1, numPasajeros);
+                stmt.setLong(2, idVuelo);
+                stmt.executeUpdate();
+                stmt.close();
+            }
 
             // 3. Cancelar reservación
             String updateRes = "UPDATE RESERVACIONES SET estado = 'CANCELADA' WHERE id_reservacion = ?";

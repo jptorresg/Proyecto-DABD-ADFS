@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Servicio de lógica de negocio para la gestión de reservaciones.
@@ -22,9 +23,10 @@ public class ReservacionService {
     private VueloDAO vueloDAO;
     private PasajeroDAO pasajeroDAO;
     private UsuarioDAO usuarioDAO;
+    private CategoriaVueloDAO categoriaVueloDAO;
     private PdfService pdfService;
     private EmailService emailService;
-    
+
     /**
      * Constructor que inicializa el servicio con los DAO necesarios.
      */
@@ -33,6 +35,7 @@ public class ReservacionService {
         this.vueloDAO = new VueloDAO();
         this.pasajeroDAO = new PasajeroDAO();
         this.usuarioDAO = new UsuarioDAO();
+        this.categoriaVueloDAO = new CategoriaVueloDAO();
         this.pdfService = new PdfService();
         this.emailService = new EmailService();
     }
@@ -42,6 +45,7 @@ public class ReservacionService {
         VueloDAO vueloDAO,
         PasajeroDAO pasajeroDAO,
         UsuarioDAO usuarioDAO,
+        CategoriaVueloDAO categoriaVueloDAO,
         PdfService pdfService,
         EmailService emailService
     ) {
@@ -49,6 +53,7 @@ public class ReservacionService {
         this.vueloDAO = vueloDAO;
         this.pasajeroDAO = pasajeroDAO;
         this.usuarioDAO = usuarioDAO;
+        this.categoriaVueloDAO = categoriaVueloDAO;
         this.pdfService = pdfService;
         this.emailService = emailService;
     }
@@ -75,9 +80,21 @@ public class ReservacionService {
      * @throws SQLException             Si ocurre un error en la base de datos.
      * @throws IllegalArgumentException Si el vuelo no existe, no está activo o no hay asientos suficientes.
      */
-    public Reservacion crearReservacion(Long idVuelo, Long idUsuario, 
+    public Reservacion crearReservacion(Long idVuelo, Long idUsuario,
                                        List<Pasajero> pasajeros, String metodoPago) throws SQLException {
-        
+        return crearReservacion(idVuelo, idUsuario, pasajeros, metodoPago, true);
+    }
+
+    /**
+     * Variante de {@link #crearReservacion(Long, Long, List, String)} que permite
+     * suprimir el envío automático del correo de confirmación. Útil cuando un
+     * mismo viaje se compone de varios tramos (roundtrip o escalas) y se quiere
+     * notificar al usuario con un solo correo combinado al final.
+     */
+    public Reservacion crearReservacion(Long idVuelo, Long idUsuario,
+                                       List<Pasajero> pasajeros, String metodoPago,
+                                       boolean enviarCorreo) throws SQLException {
+
         // Validar vuelo existe y tiene disponibilidad
         Vuelo vuelo = vueloDAO.findById(idVuelo);
         if (vuelo == null) {
@@ -118,27 +135,158 @@ public class ReservacionService {
             pasajeroDAO.create(pasajero);
         }
 
-        List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+        if (enviarCorreo) {
+            List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+            byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
 
-        byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
+            Usuario usuario = usuarioDAO.findById(idUsuario);
+            if (usuario == null) {
+                throw new IllegalArgumentException("Usuario no encontrado");
+            }
 
+            try {
+                emailService.enviarCorreo(usuario.getEmail(), pdf, reservacion.getCodigoReservacion());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error enviando correo: " + e.getMessage());
+            }
+        }
+
+        // Retornar reservación completa
+        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
+    }
+
+    /**
+     * Variante v2 de {@code crearReservacion} que reserva una <em>categoría</em>
+     * específica del vuelo (CATEGORIAS_VUELO), no el vuelo entero.
+     * <p>
+     * Diferencias con v1:
+     * <ul>
+     *   <li>El precio sale de {@code categoria.getPrecio()} (la categoría elegida),
+     *       no de {@code vuelo.getPrecioBase()}.</li>
+     *   <li>Los pasajeros heredan {@code tipoAsiento} de la categoría reservada.</li>
+     *   <li>El stock se decrementa en {@code CATEGORIAS_VUELO.asientos_disponibles}
+     *       en vez de {@code VUELOS.asientos_disponibles}. Los triggers de la
+     *       migración 20260516_categorias_vuelo mantienen VUELOS sincronizado
+     *       para que la API v1 siga viendo conteos coherentes.</li>
+     *   <li>Se persiste {@code id_categoria} en RESERVACIONES, lo que permite a
+     *       {@code cancelarReservacion()} devolver asientos a la categoría
+     *       correcta.</li>
+     * </ul>
+     *
+     * @throws IllegalArgumentException si la categoría no existe, no pertenece al
+     *         vuelo, no hay stock, o el vuelo no está activo.
+     */
+    public Reservacion crearReservacion(Long idVuelo, Long idCategoria, Long idUsuario,
+                                       List<Pasajero> pasajeros, String metodoPago,
+                                       boolean enviarCorreo) throws SQLException {
+
+        if (idCategoria == null) {
+            throw new IllegalArgumentException("idCategoria es requerido");
+        }
+
+        Vuelo vuelo = vueloDAO.findById(idVuelo);
+        if (vuelo == null) {
+            throw new IllegalArgumentException("Vuelo no encontrado");
+        }
+        if (!"ACTIVO".equals(vuelo.getEstado())) {
+            throw new IllegalArgumentException("El vuelo no está activo");
+        }
+
+        CategoriaVuelo categoria = categoriaVueloDAO.findById(idCategoria);
+        if (categoria == null) {
+            throw new IllegalArgumentException("Categoría no encontrada");
+        }
+        if (!Objects.equals(categoria.getIdVuelo(), idVuelo)) {
+            throw new IllegalArgumentException(
+                "La categoría " + idCategoria + " no pertenece al vuelo " + idVuelo);
+        }
+
+        int numPasajeros = pasajeros.size();
+        if (categoria.getAsientosDisponibles() < numPasajeros) {
+            throw new IllegalArgumentException("No hay suficientes asientos disponibles en la categoría");
+        }
+
+        BigDecimal precioTotal = categoria.getPrecio().multiply(new BigDecimal(numPasajeros));
+
+        Reservacion reservacion = new Reservacion();
+        reservacion.setCodigoReservacion(PasswordUtil.generarCodigoReservacion());
+        reservacion.setIdVuelo(idVuelo);
+        reservacion.setIdCategoria(idCategoria);
+        reservacion.setIdUsuario(idUsuario);
+        reservacion.setNumPasajeros(numPasajeros);
+        reservacion.setPrecioTotal(precioTotal);
+        reservacion.setMetodoPago(metodoPago);
+
+        Long idReservacion = reservacionDAO.createConCategoria(reservacion);
+        if (idReservacion == null) {
+            throw new SQLException("Error al crear reservación");
+        }
+
+        for (Pasajero pasajero : pasajeros) {
+            pasajero.setIdReservacion(idReservacion);
+            pasajero.setTipoAsiento(categoria.getTipoAsiento());
+            pasajeroDAO.create(pasajero);
+        }
+
+        if (enviarCorreo) {
+            List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+            byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
+
+            Usuario usuario = usuarioDAO.findById(idUsuario);
+            if (usuario == null) {
+                throw new IllegalArgumentException("Usuario no encontrado");
+            }
+
+            try {
+                emailService.enviarCorreo(usuario.getEmail(), pdf, reservacion.getCodigoReservacion());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error enviando correo: " + e.getMessage());
+            }
+        }
+
+        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
+    }
+
+    /**
+     * Envía un único correo de confirmación que combina todos los tramos de un
+     * viaje (roundtrip o escalas). Genera un PDF que lista cada tramo con su
+     * subtotal y muestra el total general sumado.
+     *
+     * @param reservaciones reservas a notificar, en orden cronológico de viaje.
+     * @param pasajeros     pasajeros (los mismos para todos los tramos).
+     * @param idUsuario     usuario destinatario del correo.
+     */
+    public void enviarConfirmacionMultiTramo(List<Reservacion> reservaciones,
+                                             List<Pasajero> pasajeros,
+                                             Long idUsuario) throws SQLException {
         Usuario usuario = usuarioDAO.findById(idUsuario);
-
         if (usuario == null) {
             throw new IllegalArgumentException("Usuario no encontrado");
         }
 
-        String email = usuario.getEmail();
+        // Releer cada reserva por código para obtener el objeto Vuelo poblado
+        java.util.List<Reservacion> completas = new java.util.ArrayList<>();
+        for (Reservacion r : reservaciones) {
+            Reservacion full = reservacionDAO.findByCodigo(r.getCodigoReservacion());
+            completas.add(full != null ? full : r);
+        }
+
+        byte[] pdf = pdfService.generarPDFMultiTramo(completas, pasajeros);
+
+        StringBuilder codigosUnidos = new StringBuilder();
+        for (int i = 0; i < completas.size(); i++) {
+            if (i > 0) codigosUnidos.append("+");
+            codigosUnidos.append(completas.get(i).getCodigoReservacion());
+        }
 
         try {
-            emailService.enviarCorreo(email, pdf, reservacion.getCodigoReservacion());
+            emailService.enviarCorreo(usuario.getEmail(), pdf, codigosUnidos.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error enviando correo: " + e.getMessage());
+            System.err.println("Error enviando correo combinado: " + e.getMessage());
         }
-        
-        // Retornar reservación completa
-        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
     }
     
     /**

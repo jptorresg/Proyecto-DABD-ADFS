@@ -263,14 +263,17 @@
 
       // Link a checkout
       const checkoutParams = new URLSearchParams({
-        tipo:           'hotel',
-        id_habitacion:  h.id_habitacion  || '',
-        id_proveedor:   h.id_proveedor   || '',
-        precio:         precio,
-        ciudad:         h.ciudad || urlParams.get('ciudad') || '',
-        fecha_checkin:  ci || '',
-        fecha_checkout: co || '',
-        num_huespedes:  hu,
+        tipo:             'hotel',
+        id_habitacion:    h.id_habitacion  || '',
+        id_proveedor:     h.id_proveedor   || '',
+        precio:           precio,
+        precio_proveedor: h.precio_noche_proveedor ?? precio,
+        tipo_habitacion:  h.tipo_habitacion || '',
+        nombre_hotel:     h.nombre_hotel    || '',
+        ciudad:           h.ciudad || urlParams.get('ciudad') || '',
+        fecha_checkin:    ci || '',
+        fecha_checkout:   co || '',
+        num_huespedes:    hu,
       });
       document.getElementById('btn-reservar').href = `/checkout?${checkoutParams.toString()}`;
     }

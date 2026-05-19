@@ -75,9 +75,21 @@ public class ReservacionService {
      * @throws SQLException             Si ocurre un error en la base de datos.
      * @throws IllegalArgumentException Si el vuelo no existe, no está activo o no hay asientos suficientes.
      */
-    public Reservacion crearReservacion(Long idVuelo, Long idUsuario, 
+    public Reservacion crearReservacion(Long idVuelo, Long idUsuario,
                                        List<Pasajero> pasajeros, String metodoPago) throws SQLException {
-        
+        return crearReservacion(idVuelo, idUsuario, pasajeros, metodoPago, true);
+    }
+
+    /**
+     * Variante de {@link #crearReservacion(Long, Long, List, String)} que permite
+     * suprimir el envío automático del correo de confirmación. Útil cuando un
+     * mismo viaje se compone de varios tramos (roundtrip o escalas) y se quiere
+     * notificar al usuario con un solo correo combinado al final.
+     */
+    public Reservacion crearReservacion(Long idVuelo, Long idUsuario,
+                                       List<Pasajero> pasajeros, String metodoPago,
+                                       boolean enviarCorreo) throws SQLException {
+
         // Validar vuelo existe y tiene disponibilidad
         Vuelo vuelo = vueloDAO.findById(idVuelo);
         if (vuelo == null) {
@@ -118,27 +130,65 @@ public class ReservacionService {
             pasajeroDAO.create(pasajero);
         }
 
-        List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+        if (enviarCorreo) {
+            List<Pasajero> pasajerosList = pasajeroDAO.findByReservacion(idReservacion);
+            byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
 
-        byte[] pdf = pdfService.generarPDF(reservacion, pasajerosList);
+            Usuario usuario = usuarioDAO.findById(idUsuario);
+            if (usuario == null) {
+                throw new IllegalArgumentException("Usuario no encontrado");
+            }
 
+            try {
+                emailService.enviarCorreo(usuario.getEmail(), pdf, reservacion.getCodigoReservacion());
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("Error enviando correo: " + e.getMessage());
+            }
+        }
+
+        // Retornar reservación completa
+        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
+    }
+
+    /**
+     * Envía un único correo de confirmación que combina todos los tramos de un
+     * viaje (roundtrip o escalas). Genera un PDF que lista cada tramo con su
+     * subtotal y muestra el total general sumado.
+     *
+     * @param reservaciones reservas a notificar, en orden cronológico de viaje.
+     * @param pasajeros     pasajeros (los mismos para todos los tramos).
+     * @param idUsuario     usuario destinatario del correo.
+     */
+    public void enviarConfirmacionMultiTramo(List<Reservacion> reservaciones,
+                                             List<Pasajero> pasajeros,
+                                             Long idUsuario) throws SQLException {
         Usuario usuario = usuarioDAO.findById(idUsuario);
-
         if (usuario == null) {
             throw new IllegalArgumentException("Usuario no encontrado");
         }
 
-        String email = usuario.getEmail();
+        // Releer cada reserva por código para obtener el objeto Vuelo poblado
+        java.util.List<Reservacion> completas = new java.util.ArrayList<>();
+        for (Reservacion r : reservaciones) {
+            Reservacion full = reservacionDAO.findByCodigo(r.getCodigoReservacion());
+            completas.add(full != null ? full : r);
+        }
+
+        byte[] pdf = pdfService.generarPDFMultiTramo(completas, pasajeros);
+
+        StringBuilder codigosUnidos = new StringBuilder();
+        for (int i = 0; i < completas.size(); i++) {
+            if (i > 0) codigosUnidos.append("+");
+            codigosUnidos.append(completas.get(i).getCodigoReservacion());
+        }
 
         try {
-            emailService.enviarCorreo(email, pdf, reservacion.getCodigoReservacion());
+            emailService.enviarCorreo(usuario.getEmail(), pdf, codigosUnidos.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error enviando correo: " + e.getMessage());
+            System.err.println("Error enviando correo combinado: " + e.getMessage());
         }
-        
-        // Retornar reservación completa
-        return reservacionDAO.findByCodigo(reservacion.getCodigoReservacion());
     }
     
     /**

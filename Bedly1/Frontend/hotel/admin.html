@@ -199,12 +199,12 @@
                                 <template x-for="item in estadoHabitaciones" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -220,12 +220,12 @@
                                 <template x-for="item in estadoReservas" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -584,13 +584,34 @@
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Nombre del Hotel *</label>
                         <input type="text" class="form-control" x-model="formHotel.nombreHotel" placeholder="Ej: Hotel Grand UNIS">
                     </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">País *</label>
+                            <select class="form-select" x-model="formHotel.pais">
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="Costa Rica">Costa Rica</option>
+                                <option value="Panamá">Panamá</option>
+                                <option value="Belice">Belice</option>
+                                <option value="Estados Unidos">Estados Unidos</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Ciudad *</label>
+                            <input type="text" class="form-control" x-model="formHotel.ciudad" placeholder="Ej: Guatemala City">
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Ubicación</label>
-                        <input type="text" class="form-control" x-model="formHotel.ubicacion" placeholder="Ej: Zona 10, Guatemala City">
+                        <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Dirección / Zona</label>
+                        <input type="text" class="form-control" x-model="formHotel.ubicacion" placeholder="Ej: Zona 10, 16 Calle 0-55">
                     </div>
                     <div class="mb-3">
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Estrellas</label>
-                        <select class="form-select" x-model="formHotel.estrellas">
+                        <select class="form-select" x-model.number="formHotel.estrellas">
                             <option value="1">★ 1 estrella</option>
                             <option value="2">★★ 2 estrellas</option>
                             <option value="3">★★★ 3 estrellas</option>
@@ -729,7 +750,7 @@
             errorAgencia: '',
             formCupon: { codigo: '', descripcion: '', tipoDescuento: 'porcentaje', valorDescuento: 0, fechaInicio: '', fechaFin: '', usosMaximos: 100 },
             errorCupon: '',
-            formHotel: { idHotel: null, nombreHotel: '', ubicacion: '', estrellas: 5 },
+            formHotel: { idHotel: null, nombreHotel: '', ubicacion: '', ciudad: '', pais: 'Guatemala', estrellas: 5 },
             errorHotel: '',
             modoEdicionHotel: false,
             fechaHoy: new Date().toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
@@ -820,10 +841,24 @@
             abrirModalHotel(h) {
                 if (h) {
                     this.modoEdicionHotel = true;
-                    this.formHotel = { idHotel: h.idHotel, nombreHotel: h.nombreHotel, ubicacion: h.ubicacion, estrellas: h.estrellas };
+                    this.formHotel = {
+                        idHotel: h.idHotel,
+                        nombreHotel: h.nombreHotel,
+                        ubicacion: h.ubicacion || '',
+                        ciudad: h.ciudad || h.ubicacion || '',
+                        pais: h.pais || 'Guatemala',
+                        estrellas: h.estrellas
+                    };
                 } else {
                     this.modoEdicionHotel = false;
-                    this.formHotel = { idHotel: null, nombreHotel: '', ubicacion: '', estrellas: 5 };
+                    this.formHotel = {
+                        idHotel: null,
+                        nombreHotel: '',
+                        ubicacion: '',
+                        ciudad: '',
+                        pais: 'Guatemala',
+                        estrellas: 5
+                    };
                 }
                 this.errorHotel = '';
                 new bootstrap.Modal(document.getElementById('modalHotel')).show();
@@ -831,8 +866,16 @@
 
             async guardarHotel() {
                 this.errorHotel = '';
-                if (!this.formHotel.nombreHotel || !this.formHotel.ubicacion) {
-                    this.errorHotel = 'Nombre y ubicación son requeridos.';
+                if (!this.formHotel.nombreHotel || !this.formHotel.nombreHotel.trim()) {
+                    this.errorHotel = 'El nombre del hotel es requerido.';
+                    return;
+                }
+                if (!this.formHotel.pais) {
+                    this.errorHotel = 'El país es requerido.';
+                    return;
+                }
+                if (!this.formHotel.ciudad || !this.formHotel.ciudad.trim()) {
+                    this.errorHotel = 'La ciudad es requerida.';
                     return;
                 }
                 try {
@@ -840,9 +883,13 @@
                         ? `${API}/admin/hoteles/${this.formHotel.idHotel}`
                         : `${API}/admin/hoteles`;
                     const method = this.modoEdicionHotel ? 'PUT' : 'POST';
+                    // En create, omitir idHotel: el modelo del backend lo declara
+                    // int (no nullable) y null dispara 400 en el binder de JSON.
+                    const payload = { ...this.formHotel };
+                    if (!this.modoEdicionHotel) delete payload.idHotel;
                     const res = await fetch(url, {
                         method, headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(this.formHotel)
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -1050,22 +1097,31 @@
             },
 
             get estadoHabitaciones() {
-                const total = this.stats.totalHabitaciones || 1;
-                return [
-                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#10b981' },
-                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#3b82f6' },
-                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b' },
-                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#ef4444' }
-                ].map(s => ({ ...s, porcentaje: total > 0 ? Math.round((s.count / total) * 100) : 0 }));
+                const items = [
+                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles || 0, color: '#10b981' },
+                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas || 0, color: '#3b82f6' },
+                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento || 0, color: '#f59e0b' },
+                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas || 0, color: '#ef4444' }
+                ];
+                // Si totalHabitaciones no llega del backend, lo calculamos como suma
+                // de los conteos por estado. Cap a 100% para que la barra nunca se
+                // desborde visualmente (caso degradado: counts inconsistentes).
+                const totalFromBackend = this.stats.totalHabitaciones;
+                const totalFromSum = items.reduce((acc, s) => acc + Number(s.count || 0), 0);
+                const total = (totalFromBackend && totalFromBackend > 0) ? totalFromBackend : totalFromSum;
+                return items.map(s => ({
+                    ...s,
+                    porcentaje: total > 0 ? Math.min(100, Math.round((s.count / total) * 100)) : 0
+                }));
             },
 
             get estadoReservas() {
-                const total = this.todasReservas.length || 1;
                 const grupos = {};
                 this.todasReservas.forEach(r => {
                     const e = r.estado || 'Pendiente';
                     grupos[e] = (grupos[e] || 0) + 1;
                 });
+                const total = Object.values(grupos).reduce((acc, n) => acc + n, 0) || this.todasReservas.length || 0;
                 const colores = {
                     'Confirmada': '#10b981',
                     'Pendiente': '#f59e0b',
@@ -1077,7 +1133,7 @@
                 return Object.entries(grupos).map(([estado, count]) => ({
                     estado, count,
                     color: colores[estado] || '#94a3b8',
-                    porcentaje: Math.round((count / total) * 100)
+                    porcentaje: total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0
                 }));
             },
 

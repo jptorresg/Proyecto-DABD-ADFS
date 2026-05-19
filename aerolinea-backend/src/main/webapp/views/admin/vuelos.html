@@ -115,9 +115,21 @@
                                     <span x-text="formatDate(vuelo.fechaSalida)"></span><br>
                                     <small style="color: #6C757D;" x-text="vuelo.horaSalida"></small>
                                 </td>
-                                <td x-text="vuelo.tipoAsiento"></td>
                                 <td>
-                                    <strong style="color: #4A5F7F;" x-text="formatCurrency(vuelo.precioBase)"></strong>
+                                    <span x-show="!vuelo.categorias || vuelo.categorias.length <= 1"
+                                          x-text="vuelo.tipoAsiento"></span>
+                                    <span x-show="vuelo.categorias && vuelo.categorias.length > 1"
+                                          :title="vuelo.categorias && vuelo.categorias.map(c => c.tipoAsiento + ': Q' + c.precio).join(' · ')"
+                                          x-text="vuelo.categorias && vuelo.categorias.length + ' clases'"
+                                          style="cursor: help; border-bottom: 1px dashed #6C757D;"></span>
+                                </td>
+                                <td>
+                                    <strong style="color: #4A5F7F;"
+                                            x-show="!vuelo.categorias || vuelo.categorias.length <= 1"
+                                            x-text="formatCurrency(vuelo.precioBase)"></strong>
+                                    <strong style="color: #4A5F7F;"
+                                            x-show="vuelo.categorias && vuelo.categorias.length > 1"
+                                            x-text="'desde ' + formatCurrency(Math.min(...vuelo.categorias.map(c => Number(c.precio))))"></strong>
                                 </td>
                                 <td>
                                     <span x-text="`${vuelo.asientosDisponibles}/${vuelo.asientosTotales}`"></span>
@@ -195,16 +207,6 @@
                                    x-model="currentVuelo.codigo"
                                    placeholder="HC-XXX"
                                    required>
-                        </div>
-
-                        <!-- Tipo de Asiento -->
-                        <div class="form-group">
-                            <label class="form-label">Tipo de Asiento *</label>
-                            <select class="form-input" x-model="currentVuelo.tipoAsiento" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="TURISTA">Turista</option>
-                                <option value="BUSINESS">Business</option>
-                            </select>
                         </div>
 
                         <!-- Origen Ciudad -->
@@ -285,29 +287,6 @@
                                    required>
                         </div>
 
-                        <!-- Precio Base -->
-                        <div class="form-group">
-                            <label class="form-label">Precio Base (Q) *</label>
-                            <input type="number" 
-                                   class="form-input" 
-                                   x-model="currentVuelo.precioBase"
-                                   placeholder="1250.00"
-                                   step="0.01"
-                                   min="0"
-                                   required>
-                        </div>
-
-                        <!-- Asientos Totales -->
-                        <div class="form-group">
-                            <label class="form-label">Asientos Totales *</label>
-                            <input type="number" 
-                                   class="form-input" 
-                                   x-model="currentVuelo.asientosTotales"
-                                   placeholder="180"
-                                   min="1"
-                                   required>
-                        </div>
-
                         <!-- Estado -->
                         <div class="form-group" x-show="modalMode === 'edit'">
                             <label class="form-label">Estado</label>
@@ -317,6 +296,88 @@
                             </select>
                         </div>
 
+                    </div>
+
+                    <!-- Categorías de asiento -->
+                    <div class="form-group" style="margin-top: 1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
+                            <label class="form-label" style="margin:0;">
+                                <i class="fas fa-chair"></i> Categorías de asiento *
+                            </label>
+                            <button type="button"
+                                    class="btn-primary"
+                                    style="padding: .35rem .75rem; font-size: .85rem;"
+                                    @click="addCategoria()"
+                                    :disabled="currentVuelo.categorias && currentVuelo.categorias.length >= 4">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                        <p style="color:#6C757D; font-size:.85rem; margin: 0 0 .5rem 0;">
+                            Configurá una o más clases (hasta 4). El total de asientos del vuelo es la suma de todas.
+                        </p>
+                        <table class="data-table" style="margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 32%;">Tipo</th>
+                                    <th style="width: 24%;">Precio (Q)</th>
+                                    <th style="width: 22%;">Asientos</th>
+                                    <th style="width: 22%;">Disponibles</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(cat, idx) in currentVuelo.categorias" :key="idx">
+                                    <tr>
+                                        <td>
+                                            <select class="form-input" x-model="cat.tipoAsiento" required>
+                                                <option value="TURISTA">Turista</option>
+                                                <option value="PREMIUM_ECONOMY">Premium Economy</option>
+                                                <option value="BUSINESS">Business</option>
+                                                <option value="PRIMERA">Primera</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   class="form-input"
+                                                   x-model.number="cat.precio"
+                                                   step="0.01"
+                                                   min="0.01"
+                                                   placeholder="1250.00"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   class="form-input"
+                                                   x-model.number="cat.asientosTotales"
+                                                   min="1"
+                                                   placeholder="120"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                   class="form-input"
+                                                   :value="cat.asientosDisponibles !== undefined && cat.asientosDisponibles !== null ? cat.asientosDisponibles : cat.asientosTotales"
+                                                   disabled
+                                                   title="Calculado por el sistema según reservas">
+                                        </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn-action btn-danger"
+                                                    @click="removeCategoria(idx)"
+                                                    :disabled="currentVuelo.categorias.length <= 1"
+                                                    title="Quitar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="!currentVuelo.categorias || currentVuelo.categorias.length === 0">
+                                    <td colspan="5" style="text-align:center; color:#6C757D; padding: 1rem;">
+                                        Agregá al menos una categoría con el botón de arriba.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </form>
             </div>

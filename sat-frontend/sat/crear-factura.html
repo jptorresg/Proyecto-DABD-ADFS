@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT | Crear Factura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sat-style.css">
+    <script src="js/sat-common.js"></script>
+</head>
+<body>
+    <script>requireAuth(); renderSatLayout('crear');</script>
+
+    <main class="sat-main" x-data="crearApp()" x-init="loadCatalogos()">
+        <h1>Crear factura manual</h1>
+        <p class="subtitulo">Emisión de factura con cálculo automático de IVA 12%.</p>
+
+        <div x-show="resultado"
+             class="mb-4 p-4 bg-emerald-50 border border-emerald-300 rounded-lg flex items-center justify-between">
+            <p class="text-emerald-800 font-semibold">
+                <i class="bi bi-check-circle"></i>
+                Factura <span x-text="resultado?.serie + '-' + resultado?.numero"></span>
+                (#<span x-text="resultado?.idFactura"></span>) creada.
+                Total: <span x-text="fmtMoney(resultado?.total)"></span>
+            </p>
+            <button @click="downloadFile('/api/sat/facturas/' + resultado.idFactura + '/pdf', 'factura-' + resultado.serie + '-' + resultado.numero + '.pdf')"
+                    class="bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-800">
+                <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+            </button>
+        </div>
+
+        <div x-show="error" x-text="error"
+             class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg"></div>
+
+        <form @submit.prevent="submit()" class="bg-white rounded-xl shadow-sm p-6 space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Emisor</label>
+                    <select x-model="form.idEmisor" required class="w-full border rounded-lg px-3 py-2 text-sm">
+                        <option value="">-- Seleccionar --</option>
+                        <template x-for="e in emisores" :key="e.idEmisor">
+                            <option :value="e.idEmisor" x-text="e.nombre + ' (' + e.tipo + ')'"></option>
+                        </template>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Receptor</label>
+                    <select x-model="form.idReceptor" required class="w-full border rounded-lg px-3 py-2 text-sm">
+                        <option value="">-- Seleccionar --</option>
+                        <template x-for="r in receptores" :key="r.idReceptor">
+                            <option :value="r.idReceptor" x-text="r.nombre + ' (NIT: ' + r.nit + ')'"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Referencia externa (opcional)</label>
+                <input type="text" x-model="form.referenciaExterna"
+                       placeholder="ej. orden:12345"
+                       class="w-full border rounded-lg px-3 py-2 text-sm">
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="font-semibold text-gray-700">Detalle de líneas</h2>
+                    <button type="button" @click="addLinea()"
+                            class="text-blue-700 text-sm hover:underline">
+                        <i class="bi bi-plus-circle"></i> Agregar línea
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-100 text-xs uppercase text-gray-600">
+                            <tr>
+                                <th class="px-2 py-2 text-left">Descripción</th>
+                                <th class="px-2 py-2">Tipo</th>
+                                <th class="px-2 py-2 text-right">Cantidad</th>
+                                <th class="px-2 py-2 text-right">P. Unitario</th>
+                                <th class="px-2 py-2 text-right">Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(l, i) in form.detalles" :key="i">
+                                <tr class="border-t">
+                                    <td class="px-2 py-2"><input type="text" x-model="l.descripcion" required class="w-full border rounded px-2 py-1 text-sm"></td>
+                                    <td class="px-2 py-2">
+                                        <select x-model="l.tipoItem" class="border rounded px-2 py-1 text-sm">
+                                            <option value="OTRO">OTRO</option>
+                                            <option value="HABITACION">HABITACION</option>
+                                            <option value="ASIENTO">ASIENTO</option>
+                                            <option value="PAQUETE">PAQUETE</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-2 py-2"><input type="number" step="0.01" min="0.01" x-model.number="l.cantidad" required class="w-24 border rounded px-2 py-1 text-right text-sm"></td>
+                                    <td class="px-2 py-2"><input type="number" step="0.01" min="0" x-model.number="l.precioUnitario" required class="w-28 border rounded px-2 py-1 text-right text-sm"></td>
+                                    <td class="px-2 py-2 text-right font-mono text-sm" x-text="fmtMoney((l.cantidad || 0) * (l.precioUnitario || 0))"></td>
+                                    <td class="px-2 py-2"><button type="button" @click="removeLinea(i)" class="text-rose-600 hover:text-rose-800"><i class="bi bi-trash"></i></button></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-lg text-right">
+                <p class="text-sm text-gray-600">Subtotal: <span class="font-semibold font-mono" x-text="fmtMoney(subtotal)"></span></p>
+                <p class="text-sm text-amber-700">IVA 12%: <span class="font-semibold font-mono" x-text="fmtMoney(impuesto)"></span></p>
+                <p class="text-lg font-bold text-blue-800 mt-1">Total: <span class="font-mono" x-text="fmtMoney(total)"></span></p>
+            </div>
+
+            <button type="submit" :disabled="loading"
+                    class="w-full bg-blue-700 text-white font-semibold py-3 rounded-lg hover:bg-blue-800 disabled:opacity-50">
+                <span x-show="!loading"><i class="bi bi-check-circle"></i> Emitir factura</span>
+                <span x-show="loading"><i class="bi bi-arrow-repeat animate-spin"></i> Procesando...</span>
+            </button>
+        </form>
+    </main>
+
+    <script>
+        function crearApp() {
+            return {
+                loading: false,
+                error: '',
+                resultado: null,
+                emisores: [],
+                receptores: [],
+                form: {
+                    idEmisor: '',
+                    idReceptor: '',
+                    referenciaExterna: '',
+                    detalles: [{ descripcion: '', tipoItem: 'OTRO', cantidad: 1, precioUnitario: 0 }]
+                },
+                get subtotal() {
+                    return (this.form.detalles || []).reduce((s, l) => s + ((l.cantidad || 0) * (l.precioUnitario || 0)), 0);
+                },
+                get impuesto() { return Math.round(this.subtotal * 12) / 100; },
+                get total() { return Math.round((this.subtotal + this.impuesto) * 100) / 100; },
+                async loadCatalogos() {
+                    try {
+                        this.emisores = await api('/api/sat/emisores');
+                        this.receptores = await api('/api/sat/receptores');
+                    } catch (e) { alert(e.message); }
+                },
+                addLinea() {
+                    this.form.detalles.push({ descripcion: '', tipoItem: 'OTRO', cantidad: 1, precioUnitario: 0 });
+                },
+                removeLinea(i) {
+                    if (this.form.detalles.length > 1) this.form.detalles.splice(i, 1);
+                },
+                async submit() {
+                    this.error = ''; this.resultado = null; this.loading = true;
+                    try {
+                        const body = {
+                            idEmisor: Number(this.form.idEmisor),
+                            idReceptor: Number(this.form.idReceptor),
+                            referenciaExterna: this.form.referenciaExterna || null,
+                            detalles: this.form.detalles.map(l => ({
+                                descripcion: l.descripcion,
+                                cantidad: Number(l.cantidad),
+                                precioUnitario: Number(l.precioUnitario),
+                                tipoItem: l.tipoItem
+                            }))
+                        };
+                        this.resultado = await api('/api/sat/facturas', { method: 'POST', body });
+                        this.form.detalles = [{ descripcion: '', tipoItem: 'OTRO', cantidad: 1, precioUnitario: 0 }];
+                        this.form.referenciaExterna = '';
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

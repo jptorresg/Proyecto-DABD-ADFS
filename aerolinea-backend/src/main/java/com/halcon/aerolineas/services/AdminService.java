@@ -144,4 +144,24 @@ public class AdminService {
     public Map<String, Integer> obtenerReservacionesPorEstado() throws SQLException {
         return adminDAO.contarReservacionesPorEstado();
     }
+
+    // ============================================================
+    // ANALÍTICAS — series para el panel /admin/analiticas
+    // ============================================================
+
+    public List<Map<String, Object>> ventasDiarias(int dias) {
+        return adminDAO.ventasDiarias(dias > 0 ? dias : 30);
+    }
+
+    public List<Map<String, Object>> topDestinos(int limit) {
+        return adminDAO.topDestinos(limit > 0 ? limit : 10);
+    }
+
+    public List<Map<String, Object>> ingresosPorTipo() {
+        return adminDAO.ingresosPorTipo();
+    }
+
+    public List<Map<String, Object>> ocupacionVuelos(int limit) {
+        return adminDAO.ocupacionVuelos(limit > 0 ? limit : 10);
+    }
 }

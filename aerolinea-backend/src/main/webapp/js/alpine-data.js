@@ -797,24 +797,81 @@ function vuelosAdminData() {
                 horaSalida: '',
                 fechaLlegada: '',
                 horaLlegada: '',
-                tipoAsiento: 'TURISTA',
-                precioBase: 0,
-                asientosTotales: 0
+                categorias: [
+                    { tipoAsiento: 'TURISTA', precio: 0, asientosTotales: 0, asientosDisponibles: null }
+                ]
             };
             this.showModal = true;
         },
-        
+
         /**
          * Abre el modal para editar un vuelo existente.
          *
+         * Si el vuelo no tiene categorias[] (vuelo viejo), se sintetiza una a
+         * partir de los campos planos para que el form siga editable.
+         *
          * @param {Object} vuelo - El vuelo a editar.
          */
-        openEditModal(vuelo) {
+        async openEditModal(vuelo) {
             this.modalMode = 'edit';
-            this.currentVuelo = { ...vuelo };
+            const copia = { ...vuelo };
+
+            // Si la fila del listado vino sin categorías, las pedimos al detalle
+            if (!copia.categorias || copia.categorias.length === 0) {
+                try {
+                    const res = await fetch(`${API_BASE}/vuelos/${vuelo.id}`, { credentials: 'include' });
+                    const data = await res.json();
+                    if (data.success && data.data && Array.isArray(data.data.categorias)) {
+                        copia.categorias = data.data.categorias.map(c => ({
+                            idCategoria: c.idCategoria,
+                            tipoAsiento: c.tipoAsiento,
+                            precio: Number(c.precio),
+                            asientosTotales: c.asientosTotales,
+                            asientosDisponibles: c.asientosDisponibles
+                        }));
+                    }
+                } catch (e) {
+                    console.error('No pude cargar categorías del vuelo:', e);
+                }
+            }
+
+            // Último fallback: si todavía no hay, sintetizamos una desde los campos planos.
+            if (!copia.categorias || copia.categorias.length === 0) {
+                copia.categorias = [{
+                    tipoAsiento: vuelo.tipoAsiento || 'TURISTA',
+                    precio: Number(vuelo.precioBase) || 0,
+                    asientosTotales: Number(vuelo.asientosTotales) || 0,
+                    asientosDisponibles: Number(vuelo.asientosDisponibles) || 0
+                }];
+            }
+
+            this.currentVuelo = copia;
             this.showModal = true;
         },
-        
+
+        /**
+         * Agrega una categoría vacía al vuelo en edición.
+         */
+        addCategoria() {
+            if (!this.currentVuelo.categorias) this.currentVuelo.categorias = [];
+            if (this.currentVuelo.categorias.length >= 4) return;
+            const usados = new Set(this.currentVuelo.categorias.map(c => c.tipoAsiento));
+            const candidatos = ['TURISTA','PREMIUM_ECONOMY','BUSINESS','PRIMERA'];
+            const libre = candidatos.find(t => !usados.has(t)) || 'TURISTA';
+            this.currentVuelo.categorias.push({
+                tipoAsiento: libre, precio: 0, asientosTotales: 0, asientosDisponibles: null
+            });
+        },
+
+        /**
+         * Quita una categoría del vuelo en edición. No permite dejar la lista vacía.
+         */
+        removeCategoria(idx) {
+            if (!this.currentVuelo.categorias) return;
+            if (this.currentVuelo.categorias.length <= 1) return;
+            this.currentVuelo.categorias.splice(idx, 1);
+        },
+
         /**
          * Cierra el modal y limpia el objeto {@code currentVuelo}.
          */
@@ -864,13 +921,27 @@ function vuelosAdminData() {
                     showNotification('La fecha de llegada no puede ser anterior a la salida', 'error');
                     return;
                 }
-                if (this.currentVuelo.precioBase <= 0) {
-                    showNotification('El precio debe ser mayor a 0', 'error');
+
+                const cats = this.currentVuelo.categorias || [];
+                if (cats.length === 0) {
+                    showNotification('Agregá al menos una categoría', 'error');
                     return;
                 }
-                if (this.currentVuelo.asientosTotales <= 0) {
-                    showNotification('Debe haber al menos 1 asiento', 'error');
-                    return;
+                const tiposVistos = new Set();
+                for (const c of cats) {
+                    if (!c.tipoAsiento) {
+                        showNotification('Cada categoría necesita un tipo', 'error'); return;
+                    }
+                    if (tiposVistos.has(c.tipoAsiento)) {
+                        showNotification(`Tipo "${c.tipoAsiento}" duplicado`, 'error'); return;
+                    }
+                    tiposVistos.add(c.tipoAsiento);
+                    if (!c.precio || Number(c.precio) <= 0) {
+                        showNotification(`Precio inválido en ${c.tipoAsiento}`, 'error'); return;
+                    }
+                    if (!c.asientosTotales || Number(c.asientosTotales) <= 0) {
+                        showNotification(`Asientos inválidos en ${c.tipoAsiento}`, 'error'); return;
+                    }
                 }
 
                 // ======================
@@ -882,7 +953,23 @@ function vuelosAdminData() {
                     console.error('Session data:', session);
                     return;
                 }
-                console.log('Usuario logueado:', session);
+
+                // Campos planos: precio = mínimo, asientos = suma. El backend igual
+                // los recalcula a partir de categorias[] pero los enviamos por
+                // compatibilidad con DAOs viejos.
+                const sumaAsientos = cats.reduce((s, c) => s + Number(c.asientosTotales || 0), 0);
+                const precioMin    = Math.min(...cats.map(c => Number(c.precio)));
+                const tipoPrimero  = cats[0].tipoAsiento;
+
+                const categoriasPayload = cats.map(c => {
+                    const obj = {
+                        tipoAsiento: c.tipoAsiento,
+                        precio: Number(c.precio),
+                        asientosTotales: Number(c.asientosTotales)
+                    };
+                    if (c.idCategoria) obj.idCategoria = c.idCategoria;
+                    return obj;
+                });
 
                 const vueloPayload = {
                     codigoVuelo: this.currentVuelo.codigo,
@@ -894,12 +981,12 @@ function vuelosAdminData() {
                     horaSalida: this.currentVuelo.horaSalida,
                     fechaLlegada: this.currentVuelo.fechaLlegada,
                     horaLlegada: this.currentVuelo.horaLlegada,
-                    tipoAsiento: this.currentVuelo.tipoAsiento,
-                    precioBase: this.currentVuelo.precioBase,
-                    asientosTotales: this.currentVuelo.asientosTotales,
-                    asientosDisponibles: this.currentVuelo.asientosDisponibles,
+                    tipoAsiento: tipoPrimero,
+                    precioBase: precioMin,
+                    asientosTotales: sumaAsientos,
                     estado: this.currentVuelo.estado,
-                    idUsuarioCreador: session.idUsuario
+                    idUsuarioCreador: session.idUsuario,
+                    categorias: categoriasPayload
                 };
 
                 console.log('Payload con idUsuarioCreador:', vueloPayload);
@@ -2411,4 +2498,191 @@ function reservacionesAdminData() {
             return this.filteredReservaciones.slice(start, start + this.pagination.perPage);
         }
     }
+}
+
+/**
+ * Estado y lógica del panel /admin/analiticas.html.
+ *
+ * Cada bloque de la página tiene su propia carga: el período (días) solo
+ * afecta a "ingresos diarios", los otros tres son agregados globales. Si el
+ * backend devuelve listas vacías, mostramos un placeholder en vez de un
+ * canvas vacío.
+ */
+function analyticsData() {
+    return {
+        isLoading: true,
+        diasPeriodo: 30,
+
+        ventasDiariasData: [],
+        topDestinosData:   [],
+        ingresosTipoData:  [],
+        ocupacionData:     [],
+
+        chartVentas:   null,
+        chartDestinos: null,
+        chartTipos:    null,
+
+        async init() {
+            const session = getUserSession();
+            if (!session || session.tipoUsuario !== 'ADMIN') {
+                alert('Acceso denegado. Solo administradores.');
+                window.location.href = `${BASE_PATH}/views/index.html`;
+                return;
+            }
+            await Promise.all([
+                this.cargarVentasDiarias(),
+                this.cargarTopDestinos(),
+                this.cargarIngresosPorTipo(),
+                this.cargarOcupacionVuelos()
+            ]);
+            this.isLoading = false;
+        },
+
+        async _fetchJson(url) {
+            const r = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${getUserSession()?.token}` }
+            });
+            if (!r.ok) throw new Error(`${url} → ${r.status}`);
+            const body = await r.json();
+            return body?.data ?? [];
+        },
+
+        async cargarVentasDiarias() {
+            try {
+                this.ventasDiariasData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ventas-diarias?dias=${this.diasPeriodo}`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderVentas(), 50));
+            } catch (e) {
+                console.error('Ventas diarias:', e);
+                this.ventasDiariasData = [];
+            }
+        },
+
+        async cargarTopDestinos() {
+            try {
+                this.topDestinosData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/top-destinos?limit=10`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderDestinos(), 50));
+            } catch (e) {
+                console.error('Top destinos:', e);
+                this.topDestinosData = [];
+            }
+        },
+
+        async cargarIngresosPorTipo() {
+            try {
+                this.ingresosTipoData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ingresos-por-tipo`
+                );
+                this.$nextTick(() => setTimeout(() => this._renderTipos(), 50));
+            } catch (e) {
+                console.error('Ingresos por tipo:', e);
+                this.ingresosTipoData = [];
+            }
+        },
+
+        async cargarOcupacionVuelos() {
+            try {
+                this.ocupacionData = await this._fetchJson(
+                    `${API_BASE}/admin/analiticas/ocupacion-vuelos?limit=10`
+                );
+            } catch (e) {
+                console.error('Ocupación:', e);
+                this.ocupacionData = [];
+            }
+        },
+
+        _renderVentas() {
+            const canvas = this.$refs.chartVentas;
+            if (!canvas || this.ventasDiariasData.length === 0) return;
+            if (this.chartVentas) this.chartVentas.destroy();
+
+            // Rellenar días sin reservas con cero para que la línea no tenga huecos.
+            const map = new Map(this.ventasDiariasData.map(r => [r.fecha, Number(r.ingresos)]));
+            const hoy = new Date();
+            const labels = [], values = [];
+            for (let i = this.diasPeriodo - 1; i >= 0; i--) {
+                const d = new Date(hoy);
+                d.setDate(hoy.getDate() - i);
+                const iso = d.toISOString().slice(0, 10);
+                labels.push(d.toLocaleDateString('es-GT', { day: '2-digit', month: 'short' }));
+                values.push(map.get(iso) || 0);
+            }
+            this.chartVentas = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Ingresos (Q)',
+                        data: values,
+                        borderColor: '#5B8CC6',
+                        backgroundColor: 'rgba(91,140,198,.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: v => 'Q' + Number(v).toLocaleString('es-GT') }
+                        }
+                    }
+                }
+            });
+        },
+
+        _renderDestinos() {
+            const canvas = this.$refs.chartDestinos;
+            if (!canvas || this.topDestinosData.length === 0) return;
+            if (this.chartDestinos) this.chartDestinos.destroy();
+            this.chartDestinos = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: this.topDestinosData.map(d => d.ciudad || d.iata),
+                    datasets: [{
+                        label: 'Ingresos (Q)',
+                        data: this.topDestinosData.map(d => Number(d.ingresos)),
+                        backgroundColor: '#5B8CC6'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { callback: v => 'Q' + Number(v).toLocaleString('es-GT') }
+                        }
+                    }
+                }
+            });
+        },
+
+        _renderTipos() {
+            const canvas = this.$refs.chartTipos;
+            if (!canvas || this.ingresosTipoData.length === 0) return;
+            if (this.chartTipos) this.chartTipos.destroy();
+            const colores = ['#5B8CC6', '#4A5F7F', '#7FB069', '#E4572E', '#9E7BB5'];
+            this.chartTipos = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: this.ingresosTipoData.map(t => t.tipo),
+                    datasets: [{
+                        data: this.ingresosTipoData.map(t => Number(t.ingresos)),
+                        backgroundColor: colores.slice(0, this.ingresosTipoData.length)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+    };
 }

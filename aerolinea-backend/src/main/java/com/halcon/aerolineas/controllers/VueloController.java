@@ -15,8 +15,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.halcon.aerolineas.dao.CategoriaVueloDAO;
+import com.halcon.aerolineas.models.CategoriaVuelo;
 import com.halcon.aerolineas.models.Vuelo;
 import com.halcon.aerolineas.services.VueloService;
 import com.halcon.aerolineas.utils.JsonResponse;
@@ -43,19 +47,21 @@ import com.halcon.aerolineas.utils.JsonResponse;
 @WebServlet("/api/vuelos/*")
 public class VueloController extends HttpServlet {
     private VueloService vueloService;
-    
+    private CategoriaVueloDAO categoriaVueloDAO;
+
     /**
      * Inicializa el servicio de vuelos.
      * <p>
      * Este método es invocado automáticamente por el contenedor de servlets
      * cuando se carga el servlet.
      * </p>
-     * 
+     *
      * @throws ServletException si ocurre un error durante la inicialización.
      */
     @Override
     public void init() throws ServletException {
         this.vueloService = new VueloService();
+        this.categoriaVueloDAO = new CategoriaVueloDAO();
     }
     
     /**
@@ -113,6 +119,9 @@ public class VueloController extends HttpServlet {
                     // ✅ VUELO NORMAL
                     Long id = Long.parseLong(idParam);
                     Vuelo vuelo = vueloService.obtenerVuelo(id);
+                    if (vuelo != null) {
+                        vuelo.setCategorias(categoriaVueloDAO.findByVueloId(id));
+                    }
                     out.print(JsonResponse.success(vuelo));
                 }
 
@@ -195,17 +204,28 @@ public class VueloController extends HttpServlet {
             String horaSalida = json.get("horaSalida").getAsString();
             LocalDate fechaLlegada = LocalDate.parse(json.get("fechaLlegada").getAsString());
             String horaLlegada = json.get("horaLlegada").getAsString();
-            String tipoAsiento = json.get("tipoAsiento").getAsString();
-            BigDecimal precioBase = new BigDecimal(json.get("precioBase").getAsString());
-            Integer asientosTotales = json.get("asientosTotales").getAsInt();
-            
-            // Crear vuelo
-            Vuelo vuelo = vueloService.crearVuelo(
-                codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
-                fechaSalida, horaSalida, fechaLlegada, horaLlegada, tipoAsiento,
-                precioBase, asientosTotales, idUsuarioCreador
-            );
-            
+            String tipoAsiento = json.has("tipoAsiento") ? json.get("tipoAsiento").getAsString() : "TURISTA";
+            BigDecimal precioBase = json.has("precioBase") ? new BigDecimal(json.get("precioBase").getAsString()) : BigDecimal.ZERO;
+            Integer asientosTotales = json.has("asientosTotales") ? json.get("asientosTotales").getAsInt() : 0;
+
+            List<CategoriaVuelo> categorias = parseCategorias(json);
+
+            Vuelo vuelo;
+            if (categorias != null && !categorias.isEmpty()) {
+                vuelo = vueloService.crearVueloConCategorias(
+                    codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
+                    fechaSalida, horaSalida, fechaLlegada, horaLlegada, tipoAsiento,
+                    precioBase, asientosTotales, idUsuarioCreador, categorias
+                );
+                vuelo.setCategorias(categoriaVueloDAO.findByVueloId(vuelo.getIdVuelo()));
+            } else {
+                vuelo = vueloService.crearVuelo(
+                    codigoVuelo, origenCiudad, origenIata, destinoCiudad, destinoIata,
+                    fechaSalida, horaSalida, fechaLlegada, horaLlegada, tipoAsiento,
+                    precioBase, asientosTotales, idUsuarioCreador
+                );
+            }
+
             response.setStatus(201);
             out.print(JsonResponse.success("Vuelo creado exitosamente", vuelo));
             
@@ -262,17 +282,29 @@ public class VueloController extends HttpServlet {
             vuelo.setHoraSalida(json.get("horaSalida").getAsString());
             vuelo.setFechaLlegada(LocalDate.parse(json.get("fechaLlegada").getAsString()));
             vuelo.setHoraLlegada(json.get("horaLlegada").getAsString());
-            vuelo.setTipoAsiento(json.get("tipoAsiento").getAsString());
-            vuelo.setPrecioBase(json.get("precioBase").getAsBigDecimal());
-            vuelo.setAsientosTotales(json.get("asientosTotales").getAsInt());
+            if (json.has("tipoAsiento")) {
+                vuelo.setTipoAsiento(json.get("tipoAsiento").getAsString());
+            }
+            if (json.has("precioBase")) {
+                vuelo.setPrecioBase(json.get("precioBase").getAsBigDecimal());
+            }
+            if (json.has("asientosTotales")) {
+                vuelo.setAsientosTotales(json.get("asientosTotales").getAsInt());
+            }
             if (json.has("asientosDisponibles")) {
                 vuelo.setAsientosDisponibles(json.get("asientosDisponibles").getAsInt());
             }
             if (json.has("estado")) {
                 vuelo.setEstado(json.get("estado").getAsString());
             }
-            
-            vueloService.actualizarVuelo(vuelo);
+
+            List<CategoriaVuelo> categorias = parseCategorias(json);
+            if (categorias != null && !categorias.isEmpty()) {
+                vueloService.actualizarVueloConCategorias(vuelo, categorias);
+                vuelo.setCategorias(categoriaVueloDAO.findByVueloId(vuelo.getIdVuelo()));
+            } else {
+                vueloService.actualizarVuelo(vuelo);
+            }
             out.print(JsonResponse.success("Vuelo actualizado exitosamente", vuelo));
             
         } catch (Exception e) {
@@ -377,18 +409,49 @@ public class VueloController extends HttpServlet {
 
         System.out.println("=== Entrando a handleListarVuelosAdmin ===");
 
-        //if (!esAdmin(request)) {
-          //  System.out.println("Usuario no es admin");
-            //throw new IllegalAccessException("Acceso denegado - Solo administradores");
-        //}
-
-        System.out.println("Usuario es admin");
-
         List<Vuelo> vuelos = vueloService.listarVuelos(1, 100);
 
-        System.out.println("Vuelos obtenidos: " + vuelos.size());
+        // Hidratar categorias[] en una sola consulta batch para evitar N+1.
+        java.util.Set<Long> ids = new java.util.HashSet<>();
+        for (Vuelo v : vuelos) ids.add(v.getIdVuelo());
+        java.util.Map<Long, java.util.List<CategoriaVuelo>> porVuelo = categoriaVueloDAO.findByVueloIds(ids);
+        for (Vuelo v : vuelos) {
+            java.util.List<CategoriaVuelo> cats = porVuelo.get(v.getIdVuelo());
+            v.setCategorias(cats != null ? cats : new java.util.ArrayList<>());
+        }
 
+        System.out.println("Vuelos obtenidos: " + vuelos.size());
         out.print(JsonResponse.success(vuelos));
+    }
+
+    /**
+     * Lee {@code categorias[]} del body si está presente. Cada entrada acepta
+     * {@code idCategoria} (para edición), {@code tipoAsiento}, {@code precio},
+     * {@code asientosTotales}, y opcionalmente {@code asientosDisponibles}.
+     * Devuelve {@code null} si el campo no aparece o está vacío.
+     */
+    private List<CategoriaVuelo> parseCategorias(JsonObject json) {
+        if (!json.has("categorias") || json.get("categorias").isJsonNull()) return null;
+        JsonElement el = json.get("categorias");
+        if (!el.isJsonArray()) return null;
+        JsonArray arr = el.getAsJsonArray();
+        if (arr.size() == 0) return null;
+        List<CategoriaVuelo> out = new ArrayList<>();
+        for (JsonElement item : arr) {
+            JsonObject obj = item.getAsJsonObject();
+            CategoriaVuelo c = new CategoriaVuelo();
+            if (obj.has("idCategoria") && !obj.get("idCategoria").isJsonNull()) {
+                c.setIdCategoria(obj.get("idCategoria").getAsLong());
+            }
+            c.setTipoAsiento(obj.get("tipoAsiento").getAsString());
+            c.setPrecio(new BigDecimal(obj.get("precio").getAsString()));
+            c.setAsientosTotales(obj.get("asientosTotales").getAsInt());
+            if (obj.has("asientosDisponibles") && !obj.get("asientosDisponibles").isJsonNull()) {
+                c.setAsientosDisponibles(obj.get("asientosDisponibles").getAsInt());
+            }
+            out.add(c);
+        }
+        return out;
     }
     
     /**

@@ -13,12 +13,14 @@ namespace HotelesAPI.Controllers
         private readonly AgenciaDAO _agenciaDAO;
         private readonly HabitacionDAO _habitacionDAO;
         private readonly ReservacionDAO _reservacionDAO;
+        private readonly HuespedReservaDAO _huespedDAO;
 
         public B2BController()
         {
             _agenciaDAO    = new AgenciaDAO();
             _habitacionDAO = new HabitacionDAO();
             _reservacionDAO = new ReservacionDAO();
+            _huespedDAO    = new HuespedReservaDAO();
         }
 
         private Agencia? ValidarToken()
@@ -131,6 +133,33 @@ namespace HotelesAPI.Controllers
 
                 int id = _reservacionDAO.Create(reservacion);
 
+                int huespedesGuardados = 0;
+                if (dto.Huespedes != null && dto.Huespedes.Count > 0)
+                {
+                    foreach (var h in dto.Huespedes)
+                    {
+                        try
+                        {
+                            _huespedDAO.Crear(new HuespedReserva
+                            {
+                                IdReservacion = id,
+                                Nombre        = (h.Nombre ?? string.Empty).Trim(),
+                                Apellidos     = (h.Apellidos ?? string.Empty).Trim(),
+                                Edad          = h.Edad,
+                                TipoDocumento = string.IsNullOrWhiteSpace(h.TipoDocumento) ? "Pasaporte" : h.TipoDocumento,
+                                Documento     = (h.Documento ?? string.Empty).Trim(),
+                                Nacionalidad  = h.Nacionalidad ?? string.Empty,
+                                EsTitular     = h.EsTitular
+                            });
+                            huespedesGuardados++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[B2B] Error guardando huesped: {ex.Message}");
+                        }
+                    }
+                }
+
                 _habitacionDAO.CambiarEstado(dto.IdHabitacion, "Ocupada");
 
                 return StatusCode(201, JsonResponse.Ok("Reservacion B2B creada exitosamente", new
@@ -149,7 +178,8 @@ namespace HotelesAPI.Controllers
                     iva,
                     total,
                     estado                  = "Confirmada",
-                    inventarioSincronizado  = true
+                    inventarioSincronizado  = true,
+                    huespedesGuardados
                 }));
             }
             catch (Exception ex)

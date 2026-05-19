@@ -334,14 +334,28 @@ const _resolverIata = async (valor) => {
     const trimmed = valor.trim();
     if (/^[A-Za-z]{2,4}$/.test(trimmed)) return trimmed.toUpperCase();
     try {
+        // Requerir codigo de 3 letras: los IATA estandar son siempre 3
+        // (GUA, MIA, MEX...). Sin este filtro la cache puede devolver
+        // codigos ISO de pais de 2 letras (GT, US, MX) que la aerolinea
+        // no reconoce, devolviendo 0 vuelos aunque exista la ruta.
         const [rows] = await db.query(
             `SELECT codigo FROM cache_destinos
-             WHERE LOWER(valor) = LOWER(?) AND codigo IS NOT NULL
+             WHERE LOWER(valor) = LOWER(?)
+               AND codigo IS NOT NULL
+               AND LENGTH(codigo) = 3
              LIMIT 1`,
             [trimmed]
         );
         if (rows.length && rows[0].codigo) return rows[0].codigo.toUpperCase();
     } catch {}
+    // Fallback inverso usando IATA_CIUDAD_FALLBACK: si la cache no tiene
+    // mapeo nombre→IATA (caso comun: la cache solo guarda direcciones de
+    // Google Places con codigo=NULL), usamos el mismo mapa estatico que
+    // ya conoce las ciudades principales.
+    const lower = trimmed.toLowerCase();
+    for (const [iata, ciudad] of Object.entries(IATA_CIUDAD_FALLBACK)) {
+        if (ciudad.toLowerCase() === lower) return iata;
+    }
     return trimmed.toUpperCase();
 };
 

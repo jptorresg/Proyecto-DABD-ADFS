@@ -298,9 +298,15 @@ const fromPackage = up.get('from_package') === '1';
 // Variables que se llenan según sea checkout normal o desde paquetes
 let tipoReserva, idVuelo, idHabitacion, idProveedor, idProveedorHotel;
 let precioBase, precioHotel, asiento, numPax;
+let precioProveedor, tipoHabitacion, nombreHotel;
 let origen, destino, ciudad;
 let fechaSalida, fechaRegreso, fechaCheckin, fechaCheckout;
 let paqueteVuelo = null, paqueteHotel = null, paqueteSearch = null;
+
+// Datos de vuelo de regreso (solo si es ida y vuelta)
+let esIdaVuelta = false;
+let idVueloRegreso, codigoVueloRegreso, origenRegreso, destinoRegreso;
+let fechaSalidaRegreso, precioRegresoProveedor, precioIdaProveedor;
 
 if (fromPackage) {
   // ───── Checkout viene del wizard /paquetes ─────
@@ -320,7 +326,7 @@ if (fromPackage) {
   idProveedor      = paqueteVuelo.id_proveedor;
   idHabitacion     = paqueteHotel?.id_habitacion || null;
   idProveedorHotel = paqueteHotel?.id_proveedor  || null;
-  precioBase       = parseFloat(paqueteVuelo.precio_agencia || 0);
+  precioBase       = parseFloat(paqueteVuelo.precio_total_agencia || paqueteVuelo.precio_agencia || 0);
   precioHotel      = parseFloat(paqueteHotel?.precio_noche_agencia || 0);
   asiento          = paqueteVuelo.tipo_asiento || 'turista';
   numPax           = parseInt(paqueteSearch.num_pasajeros || 1);
@@ -331,21 +337,48 @@ if (fromPackage) {
   fechaRegreso     = paqueteSearch.fecha_regreso || '';
   fechaCheckin     = paqueteSearch.fecha_salida  || '';
   fechaCheckout    = paqueteSearch.fecha_regreso || '';
+
+  // Si el vuelo del paquete es ida y vuelta, leemos el regreso del objeto guardado
+  if (paqueteVuelo.es_ida_vuelta && paqueteVuelo.regreso) {
+    esIdaVuelta            = true;
+    idVueloRegreso         = paqueteVuelo.regreso.id_vuelo;
+    codigoVueloRegreso     = paqueteVuelo.regreso.codigo_vuelo;
+    origenRegreso          = paqueteVuelo.regreso.origen_iata  || paqueteVuelo.regreso.origen_ciudad  || '';
+    destinoRegreso         = paqueteVuelo.regreso.destino_iata || paqueteVuelo.regreso.destino_ciudad || '';
+    fechaSalidaRegreso     = paqueteVuelo.regreso.fecha_salida;
+    precioRegresoProveedor = parseFloat(paqueteVuelo.regreso.precio_proveedor || 0);
+    precioIdaProveedor     = parseFloat(paqueteVuelo.precio_proveedor || 0);
+  }
 } else {
   // ───── Checkout normal (vuelo solo o hotel solo) ─────
-  tipoReserva   = up.get('tipo')          || 'vuelo';
-  idVuelo       = up.get('id_vuelo')      || null;
-  idHabitacion  = up.get('id_habitacion') || null;
-  idProveedor   = up.get('id_proveedor')  || null;
-  precioBase    = parseFloat(up.get('precio') || 0);
-  asiento       = up.get('asiento')       || 'turista';
-  numPax        = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
-  origen        = up.get('origen')        || '';
-  destino       = up.get('destino')       || '';
-  ciudad        = up.get('ciudad')        || '';
-  fechaSalida   = up.get('fecha_salida')  || '';
-  fechaCheckin  = up.get('fecha_checkin') || '';
-  fechaCheckout = up.get('fecha_checkout')|| '';
+  tipoReserva     = up.get('tipo')          || 'vuelo';
+  idVuelo         = up.get('id_vuelo')      || null;
+  idHabitacion    = up.get('id_habitacion') || null;
+  idProveedor     = up.get('id_proveedor')  || null;
+  precioBase      = parseFloat(up.get('precio') || 0);
+  precioProveedor = parseFloat(up.get('precio_proveedor') || precioBase);
+  tipoHabitacion  = up.get('tipo_habitacion') || '';
+  nombreHotel     = up.get('nombre_hotel')    || '';
+  asiento         = up.get('asiento')       || 'turista';
+  numPax          = parseInt(up.get('num_pasajeros') || up.get('num_huespedes') || 1);
+  origen          = up.get('origen')        || '';
+  destino         = up.get('destino')       || '';
+  ciudad          = up.get('ciudad')        || '';
+  fechaSalida     = up.get('fecha_salida')  || '';
+  fechaCheckin    = up.get('fecha_checkin') || '';
+  fechaCheckout   = up.get('fecha_checkout')|| '';
+
+  // Regreso: cuando viene un vuelo roundtrip los params extra están en la URL
+  if (up.get('id_vuelo_regreso')) {
+    esIdaVuelta            = true;
+    idVueloRegreso         = up.get('id_vuelo_regreso');
+    codigoVueloRegreso     = up.get('codigo_vuelo_regreso') || '';
+    origenRegreso          = up.get('origen_regreso')       || '';
+    destinoRegreso         = up.get('destino_regreso')      || '';
+    fechaSalidaRegreso     = up.get('fecha_regreso')        || '';
+    precioRegresoProveedor = parseFloat(up.get('precio_regreso') || 0);
+    precioIdaProveedor     = parseFloat(up.get('precio_ida')     || 0);
+  }
 }
     /*! @} */
 
@@ -377,7 +410,7 @@ if (fromPackage) {
      * \details Calcula subtotal, impuestos y total, y genera HTML con los detalles
      * de la reserva según el tipo (vuelo, hotel o paquete)
      */
-     const TAX_RATE = 0.10;
+     const TAX_RATE = 0.12;
 
      (function renderSummary() {
        let subtotalVuelo = 0, subtotalHotel = 0, descuento = 0, pctDesc = 0;
@@ -497,6 +530,17 @@ if (fromPackage) {
      * y maneja la respuesta (éxito o error)
      * \async
      */
+    function calcularEdad(fechaNacIso) {
+      if (!fechaNacIso) return 0;
+      const hoy   = new Date();
+      const nac   = new Date(fechaNacIso);
+      if (isNaN(nac)) return 0;
+      let edad = hoy.getFullYear() - nac.getFullYear();
+      const m  = hoy.getMonth() - nac.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+      return Math.max(0, edad);
+    }
+
     async function confirmarPago() {
       // Validación básica de campos requeridos
       const reqs = ['nombres','apellidos','fecha_nac','nacionalidad','pasaporte','correo_pago','card-number','card-name','expiry','cvv'];
@@ -540,6 +584,10 @@ if (fromPackage) {
       };
 
       if ((tipoReserva === 'vuelo' || tipoReserva === 'paquete') && idVuelo) {
+        // Para roundtrip, el precio de la ida sola; si no es roundtrip,
+        // usamos el precio base que ya viene en el payload (compatible con flujo anterior).
+        const precioVueloIda = esIdaVuelta ? precioIdaProveedor : precioBase;
+
         payload.vuelo = {
           id_vuelo:         idVuelo,
           id_proveedor:     parseInt(idProveedor),
@@ -547,18 +595,62 @@ if (fromPackage) {
           destino:          destino,
           fecha_salida:     fechaSalida,
           tipo_asiento:     asiento,
-          precio_proveedor: precioBase,
+          precio_proveedor: precioVueloIda,
           pasajeros:        [pasajero],
+          codigo_vuelo:     fromPackage ? (paqueteVuelo?.codigo_vuelo || '') : (up.get('codigo_vuelo') || ''),
         };
+
+        // Solo agregamos vuelo_regreso si la búsqueda fue ida y vuelta.
+        if (esIdaVuelta && idVueloRegreso) {
+          payload.vuelo_regreso = {
+            id_vuelo:         idVueloRegreso,
+            id_proveedor:     parseInt(idProveedor),
+            origen:           origenRegreso,
+            destino:          destinoRegreso,
+            fecha_salida:     fechaSalidaRegreso,
+            tipo_asiento:     asiento,
+            precio_proveedor: precioRegresoProveedor,
+            pasajeros:        [pasajero],
+            codigo_vuelo:     codigoVueloRegreso || '',
+          };
+        }
       }
 
       if ((tipoReserva === 'hotel' || tipoReserva === 'paquete') && idHabitacion) {
         // Si venimos de paquete, los datos del hotel tienen su propio proveedor y precio
         const idProvHotel  = fromPackage ? idProveedorHotel : parseInt(idProveedor);
-        const precioNoche  = fromPackage ? (paqueteHotel?.precio_noche_proveedor ?? precioHotel) : precioBase;
-        const nombreHotel  = fromPackage ? (paqueteHotel?.nombre_hotel || '') : '';
-        const tipoHab      = fromPackage ? (paqueteHotel?.tipo_habitacion || 'doble') : 'doble';
-      
+        const precioNoche  = fromPackage
+          ? (paqueteHotel?.precio_noche_proveedor ?? precioHotel)
+          : precioProveedor;
+        const nombreHotelV = fromPackage ? (paqueteHotel?.nombre_hotel || '') : nombreHotel;
+        const tipoHab      = fromPackage
+          ? (paqueteHotel?.tipo_habitacion || 'No especificado')
+          : (tipoHabitacion || 'No especificado');
+
+        // El huésped principal lo derivamos del formulario; los demás quedan como
+        // acompañantes sin datos completos (TravelNow solo recoge un titular hoy).
+        const huespedTitular = {
+          nombre:        pasajero.nombres,
+          apellidos:     pasajero.apellidos,
+          edad:          calcularEdad(pasajero.fecha_nacimiento),
+          tipo_documento:'Pasaporte',
+          documento:     pasajero.num_pasaporte,
+          nacionalidad:  document.getElementById('nacionalidad').selectedOptions[0]?.textContent?.trim() || '',
+          es_titular:    true,
+        };
+        const huespedes = [huespedTitular];
+        for (let i = 1; i < numPax; i++) {
+          huespedes.push({
+            nombre:        `Acompañante ${i}`,
+            apellidos:     pasajero.apellidos,
+            edad:          18,
+            tipo_documento:'Pasaporte',
+            documento:     `SIN-DOC-${i}`,
+            nacionalidad:  huespedTitular.nacionalidad,
+            es_titular:    false,
+          });
+        }
+
         payload.hotel = {
           id_habitacion:          idHabitacion,
           id_proveedor:           idProvHotel,
@@ -567,8 +659,9 @@ if (fromPackage) {
           fecha_checkout:         fechaCheckout,
           num_huespedes:          numPax,
           precio_noche_proveedor: precioNoche,
-          nombre_hotel:           nombreHotel,
+          nombre_hotel:           nombreHotelV,
           tipo_habitacion:        tipoHab,
+          huespedes:              huespedes,
         };
       }
 

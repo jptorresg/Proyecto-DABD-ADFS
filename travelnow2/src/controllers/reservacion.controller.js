@@ -102,8 +102,8 @@ const crear = async (req, res) => {
             );
         }
 
-        /// Procesar vuelo de regreso (solo para tipo vuelo con ida y vuelta)
-        if (tipo === 'vuelo' && vuelo_regreso) {
+        /// Procesar vuelo de regreso (para tipo vuelo o paquete con ida y vuelta)
+        if ((tipo === 'vuelo' || tipo === 'paquete') && vuelo_regreso) {
             if (!vuelo_regreso.id_proveedor)      throw new Error('Falta id_proveedor en el vuelo de regreso');
             if (!vuelo_regreso.pasajeros?.length) throw new Error('Se requiere al menos un pasajero para el vuelo de regreso');
 
@@ -164,6 +164,7 @@ const crear = async (req, res) => {
                 num_huespedes:      hotel.num_huespedes,
                 metodo_pago:        'transferencia',
                 notas:              `Reserva TravelNow - ${codigoReserva}`,
+                huespedes:          Array.isArray(hotel.huespedes) ? hotel.huespedes : [],
             });
             const codigoHotelProv = String(respHotel?.idReservacion ?? '');
 
@@ -185,7 +186,7 @@ const crear = async (req, res) => {
                 [
                     idReservacion, hotel.id_proveedor, codigoHotelProv,
                     hotel.nombre_hotel || '', hotel.ciudad || '',
-                    hotel.tipo_habitacion || 'doble',
+                    hotel.tipo_habitacion || 'No especificado',
                     hotel.fecha_checkin, hotel.fecha_checkout, hotel.num_huespedes,
                     hotel.precio_noche_proveedor, prov.porcentaje_ganancia, montoHotel,
                 ]

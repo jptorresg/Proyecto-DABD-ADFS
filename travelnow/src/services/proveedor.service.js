@@ -160,6 +160,30 @@ const clienteHotel = (prov) => axios.create({
     },
 });
 
+/**
+ * Cliente B2B para la aerolínea. Usa el token Bearer guardado en
+ * proveedor.api_password (mismo patrón que Bedly) y NO requiere una sesión
+ * previa con login.
+ *
+ * Si el proveedor todavía no tiene un token B2B configurado (api_password
+ * vacío) caemos al flujo legacy con login + cookie en `_crearClienteAerolinea`.
+ */
+const clienteAerolineaB2B = (prov) => axios.create({
+    baseURL: prov.endpoint_api,
+    timeout: 15_000,
+    headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${prov.api_password}`,
+    },
+});
+
+const _provTieneTokenB2B = (prov) => {
+    // Heurística simple: si el api_password parece un GUID/UUID (caracteres
+    // hex con guiones) lo tratamos como token; si no, asumimos password legacy.
+    if (!prov?.api_password) return false;
+    return /^[0-9a-fA-F-]{20,}$/.test(prov.api_password.trim());
+};
+
 // ── Aerolínea ────────────────────────────────────────────────
 
 /**
@@ -191,17 +215,27 @@ const clienteHotel = (prov) => axios.create({
 const buscarVuelos = async (idProveedor, params) => {
     const prov = await getConfig(idProveedor);
     const queryParams = {};
-    if (params.origen)       queryParams.origen       = params.origen.toUpperCase().trim();
-    if (params.destino)      queryParams.destino      = params.destino.toUpperCase().trim();
-    if (params.fecha_salida) queryParams.fechaSalida  = String(params.fecha_salida).trim();
-    if (params.tipo_asiento) queryParams.tipoAsiento  = String(params.tipo_asiento).toUpperCase().trim();
+    if (params.origen)        queryParams.origen        = params.origen.toUpperCase().trim();
+    if (params.destino)       queryParams.destino       = params.destino.toUpperCase().trim();
+    if (params.fecha_salida)  queryParams.fechaSalida   = String(params.fecha_salida).trim();
+    if (params.fecha_regreso) queryParams.fechaRegreso  = String(params.fecha_regreso).trim();
+    if (params.tipo_asiento)  queryParams.tipoAsiento   = String(params.tipo_asiento).toUpperCase().trim();
 
     console.log(
         `[Aerolinea] buscarVuelos → proveedor="${prov.nombre}"`,
         `params=${JSON.stringify(queryParams)}`
     );
 
+    // Si hay token B2B usamos el endpoint protegido /api/b2b/vuelos; si no,
+    // caemos al endpoint legacy con sesión cookie.
+    const usarB2B = _provTieneTokenB2B(prov);
+
     const hacerRequest = async (qp) => {
+        if (usarB2B) {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.get('/api/b2b/vuelos', { params: qp });
+            return data;
+        }
         const raw = await _withRetry(prov, async (client) => {
             const { data } = await client.get('/api/vuelos', { params: qp });
             return data;
@@ -238,26 +272,86 @@ const buscarVuelos = async (idProveedor, params) => {
 
     console.log(`[Aerolinea] "${prov.nombre}" devolvio ${vuelos.length} vuelo(s)`);
 
-    return vuelos.map(v => ({
-        id_vuelo:             v.idVuelo,
-        codigo_vuelo:         v.codigoVuelo,
-        origen_ciudad:        v.origenCiudad,
-        origen_iata:          v.origenCodigoIata,
-        destino_ciudad:       v.destinoCiudad,
-        destino_iata:         v.destinoCodigoIata,
-        fecha_salida:         v.fechaSalida,
-        fecha_llegada:        v.fechaLlegada,
-        hora_salida:          v.horaSalida,
-        hora_llegada:         v.horaLlegada,
-        tipo_asiento:         v.tipoAsiento,
-        asientos_disponibles: v.asientosDisponibles ?? 0,
-        precio_proveedor:     parseFloat(v.precioBase) || 0,
-        precio_agencia:       calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
-        porcentaje_ganancia:  prov.porcentaje_ganancia,
-        nombre_proveedor:     prov.nombre,
-        id_proveedor:         prov.id_proveedor,
-        tipo:                 'vuelo',
-    }));
+    // Helper: construye el objeto plano que TravelNow consume a partir de un
+    // subconjunto de tramos. Sirve tanto para vuelos directos (un tramo) como
+    // para tramos compuestos (escalas o un sentido completo de un roundtrip).
+    const tramoToPlain = (tramos) => {
+        if (!Array.isArray(tramos) || tramos.length === 0) return null;
+        const primero = tramos[0];
+        const ultimo  = tramos[tramos.length - 1];
+        const precioBase = tramos.reduce((s, t) => s + (parseFloat(t.precioBase) || 0), 0);
+        const capacidad  = Math.min(...tramos.map(t => t.asientosDisponibles ?? 0));
+        return {
+            id_vuelo:             tramos.map(t => t.idVuelo).join('-'),
+            codigo_vuelo:         tramos.map(t => t.codigoVuelo).join('+'),
+            origen_ciudad:        primero.origenCiudad,
+            origen_iata:          primero.origenCodigoIata,
+            destino_ciudad:       ultimo.destinoCiudad,
+            destino_iata:         ultimo.destinoCodigoIata,
+            fecha_salida:         primero.fechaSalida,
+            fecha_llegada:        ultimo.fechaLlegada,
+            hora_salida:          primero.horaSalida,
+            hora_llegada:         ultimo.horaLlegada,
+            tipo_asiento:         primero.tipoAsiento,
+            asientos_disponibles: capacidad,
+            precio_proveedor:     precioBase,
+            precio_agencia:       calcularPrecioConGanancia(precioBase, prov.porcentaje_ganancia),
+        };
+    };
+
+    return vuelos.map(v => {
+        // Caso roundtrip: el backend devuelve un VueloConEscala con
+        // esIdaYVuelta=true y numTramosIda indicando dónde termina la ida.
+        // Lo partimos en {ida, regreso} para que el controlador de reservas
+        // pueda procesarlos como dos detalle_vuelo separados (uno con
+        // es_regreso=0 y otro con es_regreso=1).
+        if (v.esIdaYVuelta && Array.isArray(v.tramos) && v.numTramosIda > 0) {
+            const idaTramos     = v.tramos.slice(0, v.numTramosIda);
+            const regresoTramos = v.tramos.slice(v.numTramosIda);
+            const ida     = tramoToPlain(idaTramos);
+            const regreso = tramoToPlain(regresoTramos);
+            const precioTotal = (ida?.precio_proveedor || 0) + (regreso?.precio_proveedor || 0);
+
+            return {
+                ...ida,
+                porcentaje_ganancia: prov.porcentaje_ganancia,
+                nombre_proveedor:    prov.nombre,
+                id_proveedor:        prov.id_proveedor,
+                tipo:                'vuelo',
+                es_ida_vuelta:       true,
+                num_tramos_ida:      v.numTramosIda,
+                regreso:             regreso ? {
+                    ...regreso,
+                    porcentaje_ganancia: prov.porcentaje_ganancia,
+                } : null,
+                precio_total_proveedor: precioTotal,
+                precio_total_agencia:   calcularPrecioConGanancia(precioTotal, prov.porcentaje_ganancia),
+            };
+        }
+
+        // Caso ida solo (directo o con escalas): plano como siempre.
+        return {
+            id_vuelo:             v.idVuelo,
+            codigo_vuelo:         v.codigoVuelo,
+            origen_ciudad:        v.origenCiudad,
+            origen_iata:          v.origenCodigoIata,
+            destino_ciudad:       v.destinoCiudad,
+            destino_iata:         v.destinoCodigoIata,
+            fecha_salida:         v.fechaSalida,
+            fecha_llegada:        v.fechaLlegada,
+            hora_salida:          v.horaSalida,
+            hora_llegada:         v.horaLlegada,
+            tipo_asiento:         v.tipoAsiento,
+            asientos_disponibles: v.asientosDisponibles ?? 0,
+            precio_proveedor:     parseFloat(v.precioBase) || 0,
+            precio_agencia:       calcularPrecioConGanancia(v.precioBase, prov.porcentaje_ganancia),
+            porcentaje_ganancia:  prov.porcentaje_ganancia,
+            nombre_proveedor:     prov.nombre,
+            id_proveedor:         prov.id_proveedor,
+            tipo:                 'vuelo',
+            es_ida_vuelta:        false,
+        };
+    });
 };
 
 /**
@@ -301,12 +395,22 @@ const reservarVuelo = async (idProveedor, payload) => {
         })),
     };
 
-    const raw = await _withRetry(prov, async (client) => {
-        const { data } = await client.post('/api/reservaciones', body, {
-            headers: { 'x-usuario-id': String(payload.id_usuario_externo ?? 1) },
+    const usuarioHeader = String(payload.id_usuario_externo ?? 1);
+
+    const raw = _provTieneTokenB2B(prov)
+        ? await (async () => {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.post('/api/b2b/reservaciones', body, {
+                headers: { 'x-usuario-id': usuarioHeader },
+            });
+            return data;
+        })()
+        : await _withRetry(prov, async (client) => {
+            const { data } = await client.post('/api/reservaciones', body, {
+                headers: { 'x-usuario-id': usuarioHeader },
+            });
+            return data;
         });
-        return data;
-    });
 
     // El backend responde: { success, message, data: [reservacion, ...] }
     // Normalizamos a un array en todos los casos.
@@ -345,12 +449,20 @@ const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
     // Cancelamos cada tramo por separado.
     const ids = String(idReservacionProveedor).split('-').filter(Boolean);
     const resultados = [];
+    const usarB2B = _provTieneTokenB2B(prov);
     for (const id of ids) {
         try {
-            const raw = await _withRetry(prov, async (client) => {
-                const { data } = await client.put(`/api/reservaciones/${id}/cancelar`);
-                return data;
-            });
+            let raw;
+            if (usarB2B) {
+                const client = clienteAerolineaB2B(prov);
+                const { data } = await client.put(`/api/b2b/reservaciones/${id}/cancelar`);
+                raw = data;
+            } else {
+                raw = await _withRetry(prov, async (client) => {
+                    const { data } = await client.put(`/api/reservaciones/${id}/cancelar`);
+                    return data;
+                });
+            }
             resultados.push(raw?.data ?? raw);
         } catch (e) {
             console.error(`[Aerolinea] Fallo cancelando tramo ${id}: ${e.message}`);
@@ -363,10 +475,17 @@ const cancelarVuelo = async (idProveedor, idReservacionProveedor) => {
 const obtenerOrigenesDestinos = async (idProveedor) => {
     const prov = await getConfig(idProveedor);
     try {
-        const raw = await _withRetry(prov, async (client) => {
-            const { data } = await client.get('/api/paises');
-            return data;
-        });
+        let raw;
+        if (_provTieneTokenB2B(prov)) {
+            const client = clienteAerolineaB2B(prov);
+            const { data } = await client.get('/api/b2b/paises');
+            raw = data;
+        } else {
+            raw = await _withRetry(prov, async (client) => {
+                const { data } = await client.get('/api/paises');
+                return data;
+            });
+        }
         const paises = raw?.data ?? (Array.isArray(raw) ? raw : []);
         if (!Array.isArray(paises) || !paises.length) return { origenes: [], destinos: [] };
         const lista = paises.map(p => ({
@@ -411,7 +530,7 @@ const buscarHoteles = async (idProveedor, params) => {
         return {
             id_habitacion:          h.idHabitacion   ?? h.IdHabitacion,
             num_habitacion:         h.numHabitacion  ?? h.NumHabitacion,
-            tipo_habitacion:        (h.tipoHabitacion ?? h.TipoHabitacion ?? 'doble').toLowerCase(),
+            tipo_habitacion:        h.tipoHabitacion ?? h.TipoHabitacion ?? '',
             nombre_hotel:           h.nombreHotel    ?? h.NombreHotel,
             ciudad:                 h.ubicacion      ?? h.Ubicacion ?? params.ciudad,
             capacidad_max:          h.capacidadMax   ?? h.CapacidadMax,
@@ -444,6 +563,20 @@ const reservarHotel = async (idProveedor, payload) => {
 
     const idUsuarioResuelto = agenciaUserId;
 
+    // Bedly espera el contrato en camelCase. TravelNow internamente usa
+    // snake_case (consistente con sus columnas MySQL), por lo que traducimos
+    // aquí los campos compuestos antes de enviar.
+    const huespedesNormalizados = (Array.isArray(payload.huespedes) ? payload.huespedes : [])
+        .map(h => ({
+            nombre:        h.nombre        ?? '',
+            apellidos:     h.apellidos     ?? '',
+            edad:          parseInt(h.edad) || 0,
+            tipoDocumento: h.tipoDocumento ?? h.tipo_documento ?? 'Pasaporte',
+            documento:     h.documento     ?? '',
+            nacionalidad:  h.nacionalidad  ?? '',
+            esTitular:     h.esTitular     ?? h.es_titular ?? false,
+        }));
+
     const body = {
         idHabitacion:    payload.id_habitacion,
         idUsuario:       idUsuarioResuelto,
@@ -452,6 +585,7 @@ const reservarHotel = async (idProveedor, payload) => {
         numHuespedes:    parseInt(payload.num_huespedes) || 1,
         metodoPago:      payload.metodo_pago || 'transferencia',
         notasEspeciales: payload.notas || '',
+        huespedes:       huespedesNormalizados,
     };
 
     const { data } = await client.post('/api/b2b/reservar', body);

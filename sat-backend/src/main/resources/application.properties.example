@@ -1,0 +1,28 @@
+# =====================================================================
+# Plantilla. Copiala a application.properties (gitignored) y editala.
+#   cp application.properties.example application.properties
+# =====================================================================
+
+server.port=8090
+spring.application.name=sat-backend
+
+# --- Oracle ---
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521/XEPDB1
+spring.datasource.username=sat_db
+spring.datasource.password=tu_password_aqui
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+# Pool
+spring.datasource.hikari.maximum-pool-size=5
+
+# --- JWT ---
+# Secreto para firmar tokens. MIN 32 caracteres (256 bits HS256).
+# En produccion, cambiarlo por algo realmente aleatorio. NO commitear el real.
+sat.jwt.secret=ChangeMeChangeMeChangeMeChangeMeChangeMeChangeMe1234567890
+sat.jwt.expiration-hours=8
+
+# --- Bedly bridge ---
+# Cambiar a 5044 para apuntar a Bedly2 en vez de Bedly1.
+sat.bedly.base-url=http://localhost:5043
+sat.bedly.default-emisor-id=1
+sat.bedly.default-receptor-id=1

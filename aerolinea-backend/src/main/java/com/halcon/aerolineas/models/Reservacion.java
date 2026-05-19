@@ -21,7 +21,16 @@ public class Reservacion {
     
     /** Identificador del vuelo reservado. */
     private Long idVuelo;
-    
+
+    /**
+     * Identificador de la categoría (CATEGORIAS_VUELO) reservada.
+     * <p>
+     * Solo se setea en reservas creadas por la API v2 (POST /api/b2b/v2/reservaciones).
+     * En reservas v1 queda {@code null} y la cancelación devuelve asientos a
+     * VUELOS, no a una categoría específica.
+     */
+    private Long idCategoria;
+
     /** Identificador del usuario que realizó la reservación. */
     private Long idUsuario;
     
@@ -87,7 +96,13 @@ public class Reservacion {
      * @param idVuelo el identificador del vuelo reservado.
      */
     public void setIdVuelo(Long idVuelo) { this.idVuelo = idVuelo; }
-    
+
+    /** @return id_categoria de CATEGORIAS_VUELO si la reserva fue v2; null en v1. */
+    public Long getIdCategoria() { return idCategoria; }
+
+    /** @param idCategoria id_categoria asociada (solo v2). */
+    public void setIdCategoria(Long idCategoria) { this.idCategoria = idCategoria; }
+
     /**
      * @return el identificador del usuario que realizó la reservación.
      */

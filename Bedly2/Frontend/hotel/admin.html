@@ -199,12 +199,12 @@
                                 <template x-for="item in estadoHabitaciones" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -220,12 +220,12 @@
                                 <template x-for="item in estadoReservas" :key="item.estado">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle" style="width:10px; height:10px;" :style="'background:' + item.color"></div>
+                                            <div class="rounded-circle" :style="'width:10px; height:10px; background:' + item.color"></div>
                                             <span class="small" x-text="item.estado"></span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width:100px; height:6px; background:#e5e7eb; border-radius:3px; overflow:hidden;">
-                                                <div style="height:100%; border-radius:3px;" :style="'width:' + item.porcentaje + '%; background:' + item.color"></div>
+                                                <div :style="'height:100%; border-radius:3px; width:' + item.porcentaje + '%; background:' + item.color"></div>
                                             </div>
                                             <span class="fw-bold small" x-text="item.count"></span>
                                         </div>
@@ -612,7 +612,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label" style="font-size:0.82rem; font-weight:600; color:#6b7280; text-transform:uppercase;">Estrellas</label>
-                        <select class="form-select" x-model="formHotel.estrellas">
+                        <select class="form-select" x-model.number="formHotel.estrellas">
                             <option value="1">★ 1 estrella</option>
                             <option value="2">★★ 2 estrellas</option>
                             <option value="3">★★★ 3 estrellas</option>
@@ -726,7 +726,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    const API = 'http://localhost:5043/api';
+    const API = 'http://localhost:5044/api';
     function adminApp() {
         return {
             seccion: 'dashboard',
@@ -884,9 +884,13 @@
                         ? `${API}/admin/hoteles/${this.formHotel.idHotel}`
                         : `${API}/admin/hoteles`;
                     const method = this.modoEdicionHotel ? 'PUT' : 'POST';
+                    // En create, omitir idHotel: el modelo del backend lo declara
+                    // int (no nullable) y null dispara 400 en el binder de JSON.
+                    const payload = { ...this.formHotel };
+                    if (!this.modoEdicionHotel) delete payload.idHotel;
                     const res = await fetch(url, {
                         method, headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(this.formHotel)
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.success) {
@@ -1094,22 +1098,34 @@
             },
 
             get estadoHabitaciones() {
-                const total = this.stats.totalHabitaciones || 1;
-                return [
-                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles, color: '#10b981' },
-                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas, color: '#3b82f6' },
-                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento, color: '#f59e0b' },
-                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas, color: '#ef4444' }
-                ].map(s => ({ ...s, porcentaje: total > 0 ? Math.round((s.count / total) * 100) : 0 }));
+                const items = [
+                    { estado: 'Disponible', count: this.stats.habitacionesDisponibles || 0, color: '#10b981' },
+                    { estado: 'Ocupada', count: this.stats.habitacionesOcupadas || 0, color: '#3b82f6' },
+                    { estado: 'Mantenimiento', count: this.stats.habitacionesMantenimiento || 0, color: '#f59e0b' },
+                    { estado: 'Inactiva', count: this.stats.habitacionesInactivas || 0, color: '#ef4444' }
+                ];
+                // Si totalHabitaciones no llega del backend, lo calculamos como suma
+                // de los conteos por estado. Cap a 100% para que la barra nunca se
+                // desborde visualmente (caso degradado: counts inconsistentes).
+                const totalFromBackend = this.stats.totalHabitaciones;
+                const totalFromSum = items.reduce((acc, s) => acc + Number(s.count || 0), 0);
+                const total = (totalFromBackend && totalFromBackend > 0) ? totalFromBackend : totalFromSum;
+                return items.map(s => ({
+                    ...s,
+                    porcentaje: total > 0 ? Math.min(100, Math.round((s.count / total) * 100)) : 0
+                }));
             },
 
             get estadoReservas() {
-                const total = this.todasReservas.length || 1;
                 const grupos = {};
                 this.todasReservas.forEach(r => {
                     const e = r.estado || 'Pendiente';
                     grupos[e] = (grupos[e] || 0) + 1;
                 });
+                // El total real para el porcentaje es la suma de los conteos
+                // observados (no this.todasReservas.length crudo, que podria
+                // diferir si hay reservas sin estado).
+                const total = Object.values(grupos).reduce((acc, n) => acc + n, 0) || this.todasReservas.length || 0;
                 const colores = {
                     'Confirmada': '#10b981',
                     'Pendiente': '#f59e0b',
@@ -1121,7 +1137,7 @@
                 return Object.entries(grupos).map(([estado, count]) => ({
                     estado, count,
                     color: colores[estado] || '#94a3b8',
-                    porcentaje: Math.round((count / total) * 100)
+                    porcentaje: total > 0 ? Math.min(100, Math.round((count / total) * 100)) : 0
                 }));
             },
 

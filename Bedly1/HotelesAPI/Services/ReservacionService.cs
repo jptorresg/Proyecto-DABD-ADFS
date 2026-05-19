@@ -14,6 +14,7 @@ namespace HotelesAPI.Services
         private readonly UsuarioDAO _usuarioDAO;
         private readonly EmailService _emailService;
         private readonly HuespedReservaDAO _huespedDAO;
+        private readonly PdfService _pdfService;
 
         public ReservacionService()
         {
@@ -22,6 +23,7 @@ namespace HotelesAPI.Services
             _usuarioDAO = new UsuarioDAO();
             _emailService = new EmailService();
             _huespedDAO = new HuespedReservaDAO();
+            _pdfService = new PdfService();
         }
 
         public Reservacion Crear(ReservacionDto dto)
@@ -107,11 +109,34 @@ namespace HotelesAPI.Services
                 }
             }
 
-            return _reservacionDAO.GetById(idCreado)
+            var reservaCompleta = _reservacionDAO.GetById(idCreado)
                 ?? throw new Exception("Error al crear la reservación");
+
+            // Notificar al usuario con el voucher en PDF adjunto. Si SMTP o
+            // PDF fallan, no abortamos la creación de la reserva: el registro
+            // ya está en BD y el usuario puede descargar el voucher manualmente.
+            try
+            {
+                var usuario = _usuarioDAO.FindById(dto.IdUsuario);
+                if (usuario != null && !string.IsNullOrWhiteSpace(usuario.Email))
+                {
+                    var huespedes = _huespedDAO.GetByReservacion(idCreado);
+                    byte[]? pdf = null;
+                    try { pdf = _pdfService.GenerarVoucher(reservaCompleta, huespedes); }
+                    catch (Exception exPdf) { Console.WriteLine($"[ReservacionService] Error generando PDF voucher: {exPdf.Message}"); }
+
+                    _emailService.EnviarVoucherUsuario(reservaCompleta, usuario, pdf);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReservacionService] Error enviando voucher al usuario: {ex.Message}");
+            }
+
+            return reservaCompleta;
         }
 
-        public bool Cancelar(int idReservacion, int idUsuario)
+        public CancelacionResultado Cancelar(int idReservacion, int idUsuario)
         {
             var reservacion = _reservacionDAO.GetById(idReservacion)
                 ?? throw new ArgumentException("Reservación no encontrada");
@@ -122,28 +147,65 @@ namespace HotelesAPI.Services
             if (reservacion.Estado == "Cancelada")
                 throw new ArgumentException("La reservación ya está cancelada");
 
-            if (reservacion.FechaCheckIn <= DateTime.Now.AddHours(24))
-                throw new ArgumentException("Solo se puede cancelar hasta 24 horas antes del check-in");
+            // Politica nueva (alineada a Booking/Expedia/Airbnb): se puede
+            // cancelar en cualquier momento antes del check-in, pero con
+            // reembolso parcial segun cuanto tiempo falte. Una vez iniciado
+            // el check-in (o pasado), no se cancela.
+            if (DateTime.Now >= reservacion.FechaCheckIn)
+                throw new ArgumentException("No se puede cancelar una reservación cuyo check-in ya inició o pasó");
+
+            double horasRestantes = (reservacion.FechaCheckIn - DateTime.Now).TotalHours;
+            decimal porcentajeReembolso;
+            string politica;
+            if (horasRestantes > 72)        { porcentajeReembolso = 100m; politica = "Más de 72h antes: reembolso completo"; }
+            else if (horasRestantes > 48)   { porcentajeReembolso = 75m;  politica = "Entre 48h y 72h antes: 75% de reembolso"; }
+            else if (horasRestantes > 24)   { porcentajeReembolso = 50m;  politica = "Entre 24h y 48h antes: 50% de reembolso"; }
+            else                            { porcentajeReembolso = 25m;  politica = "Menos de 24h antes: 25% de reembolso"; }
+
+            decimal montoReembolso = Math.Round(reservacion.PrecioTotal * porcentajeReembolso / 100m, 2);
+            decimal montoPenalizacion = Math.Round(reservacion.PrecioTotal - montoReembolso, 2);
 
             bool cancelado = _reservacionDAO.Cancelar(idReservacion);
+            if (!cancelado)
+                throw new Exception("No se pudo cancelar la reservación");
 
-            if (cancelado)
+            try
             {
-                try
+                var usuario = _usuarioDAO.FindById(idUsuario);
+                if (usuario != null)
                 {
-                    var usuario = _usuarioDAO.FindById(idUsuario);
-                    if (usuario != null)
-                    {
-                        _emailService.NotificarCancelacionAdmin(reservacion, usuario);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[ReservacionService] Error notificando cancelación: {ex.Message}");
+                    _emailService.NotificarCancelacionAdmin(
+                        reservacion, usuario, montoReembolso, montoPenalizacion, politica);
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReservacionService] Error notificando cancelación: {ex.Message}");
+            }
 
-            return cancelado;
+            return new CancelacionResultado
+            {
+                Exitosa = true,
+                MontoOriginal = reservacion.PrecioTotal,
+                PorcentajeReembolso = porcentajeReembolso,
+                MontoReembolso = montoReembolso,
+                MontoPenalizacion = montoPenalizacion,
+                HorasAnticipacion = Math.Round((decimal)horasRestantes, 2),
+                Politica = politica
+            };
         }
+    }
+
+    /// <summary>Resultado de cancelar una reserva. Incluye reembolso parcial
+    /// segun la politica vigente (ver ReservacionService.Cancelar).</summary>
+    public class CancelacionResultado
+    {
+        public bool Exitosa { get; set; }
+        public decimal MontoOriginal { get; set; }
+        public decimal PorcentajeReembolso { get; set; }
+        public decimal MontoReembolso { get; set; }
+        public decimal MontoPenalizacion { get; set; }
+        public decimal HorasAnticipacion { get; set; }
+        public string Politica { get; set; } = string.Empty;
     }
 }
